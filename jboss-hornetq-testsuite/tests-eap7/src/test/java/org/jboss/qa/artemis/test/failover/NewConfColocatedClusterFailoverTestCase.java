@@ -22,8 +22,6 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -367,146 +365,6 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         container(1).undeploy(mdb1);
         container(2).undeploy(mdb2);
-
-        container(1).stop();
-        container(2).stop();
-
-    }
-
-    /**
-     * @tpTestDetails This scenario tests "only-once delivery" queue pattern while messages are loadbalanced in cluster
-     * and one of nodes in cluster is killed and then comes alive.
-     * @tpProcedure <ul>
-     * <li>start two nodes in cluster with destinations</li>
-     * <li>start producer and send normal messages with _HQ_DUPL_ID to inQueue</li>
-     * <li>wait for producer to finish</li>
-     * <li>kill node-2 and start it again</li>
-     * <li>Start consumer and consume messages from inQueue on node-1</li>
-     * </ul>
-     * @tpPassCrit receiver get all sent messages
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testKillInClusterSmallMessages() throws Exception {
-        testFailInCluster(false, new TextMessageBuilder(10));
-    }
-
-    /**
-     * @tpTestDetails This scenario tests "only-once delivery" queue pattern while messages are loadbalanced in cluster
-     * and one of nodes in cluster is shut down and then comes alive.
-     * @tpProcedure <ul>
-     * <li>start two nodes in cluster with destinations</li>
-     * <li>start producer and send normal messages with _HQ_DUPL_ID to inQueue</li>
-     * <li>wait for producer to finish</li>
-     * <li>shut down node-2 and start it again</li>
-     * <li>Start consumer and consume messages from inQueue on node-1</li>
-     * </ul>
-     * @tpPassCrit receiver get all sent messages
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testShutdownInClusterSmallMessages() throws Exception {
-        testFailInCluster(true, new TextMessageBuilder(10));
-    }
-
-    /**
-     * @tpTestDetails This scenario tests "only-once delivery" queue pattern while large messages are loadbalanced in cluster
-     * and one of nodes in cluster is killed and then comes alive.
-     * @tpProcedure <ul>
-     * <li>start two nodes in cluster with destinations</li>
-     * <li>start producer and send large messages with _HQ_DUPL_ID to inQueue</li>
-     * <li>wait for producer to finish</li>
-     * <li>kill node-2 and start it again</li>
-     * <li>Start consumer and consume messages from inQueue on node-1</li>
-     * </ul>
-     * @tpPassCrit receiver get all sent messages
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testKillInClusterLargeMessages() throws Exception {
-        testFailInCluster(false, new ClientMixMessageBuilder(120, 200));
-    }
-
-    /**
-     * @tpTestDetails This scenario tests "only-once delivery" queue pattern while large messages are loadbalanced in cluster
-     * and one of nodes in cluster is shut down and then comes alive.
-     * @tpProcedure <ul>
-     * <li>start two nodes in cluster with destinations</li>
-     * <li>start producer and send large messages with _HQ_DUPL_ID to inQueue</li>
-     * <li>wait for producer to finish</li>
-     * <li>shut down node-2 and start it again</li>
-     * <li>Start consumer and consume messages from inQueue on node-1</li>
-     * </ul>
-     * @tpPassCrit receiver get all sent messages
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testShutdownInClusterLargeMessages() throws Exception {
-        testFailInCluster(true, new ClientMixMessageBuilder(120, 200));
-    }
-
-    public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
-
-        prepareLiveServerEAP6(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareLiveServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
-
-        container(2).start();
-        container(1).start();
-
-        // give some time for servers to find each other
-        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
-        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
-
-        int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
-        producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        producerToInQueue1.setMessageVerifier(messageVerifier);
-        producerToInQueue1.start();
-        producerToInQueue1.join();
-
-        logger.info("########################################");
-        logger.info("kill - second server");
-        logger.info("########################################");
-
-        if (shutdown) {
-            container(2).stop();
-        } else {
-            container(2).kill();
-        }
-
-        logger.info("########################################");
-        logger.info("Start again - second server");
-        logger.info("########################################");
-        container(2).start();
-        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000);
-        logger.info("########################################");
-        logger.info("Second server started");
-        logger.info("########################################");
-
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueue, 30000, 1000, 10);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setAckAfter(100);
-        printQueueStatus(container(1), inQueueName);
-        printQueueStatus(container(2), inQueueName);
-
-        receiver1.start();
-        receiver1.join();
-
-        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
-        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
-        messageVerifier.verifyMessages();
-        Assert.assertEquals("There is different number messages: ", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).stop();
         container(2).stop();
@@ -1240,110 +1098,6 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
      * Prepares live server for dedicated topology.
      *
      * @param container        test container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
-     */
-    public void prepareLiveServerEAP6(Container container, String bindingAddress, String journalDirectory) {
-        prepareLiveServerEAP6(container, bindingAddress, journalDirectory, "ASYNCIO");
-    }
-
-    /**
-     * Prepares live server for dedicated topology.
-     *
-     * @param container        test container - defined in arquillian.xml
-     * @param bindingAddress   says on which ip container will be binded
-     * @param journalDirectory path to journal directory
-     */
-    public void prepareLiveServerEAP6(Container container, String bindingAddress, String journalDirectory, String journalType) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String messagingGroupSocketBindingName = "messaging-group";
-        String pooledConnectionFactoryName = "hornetq-ra";
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setInetAddress("public", bindingAddress);
-        jmsAdminOperations.setInetAddress("unsecure", bindingAddress);
-        jmsAdminOperations.setInetAddress("management", bindingAddress);
-
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setBindingsDirectory(journalDirectory);
-        jmsAdminOperations.setPagingDirectory(journalDirectory);
-        jmsAdminOperations.setJournalDirectory(journalDirectory);
-        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
-
-        jmsAdminOperations.setJournalFileSize(10 * 1024 * 1024);
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setJournalType(journalType);
-
-        jmsAdminOperations.setFailoverOnShutdown(true);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
-        // set ha also for hornetq-ra
-        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
-        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
-        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
-        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
-
-        jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.setSecurityEnabled(true);
-        jmsAdminOperations.setClusterUserPassword(CLUSTER_PASSWORD);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        // enable debugging
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
-
-        // set security persmissions for roles admin,users - user is already there
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-        }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-        }
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-
-        jmsAdminOperations.close();
-        container.stop();
-    }
-
-    /**
-     * Prepares live server for dedicated topology.
-     *
-     * @param container        test container - defined in arquillian.xml
      * @param journalDirectory path to journal directory
      */
     public void prepareCollocatedLiveServer(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
@@ -1355,7 +1109,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
-        setConnectorForClientEAP7(container, connectorType);
+        setConnectorForClient(container, connectorType);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.disableSecurity();
@@ -1378,7 +1132,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    protected void setConnectorForClientEAP7(Container container, Constants.CONNECTOR_TYPE connectorType) {
+    protected void setConnectorForClient(Container container, Constants.CONNECTOR_TYPE connectorType) {
 
         String messagingGroupSocketBindingForConnector = "messaging";
         String nettyConnectorName = "netty";
@@ -1451,107 +1205,6 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
 
         jmsAdminOperations.close();
-    }
-
-    /**
-     * Prepares colocated backup. It creates new configuration of backup server.
-     *
-     * @param container            The arquilian container.
-     * @param backupServerName     Name of the new HornetQ backup server.
-     * @param journalDirectoryPath Absolute or relative path to journal directory.
-     */
-    public void prepareColocatedBackupServerEAP6(Container container,
-                                                 String backupServerName, String journalDirectoryPath) {
-        prepareColocatedBackupServerEAP6(container, backupServerName, journalDirectoryPath, "ASYNCIO");
-    }
-
-    /**
-     * Prepares colocated backup. It creates new configuration of backup server.
-     *
-     * @param container            The arquilian container.
-     * @param backupServerName     Name of the new HornetQ backup server.
-     * @param journalDirectoryPath Absolute or relative path to journal directory.
-     */
-    public void prepareColocatedBackupServerEAP6(Container container,
-                                                 String backupServerName, String journalDirectoryPath, String journalType) {
-
-        String discoveryGroupName = "dg-group-backup";
-        String broadCastGroupName = "bg-group-backup";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "netty-backup";
-        String acceptorName = "netty-backup";
-        String inVmConnectorName = "in-vm";
-        String socketBindingName = "messaging-backup";
-        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
-        String messagingGroupSocketBindingName = "messaging-group";
-        String pooledConnectionFactoryName = "hornetq-ra";
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.addMessagingSubsystem(backupServerName);
-        jmsAdminOperations.setClustered(backupServerName, true);
-        jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
-        jmsAdminOperations.disableSecurity(backupServerName);
-//        jmsAdminOperations.setSecurityEnabled(true);
-        jmsAdminOperations.setBackup(backupServerName, true);
-        jmsAdminOperations.setSharedStore(backupServerName, true);
-        jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);
-        jmsAdminOperations.setFailoverOnShutdown(true);
-        jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
-        jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectoryPath);
-        jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectoryPath);
-        jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectoryPath);
-        jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectoryPath);
-        jmsAdminOperations.setAllowFailback(backupServerName, true);
-        jmsAdminOperations.setJournalType(backupServerName, journalType);
-
-        jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
-        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
-        jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
-        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
-
-        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-        jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
-
-        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
-        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        // set ha also for hornetq-ra
-        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
-        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
-        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
-        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
-
-        // enable debugging
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
-
-        // set security persmissions for roles guest
-        jmsAdminOperations.addSecuritySetting(backupServerName, "#");
-        jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "consume", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-non-durable-queue", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "manage", true);
-        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "send", true);
-
-//        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-//            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
-//        }
-//
-//        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-//            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
-//        }
-//      jmsAdminOperations.createQueue(backupServerName, inQueueName, inQueue, true);
-//      jmsAdminOperations.createQueue(backupServerName, outQueueName, outQueue, true);
-
-        jmsAdminOperations.close();
-        container.stop();
     }
 
     private void setJournalType(String journalType) {
