@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -40,8 +42,10 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     public void prepareColocatedTopologyInCluster() {
 
         if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
-            prepareLiveServerEAP7(container(1), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareLiveServerEAP7(container(2), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_A, "group1", Constants.CONNECTOR_TYPE.NETTY_NIO);
+            prepareBackupServerEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_B, "group2");
+            prepareLiveServerEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_C, "group2", Constants.CONNECTOR_TYPE.NETTY_NIO);
+            prepareBackupServerEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_D, "group1");
         } else {
             prepareLiveServerEAP6(container(1), "firstPair", "firstPairJournalLive");
             prepareColocatedBackupServerEAP6(container(1), "backup", "secondPair", "secondPairJournalBackup");
@@ -57,21 +61,26 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      *
      * @param container     The container - defined in arquillian.xml
      * @param journalType   ASYNCIO, NIO
+     * @param groupName     name of group used for Live-Backup pair
      * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
      */
-    protected void prepareLiveServerEAP7(Container container, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    public void prepareLiveServerEAP7(Container container, String journalType, String journalDirectory, String groupName, Constants.CONNECTOR_TYPE connectorType) {
 
         container.start();
-
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        setConnectorForClientEAP7(container, connectorType);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setJournalType(journalType);
-        setConnectorForClientEAP7(container, connectorType);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addHAPolicyCollocatedReplicated("default", 1000, -1, 1000, 1, true, null);
+        jmsAdminOperations.addHAPolicyReplicationMaster("default", true, clusterConnectionName, groupName);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -83,6 +92,70 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
 
+        jmsAdminOperations.close();
+
+        container.stop();
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container     The container - defined in arquillian.xml
+     * @param journalType   ASYNCIO, NIO
+     * @param groupName     name of group used for Live-Backup pair
+     */
+    public void prepareBackupServerEAP7(Container container, String journalType, String journalDirectory, String groupName) {
+
+        final String backupServerName = "backup";
+
+        String discoveryGroupName = "dg-group-backup";
+        String broadCastGroupName = "bg-group-backup";
+        String connectorName = "netty-backup";
+        String acceptorName = "netty-backup";
+        String inVmConnectorName = "in-vm";
+        String socketBindingName = "messaging-backup";
+        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
+        String pooledConnectionFactoryName = "activemq-ra";
+        String jgroupsChannel = "activemq-cluster";
+        String jgroupsStack = "udp";
+
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+
+        jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectory);
+
+        jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, jgroupsStack, jgroupsChannel, 1000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.setClusterConnections(backupServerName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
+
+
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
+        jmsAdminOperations.setJournalType(backupServerName, journalType);
+        jmsAdminOperations.disableSecurity(backupServerName);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicyReplicationSlave(backupServerName, true, clusterConnectionName, 1000, groupName, -1, true, false, null, null, null, null);
+
+        // set ha also for hornetq-ra
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
 
         jmsAdminOperations.close();
         container.stop();

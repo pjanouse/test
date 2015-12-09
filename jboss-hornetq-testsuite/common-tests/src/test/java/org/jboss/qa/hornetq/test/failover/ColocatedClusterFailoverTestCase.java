@@ -55,7 +55,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     protected static final int NUMBER_OF_PRODUCERS_PER_DESTINATION = 3;
     protected static final int NUMBER_OF_RECEIVERS_PER_DESTINATION = 1;
     protected static final int BYTEMAN_PORT = 9091;
-    private static final String CLUSTER_PASSWORD = "CHANGE_ME!!!";
+    protected static final String CLUSTER_PASSWORD = "CHANGE_ME!!!";
 
     private final Archive mdb1 = createLodh1Deployment();
     private final Archive mdb2 = createLodh1Deployment2();
@@ -1391,13 +1391,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         String discoveryGroupName = "dg-group-backup";
         String broadCastGroupName = "bg-group-backup";
-        String clusterGroupName = "my-cluster";
         String connectorName = "netty-backup";
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
         int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
-        String messagingGroupSocketBindingName = "messaging-group";
         String pooledConnectionFactoryName = "activemq-ra";
         String jgroupsChannel = "activemq-cluster";
         String jgroupsStack = "udp";

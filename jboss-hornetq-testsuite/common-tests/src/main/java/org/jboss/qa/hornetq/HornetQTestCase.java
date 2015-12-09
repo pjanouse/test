@@ -106,6 +106,12 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     // Journal directory for second live/backup pair or second node in cluster
     public static final String JOURNAL_DIRECTORY_B;
 
+    // Journal directory for server in colocated replicated topology (each server must have own journal)
+    public static final String JOURNAL_DIRECTORY_C;
+
+    // Journal directory for server in colocated replicated topology (each server must have own journal)
+    public static final String JOURNAL_DIRECTORY_D;
+
     // Active server - EAP 5 or EAP 6?
     @Deprecated
     protected String currentContainerForTest;
@@ -129,6 +135,10 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
         String tmpJournalB = System.getenv("JOURNAL_DIRECTORY_B");
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
+        String tmpJournalC = System.getenv("JOURNAL_DIRECTORY_C");
+        JOURNAL_DIRECTORY_C = (tmpJournalC != null) ? tmpJournalC : "../../../../hornetq-journal-C";
+        String tmpJournalD = System.getenv("JOURNAL_DIRECTORY_D");
+        JOURNAL_DIRECTORY_D = (tmpJournalB != null) ? tmpJournalD : "../../../../hornetq-journal-D";
 
         // IP addresses for the servers
         String tmpIpAddress = getEnvProperty("MYTESTIP_1");
