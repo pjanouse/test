@@ -67,13 +67,17 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
         for (int i = 0; i < numberOfFails; i++) {
 
-            Thread.sleep(timeBetweenFails);
-
             stopProxies();
 
+            log.info("Sleeping: " + timeBetweenFails);
             Thread.sleep(timeBetweenFails);
 
             startProxies();
+
+            if(i != numberOfFails-1) {
+                log.info("Sleeping: " + timeBetweenFails);
+                Thread.sleep(timeBetweenFails);
+            }
 
         }
     }

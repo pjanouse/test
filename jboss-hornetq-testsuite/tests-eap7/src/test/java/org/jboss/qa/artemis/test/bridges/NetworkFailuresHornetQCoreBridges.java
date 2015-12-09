@@ -396,24 +396,27 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
 
-        Thread.sleep(5*60000);
+
         if (staysDisconnected)  {
+            container(2).stop();
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
-            container(1).restart();
             ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), relativeJndiInQueueName, 10000, 10, 10);
+            receiver2.setMessageVerifier(messageVerifier);
             receiver2.start();
             receiver2.join();
             container(1).stop();
+            messageVerifier.verifyMessages();
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+            container(2).stop();
+            container(1).stop();
         }
-        container(2).stop();
-        container(1).stop();
+
     }
 
 
@@ -434,6 +437,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         prepareServersWihtMessageGrouping(reconnectAttempts);
 
         startProxies();
+        Thread.sleep(20000);
         container(1).start(); // A1
         container(2).start(); // B1
 
@@ -454,8 +458,9 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         receiver1.setMessageVerifier(groupMessageVerifier);
 
         NetworkFailuresBridgesAbstract.log.info("Start producer and receiver.");
-        producer1.start();
         receiver1.start();
+        producer1.start();
+
 
         // Wait to send and receive some messages
         Thread.sleep(15 * 1000);
