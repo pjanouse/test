@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,6 +40,7 @@ public class StompCompatibilityTestCase extends ProtocolCompatibilityTestCase  {
         container(1).stop();
     }
 
+    @Ignore
     @Test
     @RunAsClient
     @CleanUpBeforeTest
