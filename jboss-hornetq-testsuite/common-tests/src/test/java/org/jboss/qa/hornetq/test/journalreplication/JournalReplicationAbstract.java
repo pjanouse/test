@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.constants.Constants.JOURNAL_TYPE;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
 import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemController;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -212,7 +213,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
     }
 
-    public void testCore(NetworkFailurePoint testPoint) throws RemoteException {
+    public void testCore(NetworkFailurePoint testPoint) throws RemoteException, InterruptedException {
         ControllableProxy proxyToLive = createProxyToLive();
         proxyToLive.start();
 
@@ -322,7 +323,15 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         return JMSUtil.acknowlegeMessage(message, maxRetryNum, retrySleepSeconds);
     }
 
-    public void prepareLive(Container liveServer) throws Exception {
+    public void prepareLive(Container container) throws Exception {
+        if (ContainerUtils.isEAP7(container)) {
+            prepareLiveEAP7(container);
+        } else {
+            prepareLiveEAP6(container);
+        }
+    }
+
+    public void prepareLiveEAP6(Container liveServer) throws Exception {
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
         String messagingGroupSocketBindingName = "messaging-group";
@@ -440,7 +449,141 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
     }
 
-    public void prepareBackup(Container backupServer) throws Exception {
+    public void prepareLiveEAP7(Container liveServer) throws Exception {
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
+
+        liveServer.start();
+
+        JMSOperations adminLive = liveServer.getJmsOperations();
+
+        adminLive.setJournalType(getJournalType().toString());
+
+        adminLive.removeAddressSettings("#");
+
+        adminLive.addAddressSettings(
+                "#",
+                getAddressFullPolicy().toString(),
+                10485760,
+                0,
+                10485760,
+                1048570);
+
+        adminLive.setSecurityEnabled(false);
+        adminLive.setClusterUserPassword(CLUSTER_PASSWORD);
+        adminLive.setPersistenceEnabled(true);
+
+        adminLive.addHAPolicyReplicationMaster(true, clusterGroupName, BACKUP_GROUP_NAME);
+
+        adminLive.createQueue(NAME_QUEUE, JNDI_QUEUE);
+
+//        adminLive.addSocketBinding("bindname", "234.255.10.1", 55234);
+
+        adminLive.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_LIVE_PROXY_PORT);
+
+//        adminLive.addSocketBinding(
+//                proxySocketBindingName = "messaging-via-proxy",
+//                port = MESSAGING_TO_LIVE_PROXY_PORT);
+
+//        adminLive.createRemoteConnector(
+//                proxyConnectorName = "netty-proxy",
+//                socketBinding = proxySocketBindingName,
+//                params = null);
+
+        adminLive.createHttpConnector(
+                proxyConnectorName = "http-proxy",
+                socketBinding = proxySocketBindingName,
+                null,
+                "http-acceptor"
+        );
+
+        adminLive.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+        adminLive.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+        adminLive.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
+//        adminLive.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, proxyConnectorName);
+
+        adminLive.removeClusteringGroup(clusterGroupName);
+        adminLive.setClusterConnections(
+                clusterName = clusterGroupName,
+                address = "jms",
+                discoveryGroup = discoveryGroupName,
+                forwardWhenNoConsumers = false,
+                maxHops = 1,
+                retryInterval = 1000,
+                useDuplicateDetection = true,
+                connectorName = proxyConnectorName);
+//                connectorName = "netty");
+        adminLive.removeBroadcastGroup(broadCastGroupName);
+        adminLive.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+
+        adminLive.removeDiscoveryGroup(discoveryGroupName);
+        adminLive.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        adminLive.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        adminLive.close();
+
+        liveServer.stop();
+
+        File applicationUsersModified = new File(
+                "src" + File.separator
+                        + "test" + File.separator
+                        + "resources" + File.separator
+                        + "org" + File.separator
+                        + "jboss" + File.separator
+                        + "qa" + File.separator
+                        + "hornetq" + File.separator
+                        + "test" + File.separator
+                        + "security" + File.separator
+                        + "application-users.properties");
+        File applicationUsersOriginal = new File(
+                SERVER_DIR_LIVE + File.separator
+                        + "standalone" + File.separator
+                        + "configuration" + File.separator
+                        + "application-users.properties");
+
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+
+        File applicationRolesModified = new File(
+                "src" + File.separator
+                        + "test" + File.separator
+                        + "resources" + File.separator
+                        + "org" + File.separator
+                        + "jboss" + File.separator
+                        + "qa" + File.separator
+                        + "hornetq" + File.separator
+                        + "test" + File.separator
+                        + "security" + File.separator
+                        + "application-roles.properties");
+        File applicationRolesOriginal = new File(
+                SERVER_DIR_LIVE + File.separator
+                        + "standalone" + File.separator
+                        + "configuration" + File.separator
+                        + "application-roles.properties");
+
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+    }
+
+    public void prepareBackup(Container container) throws Exception {
+        if (ContainerUtils.isEAP7(container)) {
+            prepareBackupEAP7(container);
+        } else {
+            prepareBackupEAP6(container);
+        }
+    }
+
+    public void prepareBackupEAP6(Container backupServer) throws Exception {
 
         String broadCastGroupName = "bg-group1";
         String discoveryGroupName = "dg-group1";
@@ -470,6 +613,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
                 proxySocketBindingName = "messaging-via-proxy",
                 host = "localhost",
                 port = MESSAGING_TO_BACKUP_PROXY_PORT);
+
 
         adminBackup.createRemoteConnector(
                 proxyConnectorName = "netty-proxy",
@@ -543,6 +687,117 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
                 + "standalone" + File.separator
                 + "configuration" + File.separator
                 + "application-roles.properties");
+
+        FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+
+    }
+
+    public void prepareBackupEAP7(Container backupServer) throws Exception {
+
+        String broadCastGroupName = "bg-group1";
+        String discoveryGroupName = "dg-group1";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String clusterGroupName = "my-cluster";
+
+        backupServer.start();
+
+        JMSOperations adminBackup = backupServer.getJmsOperations();
+
+        adminBackup.setBlockOnAckForConnectionFactory(NAME_CONNECTION_FACTORY, false);
+        adminBackup.setReconnectAttemptsForConnectionFactory(NAME_CONNECTION_FACTORY, -1);
+
+        adminBackup.addHAPolicyReplicationSlave(true, clusterGroupName, 1000, BACKUP_GROUP_NAME, -1, true, false, null, null, null, null);
+
+        adminBackup.setSecurityEnabled(false);
+        adminBackup.setClusterUserPassword(CLUSTER_PASSWORD);
+        adminBackup.setPersistenceEnabled(true);
+
+        adminBackup.setHaForConnectionFactory(NAME_CONNECTION_FACTORY, true);
+
+        adminBackup.addRemoteSocketBinding(
+                proxySocketBindingName = "messaging-via-proxy",
+                host = "localhost",
+                port = MESSAGING_TO_BACKUP_PROXY_PORT);
+
+//        adminBackup.createRemoteConnector(
+//                proxyConnectorName = "netty-proxy",
+//                socketBinding = proxySocketBindingName,
+//                params = null);
+
+        adminBackup.createHttpConnector(
+                proxyConnectorName = "http-proxy",
+                socketBinding = proxySocketBindingName,
+                null,
+                "http-acceptor"
+        );
+
+        adminBackup.removeClusteringGroup(clusterGroupName);
+        adminBackup.setClusterConnections(
+                clusterName = clusterGroupName,
+                address = "jms",
+                discoveryGroup = discoveryGroupName,
+                forwardWhenNoConsumers = false,
+                maxHops = 1,
+                retryInterval = 1000,
+                useDuplicateDetection = true,
+                connectorName = proxyConnectorName);
+//                connectorName = "netty");
+
+        adminBackup.removeBroadcastGroup(broadCastGroupName);
+        adminBackup.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
+
+        adminBackup.removeDiscoveryGroup(discoveryGroupName);
+        adminBackup.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
+
+        adminBackup.createQueue(NAME_QUEUE, JNDI_QUEUE);
+
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        adminBackup.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        adminBackup.close();
+
+        backupServer.stop();
+
+        File applicationUsersModified = new File(
+                "src" + File.separator
+                        + "test" + File.separator
+                        + "resources" + File.separator
+                        + "org" + File.separator
+                        + "jboss" + File.separator
+                        + "qa" + File.separator
+                        + "hornetq" + File.separator
+                        + "test" + File.separator
+                        + "security" + File.separator
+                        + "application-users.properties");
+        File applicationUsersOriginal = new File(
+                SERVER_DIR_BACKUP + File.separator
+                        + "standalone" + File.separator
+                        + "configuration" + File.separator
+                        + "application-users.properties");
+
+        FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+
+        File applicationRolesModified = new File(
+                "src" + File.separator
+                        + "test" + File.separator
+                        + "resources" + File.separator
+                        + "org" + File.separator
+                        + "jboss" + File.separator
+                        + "qa" + File.separator
+                        + "hornetq" + File.separator
+                        + "test" + File.separator
+                        + "security" + File.separator
+                        + "application-roles.properties");
+        File applicationRolesOriginal = new File(
+                SERVER_DIR_BACKUP + File.separator
+                        + "standalone" + File.separator
+                        + "configuration" + File.separator
+                        + "application-roles.properties");
 
         FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
 
