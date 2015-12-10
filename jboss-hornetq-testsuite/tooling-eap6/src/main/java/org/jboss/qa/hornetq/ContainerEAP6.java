@@ -2,7 +2,7 @@ package org.jboss.qa.hornetq;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -23,9 +23,6 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ServiceLoader;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -44,6 +41,7 @@ public class ContainerEAP6 implements Container {
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
     private int pid = Integer.MIN_VALUE;
+    private Map<String, String> originalContainerProperties = null;
 
     @Override
     public void init(String containerName, int containerIndex, ArquillianDescriptor arquillianDescriptor,
@@ -52,6 +50,8 @@ public class ContainerEAP6 implements Container {
         this.containerIndex = containerIndex;
         this.containerController = containerController;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
+        this.originalContainerProperties = containerDef.getContainerProperties();
+
     }
 
     @Override
@@ -185,7 +185,7 @@ public class ContainerEAP6 implements Container {
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
         // replace 9091 for byteman port
 
-        Map<String, String> containerProperties = containerDef.getContainerProperties();
+        Map<String, String> containerProperties = getOriginalContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
 
@@ -477,6 +477,20 @@ public class ContainerEAP6 implements Container {
 
         throw new RuntimeException("No container with name " + containerName + " found in Arquillian descriptor "
                 + descriptor.getDescriptorName());
+    }
+
+    private Map<String, String> getOriginalContainerProperties()
+    {
+        Map<String, String> properties = new HashMap<String, String>();
+
+        if(originalContainerProperties != null)
+        {
+            for(String key: originalContainerProperties.keySet())
+            {
+                properties.put(key, originalContainerProperties.get(key));
+            }
+        }
+        return properties;
     }
 
 }
