@@ -1420,16 +1420,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
 
 
-
-        Map<String, String> connectorParamsNIO = new HashMap<String, String>();
-        connectorParamsNIO.put("use-nio", "true");
-        connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, connectorParamsNIO);
-        // add acceptor with NIO
-        Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
-        acceptorParamsNIO.put("use-nio", "true");
-        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, acceptorParamsNIO);
-
         jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
         jmsAdminOperations.setJournalType(backupServerName, journalType);
         jmsAdminOperations.disableSecurity(backupServerName);
