@@ -2048,7 +2048,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueNIOJournalNIOConnectors() throws Exception {
+    public void testFailbackClientAckQueueNIOJournalNIOConnectors() throws Exception {
         prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
@@ -2072,7 +2072,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
+    public void testFailbackClientAckQueueOnShutdownNIOJournalNIOConnectors() throws Exception {
         prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
@@ -2147,7 +2147,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueNIOJournalBIOConnectors() throws Exception {
+    public void testFailbackClientAckQueueNIOJournalBIOConnectors() throws Exception {
         prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, false);
     }
@@ -2171,7 +2171,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverClientAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
+    public void testFailbackClientAckQueueOnShutdownNIOJournalBIOConnectors() throws Exception {
         prepareSimpleDedicatedTopology(JOURNAL_DIRECTORY_A, NIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_BIO);
         testFailoverNoPrepare(Session.CLIENT_ACKNOWLEDGE, true, false, true);
     }
