@@ -18,12 +18,28 @@ public class JournalDirectory {
         return getJournalDirectory(jbossHome, "B");
     }
 
+    public static String getJournalDirectoryC(final String jbossHome) {
+        return getJournalDirectory(jbossHome, "C");
+    }
+
+    public static String getJournalDirectoryD(final String jbossHome) {
+        return getJournalDirectory(jbossHome, "D");
+    }
+
     public static void deleteJournalDirectoryA(final String jbossHome) {
         deleteJournalDirectory(jbossHome, "A");
     }
 
     public static void deleteJournalDirectoryB(final String jbossHome) {
         deleteJournalDirectory(jbossHome, "B");
+    }
+
+    public static void deleteJournalDirectoryC(final String jbossHome) {
+        deleteJournalDirectory(jbossHome, "C");
+    }
+
+    public static void deleteJournalDirectoryD(final String jbossHome) {
+        deleteJournalDirectory(jbossHome, "D");
     }
 
     private static void deleteJournalDirectory(final String jbossHome, final String journal) {

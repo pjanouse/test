@@ -75,6 +75,8 @@ public class CleanUp {
 
                 JournalDirectory.deleteJournalDirectoryA(jbossHome);
                 JournalDirectory.deleteJournalDirectoryB(jbossHome);
+                JournalDirectory.deleteJournalDirectoryC(jbossHome);
+                JournalDirectory.deleteJournalDirectoryD(jbossHome);
             }
         }
     }
@@ -91,6 +93,8 @@ public class CleanUp {
 
             JournalDirectory.deleteJournalDirectoryA(containerDef.getContainerProperties().get("jbossHome"));
             JournalDirectory.deleteJournalDirectoryB(containerDef.getContainerProperties().get("jbossHome"));
+            JournalDirectory.deleteJournalDirectoryC(containerDef.getContainerProperties().get("jbossHome"));
+            JournalDirectory.deleteJournalDirectoryD(containerDef.getContainerProperties().get("jbossHome"));
         }
 
 //        JournalDirectory.deleteJournalDirectoryA(
