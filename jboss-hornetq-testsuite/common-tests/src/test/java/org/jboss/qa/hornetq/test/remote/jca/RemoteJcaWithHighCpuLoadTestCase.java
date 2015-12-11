@@ -219,7 +219,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        loadInCluster(lodhLikemdb, container(2), messageBuilder);
+        loadInCluster(lodhLikemdb, container(2), messageBuilder, 10000);
     }
 
     @Test
@@ -238,8 +238,10 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     }
 
     private void loadInCluster(Archive mdbToDeploy, Container containerUnderLoad, MessageBuilder messageBuilder) throws Exception {
+        loadInCluster(mdbToDeploy, containerUnderLoad, messageBuilder, 50000);
+    }
 
-        int numberOfMessages = 50000;
+    private void loadInCluster(Archive mdbToDeploy, Container containerUnderLoad, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
@@ -353,7 +355,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        suspendInCluster(lodhLikemdb, container(2), messageBuilder);
+        suspendInCluster(lodhLikemdb, container(2), messageBuilder, 10000);
     }
 
     @Test
@@ -372,8 +374,12 @@ public class RemoteJcaWithHighCpuLoadTestCase extends HornetQTestCase {
     }
 
     private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder) throws Exception {
+        suspendInCluster(mdbToDeploy, containerToSuspend, messageBuilder, 50000);
+    }
 
-        int numberOfMessages = 50000;
+    private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
+
+
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
