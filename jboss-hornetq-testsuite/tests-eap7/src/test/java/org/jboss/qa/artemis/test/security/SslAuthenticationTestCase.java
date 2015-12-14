@@ -50,6 +50,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.net.ssl.SSLEngine;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -59,6 +60,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -508,11 +510,10 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
         prepareSeverWithPkcs11(container(1));
-
-        container(1).start();
-
-        Context context = container(1).getContext();
-
+        final Properties env = new Properties();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+        env.put(Context.PROVIDER_URL, String.format("%s%s:%s", "http-remoting://", "127.0.0.1", 8443));
+        Context context = new InitialContext(env);
         ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -676,86 +677,46 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     private void prepareSeverWithPkcs11(Container container) throws Exception {
 
-        installSecurityExtension(container);
 
-        container.start();
-        JMSOperations ops = this.prepareServer();
 
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+        final String securityRealmName = "https";
+        final String listenerName = "undertow-https";
+        final String sockerBinding = "https";
+        final String verifyClientPolitic = "NOT_REQUESTED";
+        final String password = "user.456";
+        final String httpAcceptorName = "https-acceptor";
+        final String httpConnectorName = "https-connector";
+        final String remoteConnectionFactoryName = "RemoteConnectionFactory";
+        final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
 
-        // enable logging
-        ops.addLoggerCategory("org.jboss.security", "TRACE");
+        container(1).start();
+        JMSOperations ops = container(1).getJmsOperations();
 
-        // enable SunPKCS11 security provider EAP 6 server
-        ops.addExtension("org.jboss.as.security.providers");
-        ops.addSubsystem("security-providers");
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put("nssLibraryDirectory", System.getProperty("sun.arch.data.model").equals("64") ?
-                "/usr/lib64" : "/usr/lib");
-        attributes.put("nssSecmodDirectory", new File(TEST_KEYSTORES_DIRECTORY, "fipsdb").getAbsolutePath());
-        attributes.put("nssModule", "fips");
-        ops.addSecurityProvider("sunpkcs11", "nss-fips", attributes);
+        ops.createSecurityRealm(securityRealmName);
+        ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS", password);
 
-        // enable it for this arquillian test
-//        name=PKCS11
-//        nssLibraryDirectory=/usr/lib64
-//        nssSecmodDirectory=/home/mnovak/tmp/pkcs11/fipsdb
-//        nssModule=fips
-        FileUtils.copyFile(new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_ORIGINAL), new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_MODIFIED));
-        File pkcs11ConfigFile = new File(TEST_KEYSTORES_DIRECTORY, PKCS11_CONFIG_FILE_MODIFIED);
-        replaceStringInFile(pkcs11ConfigFile, "nssLibraryDirectory=", System.getProperty("sun.arch.data.model").equals("64") ?
-                "nssLibraryDirectory=/usr/lib64" : "nssLibraryDirectory=/usr/lib");
-        replaceStringInFile(pkcs11ConfigFile, "nssSecmodDirectory=",
-                "nssSecmodDirectory=" + new File(TEST_KEYSTORES_DIRECTORY, "fipsdb").getAbsolutePath());
-        PKCS11Utils.registerProvider(pkcs11ConfigFile.getAbsolutePath());
-
-        String acceptorName = "http-acceptor";
-        String connectorName = "http-connector";
-        String messagingGroupSocketBindingName = "messaging";
-        String httpListener = "default";
-
-        ops.removeHttpConnector(connectorName);
-        ops.removeHttpAcceptor(acceptorName);
-
-        // create connector and acceptor with ssl certificates
-        Map<String, String> acceptorProps = new HashMap<String, String>();
-        acceptorProps.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-        acceptorProps.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "cert8.db").getAbsolutePath());
-        acceptorProps.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        acceptorProps.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
-        acceptorProps.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        acceptorProps.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        acceptorProps.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        acceptorProps.put("need-client-auth", "true");
-        ops.createHttpAcceptor(acceptorName, httpListener, acceptorProps);
-
-        Map<String, String> connectorProps = new HashMap<String, String>();
-        connectorProps.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-        connectorProps.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "cert8.db").getAbsolutePath());
-        connectorProps.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        connectorProps.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
-        connectorProps.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        connectorProps.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        connectorProps.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        ops.createHttpConnector(connectorName, messagingGroupSocketBindingName, connectorProps);
-
-        ops.setConnectorOnConnectionFactory("RemoteConnectionFactory", connectorName);
-        ops.setSecurityEnabled(true);
-
-        if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            ops.addExtension("org.jboss.legacy.jnp");
-            ops.createSocketBinding(SocketBinding.LEGACY_JNP.getName(), SocketBinding.LEGACY_JNP.getPort());
-            ops.createSocketBinding(SocketBinding.LEGACY_RMI.getName(), SocketBinding.LEGACY_RMI.getPort());
-            activateLegacyJnpModule(container);
-        }
 
         ops.close();
+        container(1).restart();
+        ops = container(1).getJmsOperations();
 
-        container.stop();
+        ops.addHttpsListener(listenerName, securityRealmName, sockerBinding, verifyClientPolitic);
+        ops.createHttpAcceptor(httpAcceptorName, listenerName, null);
+        Map<String, String> httpConnectorParams = new HashMap<String, String>();
+        httpConnectorParams.put("ssl-enabled", "true");
+        ops.createHttpConnector(httpConnectorName, sockerBinding, httpConnectorParams, httpAcceptorName);
 
-        if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_LEGACY_CONTAINER)) {
-            activateLegacyJnpModule(container);
-        }
+        ops.close();
+        container(1).restart();
+        ops = container(1).getJmsOperations();
+
+        ops.removeConnectionFactory(remoteConnectionFactoryName);
+        ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, httpConnectorName);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+
+        ops.close();
+        container(1).stop();
+
 
     }
 

@@ -446,6 +446,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addServerIdentityWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addAuthentication(String realmName, String trustStorePath, String keyStorePass) {
         logger.info("This operation is not supported: " + getMethodName());
     }
