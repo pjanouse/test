@@ -35,7 +35,7 @@ public class AIOJournalLoadTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testExportImportMessageWithNullProperty() throws Exception {
+    public void testUseOfAIOJournal() throws Exception {
         
         log.info(System.getProperty("os.name"));
         
