@@ -269,9 +269,19 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void loadInClusterWithRestart() throws Exception {
+    public void loadInClusterWithRestartLodhMdb() throws Exception {
+        loadInClusterWithRestart(lodhLikemdb);
+    }
 
-        Archive mdbToDeploy = lodhLikemdb;
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadInClusterWithRestartNormalMdb() throws Exception {
+        loadInClusterWithRestart(mdb1);
+    }
+
+    private void loadInClusterWithRestart(Archive mdbToDeploy) throws Exception {
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
