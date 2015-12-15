@@ -213,7 +213,10 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         container(1).stop();
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"bindings"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"journal"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"paging"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"largemessages"));
 
         containerProperties.replace("adminOnly", "false");
         //start in normal mode
