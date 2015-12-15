@@ -44,6 +44,8 @@ public abstract class SecurityTestBase extends HornetQTestCase {
 
     protected final String keyStorePath = serverKeystoreDir + KEY_STORE_NAME;
 
+    protected final String caCertPath = TEST_KEYSTORES_DIRECTORY + "cacert.asc";
+
     /**
      * Copies keystore and truststore to JBOSS_HOME_1/standalone/deployments.
      *

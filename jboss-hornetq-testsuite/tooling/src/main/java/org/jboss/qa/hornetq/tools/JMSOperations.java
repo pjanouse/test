@@ -251,6 +251,15 @@ public interface JMSOperations {
      * @param keyStorePass      password to a key store
      */
     void addServerIdentityWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass);
+
+    /**
+     * Add authentication into the security realm
+     *
+     * @param realmName         name of the security realm
+     * @param keyStoreProvider     name of keystore provider
+     * @param keyStorePass      password to a trust store
+     */
+    void addAuthenticationWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass);
     /**
      * Add authentication into the security realm
      *

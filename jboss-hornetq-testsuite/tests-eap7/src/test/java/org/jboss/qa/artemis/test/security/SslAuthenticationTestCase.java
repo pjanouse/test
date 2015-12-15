@@ -56,6 +56,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -511,9 +512,16 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs11(container(1));
         container(1).start();
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
+
+
+        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
+
         Context context = container(1).getContext();
         ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
-        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Connection connection = cf.createConnection();
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         Queue testQueue = session.createQueue(QUEUE_NAME);
 
@@ -680,23 +688,24 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         final String securityRealmName = "https";
         final String listenerName = "undertow-https";
         final String sockerBinding = "https";
-        final String verifyClientPolitic = "NOT_REQUESTED";
+        final String verifyClientPolitic = "REQUIRED";
         final String password = "user.456";
         final String httpAcceptorName = "https-acceptor";
         final String httpConnectorName = "https-connector";
         final String remoteConnectionFactoryName = "RemoteConnectionFactory";
         final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
 
-        container(1).start();
-        JMSOperations ops = container(1).getJmsOperations();
+        container.start();
+        JMSOperations ops = container.getJmsOperations();
 
         ops.createSecurityRealm(securityRealmName);
         ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS11", password);
-
-
+        ops.addAuthenticationWithKeyStoreProvider(securityRealmName, "PKCS11", password);
+        ops.removeHttpAcceptor("http-acceptor");
+        ops.removeHttpAcceptor("http-acceptor-throughput");
         ops.close();
-        container(1).restart();
-        ops = container(1).getJmsOperations();
+        container.restart();
+        ops = container.getJmsOperations();
 
         ops.addHttpsListener(listenerName, securityRealmName, sockerBinding, verifyClientPolitic);
         ops.createHttpAcceptor(httpAcceptorName, listenerName, null);
@@ -705,15 +714,15 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.createHttpConnector(httpConnectorName, sockerBinding, httpConnectorParams, httpAcceptorName);
 
         ops.close();
-        container(1).restart();
-        ops = container(1).getJmsOperations();
+        container.restart();
+        ops = container.getJmsOperations();
 
         ops.removeConnectionFactory(remoteConnectionFactoryName);
         ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, httpConnectorName);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
 
         ops.close();
-        container(1).stop();
+        container.stop();
 
 
     }

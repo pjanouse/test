@@ -3903,7 +3903,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void removeHttpAcceptor(String name) {
-        removeHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
+        removeHttpAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, name);
     }
 
     @Override
@@ -4343,6 +4343,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("core-service", "management");
         model.get(ClientConstants.OP_ADDR).add("security-realm", realmName);
         model.get(ClientConstants.OP_ADDR).add("server-identity", "ssl");
+        model.get("keystore-provider").set(keyStoreProvider);
+        model.get("keystore-password").set(keyStorePass);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addAuthenticationWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "management");
+        model.get(ClientConstants.OP_ADDR).add("security-realm", realmName);
+        model.get(ClientConstants.OP_ADDR).add("authentication", "truststore");
         model.get("keystore-provider").set(keyStoreProvider);
         model.get("keystore-password").set(keyStorePass);
 

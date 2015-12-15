@@ -427,6 +427,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addAuthenticationWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addAuthentication(String realmName, String trustStorePath, String keyStorePass) {
         logger.info("This operation is not supported: " + getMethodName());
     }
