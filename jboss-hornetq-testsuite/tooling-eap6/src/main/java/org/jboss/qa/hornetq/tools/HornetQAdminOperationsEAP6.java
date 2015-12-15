@@ -5342,7 +5342,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.getNumberOfConsumersOnTopic("myClientId", "mySubscription"));
+            System.out.println(jmsAdminOperations.getNumberOfConsumersOnQueue("InQueue"));
 //            jmsAdminOperations.removeJGroupsStack("tcp");
             /*
             batch

@@ -2082,7 +2082,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
         setConnectorTypeForPooledConnectionFactoryEAP6(container, connectorType, remoteSever);
 
         // set security persmissions for roles admin,users - user is already there
@@ -2280,6 +2280,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
+        
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteContainers);
 
         // set security persmissions for roles admin,users - user is already there
