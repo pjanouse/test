@@ -1811,13 +1811,15 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 List<String> staticConnectorsNames = new ArrayList<String>();
                 for (Container remoteContainer : remoteContainers) {
                     // create static connector
-                    String staticBIOConnectorName = connectorPrefix + remoteContainer.getName();
-                    jmsAdminOperations.createRemoteConnector(staticBIOConnectorName, socketBindingPrefix + remoteContainer.getName(), null);
-                    staticConnectorsNames.add(staticBIOConnectorName);
+                    if (!container.getName().equals(remoteContainer.getName())) {
+                        String staticBIOConnectorName = connectorPrefix + remoteContainer.getName();
+                        jmsAdminOperations.createRemoteConnector(staticBIOConnectorName, socketBindingPrefix + remoteContainer.getName(), null);
+                        staticConnectorsNames.add(staticBIOConnectorName);
+                    }
                 }
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", false, 1, 1000, true, connectorName,
-                        staticConnectorsNames.toArray(new String[remoteContainers.length]));
+                        staticConnectorsNames.toArray(new String[staticConnectorsNames.size()]));
                 break;
             case NETTY_NIO:
 
@@ -1831,16 +1833,18 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 List<String> staticNIOConnectorsNames = new ArrayList<String>();
                 for (Container remoteContainer : remoteContainers) {
                     // create static connector
-                    String staticConnectorName = connectorPrefix + remoteContainer.getName();
-                    Map<String, String> connectorParams = new HashMap<String, String>();
-                    connectorParams.put("use-nio", "true");
-                    connectorParams.put("use-nio-global-worker-pool", "true");
-                    jmsAdminOperations.createRemoteConnector(staticConnectorName, socketBindingPrefix + remoteContainer.getName(), connectorParams);
-                    staticNIOConnectorsNames.add(staticConnectorName);
+                    if (!container.getName().equals(remoteContainer.getName())) {
+                        String staticConnectorName = connectorPrefix + remoteContainer.getName();
+                        Map<String, String> connectorParams = new HashMap<String, String>();
+                        connectorParams.put("use-nio", "true");
+                        connectorParams.put("use-nio-global-worker-pool", "true");
+                        jmsAdminOperations.createRemoteConnector(staticConnectorName, socketBindingPrefix + remoteContainer.getName(), connectorParams);
+                        staticNIOConnectorsNames.add(staticConnectorName);
+                    }
                 }
                 jmsAdminOperations.removeClusteringGroup(clusterGroupName);
                 jmsAdminOperations.setStaticClusterConnections("default", clusterGroupName, "jms", false, 1, 1000, true, connectorName,
-                        staticNIOConnectorsNames.toArray(new String[remoteContainers.length]));
+                        staticNIOConnectorsNames.toArray(new String[staticNIOConnectorsNames.size()]));
                 break;
             case NETTY_DISCOVERY:
                 jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
