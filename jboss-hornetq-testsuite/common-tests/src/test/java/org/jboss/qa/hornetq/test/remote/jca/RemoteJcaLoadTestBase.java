@@ -434,7 +434,6 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
                 throw new RuntimeException("Type of connector unknown for EAP 6");
         }
 
-
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
         jmsAdminOperations.setTransactionTimeout(60000);
@@ -465,6 +464,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
         setConnectorTypeForPooledConnectionFactoryEAP6(container, connectorType, remoteSevers);
 
@@ -660,6 +660,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
         jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
 
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteSevers);
