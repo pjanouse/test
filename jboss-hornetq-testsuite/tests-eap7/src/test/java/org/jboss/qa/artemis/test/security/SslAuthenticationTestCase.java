@@ -510,6 +510,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
         prepareSeverWithPkcs11(container(1));
+        container(1).start();
         Context context = container(1).getContext();
         ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
