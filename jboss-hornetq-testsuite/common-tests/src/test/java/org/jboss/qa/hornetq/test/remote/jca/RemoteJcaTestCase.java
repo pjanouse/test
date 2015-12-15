@@ -428,6 +428,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
         int numberOfNewConnections3 = countConnectionOnContainer(container(3)) - initialNumberOfConnections3;
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
 
         container(2).undeploy(mdbWithOnlyInbound);
         container(2).stop();
@@ -435,9 +440,15 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).stop();
 
         // check that number of connections is almost equal
-        Assert.assertTrue("Number of connections should be almost equal. Number of new connections on node " + container(1).getName()
-                        + " is " + numberOfNewConnections1 + " and node " + container(3).getName() + " is " + numberOfNewConnections3,
-                Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 3);
+        // it's unreliable - so commenting it
+//        Assert.assertTrue("Number of connections should be almost equal. Number of new connections on node " + container(1).getName()
+//                        + " is " + numberOfNewConnections1 + " and node " + container(3).getName() + " is " + numberOfNewConnections3,
+//                Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 3);
+        // assert that number of consumers on both server is almost equal
+        Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                Math.abs(numberOfConsumer1 - numberOfConsumer3) < 3);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
+                numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
     }
 
     /**
@@ -966,7 +977,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
-
 
         Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
         // assert that number of consumers on both server is almost equal
