@@ -407,9 +407,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         producer1.start();
         producer2.start();
-
-        producer1.stopSending();
-        producer2.stopSending();
         producer1.join();
         producer2.join();
 
@@ -426,8 +423,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertEquals("There are still messages in " + inQueueName + " after timeout " + timeout + "ms.",
                 0, new JMSTools().countMessages(inQueueName, container(1), container(3)));
 
-        int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
-        int numberOfNewConnections3 = countConnectionOnContainer(container(3)) - initialNumberOfConnections3;
+//        int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
+//        int numberOfNewConnections3 = countConnectionOnContainer(container(3)) - initialNumberOfConnections3;
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
@@ -440,7 +437,6 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).stop();
 
         // check that number of connections is almost equal
-        // it's unreliable - so commenting it
 //        Assert.assertTrue("Number of connections should be almost equal. Number of new connections on node " + container(1).getName()
 //                        + " is " + numberOfNewConnections1 + " and node " + container(3).getName() + " is " + numberOfNewConnections3,
 //                Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 3);
@@ -670,7 +666,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).stop();
         logger.info("Container node-3 stopped");
 
-        Thread.sleep(30000);
+        Thread.sleep(120000);
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 30000, container(1));
         // get number of consumers from server 1
         int numberOfConsumerAfterScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
