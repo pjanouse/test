@@ -510,10 +510,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
         prepareSeverWithPkcs11(container(1));
-        final Properties env = new Properties();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-        env.put(Context.PROVIDER_URL, String.format("%s%s:%s", "http-remoting://", "127.0.0.1", 8443));
-        Context context = new InitialContext(env);
+        Context context = container(1).getContext();
         ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -693,7 +690,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         JMSOperations ops = container(1).getJmsOperations();
 
         ops.createSecurityRealm(securityRealmName);
-        ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS", password);
+        ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS11", password);
 
 
         ops.close();
