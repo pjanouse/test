@@ -50,17 +50,20 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
 
         Map<String, String> containerProperties;
         String jbossHome;
+        String configurationFileName;
         File serverLogDirectory;
         File serverDataDirectory;
         File whereToCopyServerLogDirectory;
+        File configurationFile;
         StringBuilder pathToServerLogDirectory;
         StringBuilder pathToDataDirectory;
+        StringBuilder pathToConfigurationFile;
         String fileSeparator = System.getProperty("file.separator");
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
                 containerProperties = containerDef.getContainerProperties();
                 jbossHome = containerProperties.get("jbossHome");
-
+                configurationFileName = containerProperties.get("serverConfig");
                 if (jbossHome != null) {
                     // if eap 6 then go to standalone/log/ directory
                     // else if eap 5 go to server/${profile}/log directory
@@ -74,8 +77,16 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                             .append("standalone")
                             .append(fileSeparator)
                             .append("data");
+                    pathToConfigurationFile = new StringBuilder(jbossHome)
+                            .append(fileSeparator)
+                            .append("standalone")
+                            .append(fileSeparator)
+                            .append("configuration")
+                            .append(fileSeparator)
+                            .append(configurationFileName);
                     serverLogDirectory = new File(pathToServerLogDirectory.toString());
                     serverDataDirectory = new File(pathToDataDirectory.toString());
+                    configurationFile = new File(pathToConfigurationFile.toString());
                     if (!serverLogDirectory.exists()) {      // if does not exist try eap 5 directory
                         log.info(String.format("Server log directory: %s does not exist. ",
                                 serverLogDirectory.getAbsolutePath()));
@@ -93,8 +104,18 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                                 .append(containerProperties.get("profileName"))
                                 .append(fileSeparator)
                                 .append("data");
+                        pathToConfigurationFile = new StringBuilder(jbossHome)
+                                .append(fileSeparator)
+                                .append("server")
+                                .append(fileSeparator)
+                                .append(containerProperties.get("profileName"))
+                                .append(fileSeparator)
+                                .append("deploy")
+                                .append(fileSeparator)
+                                .append("hornetq");
                         serverLogDirectory = new File(pathToServerLogDirectory.toString());
                         serverDataDirectory = new File(pathToDataDirectory.toString());
+                        configurationFile = new File(pathToConfigurationFile.toString());
                         if (!serverLogDirectory.exists()) {
                             log.info(String.format("Server log directory: %s does not exist. ",
                                     serverLogDirectory.getAbsolutePath()));
@@ -110,11 +131,13 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
 
                     log.info("Copying log directory " + serverLogDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
+                    FileUtils.copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
                     log.info("Copying data directory " + serverDataDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
-
-                    FileUtils.copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
                     FileUtils.copyDirectory(serverDataDirectory, whereToCopyServerLogDirectory);
+                    log.info("Copying xml configuration " + configurationFile.getAbsolutePath()
+                            + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
+                    FileUtils.copyFileToDirectory(configurationFile, whereToCopyServerLogDirectory);
                 }
             }
         }
