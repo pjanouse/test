@@ -1791,6 +1791,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
         String socketBindingPrefix = "socket-binding-to-";
         String connectorPrefix = "connector-to-";
@@ -1937,6 +1938,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
         String socketBindingPrefix = "socket-binding-to-";
         String connectorPrefix = "connector-to-";
@@ -2281,7 +2283,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-        
+
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteContainers);
 
         // set security persmissions for roles admin,users - user is already there

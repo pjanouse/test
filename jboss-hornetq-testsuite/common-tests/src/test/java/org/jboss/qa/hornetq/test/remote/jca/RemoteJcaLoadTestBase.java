@@ -168,6 +168,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(true);
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
         jmsAdminOperations.disableSecurity();
         String socketBindingPrefix = "socket-binding-to-";
@@ -322,6 +323,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
 
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.disableSecurity();
+        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
         String socketBindingPrefix = "socket-binding-to-";
         String connectorPrefix = "connector-to-";
         switch (connectorType) {
