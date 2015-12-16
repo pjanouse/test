@@ -83,6 +83,10 @@ public interface JMSOperations {
 
     String listPreparedTransaction(String serverName);
 
+    String listPreparedTransactionAsJson();
+
+    String listPreparedTransactionAsJson(String serverName);
+
     /**
      * Removes protocol from JGroups stack
      *

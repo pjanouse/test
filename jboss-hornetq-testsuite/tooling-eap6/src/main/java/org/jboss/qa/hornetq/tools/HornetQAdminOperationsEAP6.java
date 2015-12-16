@@ -2171,6 +2171,34 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
 
+    @Override
+    public String listPreparedTransactionAsJson() {
+        return listPreparedTransaction("default");
+    }
+
+    @Override
+    public String listPreparedTransactionAsJson(String serverName) {
+        //  /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        int i = -1;
+        ModelNode result = null;
+        try {
+            ModelNode model = new ModelNode();
+            model.get(ClientConstants.OP).set("list-prepared-transaction-details-as-json");
+            model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+            model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+            try {
+                result = this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        return result.toString();
+    }
+
+
     /**
      * Removes protocol from JGroups stack
      *
@@ -5342,7 +5370,9 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
-            System.out.println(jmsAdminOperations.getNumberOfConsumersOnQueue("InQueue"));
+//            System.out.println(jmsAdminOperations.getNumberOfConsumersOnQueue("InQueue"));
+//            System.out.println(jmsAdminOperations.listPreparedTransactionAsJson());
+            System.out.println(jmsAdminOperations.getCountOfMessagesOnQueue("InQueue"));
 //            jmsAdminOperations.removeJGroupsStack("tcp");
             /*
             batch

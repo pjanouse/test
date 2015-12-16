@@ -8,10 +8,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -19,10 +16,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.HighCPUUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
-import org.jboss.qa.hornetq.tools.TransactionUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -36,6 +30,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
 import java.util.Map;
 
 /**
@@ -200,6 +197,78 @@ public class JcaTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testListPreparedTransactionsNPE() throws Exception {
+
+        // we use only the first server
+        prepareServer(container(1));
+
+        container(1).start();
+
+        // send messages to queue
+        int numberOfMessages = 10000;
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        producer1.setMessageBuilder(new TextMessageBuilder(1));
+        producer1.setCommitAfter(100);
+        producer1.setTimeout(0);
+        logger.info("Start producer.");
+        producer1.start();
+
+        container(1).deploy(mdbDeployment);
+
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+
+        while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < numberOfMessages) {
+            JMXConnector connector = null;
+            try {
+                connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+                MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
+                ObjectName objectName = getObjectName();
+
+                mbeanServer.invoke(objectName, "listPreparedTransactionDetailsAsJson", new Object[]{},
+                        new String[]{});
+            } finally {
+                if (connector != null) {
+                    connector.close();
+                }
+            }
+            Thread.sleep(500);
+        }
+
+        logger.info("Start receiver.");
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueue, 10000, 10, 10);
+        receiver1.setTimeout(0);
+        receiver1.start();
+        producer1.join();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer1.getListOfSentMessages().size(),
+                receiver1.getListOfReceivedMessages().size());
+        Assert.assertTrue("No message was received.", receiver1.getListOfReceivedMessages().size() > 0);
+
+
+        container(1).undeploy(mdbDeployment);
+        container(1).stop();
+
+    }
+
+    private ObjectName getObjectName() throws Exception {
+        ObjectName objectName = null;
+        if (ContainerUtils.isEAP6(container(1))) {
+            objectName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default");
+        } else {
+            objectName = new ObjectName("jboss.as:subsystem=messaging-activemq,server=default");
+        }
+        return objectName;
+    }
+
     /**
      * @tpTestDetails Start 2 servers in cluster. Deploy InQueue and OutQueue. Send messages to InQueue. Deploy MDB which reads
      * messages from InQueue and sends them to OutQueue. During processing of messages cause 100% cpu load on 1st server.
@@ -249,7 +318,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).deploy(lodhLikemdb);
 
         // wait to have some messages in OutQueue
-        new JMSTools().waitForMessages(outQueueName, numberOfMesasges/10, 600000, container(1), container(2));
+        new JMSTools().waitForMessages(outQueueName, numberOfMesasges / 10, 600000, container(1), container(2));
 
         // start load on 1st node
         Container containerUnderLoad = container(1);

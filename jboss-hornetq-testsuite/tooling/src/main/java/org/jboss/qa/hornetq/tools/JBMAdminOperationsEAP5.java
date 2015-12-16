@@ -335,6 +335,18 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         return null;
     }
 
+    @Override
+    public String listPreparedTransactionAsJson() {
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
+
+    @Override
+    public String listPreparedTransactionAsJson(String serverName) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return null;
+    }
+
     /**
      * Removes protocol from JGroups stack
      *

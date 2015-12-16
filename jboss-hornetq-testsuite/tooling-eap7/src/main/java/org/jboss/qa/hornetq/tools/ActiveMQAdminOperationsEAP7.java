@@ -2228,6 +2228,34 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         return result.toString();
     }
 
+    @Override
+    public String listPreparedTransactionAsJson() {
+        return listPreparedTransactionAsJson(NAME_OF_MESSAGING_DEFAULT_SERVER);
+    }
+
+    @Override
+    public String listPreparedTransactionAsJson(String serverName) {
+        // /subsystem=messaging/hornetq-server=default:list-prepared-transactions
+        int i = -1;
+        ModelNode result = null;
+        try {
+            ModelNode model = new ModelNode();
+            model.get(ClientConstants.OP).set("list-prepared-transaction-details-as-json");
+            model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+            model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+
+            try {
+                result = this.applyUpdate(model);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        return result.toString();
+    }
+
     /**
      * Removes protocol from JGroups stack
      *
@@ -2388,14 +2416,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets cluster configuration.
      *
-     * @param serverName             Set name of hornetq server.
-     * @param name                   Name of the cluster group - like "failover-cluster"
-     * @param address                Name of address this cluster connection applies to.
+     * @param serverName                 Set name of hornetq server.
+     * @param name                       Name of the cluster group - like "failover-cluster"
+     * @param address                    Name of address this cluster connection applies to.
      * @param messageLoadBalancingPolicy This is actually load balancing policy in EAP 7
-     * @param maxHops                Maximum number of hops cluster topology is propagated. Default is 1.
-     * @param retryInterval          Period (in ms) between successive retries.
-     * @param useDuplicateDetection  Should duplicate detection headers be inserted in forwarded messages?
-     * @param connectorName          Name of connector to use for live connection.
+     * @param maxHops                    Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval              Period (in ms) between successive retries.
+     * @param useDuplicateDetection      Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName              Name of connector to use for live connection.
      */
     @Override
     public void setStaticClusterConnections(String serverName, String name, String address, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy,
@@ -2557,7 +2585,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets ha attribute.
      *
-     * @param serverName name of the server
+     * @param serverName            name of the server
      * @param connectionFactoryName
      * @param value                 true if connection factory supports ha.
      */
@@ -2579,7 +2607,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     public void setConnectorOnConnectionFactory(String connectionFactoryName, String connectorName) {
-        setConnectorOnConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, connectorName);;
+        setConnectorOnConnectionFactory(NAME_OF_MESSAGING_DEFAULT_SERVER, connectionFactoryName, connectorName);
+        ;
     }
 
     @Override
@@ -2720,7 +2749,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Whether or not messages are acknowledged synchronously.
      *
-     * @param serverName name of the server
+     * @param serverName            name of the server
      * @param connectionFactoryName
      * @param value                 default false, should be true for fail-over scenarios
      */
@@ -2772,7 +2801,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * The time (in ms) to retry a connection after failing.
      *
-     * @param serverName name of the server
+     * @param serverName            name of the server
      * @param connectionFactoryName
      * @param value
      */
@@ -2823,7 +2852,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Multiplier to apply to successive retry intervals.
      *
-     * @param serverName name of the server
+     * @param serverName            name of the server
      * @param connectionFactoryName
      * @param value                 1.0 by default
      */
@@ -3487,7 +3516,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Removes broadcast group.
      *
-     * @param serverName name of the server
+     * @param serverName              name of the server
      * @param nameOfTheBroadcastGroup name of the broadcast group
      */
     public void removeBroadcastGroup(String serverName, String nameOfTheBroadcastGroup) {
@@ -3528,7 +3557,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * Removes discovery group
      *
      * @param serverName name of the server
-     * @param dggroup name of the discovery group
+     * @param dggroup    name of the discovery group
      */
     public void removeDiscoveryGroup(String serverName, String dggroup) {
 
@@ -3548,7 +3577,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Removes clustering group.
      *
-     * @param serverName name of the server
+     * @param serverName       name of the server
      * @param clusterGroupName name of the discovery group
      */
     public void removeClusteringGroup(String serverName, String clusterGroupName) {
@@ -3870,7 +3899,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         modelAddStack.get(ClientConstants.OP_ADDR).add("stack", stackName);
         composite.get(ClientConstants.STEPS).add(modelAddStack);
 
-        for (String protocol : protocols.keySet())  {
+        for (String protocol : protocols.keySet()) {
             ModelNode addProtocol = new ModelNode();
             addProtocol.get(ClientConstants.OP).set("add-protocol");
             addProtocol.get(ClientConstants.OP_ADDR).add("subsystem", "jgroups");
@@ -3958,7 +3987,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             logger.error(e);
         }
 
-        setTunnelForJGroups(gosshipRouterAddress,gosshipRouterPort);
+        setTunnelForJGroups(gosshipRouterAddress, gosshipRouterPort);
 
         model = createModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -4345,7 +4374,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         try {
             removeSocketBinding(socketBindingName);
-        } catch (Exception ex)  {
+        } catch (Exception ex) {
             // ignore
         }
         ModelNode model = createModelNode();
@@ -4718,7 +4747,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("stack", "udp");
         model.get(ClientConstants.OP_ADDR).add("protocol", "TUNNEL");
         model.get(ClientConstants.OP_ADDR).add("property", "gossip_router_hosts");
-        model.get("value").set(gossipRouterHostname+"["+gossipRouterPort+"]");
+        model.get("value").set(gossipRouterHostname + "[" + gossipRouterPort + "]");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -6060,7 +6089,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
 
-            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String,Properties>();
+            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
             Properties tcpPingProperties = new Properties();
             tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
             tcpPingProperties.put("port_range", "10");
