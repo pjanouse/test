@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
+                @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
+                @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "color = 'RED'")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)

@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InTopic"),
+                @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
+                @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "NonDurable")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)

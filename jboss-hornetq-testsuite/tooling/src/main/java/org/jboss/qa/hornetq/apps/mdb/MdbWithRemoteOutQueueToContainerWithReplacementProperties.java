@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @MessageDriven(name = "mdb1",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+                @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
+                @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "${jms.queue.InQueue}")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
