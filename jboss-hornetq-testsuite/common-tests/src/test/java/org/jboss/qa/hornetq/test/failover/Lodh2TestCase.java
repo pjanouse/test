@@ -8,12 +8,14 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.*;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -91,6 +93,10 @@ public class Lodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
@@ -108,6 +114,10 @@ public class Lodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -117,6 +127,10 @@ public class Lodh2TestCase extends HornetQTestCase {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesMappedName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
         logger.info(mdbJar.toString(true));
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         //          Uncomment when you want to see what's in the servlet
         File target = new File("/tmp/mdbWithPropertyReplacements.jar");
@@ -132,6 +146,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
@@ -147,6 +165,10 @@ public class Lodh2TestCase extends HornetQTestCase {
     public Archive getDeploymentWithFilter1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
@@ -156,6 +178,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -164,6 +190,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
