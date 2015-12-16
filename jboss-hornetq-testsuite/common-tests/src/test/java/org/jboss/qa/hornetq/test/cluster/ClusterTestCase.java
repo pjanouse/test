@@ -73,12 +73,7 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 //TODO
 //ClusterTestCase
 //        - clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly
@@ -2645,6 +2640,7 @@ public class ClusterTestCase extends HornetQTestCase {
             jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
             jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, reconnectAttempts);
 
+            jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
             jmsAdminOperations.disableSecurity();
             // jmsAdminOperations.setLoggingLevelForConsole("INFO");
             // jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
