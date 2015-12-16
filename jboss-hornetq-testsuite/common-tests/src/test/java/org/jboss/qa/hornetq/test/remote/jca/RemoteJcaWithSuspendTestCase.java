@@ -116,8 +116,8 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         logger.info("Going to resume server: " + containerToSuspend.getName());
         ProcessIdUtils.resumeProcess(containerToSuspenId);
 
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(3), 0, false);
         producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);

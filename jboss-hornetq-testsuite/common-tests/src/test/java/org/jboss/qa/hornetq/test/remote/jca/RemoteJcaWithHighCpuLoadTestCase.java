@@ -223,7 +223,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
                 highCpuLoader1.destroy();
             }
             // Wait until some messages are consumes from InQueue
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 400000, container(1), container(3));
 
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
         } finally {
@@ -239,8 +239,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         }
         producer1.join();
 
-        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+        boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
         producer1.join();
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
@@ -339,8 +339,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             }
         }
 
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, false);
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
 
         restartServers();
