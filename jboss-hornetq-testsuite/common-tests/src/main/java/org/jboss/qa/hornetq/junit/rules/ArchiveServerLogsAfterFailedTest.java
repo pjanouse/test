@@ -51,8 +51,10 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
         Map<String, String> containerProperties;
         String jbossHome;
         File serverLogDirectory;
+        File serverDataDirectory;
         File whereToCopyServerLogDirectory;
         StringBuilder pathToServerLogDirectory;
+        StringBuilder pathToDataDirectory;
         String fileSeparator = System.getProperty("file.separator");
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
@@ -67,7 +69,13 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                             .append("standalone")
                             .append(fileSeparator)
                             .append("log");
+                    pathToDataDirectory = new StringBuilder(jbossHome)
+                            .append(fileSeparator)
+                            .append("standalone")
+                            .append(fileSeparator)
+                            .append("data");
                     serverLogDirectory = new File(pathToServerLogDirectory.toString());
+                    serverDataDirectory = new File(pathToDataDirectory.toString());
                     if (!serverLogDirectory.exists()) {      // if does not exist try eap 5 directory
                         log.info(String.format("Server log directory: %s does not exist. ",
                                 serverLogDirectory.getAbsolutePath()));
@@ -78,7 +86,15 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                                 .append(containerProperties.get("profileName"))
                                 .append(fileSeparator)
                                 .append("log");
+                        pathToDataDirectory = new StringBuilder(jbossHome)
+                                .append(fileSeparator)
+                                .append("server")
+                                .append(fileSeparator)
+                                .append(containerProperties.get("profileName"))
+                                .append(fileSeparator)
+                                .append("data");
                         serverLogDirectory = new File(pathToServerLogDirectory.toString());
+                        serverDataDirectory = new File(pathToDataDirectory.toString());
                         if (!serverLogDirectory.exists()) {
                             log.info(String.format("Server log directory: %s does not exist. ",
                                     serverLogDirectory.getAbsolutePath()));
@@ -94,8 +110,11 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
 
                     log.info("Copying log directory " + serverLogDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
+                    log.info("Copying data directory " + serverDataDirectory.getAbsolutePath()
+                            + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
 
                     FileUtils.copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
+                    FileUtils.copyDirectory(serverDataDirectory, whereToCopyServerLogDirectory);
                 }
             }
         }
