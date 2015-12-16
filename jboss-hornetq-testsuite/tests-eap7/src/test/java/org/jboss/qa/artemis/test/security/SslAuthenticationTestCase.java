@@ -581,17 +581,23 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         container(1).start();
 
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
+
+
+        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
         props.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "cert8.db").getAbsolutePath());
-        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
-        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
-        props.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
-        props.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
+//        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "cert8.db").getAbsolutePath());
+//        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
+//        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, new File(TEST_KEYSTORES_DIRECTORY, "fipsdb" + File.separator + "key3.db").getAbsolutePath());
+//        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, TEST_USER_PASSWORD);
+//        props.put(TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
+//        props.put(KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
+        props.put(TransportConstants.PORT_PROP_NAME, 8443);
         TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
                 props);
 
