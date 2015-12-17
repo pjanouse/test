@@ -4345,7 +4345,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("server-identity", "ssl");
         model.get("keystore-provider").set(keyStoreProvider);
         model.get("keystore-password").set(keyStorePass);
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
