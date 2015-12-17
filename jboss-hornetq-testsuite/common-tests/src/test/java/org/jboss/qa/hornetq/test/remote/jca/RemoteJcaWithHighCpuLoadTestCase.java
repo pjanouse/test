@@ -369,17 +369,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         container(1).stop();
     }
 
-    private void restartServers() {
 
-        container(2).stop();
-        container(4).stop();
-        container(3).stop();
-        container(1).stop();
-        container(3).start();
-        container(1).start();
-        container(2).start();
-        container(4).start();
-
-    }
 
 }
