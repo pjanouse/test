@@ -230,7 +230,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testOneWaySslOverJms() throws Exception {
-        prepareServerWithNettySslConnection(false);
+        prepareServerWithNettySslConnection(false,false,true);
 
 
         container(1).start();
@@ -477,11 +477,65 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * <li>Client is not able to successfully send and receive the test message over the created connection. </li>
      * </ul>
      */
-    @Test
+    @Test(expected=javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
-    public void testTwoWaySslNegativeOverJms() throws Exception {
-        prepareServerWithNettySslConnection(true, false);
+    public void testTwoWaySslNegativeClientAuthOverJms() throws Exception {
+        prepareServerWithNettySslConnection(true, false, true);
+
+
+        container(1).start();
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNull("Message was sent and received", received);
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+    }
+
+
+    /**
+     * @tpTestDetails Start one server with keystore with the test SSL
+     * certificate installed. Configure ActiveMQ acceptor for two way SSL.
+     * Create client which doesn't use any certificate to authenticate him self and connect to the server using JMS API.
+     * Verify that client can't send any message
+     * connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. </li>
+     * <li>Connector is configured to send truststore, so client is able to verify servers keystore.
+     * </li>
+     * <li>ActiveMQ acceptor is configured to require client authentication via keystore
+     * </li>
+     * <li>Standalone client connects without using any keystore to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication failed, client can't send or receive any message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is not able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    public void testTwoWaySslNegativeServerAuthOverJms() throws Exception {
+        prepareServerWithNettySslConnection(true, true, false);
 
 
         container(1).start();
@@ -534,7 +588,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testTwoWaySslOverJmsWithPkcs11() throws Exception {
+    public void testTwoWaySslOverJmsWithPkcs11Http() throws Exception {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
@@ -574,6 +628,307 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testTwoWaySslOverJmsWithPkcs11HttpNegativeServerAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs11(container(1));
+        container(1).start();
+
+
+        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
+
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testTwoWaySslOverJmsWithPkcs11HttpNegativeClientAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs11(container(1));
+        container(1).start();
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
+
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testTwoWaySslOverJmsWithPkcs11Netty() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs11OnNetty(container(1),true, true, true);
+        container(1).start();
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
+
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testTwoWaySslOverJmsWithPkcs11NettyNegativeServerAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs11OnNetty(container(1),true, true, false);
+        container(1).start();
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNull("Cannot consume test message", received);
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+    /**
+     * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for two way SSL (both sides cross-verify the
+     * key of the other side against their own truststore). Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS11 keystores/truststores </li>
+     * <li>ActiveMQ acceptor is configured to send clients server’s SSL
+     * certificate.</li>
+     * <li>Standalone client connects to the server using JMS API and verifies server certificate. </li>
+     * <li>After authentication, client sends and receives single message.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Client is able to successfully send and receive the test message over the created connection. </li>
+     * </ul>
+     * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testTwoWaySslOverJmsWithPkcs11NettyNegativeClientAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs11OnNetty(container(1),true, false, true);
+        container(1).start();
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNull("Cannot consume test message", received);
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
      /**
      * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
      * Start one server with keystore with the test SSL certificate installed.
@@ -601,7 +956,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testTwoWaySslOverJmsWithPkcs11CfCreatedByClient() throws Exception {
+    public void testTwoWaySslOverJmsWithPkcs11CfCreatedByClientHttp() throws Exception {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK 1.6", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
@@ -757,6 +1112,75 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         ops.close();
         container.stop();
+
+
+    }
+
+
+    private void prepareSeverWithPkcs11OnNetty(Container container, boolean isTwoWay, boolean provideKeystoreViaConnector, boolean provideTruststoreViaConnector) throws Exception {
+
+
+
+
+        final String password = "user.456";
+        final String acceptorName = "netty-ssl-acceptor";
+        final String connectorName = "netty-ssl-connector";
+        final String remoteConnectionFactoryName = "RemoteConnectionFactory";
+        final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
+
+        final String keyStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "fipsdb" + File.separator + "key3.db").getAbsolutePath();
+        final String trustStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "fipsdb" + File.separator + "cert8.db").getAbsolutePath();
+
+        final String socketBinding = "messaging";
+
+        container(1).start();
+        JMSOperations ops = container(1).getJmsOperations();
+
+        Map<String, String> propsAcceptor = new HashMap<String, String>();
+        Map<String, String> propsConnector = new HashMap<String, String>();
+
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        if(isTwoWay){
+            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath); //server will authenticate clients which use private key paired with this public key
+            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
+            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        }
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        if(isTwoWay && provideKeystoreViaConnector){
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath); // client will use this keystore to prove him self to the server
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
+            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        }
+
+        if(provideTruststoreViaConnector) {
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
+        }
+        if(isTwoWay){
+            propsAcceptor.put("need-client-auth", "true");
+        }else{
+            propsAcceptor.put("need-client-auth", "false");
+        }
+
+        ops.addSocketBinding(socketBinding, 5445);
+        ops.createRemoteAcceptor(acceptorName, socketBinding, propsAcceptor);
+        ops.createRemoteConnector(connectorName, socketBinding ,propsConnector);
+
+        ops.close();
+        container(1).stop();
+        container(1).start();
+        ops = container(1).getJmsOperations();
+        ops.removeConnectionFactory(remoteConnectionFactoryName);
+        ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, connectorName);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+
+
+        ops.close();
+        container(1).stop();
 
 
     }
@@ -951,9 +1375,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     }
 
     private void prepareServerWithNettySslConnection( boolean isTwoWay) {
-        prepareServerWithNettySslConnection(isTwoWay, true);
+        prepareServerWithNettySslConnection(isTwoWay, true, true);
     }
-    private void prepareServerWithNettySslConnection( boolean isTwoWay, boolean provideKeystoreViaConnector) {
+    private void prepareServerWithNettySslConnection( boolean isTwoWay, boolean provideKeystoreViaConnector, boolean provideTrustStoreViaConnector) {
 
         final String keyStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath();
         final String trustStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath();
@@ -983,8 +1407,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath); // client will use this keystore to prove him self to the server
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
         }
-        propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
-        propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
+
+        if(provideTrustStoreViaConnector) {
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
+        }
         if(isTwoWay){
             propsAcceptor.put("need-client-auth", "true");
         }else{
