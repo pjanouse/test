@@ -146,10 +146,6 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
-        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
-        mdbJar.addClass(JMSImplementation.class);
-        mdbJar.addClass(jmsImplementation.getClass());
-        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet
@@ -1209,7 +1205,7 @@ public class Lodh2TestCase extends HornetQTestCase {
             for (Container container : failureSequence) {
                 Thread.sleep(timeBetweenKills);
                 container.fail(failureType);
-                Thread.sleep(60000);
+                Thread.sleep(300000);
                 container.kill();
                 logger.info("Start server: " + container.getName());
                 container.start();
