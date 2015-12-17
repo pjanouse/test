@@ -232,7 +232,6 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         ProcessIdUtils.resumeProcess(containerToSuspenId);
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 60000, container(1), container(3));
-
         producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
@@ -244,11 +243,16 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
 
+        logger.info("Restart servers.");
         restartServers();
+        logger.info("Servers restarted.");
 
+        logger.info("Wait more time for consumers on InQueue to process messages.");
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        logger.info("Waiting is over now. Check if there are prepared transactions and 500 seconds for recovery.");
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(3), 0, false);
+        logger.info("Start receiving messages.");
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver2.start();
         receiver2.join();
