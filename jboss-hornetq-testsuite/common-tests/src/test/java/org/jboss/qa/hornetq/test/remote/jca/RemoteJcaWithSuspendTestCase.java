@@ -189,7 +189,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
     }
 
     private void suspendInClusterWithRestart(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder) throws Exception {
-        suspendInCluster(mdbToDeploy, containerToSuspend, messageBuilder, 50000);
+        suspendInClusterWithRestart(mdbToDeploy, containerToSuspend, messageBuilder, 50000);
     }
 
     private void suspendInClusterWithRestart(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
