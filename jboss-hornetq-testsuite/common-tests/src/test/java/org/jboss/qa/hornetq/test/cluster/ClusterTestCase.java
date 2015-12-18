@@ -212,7 +212,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // A1 producer
-        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 1024);
+        MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
         producer1.setMessageVerifier(messageVerifier);
