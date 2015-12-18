@@ -1929,6 +1929,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalMinCompactFiles(int i) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2614,6 +2619,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalMinFiles(int i) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

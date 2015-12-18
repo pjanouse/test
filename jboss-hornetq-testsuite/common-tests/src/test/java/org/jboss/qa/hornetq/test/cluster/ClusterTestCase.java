@@ -212,7 +212,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // A1 producer
-        MessageBuilder messageBuilder = new TextMessageBuilder(1);
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 1024);
         messageBuilder.setAddDuplicatedHeader(true);
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
         producer1.setMessageVerifier(messageVerifier);
@@ -258,6 +258,8 @@ public class ClusterTestCase extends HornetQTestCase {
         String clusterGroupName = "my-cluster";
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
         jmsAdminOperations.setClusterConnectionCallTimeout(clusterGroupName, callTimout);
         jmsAdminOperations.setClusterConnectionCheckPeriod(clusterGroupName, checkPeriod);
         jmsAdminOperations.setClusterConnectionTTL(clusterGroupName, ttl);

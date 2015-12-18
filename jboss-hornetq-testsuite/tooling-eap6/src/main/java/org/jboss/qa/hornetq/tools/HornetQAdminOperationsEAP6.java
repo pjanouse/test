@@ -4925,6 +4925,40 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setJournalMinFiles(int i) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+
+
+        model.get("name").set("journal-min-files");
+        model.get("value").set(i);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalMinCompactFiles(int i) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get("name").set("journal-compact-min-files");
+        model.get("value").set(i);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");

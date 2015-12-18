@@ -1696,6 +1696,8 @@ public interface JMSOperations {
 
     void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName);
 
+    void setJournalMinCompactFiles(int i);
+
     void startJMSBridge(String jmsBridgeName);
 
     /**
@@ -1820,4 +1822,6 @@ public interface JMSOperations {
     void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod);
 
     void setClusterConnectionTTL(String clusterGroupName, long ttl);
+
+    void setJournalMinFiles(int i);
 }
