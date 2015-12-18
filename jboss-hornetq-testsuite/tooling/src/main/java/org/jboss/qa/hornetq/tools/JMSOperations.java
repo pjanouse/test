@@ -1814,4 +1814,10 @@ public interface JMSOperations {
     void startDeliveryToMdb(String deploymentName);
 
     void stopJMSBridge(String jmsBridgeName);
+
+    void setClusterConnectionCallTimeout(String clusterGroupName, long callTimout);
+
+    void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod);
+
+    void setClusterConnectionTTL(String clusterGroupName, long ttl);
 }

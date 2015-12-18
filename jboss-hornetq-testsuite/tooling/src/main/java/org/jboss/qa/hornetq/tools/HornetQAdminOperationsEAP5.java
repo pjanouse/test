@@ -2603,6 +2603,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setClusterConnectionCallTimeout(String clusterGroupName, long callTimout) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         logger.info("This operation is not supported: " + getMethodName());
     }
