@@ -546,7 +546,7 @@ public class PrepareServers7 {
         if(journalType != null && journalType.size()>0) {
             messagingServer.remove(journalType)
         }
-        messagingServer.children().add(1, new Node(null, 'journal', [type:"ASYNCIO"]))
+        messagingServer.children().add(1, new Node(null, 'journal', [type:"ASYNCIO",'compact-min-files':'0','min-files':"10" ]))
         //messagingServer.appendNode('journal ', [type:"ASYNCIO"])
         def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find{ it.@name == 'other' }
         def remotingSecurity = securityDomainOther.authentication.'login-module'.find{ it.@code == 'Remoting' }
