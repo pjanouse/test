@@ -23,7 +23,7 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.5.CP-bz1290841-1</eap6.org.jboss.qa.hornetq.apps.clients.version>
+        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.5.CP-bz1290841-3</eap6.org.jboss.qa.hornetq.apps.clients.version>
         <eap6.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.client>
         <eap6.controller.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.controller.client>
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
