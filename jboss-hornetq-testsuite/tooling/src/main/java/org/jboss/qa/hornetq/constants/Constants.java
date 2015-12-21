@@ -52,7 +52,8 @@ public class Constants {
         KILL,
         SHUTDOWN,
         OUT_OF_MEMORY_HEAP_SIZE,
-        OUT_OF_MEMORY_UNABLE_TO_OPEN_NEW_NATIE_THREAD
+        OUT_OF_MEMORY_UNABLE_TO_OPEN_NEW_NATIE_THREAD,
+        GC_PAUSE
     }
 
     public enum CONTAINER_TYPE {
