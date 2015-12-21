@@ -39,6 +39,7 @@
 
         <arquillian.version>1.1.1.Final</arquillian.version>
         <artemis.version>1.1.0</artemis.version>
+        <artemis.wildfly.integration>1.0.2</artemis.wildfly.integration>
         <version.shrinkwrap.resolvers>2.0.0</version.shrinkwrap.resolvers>
         <version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>
         <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
@@ -727,6 +728,16 @@
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.apache.activemq</groupId>
+                    <artifactId>artemis-service-extensions</artifactId>
+                    <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.activemq.artemis.integration</groupId>
+                    <artifactId>artemis-wildfly-integration</artifactId>
+                    <version>${artemis.wildfly.integration}</version>
+                </dependency>
             </dependencies>
 
         </profile>
@@ -1063,6 +1074,16 @@
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.activemq</groupId>
+                    <artifactId>artemis-service-extensions</artifactId>
+                    <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.activemq.artemis.integration</groupId>
+                    <artifactId>artemis-wildfly-integration</artifactId>
+                    <version>${artemis.wildfly.integration}</version>
                 </dependency>
             </dependencies>
 

@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.apps.clients;
 
 
 import com.arjuna.ats.arjuna.common.CoreEnvironmentBean;
+import com.arjuna.ats.arjuna.common.CoreEnvironmentBeanException;
 import com.arjuna.ats.arjuna.common.ObjectStoreEnvironmentBean;
 import com.arjuna.ats.arjuna.common.RecoveryEnvironmentBean;
 import com.arjuna.ats.arjuna.common.arjPropertyManager;
@@ -11,10 +12,13 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImpl
 import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionSynchronizationRegistryImple;
 import com.arjuna.ats.jta.TransactionManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
+import com.arjuna.ats.jta.recovery.XAResourceRecovery;
 import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -96,7 +100,7 @@ public class XAConsumerTransAck extends Client {
      * @param backupServer       backup server for recovery manager
      */
     public XAConsumerTransAck(Container containerToConnect, String queueNameJndi, Container liveServer, Container backupServer) {
-        super(containerToConnect.getContainerType().toString());
+        super(containerToConnect);
         this.hostname = containerToConnect.getHostname();
         this.port = containerToConnect.getJNDIPort();
         this.queueNameJndi = queueNameJndi;
@@ -441,36 +445,72 @@ public class XAConsumerTransAck extends Client {
 
         synchronized (recoveryManagerLock) {
             if (recoveryManager == null) {
+                if (ContainerUtils.isEAP7(container)) {
+                    recoveryManager = createRecoveryManagerEAP7();
+                } else {
+                    recoveryManager = createRecoveryManagerEAP6();
+                }
+            }
+        }
+    }
 
-                String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
-                //org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost1,port=5446"
-                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
-                        "guest,guest,host=" + liveServer.getHostname() + ",port=" + liveServer.getHornetqPort()
-                        + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
-                        + backupServer.getHostname() + " ,port=" + backupServer.getHornetqPort();
+    protected RecoveryManager createRecoveryManagerEAP6() throws CoreEnvironmentBeanException {
+        String resourceRecoveryClass = "org.hornetq.jms.server.recovery.HornetQXAResourceRecovery";
+        //org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=localhost1,port=5446"
+        String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
+                "guest,guest,host=" + liveServer.getHostname() + ",port=" + liveServer.getHornetqPort()
+                + ";org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
+                + backupServer.getHostname() + " ,port=" + backupServer.getHornetqPort();
 
-                logger.info("Start recovery with configuration: " + remoteResourceRecoveryOpts);
+        logger.info("Start recovery with configuration: " + remoteResourceRecoveryOpts);
 //                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
 //                        "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
 
-                List<String> recoveryClassNames = new ArrayList<String>();
-                recoveryClassNames.add(resourceRecoveryClass + ";" + remoteResourceRecoveryOpts);
+        List<String> recoveryClassNames = new ArrayList<String>();
+        recoveryClassNames.add(resourceRecoveryClass + ";" + remoteResourceRecoveryOpts);
 
-                // this appears that it does not work
-                BeanPopulator.getDefaultInstance(ObjectStoreEnvironmentBean.class).setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
-                BeanPopulator.getNamedInstance(ObjectStoreEnvironmentBean.class, "stateStore").setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
-                BeanPopulator.getDefaultInstance(CoreEnvironmentBean.class).setNodeIdentifier(nodeIdentifierAndObjectStoreDir);
+        // this appears that it does not work
+        BeanPopulator.getDefaultInstance(ObjectStoreEnvironmentBean.class).setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
+        BeanPopulator.getNamedInstance(ObjectStoreEnvironmentBean.class, "stateStore").setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
+        BeanPopulator.getDefaultInstance(CoreEnvironmentBean.class).setNodeIdentifier(nodeIdentifierAndObjectStoreDir);
 
-                BeanPopulator.getDefaultInstance(JTAEnvironmentBean.class).setXaResourceRecoveryClassNames(recoveryClassNames);
-                BeanPopulator.getDefaultInstance(RecoveryEnvironmentBean.class).setRecoveryBackoffPeriod(1);
+        BeanPopulator.getDefaultInstance(JTAEnvironmentBean.class).setXaResourceRecoveryClassNames(recoveryClassNames);
+        BeanPopulator.getDefaultInstance(RecoveryEnvironmentBean.class).setRecoveryBackoffPeriod(1);
 
-                RecoveryManager.delayRecoveryManagerThread();
+        RecoveryManager.delayRecoveryManagerThread();
 
-                RecoveryManager rm = RecoveryManager.manager();
-                rm.initialize();
-                recoveryManager = rm;
-            }
-        }
+        RecoveryManager rm = RecoveryManager.manager();
+        rm.initialize();
+        return rm;
+    }
+
+    protected RecoveryManager createRecoveryManagerEAP7() throws CoreEnvironmentBeanException {
+        String resourceRecoveryClass = "org.jboss.activemq.artemis.wildfly.integration.recovery.WildFlyActiveMQXAResourceRecovery";
+        String remoteResourceRecoveryOpts = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory," +
+                "guest,guest,host=" + liveServer.getHostname() + ",port=5445"
+                + ";org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host="
+                + backupServer.getHostname() + " ,port=" + (5445 + backupServer.getPortOffset());
+
+        logger.info("Start recovery with configuration: " + remoteResourceRecoveryOpts);
+//                String remoteResourceRecoveryOpts = "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory," +
+//                        "guest,guest,host=127.0.0.1,port=5445;org.hornetq.core.remoting.impl.netty.NettyConnectorFactory,guest,guest,host=127.0.0.1,port=7445";
+
+        List<String> recoveryClassNames = new ArrayList<String>();
+        recoveryClassNames.add(resourceRecoveryClass + ";" + remoteResourceRecoveryOpts);
+
+        // this appears that it does not work
+        BeanPopulator.getDefaultInstance(ObjectStoreEnvironmentBean.class).setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
+        BeanPopulator.getNamedInstance(ObjectStoreEnvironmentBean.class, "stateStore").setObjectStoreDir(nodeIdentifierAndObjectStoreDir);
+        BeanPopulator.getDefaultInstance(CoreEnvironmentBean.class).setNodeIdentifier(nodeIdentifierAndObjectStoreDir);
+
+        BeanPopulator.getDefaultInstance(JTAEnvironmentBean.class).setXaResourceRecoveryClassNames(recoveryClassNames);
+        BeanPopulator.getDefaultInstance(RecoveryEnvironmentBean.class).setRecoveryBackoffPeriod(1);
+
+        RecoveryManager.delayRecoveryManagerThread();
+
+        RecoveryManager rm = RecoveryManager.manager();
+        rm.initialize();
+        return rm;
     }
 
     /**

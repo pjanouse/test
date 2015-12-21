@@ -398,7 +398,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         logger.info("Get information about transactions from HQ:");
 
-        long timeout = 180000;
+        long timeout = 300000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
         JMSOperations jmsOperations = container(2).getJmsOperations();
@@ -670,6 +670,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
     protected void prepareLiveServerEAP7(Container container, String journalDirectory) {
         String connectionFactoryName = "RemoteConnectionFactory";
+        String nettyBinding = "netty-binding";
+        String nettyAcceptor = "netty-acceptor";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -680,6 +682,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
         jmsAdminOperations.addHAPolicySharedStoreMaster(500, true);
+
+        jmsAdminOperations.addSocketBinding(nettyBinding, 5445);
+        jmsAdminOperations.createRemoteAcceptor(nettyAcceptor, nettyBinding, null);
 
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.setTransactionTimeout(hornetqTransactionTimeout);
@@ -768,6 +773,8 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
     protected void prepareBackupServerEAP7(Container container, String journalDirectory) {
         String connectionFactoryName = "RemoteConnectionFactory";
+        String nettyBinding = "netty-binding";
+        String nettyAcceptor = "netty-acceptor";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -781,6 +788,9 @@ public class XAFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.addHAPolicySharedStoreSlave(true, 500, true, true, false, null, null, null, null);
+
+        jmsAdminOperations.addSocketBinding(nettyBinding, 5445);
+        jmsAdminOperations.createRemoteAcceptor(nettyAcceptor, nettyBinding, null);
 
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.setTransactionTimeout(hornetqTransactionTimeout);
