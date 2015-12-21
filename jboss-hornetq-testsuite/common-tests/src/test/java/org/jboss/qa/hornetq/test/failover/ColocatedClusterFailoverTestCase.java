@@ -231,7 +231,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsKill() throws Exception {
+    public void testFailbackWithMdbsKill() throws Exception {
 
         testFailWithMdbs(false);
     }
@@ -257,7 +257,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsShutdown() throws Exception {
+    public void testFailbackWithMdbsShutdown() throws Exception {
 
         testFailWithMdbs(true);
     }
