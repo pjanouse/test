@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients20.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients20.XAConsumerTransAck;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -70,7 +71,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after xa start.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaStart",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -83,7 +84,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before xa end.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaEnd",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumersKillBeforeEnd() throws Exception {
@@ -95,7 +96,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after end.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaEnd",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -108,7 +109,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before prepare is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaPrepare",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumersKillBeforePrepare() throws Exception {
@@ -120,7 +121,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after prepare is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaPrepare",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -133,7 +134,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before commit is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaCommit",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumersKillBeforeCommit() throws Exception {
@@ -145,7 +146,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before commit is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaCommit",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -163,7 +164,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after xa start.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaStart",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -176,7 +177,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before xa end.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaEnd",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumerKillBeforeEnd() throws Exception {
@@ -188,7 +189,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after end.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaEnd",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -201,7 +202,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before prepare is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaPrepare",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumerKillBeforePrepare() throws Exception {
@@ -213,7 +214,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill after prepare is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaPrepare",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -226,7 +227,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before commit is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaCommit",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailoverWithXAConsumerKillBeforeCommit() throws Exception {
@@ -238,7 +239,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before commit is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaCommit",
             targetLocation = "EXIT",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -261,7 +262,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -335,7 +336,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -406,7 +407,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRule(name = "Kill before commit is written to journal.",
-            targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
+            targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
             targetMethod = "xaCommit",
             action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     public void testFailFirstTransactionOnBackup() throws Exception {
@@ -418,7 +419,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -506,47 +507,20 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
      * @param journalDirectory path to journal directory
      */
     protected void prepareLiveServer(Container container, String journalDirectory) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String messagingGroupSocketBindingName = "messaging-group";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setFailoverOnShutdown(true);
-
-        jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
 
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
+        jmsAdminOperations.addHAPolicySharedStoreMaster(500, true);
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.setTransactionTimeout(hornetqTransactionTimeout);
-
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
@@ -566,23 +540,10 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
      * @param container Test container - defined in arquillian.xml
      */
     protected void prepareBackupServer(Container container, String journalDirectory) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "netty";
         String connectionFactoryName = "RemoteConnectionFactory";
-        String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setBackup(true);
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setSharedStore(true);
-
-        jmsAdminOperations.setFailoverOnShutdown(true);
-        jmsAdminOperations.setJournalType("ASYNCIO");
 
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -590,30 +551,16 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         jmsAdminOperations.setPagingDirectory(journalDirectory);
 
         jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setAllowFailback(true);
+        jmsAdminOperations.setJournalType("ASYNCIO");
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
+        jmsAdminOperations.addHAPolicySharedStoreSlave(true, 500, true, true, false, null, null, null, null);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-        jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
         jmsAdminOperations.setTransactionTimeout(hornetqTransactionTimeout);
 
         jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
