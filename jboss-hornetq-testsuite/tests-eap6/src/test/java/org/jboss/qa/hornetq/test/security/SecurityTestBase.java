@@ -75,6 +75,20 @@ public abstract class SecurityTestBase extends HornetQTestCase {
         this.createConnector(connectorName, ops, props);
     }
 
+    protected void createTwoWaySslConnector(final JMSOperations ops) {
+        this.createTwoWaySslConnector("netty", ops);
+    }
+
+    protected void createTwoWaySslConnector(final String connectorName, final JMSOperations ops) {
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        this.createConnector(connectorName, ops, props);
+    }
+
 
     protected void createOneWaySslAcceptor(final JMSOperations ops) {
         this.createOneWaySslAcceptor("netty", ops);
@@ -108,7 +122,7 @@ public abstract class SecurityTestBase extends HornetQTestCase {
     }
 
 
-    private void createConnector(final String connectorName, final JMSOperations ops,
+    protected void createConnector(final String connectorName, final JMSOperations ops,
             final Map<String, String> properties) {
 
         try {

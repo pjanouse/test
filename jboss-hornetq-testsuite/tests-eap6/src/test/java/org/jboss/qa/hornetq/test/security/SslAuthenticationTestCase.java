@@ -73,7 +73,6 @@ import static org.junit.Assert.assertNotNull;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
 public class SslAuthenticationTestCase extends SecurityTestBase {
 
     private static final Logger logger = Logger.getLogger(SslAuthenticationTestCase.class);
@@ -324,23 +323,14 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).start();
         JMSOperations ops = this.prepareServer();
         this.createTwoWaySslAcceptor(ops);
+        this.createTwoWaySslConnector(ops);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
         this.prepareServerSideKeystores();
         ops.close();
         container(1).restart();
 
-        Map<String, Object> props = new HashMap<String, Object>();
-        props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());
-        props.put(TransportConstants.PORT_PROP_NAME, container(1).getHornetqPort());
-        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
-        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
-        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
-        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
-        TransportConfiguration config = new TransportConfiguration(NettyConnectorFactory.class.getCanonicalName(),
-                props);
 
-        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, config);
+        ConnectionFactory cf = (ConnectionFactory) container(1).getContext().lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         Queue testQueue = session.createQueue(QUEUE_NAME);
@@ -361,7 +351,190 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         producer.close();
         session.close();
         connection.close();
-        cf.close();
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    public void testTwoWaySslOverJmsCertOverrideViaHornetQ() throws Exception {
+        container(1).start();
+        JMSOperations ops = this.prepareServer();
+        this.createTwoWaySslAcceptor(ops);
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath+"a");
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath+"a");
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        createConnector("netty", ops, props);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+        this.prepareServerSideKeystores();
+        ops.close();
+        System.setProperty("org.hornetq.ssl.trustStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath()); // for server authentication
+        System.setProperty("org.hornetq.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
+        System.setProperty("org.hornetq.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("org.hornetq.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
+        container(1).restart();
+
+
+        ConnectionFactory cf = (ConnectionFactory) container(1).getContext().lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    public void testTwoWaySslOverJmsCertOverrideViaJavax() throws Exception {
+        container(1).start();
+        JMSOperations ops = this.prepareServer();
+        this.createTwoWaySslAcceptor(ops);
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath+"a");
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath+"a");
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        createConnector("netty", ops, props);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+        this.prepareServerSideKeystores();
+        ops.close();
+        System.setProperty("javax.net.ssl.trustStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath()); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
+        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl..keyStorePassword", TRUST_STORE_PASSWORD);
+        container(1).restart();
+
+
+        ConnectionFactory cf = (ConnectionFactory) container(1).getContext().lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+    }
+
+    @Test(expected = javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    public void testTwoWaySslOverJmsNegativeClientAuth() throws Exception {
+        container(1).start();
+        JMSOperations ops = this.prepareServer();
+        this.createTwoWaySslAcceptor(ops);
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        props.put(TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath+"a");
+        props.put(TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, TRUST_STORE_PASSWORD);
+        createConnector("netty", ops, props);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+        this.prepareServerSideKeystores();
+        ops.close();
+        System.setProperty("javax.net.ssl.trustStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath()); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
+        container(1).restart();
+
+
+        ConnectionFactory cf = (ConnectionFactory) container(1).getContext().lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+    }
+
+    @Test(expected = javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    public void testTwoWaySslOverJmsNegativeServerAuth() throws Exception {
+        container(1).start();
+        JMSOperations ops = this.prepareServer();
+        this.createTwoWaySslAcceptor(ops);
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
+        props.put(TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath+"a");
+        props.put(TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, KEY_STORE_PASSWORD);
+        createConnector("netty", ops, props);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+        this.prepareServerSideKeystores();
+        ops.close();
+        System.setProperty("javax.net.ssl.trustStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath()); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PASSWORD);
+
+        container(1).restart();
+
+
+        ConnectionFactory cf = (ConnectionFactory) container(1).getContext().lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection(TEST_USER, TEST_USER_PASSWORD);
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
     }
 
     @Test
