@@ -146,7 +146,7 @@ public class ClusterTestCase extends HornetQTestCase {
     static String inTopicJndiNameForMdb = "jms/topic/" + inTopicNameForMdb;
     static String outTopicNameForMdb = "OutTopic";
     static String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
-
+    
     /**
      * @tpTestDetails Start two server in HornetQ cluster and deploy queue and
      * topic to each. Queue and topic are load-balanced. Start producer which
@@ -246,7 +246,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(128));
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -1691,7 +1691,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         List<ReceiverTransAck> receivers = new ArrayList<ReceiverTransAck>();
         List<FinalTestMessageVerifier> groupMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         groupMessageVerifiers.add(messageVerifier);
 
         for (int i = 0; i < 2; i++) {
@@ -1967,7 +1967,7 @@ public class ClusterTestCase extends HornetQTestCase {
         container(2).start();
         container(1).start();
         Thread.sleep(5000);
-        FinalTestMessageVerifier verifier = new TextMessageVerifier();
+        FinalTestMessageVerifier verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 30000, 100, 10);
         receiver.setMessageVerifier(verifier);
         receiver.start();
@@ -1985,7 +1985,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         producerToInQueue1.join();
         producerToInQueue2.join();
-
+        
         container(1).kill();
 
         container(1).start();
