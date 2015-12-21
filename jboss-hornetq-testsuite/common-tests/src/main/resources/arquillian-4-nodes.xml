@@ -47,7 +47,7 @@
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=true
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
-                </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
+                </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y--> <!-- -XX:+PrintGCDetails -XX:+PrintHeapAtGC -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">180</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
