@@ -20,6 +20,7 @@ import org.jboss.qa.hornetq.apps.clients20.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsTransAck;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -549,9 +550,9 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         JMSTools.waitForClientsToFinish(clients);
 
         // message verifiers for diverted messages - compares send and diverted messages
-        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
         // compare received and diverted messages, to send  messages add messages from normal receiver, to received messages from diverted queue
-        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
         // add send messages to sendDivertedMessageVerifier
         for (Client c : clients.getProducers()) {
@@ -847,7 +848,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         Thread.sleep(10000);
 
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
         p.setMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);
