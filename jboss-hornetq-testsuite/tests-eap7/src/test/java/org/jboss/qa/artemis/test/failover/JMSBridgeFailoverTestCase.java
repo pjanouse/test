@@ -218,8 +218,11 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
 
             // check HornetQ journal that there are no unfinished transactions
             String outputJournalFile = CONTAINER1_NAME + "-hornetq_journal_content_after_shutdown_of_JMS_bridge.txt";
-            container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings",
-                    JOURNAL_DIRECTORY_A + File.separator + "journal", outputJournalFile);
+            container(1).getPrintJournal().printJournal(
+                    JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                    JOURNAL_DIRECTORY_A + File.separator + "journal",
+                    JOURNAL_DIRECTORY_A + File.separator + "paging",
+                    outputJournalFile);
             // check that there are failed transactions
             String stringToFind = "Failed Transactions (Missing commit/prepare/rollback record)";
             // String workingDirectory = System.getenv("WORKSPACE") == null ? new File(".").getAbsolutePath() :

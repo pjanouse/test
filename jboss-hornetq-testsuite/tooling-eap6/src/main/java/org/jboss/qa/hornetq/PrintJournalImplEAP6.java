@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 
@@ -52,18 +51,18 @@ public class PrintJournalImplEAP6 implements PrintJournal {
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
 
-        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
+        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), null, outputFileBuilder.toString());
     }
 
     /**
      * Prints journal to output file
-     *
-     * @param messagingbindingsDirectory
+     *  @param messagingbindingsDirectory
      * @param messagingjournalDirectory
+     * @param messagingpagingDirectory
      * @param outputFile                 file to which content of journal will be printed
      */
     @Override
-    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) throws Exception {
+    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();

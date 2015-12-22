@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq;
 
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.config.descriptor.impl.ArquillianDescriptorImpl;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 
@@ -43,27 +42,30 @@ public class PrintJournalImplEAP7 implements PrintJournal {
 
         StringBuilder messagingBindingsDirectoryBuilder = new StringBuilder(jbossHome);
         messagingBindingsDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
-                .append(File.separator).append("messagingbindings");
+                .append(File.separator).append("bindings");
         StringBuilder messagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
         messagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
-                .append(File.separator).append("messagingjournal");
+                .append(File.separator).append("journal");
+        StringBuilder pagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
+        pagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
+                .append(File.separator).append("paging");
 
 
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
 
-        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
+        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), pagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
     }
 
     /**
      * Prints journal to output file
-     *
-     * @param messagingbindingsDirectory
+     *  @param messagingbindingsDirectory
      * @param messagingjournalDirectory
+     * @param messagingpagingDirectory
      * @param outputFile                 file to which content of journal will be printed
      */
     @Override
-    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) throws Exception {
+    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();
@@ -81,18 +83,33 @@ public class PrintJournalImplEAP7 implements PrintJournal {
             throw new IllegalStateException("Parameter messagingjournalDirectory is null/empty.");
         }
 
+        if (messagingpagingDirectory == null || "".equals(messagingpagingDirectory)) {
+            throw new IllegalStateException("Parameter messagingpagingDirectory is null/empty.");
+        }
+
         if (outputFile == null || "".equalsIgnoreCase(outputFile)) {
             throw new IllegalStateException("Parameter outputFile is null/empty.");
         }
 
+        File standaloneDir = new File(jbossHome, "standalone");
+        File confXML = new File(standaloneDir, "configuration" + File.separator + "standalone-full-ha.xml");
 
         final JavaProcessBuilder javaProcessBuilder = new JavaProcessBuilder();
 
         javaProcessBuilder.setWorkingDirectory(workingDirectory);
         javaProcessBuilder.addClasspathEntry(buildClasspath(container));
-        javaProcessBuilder.setMainClass("org.apache.activemq.artemis.core.persistence.impl.journal.PrintData");
+        javaProcessBuilder.setMainClass("org.apache.activemq.artemis.cli.Artemis");
+        javaProcessBuilder.addSystemProperty("artemis.instance", standaloneDir.getAbsolutePath());
+        javaProcessBuilder.addArgument("data");
+        javaProcessBuilder.addArgument("print");
+        javaProcessBuilder.addArgument("--bindings");
         javaProcessBuilder.addArgument(messagingbindingsDirectory);
+        javaProcessBuilder.addArgument("--journal");
         javaProcessBuilder.addArgument(messagingjournalDirectory);
+        javaProcessBuilder.addArgument("--paging");
+        javaProcessBuilder.addArgument(messagingpagingDirectory);
+        javaProcessBuilder.addArgument("--configuration");
+        javaProcessBuilder.addArgument(confXML.getAbsolutePath());
 
         final Process process;
 
@@ -125,7 +142,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         }
 
         log.info("Journal printed to file: " + outputFile + ", bindings directory: " + messagingbindingsDirectory +
-                ", journal directory: " + messagingjournalDirectory);
+                ", journal directory: " + messagingjournalDirectory + ", paging directory: " + messagingpagingDirectory);
 
     }
 
@@ -139,14 +156,19 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         StringBuilder strbuilder = new StringBuilder();
 
         //modules/system/layers/base/org/hornetq/main/
-        strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/apache/activemq")).append(File.separator).append("*");
+        strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/apache/activemq/artemis")).append(File.separator).append("*");
         strbuilder.append(File.pathSeparator);
         strbuilder.append(ServerPathUtils.getModuleDirectory(container, "io/netty")).append(File.separator).append("*");
         strbuilder.append(File.pathSeparator);
         strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/jboss/logging")).append(File.separator).append("*");
-
-
-
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(ServerPathUtils.getModuleDirectory(container, "javax/jms/api")).append(File.separator).append("*");
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(System.getProperty("AIRLIFT_JAR"));
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(System.getProperty("GUAVA_JAR"));
+        strbuilder.append(File.pathSeparator);
+        strbuilder.append(System.getProperty("JAVAX_INJECT_JAR"));
 
         System.out.println("Classpath " + strbuilder);
         log.debug("Classpath: " + strbuilder);

@@ -853,7 +853,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         logger.warn("Shutdown live server");
         logger.warn("########################################");
         container(1).stop();
-        container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+        container(1).getPrintJournal().printJournal(
+                JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                JOURNAL_DIRECTORY_A + File.separator + "journal",
+                JOURNAL_DIRECTORY_A + File.separator + "paging",
                 "journalAfterShutdownAndFailoverToBackup.txt");
         logger.warn("########################################");
         logger.warn("Live server shutdowned");
@@ -875,7 +878,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             container(1).start();
             Assert.assertTrue("Live did not start again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
-            container(1).getPrintJournal().printJournal(JOURNAL_DIRECTORY_A + File.separator + "bindings", JOURNAL_DIRECTORY_A + File.separator + "journal",
+            container(1).getPrintJournal().printJournal(
+                    JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                    JOURNAL_DIRECTORY_A + File.separator + "journal",
+                    JOURNAL_DIRECTORY_A + File.separator + "paging",
                     "journalAfterStartingLiveAgain_Failback.txt");
             logger.warn("########################################");
             logger.warn("Live server started - this is failback");

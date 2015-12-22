@@ -7,5 +7,5 @@ public interface PrintJournal {
 
     public void printJournal(String relativePathToOutputFile) throws Exception;
 
-    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String outputFile) throws Exception;
+    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception;
 }

@@ -394,6 +394,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         c.join();
 
+        container(2).getPrintJournal().printJournal(
+                JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                JOURNAL_DIRECTORY_A + File.separator + "journal",
+                JOURNAL_DIRECTORY_A + File.separator + "paging",
+                System.getProperty("user.dir") + File.separator + "target" + File.separator + "journal-dump.log");
+
         messageVerifier.verifyMessages();
 
         logger.info("Get information about transactions from HQ:");
@@ -554,10 +560,15 @@ public class XAFailoverTestCase extends HornetQTestCase {
             Thread.sleep(500);
         }
 
-        logger.info("Get information about transactions from HQ after failover to backup and recovery passed.:");
-        int numberOfPreparedTransaction;
+        logger.info("Get information about transactions from HQ:");
+        long timeout = 180000;
+        long startTime = System.currentTimeMillis();
+        int numberOfPreparedTransaction = 100;
         JMSOperations jmsOperations = container(2).getJmsOperations();
-        numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+        while (numberOfPreparedTransaction > 0 && System.currentTimeMillis() - startTime < timeout) {
+            numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
+            Thread.sleep(1000);
+        }
         String result = jmsOperations.listPreparedTransaction();
         jmsOperations.close();
 
@@ -568,7 +579,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         Assert.assertEquals("Number of send and received messages is different.", numberOfMessagesToSend, c.getListOfReceivedMessages().size());
         Assert.assertTrue("Number of prepared transactions must be 0 or 1 after failover to backup but it's " + numberOfPreparedTransaction + ". If there is just one " +
                 "consumer then after failover there can be max 1 transaction in prepared state. List of prepared transactions after failover: " + result
-                , 2 < numberOfPreparedTransaction);
+                , 2 > numberOfPreparedTransaction);
 
         container(1).stop();
 

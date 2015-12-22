@@ -93,7 +93,7 @@
                 <version>1.1.1</version>
                 <executions>
                     <execution>
-                        <id>set-byteman</id>
+                        <id>set-dependency-paths</id>
                         <goals>
                             <goal>set</goal>
                         </goals>
@@ -103,6 +103,10 @@
                                     <includes>
                                         <include>org.jboss.byteman:byteman:jar</include>
                                         <include>org.jboss.byteman:byteman-submit:jar</include>
+                                        <include>io.airlift:airline:jar</include>
+                                        <include>com.google.guava:guava:jar</include>
+                                        <include>javax.inject:javax.inject:jar</include>
+                                        <include>org.apache.activemq:artemis-server:</include>
                                     </includes>
                                 </propertySet>
                             </propertySets>
@@ -128,6 +132,15 @@
                         <BYTEMAN_SUBMIT_JAR>
                             ${org.jboss.byteman:byteman-submit:jar}
                         </BYTEMAN_SUBMIT_JAR>
+                        <AIRLIFT_JAR>
+                            ${io.airlift:airline:jar}
+                        </AIRLIFT_JAR>
+                        <GUAVA_JAR>
+                            ${com.google.guava:guava:jar}
+                        </GUAVA_JAR>
+                        <JAVAX_INJECT_JAR>
+                            ${javax.inject:javax.inject:jar}
+                        </JAVAX_INJECT_JAR>
                         <JBOSS_HOME_1>${env.JBOSS_HOME_1}</JBOSS_HOME_1>
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
                         <JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>

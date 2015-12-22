@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JavaProcessBuilder {
 
@@ -17,6 +19,7 @@ public class JavaProcessBuilder {
     private int startingHeapSizeInMegabytes = 400;
     private int maximumHeapSizeInMegabytes = 1280;
     private String workingDirectory;
+    private Map<String, String> systemProperties = new HashMap<String, String>();
     private List<String> classpathEntries = new ArrayList<String>();
     private List<String> mainClassArguments = new ArrayList<String>();
     private String javaRuntime = "java";
@@ -63,6 +66,10 @@ public class JavaProcessBuilder {
         this.workingDirectory = workingDirectory;
     }
 
+    public void addSystemProperty(String name, String value) {
+        systemProperties.put(name, value);
+    }
+
     public void addClasspathEntry(String classpathEntry) {
         this.classpathEntries.add(classpathEntry);
     }
@@ -80,6 +87,13 @@ public class JavaProcessBuilder {
         argumentsList.add(this.javaRuntime);
         argumentsList.add(MessageFormat.format("-Xms{0}M", String.valueOf(this.startingHeapSizeInMegabytes)));
         argumentsList.add(MessageFormat.format("-Xmx{0}M", String.valueOf(this.maximumHeapSizeInMegabytes)));
+
+        for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("-D").append(entry.getKey()).append("=").append(entry.getValue());
+            argumentsList.add(sb.toString());
+        }
+
         argumentsList.add("-classpath");
         argumentsList.add(getClasspath());
         argumentsList.add(this.mainClass);
