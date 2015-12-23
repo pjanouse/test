@@ -1777,7 +1777,7 @@ public interface JMSOperations {
     void addHAPolicyColocatedSharedStore();
 
     void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
-                                         int backupRequestRetryInterval, int maxBackups, boolean requestBackup);
+                                         int backupRequestRetryInterval, int maxBackups, boolean requestBackup, boolean failoverOnServerShutdown);
 
     void addHAPolicyCollocatedReplicated();
 

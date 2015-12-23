@@ -2313,7 +2313,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup, boolean failoverOnServerShutdown) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

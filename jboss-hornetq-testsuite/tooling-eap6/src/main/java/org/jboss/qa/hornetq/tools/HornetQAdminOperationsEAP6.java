@@ -5137,7 +5137,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+    public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries, int backupRequestRetryInterval, int maxBackups, boolean requestBackup, boolean failoverOnServerShutdown) {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 

@@ -797,6 +797,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         long groupTimeout = 500;
         long reaperPeriod = 750;
         String liveServerName = "default";
+        String backupServerName = "backup";
 
         container(1).start();
 
@@ -807,8 +808,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         JMSOperations jmsAdminOperationsC2 = container(2).getJmsOperations();
 
         jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
 
         jmsAdminOperationsC2.addMessageGrouping(liveServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
 
         jmsAdminOperationsC1.close();
 

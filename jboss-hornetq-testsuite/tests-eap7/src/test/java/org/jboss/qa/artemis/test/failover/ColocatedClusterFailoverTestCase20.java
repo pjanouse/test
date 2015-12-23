@@ -1373,7 +1373,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
+        jmsAdminOperations.addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true, true);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);

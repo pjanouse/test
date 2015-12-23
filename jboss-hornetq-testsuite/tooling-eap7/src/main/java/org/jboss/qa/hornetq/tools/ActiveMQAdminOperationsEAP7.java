@@ -5698,13 +5698,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void addHAPolicyColocatedSharedStore() {
-        addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true);
+        addHAPolicyColocatedSharedStore("default", 1000, -1, 5000, 1, true, true);
 
     }
 
     @Override
     public void addHAPolicyColocatedSharedStore(String serverName, int backupPortOffest, int backupRequestRetries,
-                                                int backupRequestRetryInterval, int maxBackups, boolean requestBackup) {
+                                                int backupRequestRetryInterval, int maxBackups, boolean requestBackup, boolean failoverOnServerShutdown) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -5720,7 +5720,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(serverName, "master", failoverOnServerShutdown);
+        setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(serverName, "slave", failoverOnServerShutdown);
+    }
 
+    protected void setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(String serverName, String nodeType, boolean value) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "shared-store-colocated");
+        model.get(ClientConstants.OP_ADDR).add("configuration", nodeType);
+        model.get("failover-on-server-shutdown").set(value);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
