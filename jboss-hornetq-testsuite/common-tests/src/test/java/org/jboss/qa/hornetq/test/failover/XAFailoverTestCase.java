@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author mnovak@redhat.com
@@ -394,11 +395,19 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         c.join();
 
+        StringBuilder journalDumpName = new StringBuilder();
+        journalDumpName.append("journal-dump-").append(UUID.randomUUID()).append(".txt");
+        StringBuilder journalDumpPath = new StringBuilder();
+        journalDumpPath.append(System.getProperty("user.dir")).append(File.separator).append("target")
+                .append(File.separator).append(journalDumpName);
         container(2).getPrintJournal().printJournal(
                 JOURNAL_DIRECTORY_A + File.separator + "bindings",
                 JOURNAL_DIRECTORY_A + File.separator + "journal",
                 JOURNAL_DIRECTORY_A + File.separator + "paging",
-                System.getProperty("user.dir") + File.separator + "target" + File.separator + "journal-dump.log");
+                journalDumpPath.toString());
+        logger.info("Journal dump was printed to " + journalDumpPath.toString());
+        // Give time to print journal
+        Thread.sleep(10000);
 
         messageVerifier.verifyMessages();
 
@@ -491,6 +500,20 @@ public class XAFailoverTestCase extends HornetQTestCase {
             Thread.sleep(1000);
         }
         jmsOperations.close();
+
+        StringBuilder journalDumpName = new StringBuilder();
+        journalDumpName.append("journal-dump-").append(UUID.randomUUID()).append(".txt");
+        StringBuilder journalDumpPath = new StringBuilder();
+        journalDumpPath.append(System.getProperty("user.dir")).append(File.separator).append("target")
+                .append(File.separator).append(journalDumpName);
+        container(2).getPrintJournal().printJournal(
+                JOURNAL_DIRECTORY_A + File.separator + "bindings",
+                JOURNAL_DIRECTORY_A + File.separator + "journal",
+                JOURNAL_DIRECTORY_A + File.separator + "paging",
+                journalDumpPath.toString());
+        logger.info("Journal dump was printed to " + journalDumpPath.toString());
+        // Give time to print journal
+        Thread.sleep(10000);
 
         Assert.assertTrue("Verification of received messages failed. Check logs for more details.", isMessageVerificationOk);
         Assert.assertEquals("Number of prepared transactions must be 0", 0, numberOfPreparedTransaction);
