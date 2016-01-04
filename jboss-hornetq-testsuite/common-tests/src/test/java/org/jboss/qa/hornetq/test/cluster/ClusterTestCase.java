@@ -246,7 +246,66 @@ public class ClusterTestCase extends HornetQTestCase {
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                            producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        container(1).stop();
+
+        container(2).stop();
+
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterTestWithKills() throws Exception {
+
+        int numberOfMessages = 100000;
+        prepareServers();
+        setClusterNetworkTimeOuts(container(1), 1000, 1000, 2000);
+        container(2).start();
+        container(1).start();
+
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        // A1 producer
+        MessageBuilder messageBuilder = new TextMessageBuilder(1);
+        messageBuilder.setAddDuplicatedHeader(true);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
+        producer1.setMessageVerifier(messageVerifier);
+        producer1.setTimeout(0);
+        producer1.setMessageBuilder(messageBuilder);
+        producer1.start();
+
+        new JMSTools().waitForMessages(inQueueNameForMdb, 300, 60000, container(1), container(2));
+
+        for (int i = 0; i < 10; i++) {
+            container(2).kill();
+            Thread.sleep(5000);
+            container(2).start();
+            Thread.sleep(5000);
+            container(1).kill();
+            Thread.sleep(5000);
+            container(1).start();
+            Thread.sleep(5000);
+        }
+
+        producer1.stopSending();
+        producer1.join();
+
+        // B1 consumer
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 5000, 100, 10);
+        receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
+        log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        // Just prints lost or duplicated messages if there are any. This does not fail the test.
+        messageVerifier.verifyMessages();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                            producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).stop();
 
