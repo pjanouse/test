@@ -88,111 +88,121 @@ public class GCPauseServlet extends HttpServlet {
         log.info("Causing GC pause.");
 
         // cause GC pause
-        startDemonstration();
+        startDemonstration(gcPauseDuration);
 
         log.info("GC pause finished - and took ");
     }
 
-    public static void forceGC(long gcPauseDuration) {
-        log.info("#test forceGC");
-        CountDownLatch finalized = new CountDownLatch(1);
-        WeakReference<DumbReference> dumbReference = new WeakReference<DumbReference>(new DumbReference(finalized, gcPauseDuration));
+    // object size in bytes
+    private static final int DEFAULT_OBJECTSIZE = 100;
+    private static int objectSize = DEFAULT_OBJECTSIZE;
+    // Number of objects to fill half of the available memory with (permanent) live objects
+    // The result of this calculation is not a constant with different garbage collectors.
+    // Therefore, it is preferable to set this value as an explicit parameter to the benchmark.
+    // Explicit setting is required if objectsize is different from default
+    private static long numLive = (Runtime.getRuntime().maxMemory() / objectSize / 5);
 
-        // A loop that will wait GC, using the minimal time as possible
-        while (!(dumbReference.get() == null && finalized.getCount() == 0)) {
-            System.gc();
-            System.runFinalization();
-            try {
-                finalized.await(100, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-            }
+    /**
+     */
+    public void startDemonstration(long gcPauseDuration) {
+
+        // run exactly 8 mutator threads
+        // which is little compared to typical web applications under load
+        // and benign when several JVMs run on the same hardware (coexistence test)
+        new Thread(new GarbageProducer(60, numLive / 2)).start();
+        new Thread(new GarbageProducer(60, numLive / 4)).start();
+        new Thread(new GarbageProducer(60, numLive / 8)).start();
+        new Thread(new GarbageProducer(60, numLive / 16)).start();
+        new Thread(new GarbageProducer(30, numLive / 32)).start();
+        new Thread(new GarbageProducer(30, numLive / 64)).start();
+        new Thread(new GarbageProducer(30, numLive / 128)).start();
+        new Thread(new GarbageProducer(30, numLive / 128)).start();
+
+        // Standard test run takes 1800 seconds (which is not enough to finish warmup and reach a true stationary state)
+        // Therefore I also ran some tests for 7200 seconds (which lowers average throughput a bit)
+        try {
+            Thread.sleep(gcPauseDuration);
+        } catch (InterruptedException iexc) {
+            iexc.printStackTrace();
         }
-        log.info("#test forceGC Done");
+        System.exit(0);
     }
 
-    protected static class DumbReference {
-
-        private CountDownLatch finalized;
-        private long sleep;
-
-        public DumbReference(CountDownLatch finalized, long sleep) {
-            this.finalized = finalized;
-            this.sleep = sleep;
+    /**
+     * Create a character array of a given length
+     *
+     * @param length
+     * @return the character array
+     */
+    private static char[] getCharArray(int length) {
+        char[] retVal = new char[length];
+        for (int i = 0; i < length; i++) {
+            retVal[i] = 'a';
         }
-
-        public void finalize() throws Throwable {
-            log.info("Causing GC pause.");
-            long startTime = System.currentTimeMillis();
-            finalized.countDown();
-            Thread.sleep(sleep);
-            super.finalize();
-            log.info("GC pause finished - and took: " + (System.currentTimeMillis() - startTime) + " ms");
-        }
+        return retVal;
     }
 
-    public static void startDemonstration() {
+    /**
+     * A garbage producer implementation
+     */
+    public static class GarbageProducer implements Runnable {
 
-        StringBuffer buffer = new StringBuffer();
-        long t0 = 0;
-        int capacity = 10000;
-        List<String> strings = new ArrayList<String>(capacity);
+        // the fraction of newly created objects that do not become garbage immediately but are stored in the liveList
+        int fractionLive;
+        // the size of the liveList
+        long myNumLive;
 
-
-		/* Build a really big string */
-        for (int i = 0; i < 1000; i++) {
-            buffer.append("This is an unneccessarily long string...But you know why\n");
+        /**
+         * Each GarbageProducer creates objects that become garbage immediately (lifetime=0) and
+         * objects that become garbage only after a lifetime>0 which is distributed about an average lifetime.
+         * This average lifetime is a function of fractionLive and numLive
+         *
+         * @param fractionLive
+         * @param numLive
+         */
+        public GarbageProducer(int fractionLive, long numLive) {
+            this.fractionLive = fractionLive;
+            this.myNumLive = numLive;
         }
 
-
-        for (int i = 0; i < capacity; i++) {
-            /* increase memory usage */
-            strings.add("randomString:" + Math.random() + buffer);
-
-          		/* Generate some garbage */
-            for (int j = 0; j < 100; j++) {
-                strings.set((int) Math.floor(Math.random() * strings.size()),
-                        "randomString:" + Math.random() + buffer);
+        public void run() {
+            int osize = objectSize;
+            char[] chars = getCharArray(objectSize);
+            List<String> liveList = new ArrayList<String>((int) myNumLive);
+            // initially, the lifeList is filled
+            for (int i = 0; i < myNumLive; i++) {
+                liveList.add(new String(chars));
             }
+            int counter = 0;
+            int limit = 3000;
+            while (true) {
+                // create the majority of objects as garbage and count them
+                for (int i = 0; i < fractionLive; i++) {
+                    String garbage = new String(chars);
+                    counter++;
+                }
+                // waste CPU cycles for useless String comparisons
+                for (int i = 0; i < 200 * fractionLive; i++) {
+                    String el = liveList.get(i);
+                    if (!el.equals(chars)) {
+                        continue;
+                    }
+                }
 
-			/* Print the memory usage every now and then */
-            if (i % 100 == 0) {
-                long t1 = System.currentTimeMillis();
-                if (t1 - t0 > 100) {
-                    t0 = t1;
-                    System.out.println("it=" + pad(String.valueOf(i), 4) + memString());
+                // keep the fraction of objects live by placing them in the list (at a random index)
+                int index = (int) (Math.random() * myNumLive);
+                liveList.set(index, new String(chars));
+                // take a sleep from time to time to reduce CPU usage below 100%
+                if (++counter >= limit) {
+                    counter = 0;
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException iexc) {
+                        iexc.printStackTrace();
+                    }
                 }
             }
         }
-    }
-
-    public static String pad(String str, int i) {
-        while (str.length() < i) {
-            str = " " + str;
-        }
-        return str;
-    }
-
-
-    private static String memString() {
-
-        StringBuffer buffer = new StringBuffer();
-        for (MemoryPoolMXBean pool : ManagementFactory.getMemoryPoolMXBeans()) {
-            if (pool.getType().equals(MemoryType.HEAP)) {
-                buffer.append(" - ")
-                        .append(pool.getName())
-                /* usage includes unreachable objects that are not collected yet */
-                        .append(": u=").append(toString(pool.getUsage()))
-				/* usage as of right after the last collection */
-                        .append(" cu=").append(toString(pool.getCollectionUsage()));
-
-            }
-        }
-        return buffer.toString();
-    }
-
-    private static String toString(MemoryUsage memoryUsage) {
-        String string = (memoryUsage.getUsed() * 100) / memoryUsage.getMax() + "%";
-        return pad(string, 4);
     }
 }
 

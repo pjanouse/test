@@ -143,9 +143,9 @@ public class FailureUtils {
             try {
                 container.deploy(FailureUtils.getGcPauseServlet());
                 String request = "http://" + container.getHostname() + ":" + container.getHttpPort() + "/GCPauseServlet/GCPauseServlet?op="
-                        + failureType + "&duration=30000";
+                        + failureType + "&duration=120000";
                 log.info("Call GCPauseServlet servlet: " + request);
-                HttpRequest.get(request, 120, TimeUnit.SECONDS);
+                HttpRequest.get(request, 130, TimeUnit.SECONDS);
 
             } catch (Exception ex) {
                 log.error("Print exception: ", ex);
