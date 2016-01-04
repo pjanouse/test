@@ -2,35 +2,21 @@ package org.jboss.qa.hornetq.test.remote.jca;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.HighCPUUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
-import org.jboss.qa.hornetq.tools.TransactionUtils;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
-import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -285,8 +271,10 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
                 throw new RuntimeException("Type of connector unknown for EAP 6");
         }
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
+        setAddressSettings(jmsAdminOperations);
+
         jmsAdminOperations.setTransactionTimeout(60000);
         jmsAdminOperations.createRemoteAcceptor("netty", "messaging", null);
 
@@ -300,6 +288,11 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
 
         jmsAdminOperations.close();
         container.stop();
+    }
+
+    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
     }
 
     /**
@@ -436,9 +429,11 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
                 throw new RuntimeException("Type of connector unknown for EAP 6");
         }
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
+        setAddressSettings(jmsAdminOperations);
+
         jmsAdminOperations.setTransactionTimeout(60000);
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }
@@ -464,9 +459,10 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
 
         setConnectorTypeForPooledConnectionFactoryEAP6(container, connectorType, remoteSevers);
 
@@ -661,9 +657,10 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("jboss-descriptor-property-replacement", true);
         jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
-        jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+        setAddressSettings(jmsAdminOperations);
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
 
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteSevers);
 
