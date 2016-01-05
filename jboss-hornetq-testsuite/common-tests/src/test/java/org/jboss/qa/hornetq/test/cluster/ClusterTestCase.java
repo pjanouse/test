@@ -206,7 +206,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         int numberOfMessages = 100000;
         prepareServers();
-        setClusterNetworkTimeOuts(container(1), 1000, 1000, 2000);
+        setClusterNetworkTimeOuts(container(1), 2000, 2000, 4000);
         container(2).start();
         container(1).start();
 
@@ -262,7 +262,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         int numberOfMessages = 100000;
         prepareServers();
-        setClusterNetworkTimeOuts(container(1), 1000, 1000, 2000);
+        setClusterNetworkTimeOuts(container(1), 2000, 2000, 4000);
         container(2).start();
         container(1).start();
 
