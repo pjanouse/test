@@ -657,12 +657,13 @@ public class PrepareServers7 {
     }
 
     private static void setupTraceFileHandler(Node loggingSubsystem){
-        Node fileHandlerTrace = new Node(loggingSubsystem, 'periodic-rotating-file-handler',[name:"FILE-TRACE", autoflush:"true"])
+        Node fileHandlerTrace = new Node(loggingSubsystem, 'size-rotating-file-handler',[name:"FILE-TRACE", autoflush:"true"])
         Node formater = new Node(fileHandlerTrace, 'formatter')
         formater.appendNode('pattern-formatter', [pattern:"%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"])
         fileHandlerTrace.appendNode('level',[name:"TRACE"])
+        fileHandlerTrace.appendNode('rotate-size',[value:"500M"])
+        fileHandlerTrace.appendNode('max-backup-index',[value:"500"])
         fileHandlerTrace.appendNode('file',['relative-to':"jboss.server.log.dir", path:"server-trace.log"])
-        fileHandlerTrace.appendNode('suffix', [value:".yyyy-MM-dd"])
         fileHandlerTrace.appendNode('append', [value:"true"])
     }
     private static void setupActivemqLogger(Node loggingSubsystem){

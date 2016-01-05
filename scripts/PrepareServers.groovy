@@ -377,15 +377,16 @@ public class PrepareServers {
                 w ->
                     standaloneFile.eachLine { line ->
                         w << line.replaceAll('<root-logger>',
-                                '            <periodic-rotating-file-handler name="FILE-TRACE" autoflush="true">\n' +
+                                '            <size-rotating-file-handler name="FILE-TRACE" autoflush="true">\n' +
                                         '                <level name="TRACE"/>\n' +
                                         '                <formatter>\n' +
                                         '                   <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>\n' +
                                         '                </formatter>\n' +
                                         '                <file relative-to="jboss.server.log.dir" path="server-trace.log"/>\n' +
-                                        '                <suffix value=".yyyy-MM-dd"/>\n' +
+                                        '                <rotate-size value="500M"/>\n' +
+                                        '                <max-backup-index value="500"/>\n' +
                                         '                <append value="true"/>\n' +
-                                        '            </periodic-rotating-file-handler>\n' +
+                                        '            </size-rotating-file-handler>\n' +
                                         '            <root-logger>\n')
 
                                 .replaceAll('<handler name="FILE"/>', '<handler name="FILE"/>\n' +
