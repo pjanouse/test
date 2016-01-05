@@ -848,11 +848,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -867,11 +867,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb2.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb2.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
