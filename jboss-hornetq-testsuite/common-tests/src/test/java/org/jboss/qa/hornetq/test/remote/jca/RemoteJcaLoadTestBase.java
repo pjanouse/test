@@ -273,6 +273,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
 
         jmsAdminOperations.setJournalMinCompactFiles(0);
         jmsAdminOperations.setJournalMinFiles(100);
+        jmsAdminOperations.setIdCacheSize(200000);
         setAddressSettings(jmsAdminOperations);
 
         jmsAdminOperations.setTransactionTimeout(60000);
@@ -434,6 +435,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setTransactionTimeout(60000);
         jmsAdminOperations.setJournalMinCompactFiles(0);
         jmsAdminOperations.setJournalMinFiles(100);
+        jmsAdminOperations.setIdCacheSize(200000);
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
         }
@@ -463,6 +465,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
         jmsAdminOperations.setJournalMinCompactFiles(0);
         jmsAdminOperations.setJournalMinFiles(100);
+        jmsAdminOperations.setIdCacheSize(200000);
 
         setConnectorTypeForPooledConnectionFactoryEAP6(container, connectorType, remoteSevers);
 
@@ -661,6 +664,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.setJournalMinCompactFiles(0);
         jmsAdminOperations.setJournalMinFiles(100);
+        jmsAdminOperations.setIdCacheSize(200000);
 
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteSevers);
 
