@@ -157,6 +157,6 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @Override
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024, 60000, 2000, 100 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 52 * 1024 * 1024, 60000, 2000, 2 * 1024 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
     }
 }

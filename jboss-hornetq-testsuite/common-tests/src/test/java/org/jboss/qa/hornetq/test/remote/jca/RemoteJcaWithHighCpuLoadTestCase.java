@@ -324,7 +324,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
-            // Wait until some messages are consumes from InQueue
+            // Wait until some messages are consumed from InQueue
             new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
         } finally {
