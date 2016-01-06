@@ -1012,6 +1012,125 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     }
 
     /**
+     * @tpTestDetails Use PKCS12  keystore.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for one way SSL. Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS12 keystore</li>
+     * <li>Client has truststore of server</li>
+     * <li>Standalone client connects to the server using JMS API and tries to verify server certificate. </li>
+     * <li>Client will not make connection, after authentication fails.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is able to create connection to the server and verify the server certificate against its truststore.</li>
+     * <li>Clients is able to send and receive message</li>
+     * </ul>
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testOneWaySslOverJmsWithPkcs12HttpServerAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs12(container(1));
+        container(1).start();
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStorePassword", "hornetqexample");
+
+
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
+    /**
+     * @tpTestDetails Use PKCS12  keystore.
+     * Start one server with keystore with the test SSL certificate installed.
+     * Configure ActiveMQ acceptor for one way SSL. Create client and
+     * connect to the server using JMS API. Verify certificate and send and
+     * receive message to check that created connection is working properly.
+     * @tpProcedure <ul>
+     * <li>We have single EAP 7 server with keystore with the test SSL
+     * certificate installed. Use PKCS12 keystore</li>
+     * <li>Client doesn't have truststore of server</li>
+     * <li>Standalone client connects to the server using JMS API and tries to verify server certificate. </li>
+     * <li>Client will not make connection, after authentication fails.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>Client is not able to create connection to the server and verify the server certificate against its truststore.</li>
+     * </ul>
+     */
+    @Test(expected=javax.jms.JMSException.class)
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testOneWaySslOverJmsWithPkcs12HttpNegativeServerAuth() throws Exception {
+
+        Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
+
+        prepareSeverWithPkcs12(container(1));
+        container(1).start();
+
+
+
+        Context context = container(1).getContext();
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
+        Connection connection = cf.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue testQueue = session.createQueue(QUEUE_NAME);
+
+        MessageProducer producer = session.createProducer(testQueue);
+        TextMessage msg = session.createTextMessage(TEST_MESSAGE_BODY);
+        producer.send(msg);
+
+        connection.start();
+        MessageConsumer consumer = session.createConsumer(testQueue);
+        TextMessage received = (TextMessage) consumer.receive(10000L);
+        connection.stop();
+
+        assertNotNull("Cannot consume test message", received);
+        assertEquals("Sent and received messages have different body", TEST_MESSAGE_BODY, received.getText());
+
+        consumer.close();
+        producer.close();
+        session.close();
+        connection.close();
+
+        container(1).stop();
+
+    }
+
+
+
+    /**
      * @tpTestDetails Use PKCS12 keystore and JKS truststore.
      * Start one server with keystore with the test SSL certificate installed.
      * Configure ActiveMQ acceptor for one way SSL. Create client and
@@ -1203,6 +1322,53 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.createSecurityRealm(securityRealmName);
         ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS11", password);
         ops.addAuthenticationWithKeyStoreProvider(securityRealmName, "PKCS11", password);
+        ops.removeHttpAcceptor("http-acceptor");
+        ops.removeHttpAcceptor("http-acceptor-throughput");
+        ops.close();
+        container.restart();
+        ops = container.getJmsOperations();
+
+        ops.addHttpsListener(listenerName, securityRealmName, sockerBinding, verifyClientPolitic);
+        ops.createHttpAcceptor(httpAcceptorName, listenerName, null);
+        Map<String, String> httpConnectorParams = new HashMap<String, String>();
+        httpConnectorParams.put("ssl-enabled", "true");
+        ops.createHttpConnector(httpConnectorName, sockerBinding, httpConnectorParams, httpAcceptorName);
+
+        ops.close();
+        container.restart();
+        ops = container.getJmsOperations();
+
+        ops.removeConnectionFactory(remoteConnectionFactoryName);
+        ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, httpConnectorName);
+        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+
+        ops.close();
+        container.stop();
+
+
+    }
+
+
+    private void prepareSeverWithPkcs12(Container container) throws Exception {
+
+
+
+        final String securityRealmName = "https";
+        final String listenerName = "undertow-https";
+        final String sockerBinding = "https";
+        final String verifyClientPolitic = "NOT_REQUESTED";
+        final String password = "hornetqexample";
+        final String httpAcceptorName = "https-acceptor";
+        final String httpConnectorName = "https-connector";
+        final String remoteConnectionFactoryName = "RemoteConnectionFactory";
+        final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
+        final String keyStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "server-keystore.pkcs12").getAbsolutePath();
+
+        container.start();
+        JMSOperations ops = container.getJmsOperations();
+
+        ops.createSecurityRealm(securityRealmName);
+        ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS12", keyStorePath, password);
         ops.removeHttpAcceptor("http-acceptor");
         ops.removeHttpAcceptor("http-acceptor-throughput");
         ops.close();

@@ -253,6 +253,15 @@ public interface JMSOperations {
     void addServerIdentityWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass);
 
     /**
+     * Add server identity into the security realm
+     *
+     * @param realmName         name of the security realm
+     * @param keyStoreProvider  name of keystore provider
+     * @param keyStorePass      password to a key store
+     */
+    void addServerIdentityWithKeyStoreProvider(String realmName, String keyStoreProvider,String keyStorePath, String keyStorePass);
+
+    /**
      * Add authentication into the security realm
      *
      * @param realmName         name of the security realm

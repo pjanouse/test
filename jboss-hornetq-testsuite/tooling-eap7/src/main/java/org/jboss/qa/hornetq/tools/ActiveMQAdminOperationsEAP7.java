@@ -4352,6 +4352,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void addServerIdentityWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePath, String keyStorePass) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("core-service", "management");
+        model.get(ClientConstants.OP_ADDR).add("security-realm", realmName);
+        model.get(ClientConstants.OP_ADDR).add("server-identity", "ssl");
+        model.get("keystore-provider").set(keyStoreProvider);
+        model.get("keystore-password").set(keyStorePass);
+        model.get("keystore-path").set(keyStorePath);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void addAuthenticationWithKeyStoreProvider(String realmName, String keyStoreProvider, String keyStorePass) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
