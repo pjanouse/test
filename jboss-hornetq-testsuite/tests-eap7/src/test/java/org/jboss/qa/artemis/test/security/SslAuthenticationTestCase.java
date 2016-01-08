@@ -1441,9 +1441,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
         }
         if(isTwoWay){
-            propsAcceptor.put("need-client-auth", "true");
+            propsAcceptor.put("needs-client-auth", "true");
         }else{
-            propsAcceptor.put("need-client-auth", "false");
+            propsAcceptor.put("needs-client-auth", "false");
         }
 
         ops.addSocketBinding(socketBinding, 5445);
@@ -1498,7 +1498,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
         }
 
-        propsAcceptor.put("need-client-auth", "false");
+        propsAcceptor.put("needs-client-auth", "false");
 
 
         ops.addSocketBinding(socketBinding, 5445);
