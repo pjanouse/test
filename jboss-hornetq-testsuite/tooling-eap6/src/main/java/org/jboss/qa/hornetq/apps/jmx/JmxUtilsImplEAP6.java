@@ -55,26 +55,16 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
         return JMXConnectorFactory.connect(beanServerUrl);
     }
 
-
-    public HornetQServerControl getHornetQServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
-        return (HornetQServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
-                HornetQServerControl.class);
-    }
-
     @Override
     public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
-        return null;
-    }
-
-    public JMSServerControl getJmsServerMBean(final MBeanServerConnection mbeanServer) throws Exception {
-        return (JMSServerControl) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
-                JMSServerControl.class);
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
+                mbeanType);
     }
 
     @Override
     public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
-        return null;
-    }
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
+                jmsServerMbeanType);    }
 
     @Override
     public Object getHornetQMBean(final MBeanServerConnection mbeanServer, final ObjectName mbeanName,
