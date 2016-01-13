@@ -432,8 +432,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.setClusterUserPassword("heslo");
 
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", containerLive.getHostname(), containerLive.getHornetqPort());
@@ -491,8 +490,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
-
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", containerLive.getHostname(), containerLive.getHornetqPort());
         jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", containerBackup.getHostname(), containerBackup.getHornetqPort());
@@ -568,8 +566,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
 //        jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
-
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.close();
         container.stop();
     }
@@ -605,8 +602,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
 
         jmsAdminOperations.close();
@@ -665,7 +661,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 //        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
 
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.setFailoverOnShutdown(true);
 
         jmsAdminOperations.close();
@@ -701,11 +697,19 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
 
         jmsAdminOperations.close();
         container.stop();
+    }
+
+    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
+        setAddressSettings("default", jmsAdminOperations);
+    }
+
+    protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
+        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
     }
 
     /**

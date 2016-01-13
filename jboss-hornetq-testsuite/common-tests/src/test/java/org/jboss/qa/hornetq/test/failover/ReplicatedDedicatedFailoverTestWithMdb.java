@@ -42,8 +42,8 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      */
     public void prepareRemoteJcaTopology() throws Exception {
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareLiveServer(container(1));
-            prepareBackupServer(container(2));
+            prepareLiveServerEAP6(container(1));
+            prepareBackupServerEAP6(container(2));
             prepareMdbServerEAP6(container(3), container(1), container(2));
             copyApplicationPropertiesFiles();
 
@@ -60,7 +60,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareLiveServer(Container container) {
+    protected void prepareLiveServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -147,7 +147,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServer(Container container) {
+    protected void prepareBackupServerEAP6(Container container) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -253,8 +253,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterConnectionName, replicationGroupName);
 
         jmsAdminOperations.close();
@@ -339,18 +338,11 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
+        setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterConnectionName, 5000, replicationGroupName, 60, true, false, null, null, null, null);
 
         jmsAdminOperations.close();
         container.stop();
     }
 
-    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
-        setAddressSettings("default", jmsAdminOperations);
-    }
-
-    protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
-        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-    }
 }
