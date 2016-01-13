@@ -12,11 +12,8 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
-import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
-import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
-import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.*;
+import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -62,6 +59,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     private String inQueueJndiName = "jms/queue/" + inQueue;
     private String outQueue = "OutQueue";
     private String outQueueJndiName = "jms/queue/" + outQueue;
+    private String inTopicName = "InTopic";
+    private String inTopicJndiName = "jms/topic/" + inTopicName;
 
     @After
     @Before
@@ -138,6 +137,49 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         container(1).stop();
 
     }
+
+    /**
+     * @tpTestDetails Server is started and topic is deployed. Send one large message
+     * to topic and then try to
+     * to receive it by 2 subscribers. Check there are no errors.
+     * @tpProcedure <ul>
+     * <li>Start server and deploy topic</li>
+     * <li>Send one large message to topic</li>
+     * <li>Try to receive it by 2 subscriber</li>
+     * <li>Check no error occurs</li>
+     * </ul>
+     * @tpPassCrit There are no errors or exceptions
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testLargeMessageReceiveFromTopicTwoSubscribers() throws Exception {
+
+        prepareServer(container(1));
+
+        container(1).start();
+
+        PublisherTransAck topicProducer = new PublisherTransAck(container(1), inTopicJndiName, 1000, "producer");
+        topicProducer.setTimeout(0);
+        topicProducer.setMessageBuilder(new ClientMixMessageBuilder(110, 200));
+        SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), inTopicJndiName, 60000, 100, 10, "subs", "name");
+        topicSubscriber.subscribe();
+        topicSubscriber.setTimeout(0);
+        SubscriberTransAck topicSubscriber2 = new SubscriberTransAck(container(1), inTopicJndiName, 60000, 100, 10, "subs2", "name2");
+        topicSubscriber2.subscribe();
+        topicSubscriber2.setTimeout(0);
+
+        topicProducer.start();
+        topicSubscriber.start();
+        topicSubscriber2.start();
+        topicProducer.join();
+        topicSubscriber.join();
+        topicSubscriber2.join();
+        container(1).stop();
+
+    }
+
 
     /**
      *
@@ -756,6 +798,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.createQueue(inQueue, inQueueJndiName);
+        jmsOperations.createTopic(inTopicName, inTopicJndiName);
 
         jmsOperations.close();
 
