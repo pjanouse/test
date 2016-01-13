@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
                 @ActivationConfigProperty(propertyName = "AcknowledgeMode", propertyValue = "Auto-acknowledge"),
-                @ActivationConfigProperty(propertyName = "MaxSession", propertyValue = "5"),
+                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "5"),
                 @ActivationConfigProperty(propertyName = "MessageSelector", propertyValue = "count=3"),
                 @ActivationConfigProperty(propertyName = "TransactionTimeout", propertyValue = "0"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
