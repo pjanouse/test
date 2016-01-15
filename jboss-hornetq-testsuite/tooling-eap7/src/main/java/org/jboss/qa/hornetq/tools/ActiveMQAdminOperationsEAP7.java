@@ -6010,16 +6010,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(serverName, "master", failoverOnServerShutdown);
-        setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(serverName, "slave", failoverOnServerShutdown);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName,  "shared-store-colocated", "master", failoverOnServerShutdown);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "shared-store-colocated", "slave", failoverOnServerShutdown);
     }
 
-    protected void setFailoverOnServerShutdownOnSharedStoreColocatedHAPolicy(String serverName, String nodeType, boolean value) {
+    protected void setFailoverOnServerShutdownOnColocatedHAPolicy(String serverName, String haPolicy, String nodeType, boolean value) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get(ClientConstants.OP_ADDR).add("ha-policy", "shared-store-colocated");
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", haPolicy);
         model.get(ClientConstants.OP_ADDR).add("configuration", nodeType);
         model.get("failover-on-server-shutdown").set(value);
         try {
@@ -6047,6 +6047,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("backup-request-retries").set(backupRequestRetries);
         model.get("backup-request-retry-interval").set(backupRequestRetryInterval);
         model.get("max-backups").set(maxBackups);
+
         model.get("request-backup").set(requestBackup);
         if (!isEmpty(excludedConnectors)) {
             List<String> list = new ArrayList<String>();
@@ -6060,7 +6061,24 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated","master", true);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated","slave",true);
+        model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("ha-policy", "replication-colocated");
+        model.get(ClientConstants.OP_ADDR).add("configuration", "master");
+        model.get("name").set("check-for-live-server");
+        model.get("value").set(true);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
+
 
     @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password,
