@@ -1317,6 +1317,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
         jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
+        jmsAdminOperations.setIdCacheSize(2000);
+        jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
+
         jmsAdminOperations.close();
 
         container.restart();
@@ -1364,6 +1367,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
         jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
+
+        jmsAdminOperations.setIdCacheSize(2000);
+        jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
 
         jmsAdminOperations.close();
 

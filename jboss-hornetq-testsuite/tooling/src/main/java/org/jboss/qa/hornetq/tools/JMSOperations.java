@@ -1842,4 +1842,6 @@ public interface JMSOperations {
     void setClusterConnectionTTL(String clusterGroupName, long ttl);
 
     void setJournalMinFiles(int i);
+
+    void setConfirmationWindowsSizeOnClusterConnection(String clusterGroupName, int confirmationWindowsSizeInBytes);
 }
