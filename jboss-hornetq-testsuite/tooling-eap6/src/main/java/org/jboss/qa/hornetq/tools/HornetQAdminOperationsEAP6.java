@@ -10,7 +10,6 @@ import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
-import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -19,7 +18,6 @@ import org.jboss.threads.JBossThreadFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.util.*;
@@ -28,8 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.kohsuke.MetaInfServices;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 
@@ -1351,6 +1347,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setJournalType(String journalType) {
         setJournalType("default", journalType);
+    }
+
+    @Override
+    public void setJournalPoolFiles(String serverName, int numFiles) {
+        throw new UnsupportedOperationException("setJournalPoolFiles is not supported for eap6 opeartions");
+    }
+
+    @Override
+    public void setJournalPoolFiles(int numFiles) {
+        throw new UnsupportedOperationException("setJournalPoolFiles is not supported for eap6 opeartions");
     }
 
     /**

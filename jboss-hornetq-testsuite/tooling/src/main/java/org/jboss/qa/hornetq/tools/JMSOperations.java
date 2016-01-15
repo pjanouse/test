@@ -1256,6 +1256,24 @@ public interface JMSOperations {
     void setJournalType(String journalType);
 
     /**
+     * The number of journal files that can be reused. ActiveMQ will create
+     * as many files as needed however when reclaiming files it will shrink
+     * back to the value (-1 means no limit).
+     *  @param serverName  set name of hornetq server
+     * @param numFiles number of journal files
+     */
+    void setJournalPoolFiles(String serverName, int numFiles);
+
+    /**
+     * The number of journal files that can be reused. ActiveMQ will create
+     * as many files as needed however when reclaiming files it will shrink
+     * back to the value (-1 means no limit).
+     *
+     * @param numFiles number of journal files
+     */
+    void setJournalPoolFiles(int numFiles);
+
+    /**
      * Can be "NIO" or "AIO"
      *
      * @param serverName  set name of hornetq server

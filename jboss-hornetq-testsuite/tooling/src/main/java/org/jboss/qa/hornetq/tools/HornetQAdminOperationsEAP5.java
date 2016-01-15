@@ -1346,6 +1346,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalPoolFiles(String serverName, int numFiles) {
+        throw new UnsupportedOperationException("setJournalPoolFiles is not supported for eap5 opeartions");
+    }
+
+    @Override
+    public void setJournalPoolFiles(int numFiles) {
+        throw new UnsupportedOperationException("setJournalPoolFiles is not supported for eap5 opeartions");
+    }
+
+    @Override
     public void setJournalType(String serverName, String journalType) {
         logger.info("This operation is not supported: " + getMethodName());
     }

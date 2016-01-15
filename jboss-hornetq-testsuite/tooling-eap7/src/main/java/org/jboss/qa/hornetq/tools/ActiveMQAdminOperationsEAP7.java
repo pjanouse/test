@@ -1435,6 +1435,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setJournalPoolFiles(String serverName, int numFiles) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get("name").set("journal-pool-files");
+        model.get("value").set(numFiles);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalPoolFiles(int numFiles) {
+        setJournalPoolFiles(NAME_OF_MESSAGING_DEFAULT_SERVER, numFiles);
+    }
+
     /**
      * Adds journal-type attribute.
      *
