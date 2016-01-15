@@ -588,7 +588,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         List<String> connectorList = new ArrayList<String>();
         connectorList.add(remoteConnectorName);
-        connectorList.add(remoteConnectorNameBackup);
+//        connectorList.add(remoteConnectorNameBackup);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
 
         jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
