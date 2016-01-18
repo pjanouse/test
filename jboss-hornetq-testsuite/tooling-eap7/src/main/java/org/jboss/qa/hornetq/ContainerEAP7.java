@@ -52,7 +52,7 @@ public class ContainerEAP7 implements Container {
         this.containerIndex = containerIndex;
         this.containerController = containerController;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
-        this.originalContainerProperties = containerDef.getContainerProperties();
+        this.originalContainerProperties = copyContainerProperties(containerDef.getContainerProperties());
     }
 
 
@@ -195,7 +195,7 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
-    public int getJGroupsTcpPort()  {
+    public int getJGroupsTcpPort() {
         return Constants.JGROUPS_TCP_PORT_DEFAULT_EAP7 + getPortOffset();
     }
 
@@ -210,7 +210,7 @@ public class ContainerEAP7 implements Container {
             if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
                     || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
                 log.info("Server " + getName() + " is really dead.");
-                        containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
+                containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
                 log.info("Ending stopping procedure.");
                 return;
             }
@@ -467,16 +467,20 @@ public class ContainerEAP7 implements Container {
                 + descriptor.getDescriptorName());
     }
 
-    private Map<String, String> getOriginalContainerProperties()
-    {
+    private Map<String, String> getOriginalContainerProperties() {
+
+        if (originalContainerProperties != null) {
+            return copyContainerProperties(originalContainerProperties);
+        }
+        return new HashMap<String, String>();
+    }
+
+    private Map<String, String> copyContainerProperties(Map<String, String> containerProperties) {
+
         Map<String, String> properties = new HashMap<String, String>();
 
-        if(originalContainerProperties != null)
-        {
-            for(String key: originalContainerProperties.keySet())
-            {
-                properties.put(key, originalContainerProperties.get(key));
-            }
+        for (String key : containerProperties.keySet()) {
+            properties.put(key, containerProperties.get(key));
         }
         return properties;
     }

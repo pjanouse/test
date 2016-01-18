@@ -137,6 +137,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         container(1).stop();
 
     }
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testStartStop() throws Exception {
+        container(1).start();
+        container(1).stop();
+        container(1).start();
+        container(1).stop();
+    }
+
 
     /**
      * @tpTestDetails Server is started and topic is deployed. Send one large message
