@@ -169,6 +169,7 @@ public class ContainerEAP7 implements Container {
         Map<String, String> containerProperties = getOriginalContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
+        containerProperties.put("adminOnly", "false");
 
         String javaVmArguments = containerProperties.get("javaVmArguments");
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
@@ -184,6 +185,13 @@ public class ContainerEAP7 implements Container {
     public void start(Map<String, String> containerProperties) {
         containerController.start(getName(), containerProperties);
         pid = ProcessIdUtils.getProcessId(this);
+    }
+
+    @Override
+    public void startAdminOnly() {
+        Map<String, String> containerProperties = getOriginalContainerProperties();
+        containerProperties.put("adminOnly", "true");
+        start(containerProperties);
     }
 
     @Override

@@ -188,6 +188,7 @@ public class ContainerEAP6 implements Container {
         Map<String, String> containerProperties = getOriginalContainerProperties();
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
+        containerProperties.put("adminOnly", "false");
 
         String javaVmArguments = containerProperties.get("javaVmArguments");
         if (javaVmArguments == null) {
@@ -207,6 +208,13 @@ public class ContainerEAP6 implements Container {
         containerController.start(getName(), containerProperties);
         pid = ProcessIdUtils.getProcessId(this);
 
+    }
+
+    @Override
+    public void startAdminOnly() {
+        Map<String, String> containerProperties = getOriginalContainerProperties();
+        containerProperties.put("adminOnly", "true");
+        start(containerProperties);
     }
 
     @Override

@@ -690,6 +690,52 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void addIncomingInterceptor(String serverName, String moduleName, String className) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        ModelNode interceptor = new ModelNode();
+        interceptor.get("module").set(moduleName);
+        interceptor.get("name").set(className);
+        model.get("name").set("incoming-interceptors");
+        model.get("value").add(interceptor);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addIncomingInterceptor(String moduleName, String className) {
+        addIncomingInterceptor("default", moduleName, className);
+    }
+
+    @Override
+    public void addOutgoingInterceptor(String serverName, String moduleName, String className) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        ModelNode interceptor = new ModelNode();
+        interceptor.get("module").set(moduleName);
+        interceptor.get("name").set(className);
+        model.get("name").set("outgoing-interceptors");
+        model.get("value").add(interceptor);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addOutgoingInterceptor(String moduleName, String className) {
+        addOutgoingInterceptor("default", moduleName, className);
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");

@@ -51,6 +51,7 @@ public class CleanUp {
         String jbossHome;
 
         StringBuilder pathToStandaloneDirectory;
+        StringBuilder pathToTestModulesDirectory;
 
         for (GroupDef groupDef : descriptor.getGroups()) {
             for (ContainerDef containerDef : groupDef.getGroupContainers()) {
@@ -59,6 +60,13 @@ public class CleanUp {
                 jbossHome = containerProperties.get("jbossHome");
                 pathToStandaloneDirectory = new StringBuilder(jbossHome)
                         .append(File.separator).append("standalone");
+
+                pathToTestModulesDirectory = new StringBuilder(jbossHome)
+                        .append(File.separator).append("modules")
+                        .append(File.separator).append("system")
+                        .append(File.separator).append("layers")
+                        .append(File.separator).append("base")
+                        .append(File.separator).append("test");
 
                 if (! new File(pathToStandaloneDirectory.toString()).exists()) {
                     continue;
@@ -72,6 +80,8 @@ public class CleanUp {
                 } catch (IOException e) {
                     logger.error("Failed to cleanup deployments directory.", e);
                 }
+
+                FileUtils.deleteQuietly(new File(pathToTestModulesDirectory.toString()));
 
                 JournalDirectory.deleteJournalDirectoryA(jbossHome);
                 JournalDirectory.deleteJournalDirectoryB(jbossHome);

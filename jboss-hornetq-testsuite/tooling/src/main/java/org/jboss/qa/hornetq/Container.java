@@ -61,6 +61,7 @@ public interface Container {
     // ContainerController delegates
     void start();
     void start(Map<String,String> containerProperties);
+    void startAdminOnly();
 
     int getJGroupsTcpPort();
 

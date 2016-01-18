@@ -1844,4 +1844,12 @@ public interface JMSOperations {
     void setJournalMinFiles(int i);
 
     void setConfirmationWindowsSizeOnClusterConnection(String clusterGroupName, int confirmationWindowsSizeInBytes);
+
+    void addIncomingInterceptor(String serverName, String moduleName, String className);
+
+    void addIncomingInterceptor(String moduleName, String className);
+
+    void addOutgoingInterceptor(String serverName, String moduleName, String className);
+
+    void addOutgoingInterceptor(String moduleName, String className);
 }
