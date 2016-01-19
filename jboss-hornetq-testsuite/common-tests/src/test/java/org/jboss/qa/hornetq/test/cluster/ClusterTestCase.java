@@ -82,7 +82,7 @@ import java.util.*;
  * This test case can be run with IPv6 - just replace those environment
  * variables for ipv6 ones: export MYTESTIP_1=$MYTESTIPV6_1 export
  * MYTESTIP_2=$MYTESTIPV6_2 export MCAST_ADDR=$MCAST_ADDRIPV6
- * <p/>
+ * <p>
  * This test also serves
  *
  * @tpChapter Integration testing
@@ -139,7 +139,7 @@ public class ClusterTestCase extends HornetQTestCase {
     static String inTopicJndiNameForMdb = "jms/topic/" + inTopicNameForMdb;
     static String outTopicNameForMdb = "OutTopic";
     static String outTopicJndiNameForMdb = "jms/topic/" + outTopicNameForMdb;
-    
+
     /**
      * @tpTestDetails Start two server in HornetQ cluster and deploy queue and
      * topic to each. Queue and topic are load-balanced. Start producer which
@@ -246,7 +246,7 @@ public class ClusterTestCase extends HornetQTestCase {
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
-                            producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).stop();
 
@@ -305,7 +305,7 @@ public class ClusterTestCase extends HornetQTestCase {
         // Just prints lost or duplicated messages if there are any. This does not fail the test.
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
-                            producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         container(1).stop();
 
@@ -313,7 +313,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
     }
 
-    private void setClusterNetworkTimeOuts(Container container, long callTimout, long checkPeriod, long ttl)   {
+    private void setClusterNetworkTimeOuts(Container container, long callTimout, long checkPeriod, long ttl) {
         String clusterGroupName = "my-cluster";
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -554,6 +554,7 @@ public class ClusterTestCase extends HornetQTestCase {
     // stopServer(CONTAINER2_NAME);
     //
     // }
+
     /**
      * @tpTestDetails Start two server in HornetQ cluster and deploy queue to
      * each. Queue is load-balanced. Start producer which sends messages to
@@ -692,7 +693,7 @@ public class ClusterTestCase extends HornetQTestCase {
         receiver.join();
 
         Assert.assertEquals("Number of sent and received messages is different. Sent: "
-                + producer.getListOfSentMessages().size() + "Received: " + receiver.getListOfReceivedMessages().size(),
+                        + producer.getListOfSentMessages().size() + "Received: " + receiver.getListOfReceivedMessages().size(),
                 producer.getListOfSentMessages().size(), receiver.getListOfReceivedMessages().size());
         Assert.assertFalse("Producer did not sent any messages. Sent: " + producer.getListOfSentMessages().size(), producer
                 .getListOfSentMessages().size() == 0);
@@ -720,15 +721,15 @@ public class ClusterTestCase extends HornetQTestCase {
      * and deployed back. Receiver tries to read messages from output queue on
      * node-2.
      * @tpProcedure <ul>
-     *     <li>start two servers (nodes) in cluster with deployed destinations</li>
-     *     <li>deploy MDBs to servers/li>
-     *     <li>create producer on node-1 and consumer on node-2</li>
-     *     <li>producer sends several hundred messages to input queue</li>
-     *     <li>MDB on node-1 repost them to output queue</li>
-     *     <li>receiver reads messages from output queue on node-2</li>
-     *     <li>servers are stopped</li>
+     * <li>start two servers (nodes) in cluster with deployed destinations</li>
+     * <li>deploy MDBs to servers/li>
+     * <li>create producer on node-1 and consumer on node-2</li>
+     * <li>producer sends several hundred messages to input queue</li>
+     * <li>MDB on node-1 repost them to output queue</li>
+     * <li>receiver reads messages from output queue on node-2</li>
+     * <li>servers are stopped</li>
      * </ul>
-     * @tpPassCrit  receiver read all messages
+     * @tpPassCrit receiver read all messages
      * @tpInfo For more information see related test case described in the beginning of this section.
      */
     @Test
@@ -793,7 +794,7 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails   MDBs with queues are deployed on two servers in cluster. Queues created with deploy have the
+     * @tpTestDetails MDBs with queues are deployed on two servers in cluster. Queues created with deploy have the
      * same name on both servers and are load balanced within cluster. Producer sends messages into input queue
      * on node-1 and MDB repost them to output queue. MDB on node-2 is undeployed and deployed back. Receiver tries to
      * read messages from output queue on node-2.
@@ -819,7 +820,7 @@ public class ClusterTestCase extends HornetQTestCase {
     public void clusterTestWithMdbOnQueueDeployAndUndeploy() throws Exception {
         log.info("PREPARING SERVERS");
         prepareServers(false);
-        removeInQueue(container(1),container(2),container(3),container(4));
+        removeInQueue(container(1), container(2), container(3), container(4));
         int numberOfMessages = 30;
         container(2).start();
 
@@ -882,9 +883,16 @@ public class ClusterTestCase extends HornetQTestCase {
             // this is correct behavior
         } finally {
             jmsAdminOperations.close();
+            // if deployement is deployed (test will fail) then try to undeploy
+            if (!passed) {
+                try {
+                    container(1).undeploy(MDB_ON_TEMPTOPIC1);
+                } catch (Exception ex) {
+                    // ignore
+                }
+            }
         }
         Assert.assertFalse("Deployment of already existing topic didn't failed", passed);
-        container(1).undeploy(MDB_ON_TEMPTOPIC1);
 
         container(1).stop();
     }
@@ -1034,6 +1042,7 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     /**
+     * @throws Exception
      * @tpTestDetails Two servers in cluster are started with configured
      * destinations in standalone-full-ha.xml. MDB is deployed on node-1. Client
      * creates temporary queue on node-1 and sends messages to input queue. MDB
@@ -1042,7 +1051,6 @@ public class ClusterTestCase extends HornetQTestCase {
      * is created on all nodes in cluster. It shouldn’t be.
      * TODO make this test working properly to avoid regression from
      * https://access.redhat.com/support/cases/#/case/01384076
-     * @throws Exception
      */
     @Ignore
     @Test
@@ -1051,7 +1059,7 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestTopicLMNoPersistence() throws Exception {
         log.info("PREPARING SERVERS");
-        int number =10;
+        int number = 10;
         prepareServers();
         container(2).start();
         container(1).start();
@@ -1076,12 +1084,12 @@ public class ClusterTestCase extends HornetQTestCase {
         Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
         MessageProducer producer = session.createProducer(queue);
         StringBuilder sb = new StringBuilder();
-        for (long i=0; i<1024*1024*3; i++){
+        for (long i = 0; i < 1024 * 1024 * 3; i++) {
             sb.append('a');
         }
         log.info("SENDING MESSAGE");
         receiver.start();
-        for(int i=0; i<number;i++){
+        for (int i = 0; i < number; i++) {
             MapMessage message = session.createMapMessage();
             message.setString("str", sb.toString());
             producer.send(message);
@@ -1102,7 +1110,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * MDB is deployed on node-1. Client creates temporary queue on node-1 and sends messages to input queue. MDB reads
      * messages sent by client and sends response to each of them into temporary queue. During this communication is
      * checked if temporary queue is created on all nodes in cluster. It shouldn’t be.
->>>>>>> Stashed changes
+     * >>>>>>> Stashed changes
      * @tpProcedure <ul>
      * <li>start two servers (nodes) in cluster</li>
      * <li>deploy MDB to node-1</li>
@@ -1468,7 +1476,7 @@ public class ClusterTestCase extends HornetQTestCase {
         jmsAdminOperations1.addLoggerCategory("org.jboss", "INFO");
         jmsAdminOperations1.addLoggerCategory("org.jboss.qa.hornetq.apps.mdb", "TRACE");
         jmsAdminOperations1.seRootLoggingLevel("TRACE");
-        
+
         HashMap<String, String> opts = new HashMap<String, String>();
         opts.put("password-stacking", "useFirstPass");
         opts.put("unauthenticatedIdentity", "guest");
@@ -1755,8 +1763,8 @@ public class ClusterTestCase extends HornetQTestCase {
         if (mdbsWithDifferentSubscriptions) {
             Assert.assertEquals(
                     "Number of sent and received messages is different. There should be twice as many received messages"
-                    + "than sent. Sent: " + publisher.getListOfSentMessages().size() + "Received: "
-                    + receiver.getListOfReceivedMessages().size(), 2 * publisher.getListOfSentMessages().size(),
+                            + "than sent. Sent: " + publisher.getListOfSentMessages().size() + "Received: "
+                            + receiver.getListOfReceivedMessages().size(), 2 * publisher.getListOfSentMessages().size(),
                     receiver.getListOfReceivedMessages().size());
             Assert.assertEquals("Receiver did not get expected number of messages. Expected: " + 2
                     * NUMBER_OF_MESSAGES_PER_PRODUCER + " Received: " + receiver.getListOfReceivedMessages().size(), receiver
@@ -1765,9 +1773,9 @@ public class ClusterTestCase extends HornetQTestCase {
         } else {
             Assert.assertEquals(
                     "Number of sent and received messages is not correct. There should be as many received messages as"
-                    + " sent. Sent: " + publisher.getListOfSentMessages().size() + "Received: "
-                    + receiver.getListOfReceivedMessages().size(), publisher.getListOfSentMessages().size(), receiver
-                    .getListOfReceivedMessages().size());
+                            + " sent. Sent: " + publisher.getListOfSentMessages().size() + "Received: "
+                            + receiver.getListOfReceivedMessages().size(), publisher.getListOfSentMessages().size(), receiver
+                            .getListOfReceivedMessages().size());
             Assert.assertEquals("Receiver did not get expected number of messages. Expected: "
                     + NUMBER_OF_MESSAGES_PER_PRODUCER + " Received: " + receiver.getListOfReceivedMessages().size(), receiver
                     .getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -1813,6 +1821,7 @@ public class ClusterTestCase extends HornetQTestCase {
     // public void clusterTestWitMessageGroupingCrashRemoteWithNoConsumer() throws Exception {
     // clusterWitMessageGroupingCrashServerWithNoConsumer(CONTAINER4_NAME, 20000);
     // }
+
     /**
      * @tpTestDetails Start 4 servers in cluster with message grouping. First
      * server is “local” and the others are “remote”. Producers send messages
@@ -2209,7 +2218,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         producerToInQueue1.join();
         producerToInQueue2.join();
-        
+
         container(1).kill();
 
         container(1).start();
@@ -2240,7 +2249,7 @@ public class ClusterTestCase extends HornetQTestCase {
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
         Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 4
-                * NUMBER_OF_MESSAGES_PER_PRODUCER + " received but it's : " + receiver.getListOfReceivedMessages().size(),
+                        * NUMBER_OF_MESSAGES_PER_PRODUCER + " received but it's : " + receiver.getListOfReceivedMessages().size(),
                 4 * NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
 
         container(1).stop();
@@ -2300,8 +2309,8 @@ public class ClusterTestCase extends HornetQTestCase {
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
         Assert.assertTrue(
                 "Number received messages must be 0 as producer was not up in parallel with consumer. There should be 0"
-                + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver
-                .getListOfReceivedMessages().size() == 0);
+                        + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver
+                        .getListOfReceivedMessages().size() == 0);
 
         container(1).stop();
         container(2).stop();
@@ -2472,7 +2481,7 @@ public class ClusterTestCase extends HornetQTestCase {
         if (isExclusive) {
             Assert.assertEquals(
                     "In exclusive mode there must be messages just in diverted address only but there are messages in "
-                    + "original address.", 0, receiverOriginalAddress.getListOfReceivedMessages().size());
+                            + "original address.", 0, receiverOriginalAddress.getListOfReceivedMessages().size());
             Assert.assertEquals("In exclusive mode there must be messages in diverted address.", numberOfMessages,
                     receiverDivertedAddress.getListOfReceivedMessages().size());
         } else {
@@ -2488,7 +2497,7 @@ public class ClusterTestCase extends HornetQTestCase {
     }
 
     private void createDivert(Container container, String divertName, String divertAddress, String forwardingAddress,
-            boolean isExclusive, String filter, String routingName, String transformerClassName) {
+                              boolean isExclusive, String filter, String routingName, String transformerClassName) {
 
         container.start();
         JMSOperations jmsOperations = container.getJmsOperations();
@@ -2631,8 +2640,8 @@ public class ClusterTestCase extends HornetQTestCase {
      * on topic or queue.
      *
      * @param acknowledgeMode can be Session.AUTO_ACKNOWLEDGE,
-     * Session.CLIENT_ACKNOWLEDGE, Session.SESSION_TRANSACTED
-     * @param topic true for topic
+     *                        Session.CLIENT_ACKNOWLEDGE, Session.SESSION_TRANSACTED
+     * @param topic           true for topic
      * @return org.jboss.qa.hornetq.apps.clients
      * @throws Exception
      */
@@ -2693,7 +2702,7 @@ public class ClusterTestCase extends HornetQTestCase {
      * Prepares several servers for topology.
      *
      * @param createDestinations Create destination topics and queues and topics
-     * if true, otherwise no.
+     *                           if true, otherwise no.
      */
     public void prepareServers(boolean createDestinations) {
         prepareServer(container(1), createDestinations);
@@ -2715,20 +2724,21 @@ public class ClusterTestCase extends HornetQTestCase {
     /**
      * Prepares server for topology.
      *
-     * @param container The container - defined in arquillian.xml
+     * @param container          The container - defined in arquillian.xml
      * @param createDestinations Create destination topics and queues and topics
-     * if true, otherwise no.
+     *                           if true, otherwise no.
      */
     private void prepareServer(Container container, boolean createDestinations) {
         prepareServer(container, createDestinations, -1);
     }
+
     /**
      * Prepares server for topology.
      *
-     * @param container The container - defined in arquillian.xml
+     * @param container          The container - defined in arquillian.xml
      * @param createDestinations Create destination topics and queues and topics
-     * @param reconnectAttempts number of reconnect attempts in cluster connection
-     * if true, otherwise no.
+     * @param reconnectAttempts  number of reconnect attempts in cluster connection
+     *                           if true, otherwise no.
      */
     private void prepareServer(Container container, boolean createDestinations, int reconnectAttempts) {
 
@@ -2843,6 +2853,7 @@ public class ClusterTestCase extends HornetQTestCase {
         // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
+
     public static JavaArchive createDeploymentMdbOnQueue3() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue3.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
@@ -2854,6 +2865,7 @@ public class ClusterTestCase extends HornetQTestCase {
         // mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
+
     public static JavaArchive createDeploymentMdbOnQueue4() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue4.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
@@ -2920,8 +2932,8 @@ public class ClusterTestCase extends HornetQTestCase {
      * This mdb reads messages from jms/queue/InQueue and sends to
      * jms/queue/OutQueue
      *
-     * @return mdb
      * @param container
+     * @return mdb
      */
     public static JavaArchive createDeploymentMdbOnTempTopic1(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic1.jar");
@@ -2941,8 +2953,8 @@ public class ClusterTestCase extends HornetQTestCase {
      * This mdb reads messages from jms/queue/InQueue and sends to
      * jms/queue/OutQueue
      *
-     * @return mdb
      * @param container
+     * @return mdb
      */
     public static JavaArchive createDeploymentMdbOnTempTopic2(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempTopic2.jar");
