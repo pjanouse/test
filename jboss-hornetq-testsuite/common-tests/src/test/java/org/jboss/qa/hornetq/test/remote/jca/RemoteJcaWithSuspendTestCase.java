@@ -36,7 +36,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInCluster(lodhLikemdb, container(2), messageBuilder);
     }
@@ -51,7 +51,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInCluster(lodhLikemdb, container(2), messageBuilder, 10000);
     }
@@ -66,7 +66,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInCluster(lodhLikemdb, container(3), messageBuilder);
     }
@@ -153,7 +153,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInClusterWithRestart(lodhLikemdb, container(2), messageBuilder);
     }
@@ -168,7 +168,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInClusterWithRestart(lodhLikemdb, container(2), messageBuilder, 10000);
     }
@@ -183,7 +183,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
-        messageBuilder.setAddDuplicatedHeader(false);
+        messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
         suspendInClusterWithRestart(lodhLikemdb, container(3), messageBuilder);
     }
