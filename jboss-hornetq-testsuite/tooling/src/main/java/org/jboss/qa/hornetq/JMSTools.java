@@ -102,7 +102,7 @@ public final class JMSTools {
 
             log.info("Total number of messages in queue: " + queueName + " on node "
                     + Arrays.toString(containerNames.toArray()) + " is " + count);
-            Thread.sleep(1000);
+            Thread.sleep(5000);
             if (System.currentTimeMillis() - startTime > timeout) {
                 return false;
             }
