@@ -96,9 +96,10 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             }
         }
 
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
-
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
+        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
+        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1)));
+        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
@@ -107,7 +108,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         messageVerifier.verifyMessages();
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);
@@ -243,6 +244,8 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
         producer1.join();
+
+        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
@@ -254,7 +257,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
 
         messageVerifier.verifyMessages();
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);
