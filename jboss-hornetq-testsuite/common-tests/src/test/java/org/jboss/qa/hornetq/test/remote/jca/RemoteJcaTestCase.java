@@ -1270,7 +1270,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         // check that number of connections is almost equal
         Assert.assertTrue("Number of connections should be almost equal. Number of new connections on node " + container(1).getName()
                         + " is " + numberOfNewConnections1 + " and node " + container(3).getName() + " is " + numberOfNewConnections3,
-                Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 3);
+                Math.abs(numberOfNewConnections1 - numberOfNewConnections3) < 5);
     }
 
     private Map<SimpleSendEJB, Context> lookupEjbs(Container container, int numberOfEjbs) throws Exception {
