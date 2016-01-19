@@ -336,67 +336,6 @@ public class Lodh1TestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Start server with deployed InQueue and OutQueue. Send message to InQueue. Deploy single MDB
-     * which reads messages from InQueue and sends them to OutQueue in XA transaction but sleeps after that
-     * so commit does not happen. Message should be possible to read from OutQueue.
-     * @tpInfo For more information see related test case described in the beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start first server with deployed InQueue and OutQueue</li>
-     * <li>start producer which send 1 message to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and sends to OutQueue but does not commit</li>
-     * <li>try receive messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit receiver does not get any message
-     */
-    @RunAsClient
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testNotCommitedMessage() throws Exception {
-
-        ConnectionFactory connectionFactory = null;
-        Context context = container(1).getContext();
-
-        // we use only the first server
-        prepareServer(container(1));
-        container(1).start();
-        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER)) {
-            connectionFactory = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP6);
-        } else {
-            connectionFactory = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
-        }
-        Queue queueIn = (Queue) context.lookup(inQueue);
-
-        Connection connection = connectionFactory.createConnection();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        MessageProducer producer = session.createProducer(queueIn);
-        Message message = session.createTextMessage("test message");
-        message.setLongProperty(JMSMessageProperties.MESSAGE_CONSUMER_DELAY, 600000);
-
-        logger.info("Send message.");
-        producer.send(message);
-
-        container(1).deploy(mdbNotCommitArchive);
-
-        logger.info("Start receiver.");
-        Queue queueOut = (Queue) context.lookup(outQueue);
-        MessageConsumer consumer = session.createConsumer(queueOut);
-        Message receiveMessage = consumer.receive(5000);
-        if (receiveMessage != null) {
-            Assert.fail("Message must be null but it's: " + receiveMessage);
-        }
-
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1), 0, true);
-
-        // now other instance of MDB will process the message
-        receiveMessage = consumer.receive(5000);
-        Assert.assertNotNull("Must not be null.", receiveMessage);
-
-        container(1).undeploy(mdbNotCommitArchive);
-        container(1).stop();
-    }
-
-    /**
      * @tpTestDetails Start server with deployed InQueue and OutQueue. Send messages to InQueue. Deploy single MDB
      * which reads messages from InQueue and cleanly shut-down the server. Check there are
      * no unfinished transactions.
