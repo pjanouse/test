@@ -99,7 +99,6 @@ import static org.junit.Assert.assertNull;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
 public class SslAuthenticationTestCase extends SecurityTestBase {
 
     private static final Logger logger = Logger.getLogger(SslAuthenticationTestCase.class);
