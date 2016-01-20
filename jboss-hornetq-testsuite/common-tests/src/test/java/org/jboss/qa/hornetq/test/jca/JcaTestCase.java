@@ -330,7 +330,7 @@ public class JcaTestCase extends HornetQTestCase {
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumed from InQueue
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(2));
+            Thread.sleep(300000);
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
         } finally {
             if (highCpuLoader1 != null) {
@@ -343,7 +343,7 @@ public class JcaTestCase extends HornetQTestCase {
                 }
             }
         }
-
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(2));
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), 0, false);
 
