@@ -47,7 +47,7 @@ public class CliReloadTest extends HornetQTestCase {
 
                 Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 15000));
             } catch (IllegalStateException e) {
-                // do nothing
+                logger.warn(e);
             }
         }
         container(1).stop();
