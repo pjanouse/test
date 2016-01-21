@@ -99,11 +99,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1)));
-        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
+        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
 
         messageVerifier.verifyMessages();
 
@@ -112,7 +112,11 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!! Number of prepared TXs is: "
                 + areTherePreparedTransactions, areTherePreparedTransactions);
 
-        container(2).undeploy(mdbToDeploy);
+        try {
+            container(2).undeploy(mdbToDeploy);
+        } catch (Exception ex)  {
+            logger.error("MDB could not be undeployed - but will not faill test because of it.", ex);
+        }
         container(2).stop();
         container(1).stop();
     }
@@ -243,8 +247,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
-
-        producer1.join();
 
         long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
