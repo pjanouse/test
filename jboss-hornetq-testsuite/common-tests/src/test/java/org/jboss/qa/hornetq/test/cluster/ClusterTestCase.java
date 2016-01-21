@@ -293,7 +293,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.join();
 
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 5000, 100, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 20000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
