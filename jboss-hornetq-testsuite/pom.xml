@@ -1202,6 +1202,26 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>org.apache.activemq</groupId>
+                    <artifactId>artemis-server</artifactId>
+                    <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.activemq</groupId>
+                    <artifactId>artemis-journal</artifactId>
+                    <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.activemq</groupId>
+                    <artifactId>artemis-service-extensions</artifactId>
+                    <version>${artemis.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.jboss.activemq.artemis.integration</groupId>
+                    <artifactId>artemis-wildfly-integration</artifactId>
+                    <version>${artemis.wildfly.integration}</version>
+                </dependency>
             </dependencies>
 
         </profile>
