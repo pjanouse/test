@@ -77,10 +77,11 @@ public class JmsServerInfo {
 
 
     private String getConnectionUrl() {
+        String hostname = JMSTools.isIpv6Address(this.hostname) ? "[" + this.hostname + "]" : this.hostname;
         if(ContainerUtils.isEAP6(container)){
-            return "service:jmx:remoting-jmx://" + this.hostname + ":" + this.managementPort;
+            return "service:jmx:remoting-jmx://" + hostname + ":" + this.managementPort;
         }else{
-            return "service:jmx:http-remoting-jmx://" + this.hostname + ":" + this.managementPort;
+            return "service:jmx:http-remoting-jmx://" + hostname + ":" + this.managementPort;
         }
 
     }
