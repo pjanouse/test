@@ -218,7 +218,7 @@ public class ContainerEAP6 implements Container {
     }
 
     @Override
-    public int getJGroupsTcpPort()  {
+    public int getJGroupsTcpPort() {
         return Constants.JGROUPS_TCP_PORT_DEFAULT_EAP6 + getPortOffset();
     }
 
@@ -381,16 +381,16 @@ public class ContainerEAP6 implements Container {
 
     public void deploy(Archive archive) {
 
+        undeploy(archive.getName(),false);
+
         HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
         try {
-
             eap6AdmOps.setHostname(getHostname());
             eap6AdmOps.setPort(getPort());
             eap6AdmOps.connect();
             eap6AdmOps.deploy(archive);
-
         } catch (Exception ex) {
-            log.error("Could not deploy archive " + archive.getName(), ex);
+            log.error("Could not deploy archive " + archive.getName() + " to node " + this.getName(), ex);
             throw new RuntimeException(ex);
         } finally {
             eap6AdmOps.close();
@@ -404,22 +404,23 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void undeploy(String archiveName) {
+        undeploy(archiveName, true);
+    }
 
+    private void undeploy(String archiveName, boolean logErrorWhenUndeployFails)  {
         HornetQAdminOperationsEAP6 eap6AdmOps = new HornetQAdminOperationsEAP6();
         try {
-
             eap6AdmOps.setHostname(getHostname());
             eap6AdmOps.setPort(getPort());
             eap6AdmOps.connect();
             eap6AdmOps.undeploy(archiveName);
-
         } catch (Exception ex) {
-            log.error("Could not undeploy archive " + archiveName, ex);
-            throw new RuntimeException(ex);
+            if (logErrorWhenUndeployFails) {
+                log.error("Could not undeploy archive " + archiveName + " to node " + this.getName(), ex);
+            }
         } finally {
             eap6AdmOps.close();
         }
-
     }
 
     @Override
@@ -487,14 +488,11 @@ public class ContainerEAP6 implements Container {
                 + descriptor.getDescriptorName());
     }
 
-    private Map<String, String> getOriginalContainerProperties()
-    {
+    private Map<String, String> getOriginalContainerProperties() {
         Map<String, String> properties = new HashMap<String, String>();
 
-        if(originalContainerProperties != null)
-        {
-            for(String key: originalContainerProperties.keySet())
-            {
+        if (originalContainerProperties != null) {
+            for (String key : originalContainerProperties.keySet()) {
                 properties.put(key, originalContainerProperties.get(key));
             }
         }

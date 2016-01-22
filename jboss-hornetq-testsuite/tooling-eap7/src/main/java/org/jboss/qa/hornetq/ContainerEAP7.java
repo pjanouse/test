@@ -331,12 +331,18 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void deploy(Archive archive) {
+        // first try to undeploy
+        try {
+            undeploy(archive.getName(),false);
+        } catch (Exception ex) {
+            // ignore
+        }
 
         ActiveMQAdminOperationsEAP7 eap7AdmOps = (ActiveMQAdminOperationsEAP7) this.getJmsOperations();
         try {
             eap7AdmOps.deploy(archive);
         } catch (Exception ex) {
-            log.error("Could not deploy archive " + archive.getName(), ex);
+            log.error("Could not deploy archive " + archive.getName() + " to node " + this.getName(), ex);
         } finally {
             eap7AdmOps.close();
         }
@@ -349,21 +355,23 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void undeploy(String archiveName) {
+       undeploy(archiveName, true);
+    }
 
+    private void undeploy(String archiveName, boolean logErrorWhenUndeployFails)  {
         ActiveMQAdminOperationsEAP7 eap7AdmOps = new ActiveMQAdminOperationsEAP7();
         try {
-
             eap7AdmOps.setHostname(getHostname());
             eap7AdmOps.setPort(getPort());
             eap7AdmOps.connect();
             eap7AdmOps.undeploy(archiveName);
-
         } catch (Exception ex) {
-            log.error("Could not undeploy archive " + archiveName, ex);
+            if (logErrorWhenUndeployFails) {
+                log.error("Could not undeploy archive " + archiveName + " to node " + this.getName(), ex);
+            }
         } finally {
             eap7AdmOps.close();
         }
-
     }
 
     @Override

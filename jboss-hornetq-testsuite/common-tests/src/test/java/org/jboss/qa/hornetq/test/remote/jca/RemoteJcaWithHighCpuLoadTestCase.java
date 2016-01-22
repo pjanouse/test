@@ -85,16 +85,16 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             String cpuToBind = "0";
             highCpuLoader = HighCPUUtils.causeMaximumCPULoadOnContainer(container(2), cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-
-            // if messages are consumed from InQueue then we're ok, if no message received for 5 min time out then continue
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
-            logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
-
+            Thread.sleep(300000);
         } finally {
             if (highCpuLoader != null) {
                 highCpuLoader.destroy();
             }
         }
+
+        // if messages are consumed from InQueue then we're ok, if no message received for 5 min time out then continue
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
+        logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
@@ -112,11 +112,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!! Number of prepared TXs is: "
                 + areTherePreparedTransactions, areTherePreparedTransactions);
 
-        try {
-            container(2).undeploy(mdbToDeploy);
-        } catch (Exception ex)  {
-            logger.error("MDB could not be undeployed - but will not faill test because of it.", ex);
-        }
+        container(2).undeploy(mdbToDeploy);
         container(2).stop();
         container(1).stop();
     }
@@ -222,16 +218,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             String cpuToBind = "0";
             highCpuLoader1 = HighCPUUtils.causeMaximumCPULoadOnContainer(containerUnderLoad, cpuToBind);
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
-
-            if (containerUnderLoad.getName().equalsIgnoreCase(container(1).getName())
-                    || containerUnderLoad.getName().equalsIgnoreCase(container(3).getName())) {
-                Thread.sleep(300000); // do not count messages if jms servers under load
-                highCpuLoader1.destroy();
-            }
-            // Wait until some messages are consumes from InQueue
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 400000, container(1), container(3));
-
-            logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
+            Thread.sleep(300000);
         } finally {
             if (highCpuLoader1 != null) {
                 highCpuLoader1.destroy();
@@ -244,6 +231,10 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
             }
         }
         producer1.join();
+
+        // Wait until some messages are consumes from InQueue
+        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 400000, container(1), container(3));
+        logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
@@ -374,7 +365,6 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         container(3).stop();
         container(1).stop();
     }
-
 
 
 }
