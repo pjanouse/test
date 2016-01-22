@@ -2,12 +2,14 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -64,6 +66,25 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
+    private Map<String, String> getTargetContext(Container targetServer) {
+        String initialContext;
+        String urlPrefix;
+        if (ContainerUtils.isEAP7(targetServer)) {
+            initialContext = Constants.INITIAL_CONTEXT_FACTORY_EAP7;
+            urlPrefix = Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7;
+        } else {
+            initialContext = Constants.INITIAL_CONTEXT_FACTORY_EAP6;
+            urlPrefix = Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6;
+        }
+        String hostName = JMSTools.isIpv6Address(targetServer.getHostname()) ? "[" + targetServer.getHostname() + "]" : targetServer.getHostname();
+        String url = urlPrefix + hostName + ":" + targetServer.getJNDIPort();
+
+        Map<String, String> targetContext = new HashMap<String, String>();
+        targetContext.put("java.naming.factory.initial", initialContext);
+        targetContext.put("java.naming.provider.url", url);
+        return targetContext;
+    }
+
     private void prepareServerWithJMSBridge(Container container, Container targetServer) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
@@ -72,9 +93,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         String sourceDestination = inQueueJndiName;
         String targetDestination = outQueueJndiName;
 
-        Map<String, String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", targetServer.getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER) ? Constants.INITIAL_CONTEXT_FACTORY_EAP7 : Constants.INITIAL_CONTEXT_FACTORY_EAP6);
-        targetContext.put("java.naming.provider.url", targetServer.getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER) ? Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + targetServer.getHostname() + ":" + targetServer.getJNDIPort() : Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 + targetServer.getHostname() + ":" + targetServer.getJNDIPort());
+        Map<String, String> targetContext = getTargetContext(targetServer);
         String qualityOfService = "ONCE_AND_ONLY_ONCE";
         long failureRetryInterval = 1000;
         long maxBatchSize = 10;
