@@ -111,32 +111,6 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
         writeReadAttributeTest(address, "/hornetqCoreBridgeAttributes.txt");
     }
 
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void reloadServerTest() throws InterruptedException {
-
-        for (int i = 0; i < 100; i++) {
-
-            try {
-                CLI cli = CLI.newInstance();
-                Thread.sleep(1000);
-                logger.info("!!!!!!!!!!!!!!!!!!! Connect !!!!!!!!!!!!!!!!!!!!!!");
-                cli.connect(cliConf.getHost(), cliConf.getPort(), cliConf.getUser(), cliConf.getPassword());
-                logger.info("!!!!!!!!!!!!!!!!!!! Reload !!!!!!!!!!!!!!!!!!!!!!");
-                cli.cmd("reload");
-                logger.info("!!!!!!!!!!!!!!!!!!! Disconnect !!!!!!!!!!!!!!!!!!!!!!");
-                cli.disconnect();
-                logger.info("!!!!!!!!!!!!!!!!!!! Done !!!!!!!!!!!!!!!!!!!!!!");
-
-                Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 15000));
-            } catch (IllegalStateException e) {
-                // do nothing
-            }
-        }
-    }
-
     private String getAddress() {
         String address = null;
         if (ContainerUtils.isEAP6(container(1))) {
