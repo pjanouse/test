@@ -251,7 +251,7 @@ public class ProducerTransAck extends Client {
 
             } catch (JMSException ex) {
                 // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
-                ex.printStackTrace();
+                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once - it's exception because of duplicates
                 if (numberOfRetries > 0) {
