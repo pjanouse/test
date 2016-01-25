@@ -194,7 +194,7 @@ public class CliClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return CheckServerAvailableUtils.waitForLiveServerToReload(cliConfig.getHost(), cliConfig.getPort(), 15000);
+        return CheckServerAvailableUtils.waitForLiveServerToReload(cliConfig.getHost(), cliConfig.getPort(), 60000);
     }
 
     /**

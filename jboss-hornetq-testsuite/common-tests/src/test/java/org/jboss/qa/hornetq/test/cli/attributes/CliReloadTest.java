@@ -36,7 +36,6 @@ public class CliReloadTest extends HornetQTestCase {
 
             try {
                 CLI cli = CLI.newInstance();
-                Thread.sleep(1000);
                 logger.info("!!!!!!!!!!!!!!!!!!! Connect !!!!!!!!!!!!!!!!!!!!!!");
                 cli.connect(cliConf.getHost(), cliConf.getPort(), cliConf.getUser(), cliConf.getPassword());
                 logger.info("!!!!!!!!!!!!!!!!!!! Reload !!!!!!!!!!!!!!!!!!!!!!");
@@ -45,7 +44,7 @@ public class CliReloadTest extends HornetQTestCase {
                 cli.disconnect();
                 logger.info("!!!!!!!!!!!!!!!!!!! Done !!!!!!!!!!!!!!!!!!!!!!");
 
-                Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 15000));
+                Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 60000));
             } catch (IllegalStateException e) {
                 logger.warn(e);
             }
