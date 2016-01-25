@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.cluster;
 
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -71,6 +72,10 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         if(ContainerUtils.isEAP6(container)){
             jmsAdminOperations.setClustered(true);
             jmsAdminOperations.setSharedStore(true);
+        }
+
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
         }
 
         jmsAdminOperations.setPersistenceEnabled(true);
