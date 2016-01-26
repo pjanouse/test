@@ -8,7 +8,7 @@ export JBOSS_HOME=$2
 
 
 # fis the VERSION before running it
-export VERSION="1.1.0.jboss-SNAPSHOT"
+export VERSION="1.1.0.wildfly-011"
 #replace jars
 cp $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-cli-*.jar
 cp $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-hqclient-protocol-*.jar
@@ -37,6 +37,10 @@ unzip -qq -o $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar -
 unzip -qq -o $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar -x \*META-INF\* 
 unzip -qq -o $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar -x \*META-INF\*
 unzip -qq -o $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar -x \*META-INF\*
+unzip -qq -o $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar -x \*META-INF\*
+unzip -qq -o $ARTEMIS_HOME/artemis-journal/target/artemis-journal-$VERSION.jar -x \*META-INF\*
+unzip -qq -o $ARTEMIS_HOME/artemis-native/target/artemis-native-$VERSION.jar  -x \*META-INF\*
+
 zip -qq -r jboss-client.jar *
 cp jboss-client.jar $JBOSS_HOME/bin/client/jboss-client.jar
 cd ..
