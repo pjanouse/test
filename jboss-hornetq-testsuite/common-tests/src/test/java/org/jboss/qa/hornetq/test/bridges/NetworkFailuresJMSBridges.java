@@ -44,22 +44,24 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         container(2).start(); // B1
         container(1).start(); // A1
 
+
+
+
+
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName,NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(getCurrentContainerForTest(), container(2).getHostname(), getJNDIPort(
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),relativeJndiInQueueName,(4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
 
-
-                CONTAINER2_NAME), relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
 
@@ -96,7 +98,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
 
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), relativeJndiInQueueName, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1),relativeJndiInQueueName);
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
@@ -166,7 +168,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         String connectorToProxy = "connector-to-proxy-to-target-server";
         String socketBindingToProxy = "binding-connect-to-proxy-to-target-server";
         jmsAdminOperations.addRemoteSocketBinding(socketBindingToProxy, "127.0.0.1", proxyPortIn);
-        jmsAdminOperations.createRemoteConnector(connectorToProxy, socketBindingToProxy, null);
+        jmsAdminOperations.createHttpConnector(connectorToProxy, socketBindingToProxy, null);
 
         jmsAdminOperations.close();
 
@@ -226,16 +228,18 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         jmsAdminOperations.close();
     }
 
+
     protected void startProxies() throws Exception {
 
         log.info("Start proxy...");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port);
+            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port,true);
             proxy1.start();
         }
         log.info("Proxy started.");
 
     }
+
 
     protected void stopProxies() throws Exception {
         log.info("Stop proxy...");
