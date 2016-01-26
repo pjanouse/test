@@ -38,26 +38,13 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
 
     private static String JGROUPS_CONNECTION_FACTORY = "JGroupsConnectionFactory";
 
-
-    public void prepareServers() {
-        prepareServers(true);
-    }
-
-    public void prepareServers(boolean createDestinations) {
-
-        prepareServer(container(1), createDestinations);
-        prepareServer(container(2), createDestinations);
-        prepareServer(container(3), createDestinations);
-        prepareServer(container(4), createDestinations);
-    }
-
     /**
      * Prepares server for topology.
      *
      * @param container          The container - defined in arquillian.xml
      * @param createDestinations Create destination topics and queues and topics if true, otherwise no.
      */
-    private void prepareServer(Container container, boolean createDestinations) {
+    protected void prepareServer(Container container, boolean createDestinations) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
