@@ -27,6 +27,11 @@ cp $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$V
 
 cp $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/protocol/hornetq/main/artemis-hornetq-protocol*.jar
 
+cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-x86_64/libartemis-native-64.so
+cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-i686/libartemis-native-32.so
+
+
+
 #update jboss-client.jar
 rm -rf tmp
 mkdir ./tmp
@@ -62,5 +67,7 @@ md5sum $ARTEMIS_HOME/artemis-ra/target/artemis-ra-$VERSION.jar $JBOSS_HOME/modul
 md5sum $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/ra/main/artemis-service-extensions-*.jar
 
 md5sum $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/protocol/hornetq/main/artemis-hornetq-protocol*.jar
+md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-x86_64/libartemis-native-64.so
+md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-i686/libartemis-native-32.so
 
 
