@@ -253,7 +253,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailoverKillWithBridgeWithNonStaticConnectors() throws Exception {
+    public void testFailoverKillWithBridgeWithOneStaticConnector() throws Exception {
         testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.KILL, false);
     }
 
@@ -297,7 +297,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailoverKillWithBridgeWithNonStaticNIOConnectors() throws Exception {
+    public void testFailoverKillWithBridgeWithOneStaticNIOConnector() throws Exception {
         testFailoverWithBridge(Constants.CONNECTOR_TYPE.NETTY_NIO, false, Constants.FAILURE_TYPE.KILL, false);
     }
 
@@ -387,7 +387,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailoverShutdownWithBridgeWithNonStaticConnectors() throws Exception {
+    public void testFailoverShutdownWithBridgeWithOneStaticConnector() throws Exception {
         testFailoverWithBridge(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, false, Constants.FAILURE_TYPE.SHUTDOWN, false);
     }
 
