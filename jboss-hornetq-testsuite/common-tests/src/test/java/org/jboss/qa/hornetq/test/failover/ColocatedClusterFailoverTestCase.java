@@ -1411,6 +1411,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectory);
         jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectory);
         jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectory);
 
         jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
         jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
