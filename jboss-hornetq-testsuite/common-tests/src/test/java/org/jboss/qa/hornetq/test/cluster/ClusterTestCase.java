@@ -3,14 +3,8 @@ package org.jboss.qa.hornetq.test.cluster;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.apps.impl.*;
-import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
-import org.jboss.qa.hornetq.test.security.PermissionGroup;
-import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
@@ -20,38 +14,30 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsClientAck;
-import org.jboss.qa.hornetq.apps.clients.QueueClientsTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsClientAck;
-import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueueWithSelectorAndSecurity;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTempQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopicToTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +46,6 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
@@ -70,7 +55,8 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 //TODO
 //ClusterTestCase
 //        - clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly
@@ -101,8 +87,6 @@ public class ClusterTestCase extends ClusterTestBase {
     private final JavaArchive MDB_ON_QUEUE2 = createDeploymentMdbOnQueue2();
     private final JavaArchive MDB_ON_QUEUE3 = createDeploymentMdbOnQueue3();
     private final JavaArchive MDB_ON_QUEUE4 = createDeploymentMdbOnQueue4();
-    private final JavaArchive MDB_ON_QUEUE1_SECURITY = createDeploymentMdbOnQueueWithSecurity();
-    private final JavaArchive MDB_ON_QUEUE1_SECURITY2 = createDeploymentMdbOnQueueWithSecurity2();
 
     private final JavaArchive MDB_ON_TEMPQUEUE1 = createDeploymentMdbOnTempQueue1(container(1));
     private final JavaArchive MDB_ON_TEMPQUEUE2 = createDeploymentMdbOnTempQueue2(container(2));
@@ -1405,250 +1389,6 @@ public class ClusterTestCase extends ClusterTestBase {
     }
 
     /**
-     * @tpTestDetails Two servers in cluster are started with this security
-     * configuration: sending to InQueue is allowed for group "guest" and
-     * reading from OutQueue is enabled for group "guest". Group named "user"
-     * can read and write to both of these queues. MDB whith messageSelector
-     * which filters messages containing red color flag and login to "user"
-     * group is deployed to node-1. MDB reads messages from InQueue and sends
-     * them to OutQueue. Three producers send 100 messages (as guests) in to
-     * InQueue two of them send red messages but each of them sets different
-     * JMSXGroupID. Two consumers read messages from OutQueue (as guests). Each
-     * of them should read 100 messages with one JMSXGroupID. JMSXGroupID
-     * shouldn't be mixed between consumers.
-     * @tpProcedure <ul>
-     * <li>Start two servers with destinations</li>
-     * <li>Setup security and credentials on both of them</li>
-     * <li>Deploy MDB on server one</li>
-     * <li>Create create three producers and configure their message builders to
-     * build messages with different JMSXGroupID and colors</li>
-     * <li>Start producers to sending messages to both nodes</li>
-     * <li>Create two consumers each of them will be connected on different node
-     * in cluster</li>
-     * <li>Start receiving messages</li>
-     * <li>Stop servers</li>
-     * </ul>
-     * @tpPassCrit Each receiver received 100 messages with one JMSXGroupID
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGrouping() throws Exception {
-        prepareServer(container(1), true);
-        prepareServer(container(2), true);
-        container(1).start();
-        container(2).start();
-        JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
-        JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
-
-        // setup security
-        jmsAdminOperations1.setSecurityEnabled(true);
-        jmsAdminOperations2.setSecurityEnabled(true);
-
-        jmsAdminOperations1.setClusterUserPassword("password");
-        jmsAdminOperations2.setClusterUserPassword("password");
-        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
-        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
-        jmsAdminOperations1.addLoggerCategory("org.jboss", "INFO");
-        jmsAdminOperations1.addLoggerCategory("org.jboss.qa.hornetq.apps.mdb", "TRACE");
-        jmsAdminOperations1.seRootLoggingLevel("TRACE");
-
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("password-stacking", "useFirstPass");
-        opts.put("unauthenticatedIdentity", "guest");
-        jmsAdminOperations1.rewriteLoginModule("Remoting", opts);
-        jmsAdminOperations1.rewriteLoginModule("RealmDirect", opts);
-        jmsAdminOperations2.rewriteLoginModule("Remoting", opts);
-        jmsAdminOperations2.rewriteLoginModule("RealmDirect", opts);
-
-
-        jmsAdminOperations1.close();
-        jmsAdminOperations2.close();
-
-        UsersSettings.forEapServer(container(1).getServerHome()).withUser("user", "user.1234", "user").create();
-        UsersSettings.forEapServer(container(2).getServerHome()).withUser("user", "user.1234", "user").create();
-
-        AddressSecuritySettings.forContainer(container(1)).forAddress("jms.queue.InQueue")
-                .givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest")
-                .create();
-        AddressSecuritySettings.forContainer(container(1)).forAddress("jms.queue.OutQueue")
-                .givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest")
-                .create();
-
-        AddressSecuritySettings.forContainer(container(2)).forAddress("jms.queue.InQueue")
-                .givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest")
-                .create();
-        AddressSecuritySettings.forContainer(container(2)).forAddress("jms.queue.OutQueue")
-                .givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest")
-                .create();
-
-        // restart servers to changes take effect
-        container(1).stop();
-        container(2).stop();
-
-        container(1).start();
-        container(2).start();
-
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiNameForMdb, 10000, 10, 10);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
-
-        // setup producers and receivers
-        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
-                NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-        ProducerClientAck producerRedG2 = new ProducerClientAck(container(2), inQueueJndiNameForMdb,
-                NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
-        ProducerClientAck producerBlueG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
-                NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
-
-        container(1).deploy(MDB_ON_QUEUE1_SECURITY);
-
-        receiver1.start();
-        receiver2.start();
-
-        producerBlueG1.start();
-        Thread.sleep(2000);
-        producerRedG1.start();
-        producerRedG2.start();
-
-        // producerBlueG1.join();
-        producerRedG1.join();
-        producerRedG2.join();
-        receiver1.join();
-        receiver2.join();
-
-        jmsAdminOperations1 = container(1).getJmsOperations();
-        log.info("Number of org.jboss.qa.hornetq.apps.clients on InQueue on server1: "
-                + jmsAdminOperations1.getNumberOfConsumersOnQueue("InQueue"));
-        jmsAdminOperations2 = container(2).getJmsOperations();
-        log.info("Number of org.jboss.qa.hornetq.apps.clients on InQueue server2: "
-                + jmsAdminOperations2.getNumberOfConsumersOnQueue("InQueue"));
-
-        jmsAdminOperations1.close();
-        jmsAdminOperations2.close();
-
-        Assert.assertEquals("Number of received messages does not match on receiver1", NUMBER_OF_MESSAGES_PER_PRODUCER,
-                receiver1.getListOfReceivedMessages().size());
-        Assert.assertEquals("Number of received messages does not match on receiver2", NUMBER_OF_MESSAGES_PER_PRODUCER,
-                receiver2.getListOfReceivedMessages().size());
-        ArrayList<String> receiver1GroupiIDs = new ArrayList<String>();
-        ArrayList<String> receiver2GroupiIDs = new ArrayList<String>();
-        for (Map<String, String> m : receiver1.getListOfReceivedMessages()) {
-            if (m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))) {
-                receiver1GroupiIDs.add(m.get("JMSXGroupID"));
-            }
-        }
-        for (Map<String, String> m : receiver2.getListOfReceivedMessages()) {
-            if (m.containsKey("JMSXGroupID") && !receiver1GroupiIDs.contains(m.get("JMSXGroupID"))) {
-                receiver2GroupiIDs.add(m.get("JMSXGroupID"));
-            }
-        }
-        for (String gId : receiver1GroupiIDs) {
-            if (receiver2GroupiIDs.contains(gId)) {
-                Assert.assertEquals("GroupIDs was mixed", false, true);
-            }
-
-        }
-
-        container(1).stop();
-        container(2).stop();
-    }
-
-    /**
-     * @tpTestDetails Two servers in cluster are started with different security
-     * configuration. First server: group "user" can read nad write to any
-     * queue, guests can write to InQueue and read from OutQueue. On second
-     * server is not configured any "user group, rest of settings is same as
-     * server 1. MDB with "user" group login is deployed on server one, reads
-     * messages from InQueue and sends them to OutQueue. Producer produces
-     * messages to InQueue on server one as "guest" and consumer tries to read
-     * them from OutQueue on server two. Consumer should not received any
-     * message because OutQueue on server two should be empty.
-     * @tpProcedure <ul>
-     * <li>Start two servers with destinations</li>
-     * <li>Setup security and credentials on both of them</li>
-     * <li>Deploy MDB on server one</li>
-     * <li>Create create three producers and configure their message builders to
-     * build messages with different JMSXGroupID and colors</li>
-     * <li>Start producers to sending messages to both nodes</li>
-     * <li>Create two consumers each of them will be connected on different node
-     * in cluster</li>
-     * <li>Start receiving messages</li>
-     * <li>Stop servers</li>
-     * </ul>
-     * @tpPassCrit Each receiver received 0 messages
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGroupingToFail() throws Exception {
-        prepareServer(container(1), true);
-        prepareServer(container(2), true);
-        container(1).start();
-        container(2).start();
-        JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
-        JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
-
-        // setup security
-        jmsAdminOperations1.setSecurityEnabled(true);
-        jmsAdminOperations2.setSecurityEnabled(true);
-
-        jmsAdminOperations1.setClusterUserPassword("password");
-        jmsAdminOperations2.setClusterUserPassword("password");
-        jmsAdminOperations1.addMessageGrouping("default", "LOCAL", "jms", 5000);
-        jmsAdminOperations2.addMessageGrouping("default", "REMOTE", "jms", 5000);
-
-        UsersSettings.forEapServer(container(1).getServerHome()).withUser("user", "user.1234", "user").create();
-
-        AddressSecuritySettings.forContainer(container(1)).forAddress("jms.queue.InQueue")
-                .givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest")
-                .create();
-        AddressSecuritySettings.forContainer(container(1)).forAddress("jms.queue.OutQueue")
-                .givePermissionToUsers(PermissionGroup.SEND, "user").givePermissionToUsers(PermissionGroup.CONSUME, "guest")
-                .create();
-
-        AddressSecuritySettings.forContainer(container(2)).forAddress("jms.queue.InQueue")
-                .givePermissionToUsers(PermissionGroup.CONSUME, "user").givePermissionToUsers(PermissionGroup.SEND, "guest")
-                .create();
-        AddressSecuritySettings.forContainer(container(2)).forAddress("jms.queue.OutQueue")
-                .givePermissionToUsers(PermissionGroup.CONSUME, "guest").create();
-
-        // restart servers to changes take effect
-        container(1).stop();
-        container(1).kill();
-        container(2).stop();
-        container(2).kill();
-        container(1).start();
-        container(1).deploy(MDB_ON_QUEUE1_SECURITY);
-
-        // setup producers and receivers
-        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
-                NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-
-        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
-
-        producerRedG1.start();
-        receiver2.start();
-
-        producerRedG1.join();
-        receiver2.join();
-
-        Assert.assertEquals("Number of received messages does not match on receiver2", 0, receiver2.getListOfReceivedMessages()
-                .size());
-        container(1).stop();
-        container(2).stop();
-    }
-
-    /**
      * @tpTestDetails Two servers in cluster with deployed destinations are
      * started. Two MDB with different subscriptionName and clientID are
      * deployed on each server where they create durable subscriptions on
@@ -2041,30 +1781,6 @@ public class ClusterTestCase extends ClusterTestBase {
         mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithQueues(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
-        // if (target.exists()) {
-        // target.delete();
-        // }
-        // mdbJar.as(ZipExporter.class).exportTo(target, true);
-        return mdbJar;
-    }
-
-    public static JavaArchive createDeploymentMdbOnQueueWithSecurity() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security.jar");
-        mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
-        log.info(mdbJar.toString(true));
-        // File target = new File("/tmp/mdbOnQueue1.jar");
-        // if (target.exists()) {
-        // target.delete();
-        // }
-        // mdbJar.as(ZipExporter.class).exportTo(target, true);
-        return mdbJar;
-    }
-
-    public static JavaArchive createDeploymentMdbOnQueueWithSecurity2() {
-        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1Security2.jar");
-        mdbJar.addClass(LocalMdbFromQueueToQueueWithSelectorAndSecurity.class);
-        log.info(mdbJar.toString(true));
-        // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
         // target.delete();
         // }
