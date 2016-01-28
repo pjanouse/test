@@ -254,7 +254,7 @@ public class ProducerTransAck extends Client {
                 logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once - it's exception because of duplicates
-                if (numberOfRetries > 0) {
+                if (numberOfRetries > 0 && ex.getCause().getMessage().contains("Duplicate message detected")) {
                     return;
                 }
 
