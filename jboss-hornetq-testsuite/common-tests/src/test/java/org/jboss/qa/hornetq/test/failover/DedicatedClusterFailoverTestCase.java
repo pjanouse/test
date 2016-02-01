@@ -95,7 +95,7 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).start();
 
         // install rule to first server
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+        RuleInstaller.installRule(this.getClass(), container(1));
 
         Clients clients = createClients(acknowledge, topic);
 

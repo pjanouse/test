@@ -1225,7 +1225,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.setRollbackOnly(rollbackOnly);
 
             log.info("Installing Byteman rule before sending message ...");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+            RuleInstaller.installRule(this.getClass(), container(1));
             client.sendMessages(TEST_QUEUE_JNDI);
 
             container(1).kill();
@@ -1243,7 +1243,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             client.sendMessages(TEST_QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+            RuleInstaller.installRule(this.getClass(), container(1));
 
             client.receiveMessages(TEST_QUEUE_JNDI);
 

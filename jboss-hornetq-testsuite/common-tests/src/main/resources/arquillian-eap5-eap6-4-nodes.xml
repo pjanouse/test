@@ -17,8 +17,6 @@
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
                     -Dsun.lang.ClassLoader.allowArraySyntax=true
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                 </property>
                 <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">120</property>
@@ -33,8 +31,6 @@
                     -Dorg.jboss.resolver.warning=true
                     -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
                     -Dsun.lang.ClassLoader.allowArraySyntax=true
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9091
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                 </property>
                 <property name="profileName">default</property>
                 <property name="startupTimeoutInSeconds">120</property>
@@ -52,8 +48,6 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9091
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djava.net.preferIPv4Stack=true
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
@@ -78,8 +72,6 @@
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -Djava.net.preferIPv4Stack=true
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9091
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}

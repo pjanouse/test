@@ -433,7 +433,7 @@ public class Eap5ClientCompatibilityTestCase extends ClientCompatibilityTestBase
             LOG.warn("########################################");
             LOG.warn("Kill live server");
             LOG.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+            RuleInstaller.installRule(this.getClass(), container(1));
             container(1).kill();
         } else {
             LOG.warn("########################################");

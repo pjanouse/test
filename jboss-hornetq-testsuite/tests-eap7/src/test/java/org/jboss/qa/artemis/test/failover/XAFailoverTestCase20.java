@@ -286,7 +286,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         logger.warn("########################################");
         logger.warn("Kill live server");
         logger.warn("########################################");
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+        RuleInstaller.installRule(this.getClass(), container(1));
         container(1).waitForKill();
 //        } else {
 //            logger.warn("########################################");
@@ -362,7 +362,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         logger.warn("########################################");
         logger.warn("Kill live server");
         logger.warn("########################################");
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+        RuleInstaller.installRule(this.getClass(), container(1));
         container(1).waitForKill();//        } else {
 //            logger.warn("########################################");
 //            logger.warn("Shutdown live server");
@@ -442,7 +442,7 @@ public class XAFailoverTestCase20 extends HornetQTestCase {
         logger.warn("########################################");
         logger.warn("Kill live server");
         logger.warn("########################################");
-        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+        RuleInstaller.installRule(this.getClass(), container(1));
         container(1).waitForKill();
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");

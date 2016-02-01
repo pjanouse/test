@@ -385,7 +385,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerTest() throws Exception {
-        testLogicForTestWithByteman(10, container(1), container(1).getHostname(), container(1).getBytemanPort(), null);
+        testLogicForTestWithByteman(10, container(1), container(1), null);
     }
 
     /**
@@ -433,7 +433,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerTest() throws Exception {
-        testLogicForTestWithByteman(10, container(2), container(2).getHostname(), container(2).getBytemanPort(), null);
+        testLogicForTestWithByteman(10, container(2), container(2), null);
     }
 
 
@@ -483,7 +483,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killSourceServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, container(1), container(1).getHostname(), container(1).getBytemanPort(), new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(1), container(1), new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     /**
@@ -532,7 +532,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void killTargetServerWithLargeMessagesTest() throws Exception {
-        testLogicForTestWithByteman(10, container(2), container(2).getHostname(), container(2).getBytemanPort(), new ByteMessageBuilder(10 * 1024 * 1024));
+        testLogicForTestWithByteman(10, container(2), container(2), new ByteMessageBuilder(10 * 1024 * 1024));
     }
 
     //============================================================================================================
@@ -732,12 +732,11 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
      *
      * @param messages           number of messages used for the test
      * @param restartedContainer the container which will be restarted
-     * @param bytemanTargetHost  ip address with the container where will be Byteman rules installed
-     * @param bytemanPort        target port
+     * @param bytemanContainer   container to which the byteman rules will be installed
      * @param messageBuilder     instance of the message builder
      */
     private void testLogicForTestWithByteman(int messages, Container restartedContainer,
-                                             final String bytemanTargetHost, final int bytemanPort,
+                                             Container bytemanContainer,
                                              MessageBuilder messageBuilder) throws Exception {
         final String TEST_QUEUE = "dummyQueue";
         final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
@@ -789,7 +788,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 
         // install rule to first server
 //        HornetQCallsTracking.installTrackingRules(bytemanTargetHost, bytemanPort, HornetQCallsTracking.JOURNAL_RULES);
-        RuleInstaller.installRule(this.getClass(), bytemanTargetHost, bytemanPort);
+        RuleInstaller.installRule(this.getClass(), bytemanContainer);
 
         try {
             Thread.sleep(1000);
