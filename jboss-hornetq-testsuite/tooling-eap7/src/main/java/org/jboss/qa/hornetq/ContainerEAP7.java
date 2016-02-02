@@ -42,7 +42,6 @@ public class ContainerEAP7 implements Container {
     private int containerIndex = 0;
     private ContainerDef containerDef = null;
     private ContainerController containerController = null;
-    private Map<String, String> originalContainerProperties = null;
     private int pid = Integer.MIN_VALUE;
 
     @Override
@@ -52,7 +51,6 @@ public class ContainerEAP7 implements Container {
         this.containerIndex = containerIndex;
         this.containerController = containerController;
         this.containerDef = getContainerDefinition(containerName, arquillianDescriptor);
-        this.originalContainerProperties = copyContainerProperties(containerDef.getContainerProperties());
     }
 
 
@@ -165,7 +163,7 @@ public class ContainerEAP7 implements Container {
         // set port off set based on how it was configured here
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
 
-        Map<String, String> containerProperties = getOriginalContainerProperties();
+        Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
         containerProperties.put("adminOnly", "false");
@@ -187,7 +185,7 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void startAdminOnly() {
-        Map<String, String> containerProperties = getOriginalContainerProperties();
+        Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
         containerProperties.put("adminOnly", "true");
         start(containerProperties);
     }
@@ -331,7 +329,7 @@ public class ContainerEAP7 implements Container {
     public void deploy(Archive archive) {
         // first try to undeploy
         try {
-            undeploy(archive.getName(),false);
+            undeploy(archive.getName(), false);
         } catch (Exception ex) {
             // ignore
         }
@@ -353,10 +351,10 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void undeploy(String archiveName) {
-       undeploy(archiveName, true);
+        undeploy(archiveName, true);
     }
 
-    private void undeploy(String archiveName, boolean logErrorWhenUndeployFails)  {
+    private void undeploy(String archiveName, boolean logErrorWhenUndeployFails) {
         ActiveMQAdminOperationsEAP7 eap7AdmOps = new ActiveMQAdminOperationsEAP7();
         try {
             eap7AdmOps.setHostname(getHostname());
@@ -473,21 +471,4 @@ public class ContainerEAP7 implements Container {
                 + descriptor.getDescriptorName());
     }
 
-    private Map<String, String> getOriginalContainerProperties() {
-
-        if (originalContainerProperties != null) {
-            return copyContainerProperties(originalContainerProperties);
-        }
-        return new HashMap<String, String>();
-    }
-
-    private Map<String, String> copyContainerProperties(Map<String, String> containerProperties) {
-
-        Map<String, String> properties = new HashMap<String, String>();
-
-        for (String key : containerProperties.keySet()) {
-            properties.put(key, containerProperties.get(key));
-        }
-        return properties;
-    }
 }
