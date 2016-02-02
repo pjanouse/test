@@ -3,11 +3,9 @@ package org.jboss.qa.hornetq.tools;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.patching.IoUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -92,7 +90,13 @@ public class CheckServerAvailableUtils {
             } catch (IOException e) {
                 log.info(e);
             } finally {
-                IoUtils.safeClose(liveClient);
+                if (liveClient != null) {
+                    try {
+                        liveClient.close();
+                    } catch (IOException e) {
+                        log.error("ModelControllerClient could not be closed.", e);
+                    }
+                }
             }
             try {
                 Thread.sleep(100);
@@ -102,7 +106,6 @@ public class CheckServerAvailableUtils {
         }
         return false;
     }
-
 
     public static void waitForBrokerToDeactivate(Container container, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
