@@ -138,7 +138,7 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
         String tmpJournalC = System.getenv("JOURNAL_DIRECTORY_C");
         JOURNAL_DIRECTORY_C = (tmpJournalC != null) ? tmpJournalC : "../../../../hornetq-journal-C";
         String tmpJournalD = System.getenv("JOURNAL_DIRECTORY_D");
-        JOURNAL_DIRECTORY_D = (tmpJournalB != null) ? tmpJournalD : "../../../../hornetq-journal-D";
+        JOURNAL_DIRECTORY_D = (tmpJournalD != null) ? tmpJournalD : "../../../../hornetq-journal-D";
 
         // IP addresses for the servers
         String tmpIpAddress = getEnvProperty("MYTESTIP_1");
