@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -59,8 +60,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     String clusterConnectionName = "my-cluster";
 
-    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
     /**
@@ -309,6 +310,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
                     container(2).getHornetqPort(), 300000));
 
+            for (Client c : clients.getConsumers()) {
+                Assert.assertTrue("Consumer crashed so crashing the test - this happens when client detects duplicates " +
+                        "- check logs for message id of duplicated message", c.isAlive());
+            }
             waitForClientsToFailover();
 
             Thread.sleep(5000); // give it some time
@@ -329,6 +334,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
 
+            for (Client c : clients.getConsumers()) {
+                Assert.assertTrue("Consumer crashed so crashing the test - this happens when client detects duplicates " +
+                        "- check logs for message id of duplicated message", c.isAlive());
+            }
             waitForClientsToFailover();
 
             Thread.sleep(5000); // give it some time
@@ -339,6 +348,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         }
 
+        for (Client c : clients.getConsumers()) {
+            Assert.assertTrue("Consumer crashed so crashing the test - this happens when client detects duplicates " +
+                    "- check logs for message id of duplicated message", c.isAlive());
+        }
         waitForClientsToFailover();
 
         clients.stopClients();
@@ -1660,7 +1673,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setJournalType(journalType);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
             jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
@@ -1861,7 +1874,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         setConnectorForClientEAP7(container, connectorType);
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
 
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
