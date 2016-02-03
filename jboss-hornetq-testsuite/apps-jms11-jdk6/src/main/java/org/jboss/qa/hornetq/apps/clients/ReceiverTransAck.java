@@ -264,15 +264,16 @@ public class ReceiverTransAck extends Client {
 
                 areThereDuplicatesInLaterDetection();
 
+                boolean areThereDuplicates = areThereDuplicates();
+                if (areThereDuplicates) {
+                    throw new RuntimeException("There are duplicates received by client - check logs for more details.");
+                }
+
                 session.commit();
 
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
                         + counter + " SENT COMMIT");
 
-                boolean areThereDuplicates = areThereDuplicates();
-                if (areThereDuplicates) {
-                    throw new RuntimeException("There are duplicates received by client - check logs for more details.");
-                }
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
@@ -322,9 +323,9 @@ public class ReceiverTransAck extends Client {
         String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Map<String, String> alreadyReceivedAndCommittedMessage : listOfReceivedMessages) {
-            setOfReceivedMessages.add(alreadyReceivedAndCommittedMessage.get(duplicatedHeader));
-        }
+//        for (Map<String, String> alreadyReceivedAndCommittedMessage : listOfReceivedMessages) {
+//            setOfReceivedMessages.add(alreadyReceivedAndCommittedMessage.get(duplicatedHeader));
+//        }
 
         StringBuilder foundDuplicates = new StringBuilder();
         for (Message m : listOfReceivedMessagesToBeCommited) {
