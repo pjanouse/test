@@ -60,8 +60,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     String clusterConnectionName = "my-cluster";
 
-    //    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+//    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
     /**

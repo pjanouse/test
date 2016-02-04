@@ -264,10 +264,10 @@ public class ReceiverTransAck extends Client {
 
                 areThereDuplicatesInLaterDetection();
 
-                boolean areThereDuplicates = areThereDuplicates();
-                if (areThereDuplicates) {
-                    throw new RuntimeException("There are duplicates received by client - check logs for more details.");
-                }
+//                boolean areThereDuplicates = areThereDuplicates();
+//                if (areThereDuplicates) {
+//                    throw new RuntimeException("There are duplicates received by client - check logs for more details.");
+//                }
 
                 session.commit();
 
