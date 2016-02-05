@@ -286,11 +286,16 @@ public class ReceiverTransAck extends Client {
             } catch (TransactionRolledBackException ex) {
                 logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
                         + ". Received message - count: " + counter + ", retrying receive", ex);
-                // all unacknowledge messges will be received again
+                // all unacknowledge messages will be received again
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
                 listOfReceivedMessagesToBeCommited.clear();
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
+                try {
+                    session.rollback();
+                } catch (Exception e) {
+                    logger.error(" Receiver - got trancation rollback exception and tried to call session.rollback() but it threw another exception: " + ex.getMessage(), e);
+                }
 
                 return;
 
