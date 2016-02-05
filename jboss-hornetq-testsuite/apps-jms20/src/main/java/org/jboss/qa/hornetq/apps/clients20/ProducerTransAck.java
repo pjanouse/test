@@ -201,7 +201,7 @@ public class ProducerTransAck extends Client {
                 ex.printStackTrace();
 
                 // don't repeat this more than once - it's exception because of duplicates
-                if (numberOfRetries > 0) {
+                if (numberOfRetries > 0 && ex.getCause().getMessage().contains("Duplicate message detected")) {
                     return;
                 }
 

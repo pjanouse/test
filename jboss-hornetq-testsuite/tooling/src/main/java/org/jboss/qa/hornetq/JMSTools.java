@@ -121,7 +121,19 @@ public final class JMSTools {
         long sum = 0;
         for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
-            long count = jmsOperations.getCountOfMessagesOnQueue(queueName);
+            long count = -1;
+            int numberOfTries = 0;
+            while (count == -1 && numberOfTries < 3) {
+                try {
+                    numberOfTries++;
+                    count = jmsOperations.getCountOfMessagesOnQueue(queueName);
+                } catch (Exception ex) {
+                    if (numberOfTries > 2)  {
+                        throw new RuntimeException("getCountOfMessagesOnQueue() failed for queue:" + queueName
+                                + " and container: " + container.getConnectionFactoryName() + ". Number of tries: " + numberOfTries);
+                    }
+                }
+            }
             log.info("Number of messages on node : " + container.getName() + " is: " + count);
             sum += count;
             jmsOperations.close();

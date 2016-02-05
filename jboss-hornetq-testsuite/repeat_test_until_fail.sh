@@ -3,7 +3,7 @@ for i in {1..500}
 do
         echo "Run test for the $i time."        
 
-        mvn clean test -Dtest=$1   -DfailIfNoTests=false   | tee log
+        mvn clean test -Dtest=$1   -DfailIfNoTests=false  -Deap=7x | tee log
 
         export GREP=`grep "Failures: 0, Errors: 0" log`
         echo $GREP

@@ -158,7 +158,7 @@ public class ReceiverTransAck extends Client {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
                     stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(
-                            m.getStringProperty(jmsImplementation.getDuplicatedHeader() + "\n"));
+                            m.getStringProperty(jmsImplementation.getDuplicatedHeader() + ", \n"));
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -171,6 +171,7 @@ public class ReceiverTransAck extends Client {
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
+                listOfReceivedMessagesToBeCommited.clear();
 
                 return;
 

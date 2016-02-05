@@ -10,8 +10,6 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9091
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
                     -Djboss.bind.address.unsecure=${MYTESTIP_1}
@@ -35,8 +33,6 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9191
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
@@ -60,8 +56,6 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9291
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
@@ -85,8 +79,6 @@
                 <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m 
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
-                    -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9391
-                    -Djboss.modules.system.pkgs=org.jboss.byteman -Xbootclasspath/a:${BYTEMAN_JAR}:${BYTEMAN_SUBMIT_JAR}
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}

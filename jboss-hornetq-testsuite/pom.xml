@@ -29,7 +29,7 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.ER4-Artemis-011-2</eap7.org.jboss.qa.hornetq.apps.clients.version>
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.0.0.ER5</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
@@ -53,11 +53,11 @@
         <httpclient.version>4.1.3</httpclient.version>
         <surefire-version>2.16</surefire-version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
-        <hornetq.surefire.jvm.options>-Xmx2G -Xms2G
-            -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591
-            -Djboss.modules.system.pkgs=org.jboss.byteman
-            -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
-        </hornetq.surefire.jvm.options>
+        <!--<hornetq.surefire.jvm.options>-Xmx2G -Xms2G-->
+            <!-- -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591-->
+            <!-- -Djboss.modules.system.pkgs=org.jboss.byteman-->
+            <!-- -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}-->
+        <!--</hornetq.surefire.jvm.options>-->
 
     </properties>
     <build>
@@ -100,8 +100,6 @@
                             <propertySets>
                                 <propertySet>
                                     <includes>
-                                        <include>org.jboss.byteman:byteman:jar</include>
-                                        <include>org.jboss.byteman:byteman-submit:jar</include>
                                         <include>io.airlift:airline:jar</include>
                                         <include>com.google.guava:guava:jar</include>
                                         <include>javax.inject:javax.inject:jar</include>
@@ -125,12 +123,6 @@
                 </dependencies>
                 <configuration>
                     <systemPropertyVariables>
-                        <BYTEMAN_JAR>
-                            ${org.jboss.byteman:byteman:jar}
-                        </BYTEMAN_JAR>
-                        <BYTEMAN_SUBMIT_JAR>
-                            ${org.jboss.byteman:byteman-submit:jar}
-                        </BYTEMAN_SUBMIT_JAR>
                         <AIRLIFT_JAR>
                             ${io.airlift:airline:jar}
                         </AIRLIFT_JAR>
@@ -252,6 +244,11 @@
         <dependency>
             <groupId>org.jboss.byteman</groupId>
             <artifactId>byteman-submit</artifactId>
+            <version>${version.byteman}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.byteman</groupId>
+            <artifactId>byteman-install</artifactId>
             <version>${version.byteman}</version>
         </dependency>
 

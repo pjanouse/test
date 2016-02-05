@@ -322,7 +322,8 @@ public class SubscriberTransAck extends Client {
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
-//                setOfReceivedMessagesWithPossibleDuplicates.clear();
+                listOfReceivedMessagesToBeCommited.clear();
+                setOfReceivedMessagesWithPossibleDuplicates.clear();
 
                 return;
 

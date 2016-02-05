@@ -188,6 +188,7 @@ public class ReceiverClientAck extends Client {
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 count = count - listOfReceivedMessagesToBeAcked.size();
+                listOfReceivedMessagesToBeAcked.clear();
 
                 return;
 

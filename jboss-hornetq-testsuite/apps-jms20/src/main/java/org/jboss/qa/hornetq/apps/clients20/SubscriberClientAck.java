@@ -188,6 +188,7 @@ public class SubscriberClientAck extends Client {
                         + count + ", messageId:" + message.getJMSMessageID(), ex);
                 // all unacknowledge messsges will be received again
                 count = count - listOfReceivedMessagesToBeAcked.size();
+                listOfReceivedMessagesToBeAcked.clear();
 
                 return;
 

@@ -25,7 +25,7 @@ public class ReceiverTransAck extends Client {
     private long receiveTimeOut;
     private int commitAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
+    private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
@@ -51,19 +51,20 @@ public class ReceiverTransAck extends Client {
     /**
      * Creates a receiver to queue with auto acknowledge.
      *
-     * @param container container to which to connect
+     * @param container     container to which to connect
      * @param queueJndiName jndi name of the queue
      */
     public ReceiverTransAck(Container container, String queueJndiName) {
 
-        this(container, queueJndiName,60000,10000,5);
+        this(container, queueJndiName, 60000, 10000, 5);
 
     }
+
     /**
      * Creates a receiver to queue with auto acknowledge.
      *
-     * @param container container to which to connect
-     * @param queueJndiName jndi name of the queue
+     * @param container      container to which to connect
+     * @param queueJndiName  jndi name of the queue
      * @param receiveTimeOut how long to wait to receive message
      * @param commitAfter    send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
@@ -263,6 +264,11 @@ public class ReceiverTransAck extends Client {
 
                 areThereDuplicatesInLaterDetection();
 
+//                boolean areThereDuplicates = areThereDuplicates();
+//                if (areThereDuplicates) {
+//                    throw new RuntimeException("There are duplicates received by client - check logs for more details.");
+//                }
+
                 session.commit();
 
                 logger.info("Receiver for node: " + hostname + ". Received message - count: "
@@ -271,7 +277,7 @@ public class ReceiverTransAck extends Client {
                 addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
+                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
                 }
                 logger.debug("Adding messages: " + stringBuilder.toString());
 
@@ -283,6 +289,7 @@ public class ReceiverTransAck extends Client {
                 // all unacknowledge messges will be received again
                 ex.printStackTrace();
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
+                listOfReceivedMessagesToBeCommited.clear();
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
 
                 return;
@@ -317,18 +324,21 @@ public class ReceiverTransAck extends Client {
         String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Message m : listOfReceivedMessagesToBeCommited) {
-            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
-        }
+//        for (Map<String, String> alreadyReceivedAndCommittedMessage : listOfReceivedMessages) {
+//            setOfReceivedMessages.add(alreadyReceivedAndCommittedMessage.get(duplicatedHeader));
+//        }
+
         StringBuilder foundDuplicates = new StringBuilder();
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicates) {
+        for (Message m : listOfReceivedMessagesToBeCommited) {
             if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
-                foundDuplicates.append(m.getJMSMessageID());
+                foundDuplicates.append(m.getJMSMessageID()).append(" with dup id " + m.getStringProperty(duplicatedHeader)).append("\n");
                 isDup = true;
             }
         }
         if (!"".equals(foundDuplicates.toString())) {
-            logger.info("Duplicates detected: " + foundDuplicates.toString());
+            logger.error("###############################################");
+            logger.error("Duplicates detected - Message Ids of duplicates: " + foundDuplicates.toString());
+            logger.error("###############################################");
         }
         return isDup;
     }
@@ -348,7 +358,7 @@ public class ReceiverTransAck extends Client {
                 counter -= 1;
                 // remove this duplicate from the list
                 List<Message> iterationList = new ArrayList<Message>(listOfReceivedMessagesToBeCommited);
-                for (Message receivedMessage : iterationList)    {
+                for (Message receivedMessage : iterationList) {
                     if (receivedMessage.getStringProperty(duplicatedHeader).equals(m.getStringProperty(duplicatedHeader))) {
                         listOfReceivedMessagesToBeCommited.remove(receivedMessage);
                     }
@@ -471,14 +481,14 @@ public class ReceiverTransAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Map<String,String>> getListOfReceivedMessages() {
+    public List<Map<String, String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String, String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
