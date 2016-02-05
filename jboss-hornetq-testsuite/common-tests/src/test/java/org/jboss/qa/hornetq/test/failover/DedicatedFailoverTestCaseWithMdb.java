@@ -459,7 +459,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(2).stop();
         logger.info("Container 2 stopped");
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 3000, 100, 10);
