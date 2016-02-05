@@ -27,6 +27,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -1078,7 +1079,9 @@ public class Lodh2TestCase extends HornetQTestCase {
      * <li>start Consumer which consumes messages form outQueue</li>
      * </ul>
      * @tpPassCrit number of sent and received messages is the same
+     * IGNORED DUE TO: https://issues.jboss.org/browse/WFLY-4703
      */
+    @Ignore
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
