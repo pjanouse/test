@@ -204,6 +204,7 @@ public class ContainerEAP7 implements Container {
         // so check whether server is still running and return if not
         try {
             if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                    || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getPort())
                     || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
                 log.info("Server " + getName() + " is really dead.");
                 containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
