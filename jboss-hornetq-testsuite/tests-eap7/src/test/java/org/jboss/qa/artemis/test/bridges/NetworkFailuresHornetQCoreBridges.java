@@ -397,7 +397,9 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         messageVerifier.verifyMessages();
 
         Thread.sleep(5*60000);
+        container(2).stop();
         if (staysDisconnected)  {
+            stopProxies();
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
             container(1).restart();
@@ -412,7 +414,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             Assert.assertEquals("There is different number of sent and received messages.",
                     producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
         }
-        container(2).stop();
+
         container(1).stop();
     }
 

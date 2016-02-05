@@ -159,7 +159,7 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
     public void testNetworkFailureSmallMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 2, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 1, 2);
     }
 
     /**
