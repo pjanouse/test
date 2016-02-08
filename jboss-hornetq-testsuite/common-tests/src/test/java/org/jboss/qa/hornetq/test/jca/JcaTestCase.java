@@ -23,10 +23,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
@@ -287,6 +284,8 @@ public class JcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testJcaInClusterWithLoad() throws Exception {
 
+        Assume.assumeTrue((System.getProperty("os.name").contains("Linux")
+                && (System.getProperty("os.version").contains("el7") || System.getProperty("os.version").contains("fc2"))));
         int numberOfMesasges = 10000;
 
         prepareServer(container(1));

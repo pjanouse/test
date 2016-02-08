@@ -18,6 +18,8 @@ public class BindProcessToCpuUtils {
         } else if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) {
             String cpuMask = convertToDecimal(cpuIds);
             cmd = "PowerShell \"GET-PROCESS -id " + pid + " | $RESULTS.ProcessorAffinity=" + cpuMask + "\"";
+        } else {
+            throw new RuntimeException("Command for binding process to CPU core is not implemented for this OS. Check BindProcessToCpuUtils.bindProcessToCPU() and implement for your OS.");
         }
 
         logger.info("Command: " + cmd);
