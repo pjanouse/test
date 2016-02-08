@@ -51,7 +51,7 @@
         <version.jnp-client>5.0.5.Final</version.jnp-client>
         <xalan.version>2.7.0</xalan.version>
         <httpclient.version>4.1.3</httpclient.version>
-        <surefire-version>2.16</surefire-version>
+        <surefire-version>2.19.1</surefire-version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
         <!--<hornetq.surefire.jvm.options>-Xmx2G -Xms2G-->
             <!-- -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591-->
