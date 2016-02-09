@@ -4987,6 +4987,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setAutoCreateJMSQueue(boolean autoCreateJmsQueue) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setAutoDeleteJMSQueue(boolean autoDeleteJmsQueue) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public long getCountOfMessagesOnRuntimeQueue(String coreQueueName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalMinCompactFiles(int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
@@ -5499,6 +5514,8 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
+
+            System.out.println(System.getProperty("os.name"));
             jmsAdminOperations.setHostname("127.0.0.1");
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();

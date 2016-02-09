@@ -9,6 +9,7 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.test.spi.event.suite.Before;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 
@@ -83,10 +84,14 @@ public class CleanUp {
 
                 FileUtils.deleteQuietly(new File(pathToTestModulesDirectory.toString()));
 
-                JournalDirectory.deleteJournalDirectoryA(jbossHome);
-                JournalDirectory.deleteJournalDirectoryB(jbossHome);
-                JournalDirectory.deleteJournalDirectoryC(jbossHome);
-                JournalDirectory.deleteJournalDirectoryD(jbossHome);
+                // it's necessary to clean for all JOURNAL_DIRECTORY_A,B,C,D because it's not clear what was set in configuration
+                // if journal directory environemnt variable is not set then do nothing
+                // if journal directory is relative then expect it's relative against data directory
+                // if journal directory is absolute then delete this absolute path
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_A);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_B);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_C);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_D);
             }
         }
     }
@@ -101,10 +106,11 @@ public class CleanUp {
                 FileUtils.deleteQuietly(new File(nodeDirectory, "work"));
             }
 
-            JournalDirectory.deleteJournalDirectoryA(containerDef.getContainerProperties().get("jbossHome"));
-            JournalDirectory.deleteJournalDirectoryB(containerDef.getContainerProperties().get("jbossHome"));
-            JournalDirectory.deleteJournalDirectoryC(containerDef.getContainerProperties().get("jbossHome"));
-            JournalDirectory.deleteJournalDirectoryD(containerDef.getContainerProperties().get("jbossHome"));
+            String jbossHome = containerDef.getContainerProperties().get("jbossHome");
+            JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_A);
+            JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_B);
+            JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_C);
+            JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_D);
         }
 
 //        JournalDirectory.deleteJournalDirectoryA(

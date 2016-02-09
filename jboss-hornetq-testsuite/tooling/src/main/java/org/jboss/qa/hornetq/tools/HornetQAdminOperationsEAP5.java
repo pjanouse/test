@@ -2663,6 +2663,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setAutoCreateJMSQueue(boolean autoCreateJmsQueue) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setAutoDeleteJMSQueue(boolean autoDeleteJmsQueue) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public long getCountOfMessagesOnRuntimeQueue(String coreQueueName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         logger.info("This operation is not supported: " + getMethodName());
     }

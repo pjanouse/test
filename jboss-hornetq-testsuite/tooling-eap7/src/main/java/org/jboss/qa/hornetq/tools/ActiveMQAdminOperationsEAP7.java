@@ -736,6 +736,56 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setAutoCreateJMSQueue(boolean autoCreateJmsQueue) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, "default");
+        model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
+        model.get("name").set("auto-create-jms-queues");
+        model.get("value").set(autoCreateJmsQueue);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setAutoDeleteJMSQueue(boolean autoDeleteJmsQueue) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, "default");
+        model.get(ClientConstants.OP_ADDR).add("address-setting", "#");
+        model.get("name").set("auto-delete-jms-queues");
+        model.get("value").set(autoDeleteJmsQueue);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public long getCountOfMessagesOnRuntimeQueue(String coreQueueName) {
+        final ModelNode countMessages = createModelNode();
+        countMessages.get(ClientConstants.OP).set("count-messages");
+        countMessages.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        countMessages.get(ClientConstants.OP_ADDR)
+                .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        countMessages.get(ClientConstants.OP_ADDR).add("runtime-queue", coreQueueName);
+        ModelNode modelNode;
+        try {
+            modelNode = this.applyUpdate(countMessages);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");
@@ -6271,30 +6321,30 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             jmsAdminOperations.setPort(9999);
             jmsAdminOperations.connect();
 
-            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
-            Properties tcpPingProperties = new Properties();
-            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
-            tcpPingProperties.put("port_range", "10");
-            tcpPingProperties.put("timeout", "3000");
-            tcpPingProperties.put("num_initial_members", "2");
-            protocols.put("TCPPING", tcpPingProperties);
-            protocols.put("MERGE2", null);
-            protocols.put("FD_SOCK", null);
-            protocols.put("FD", null);
-            protocols.put("VERIFY_SUSPECT", null);
-            protocols.put("pbcast.NAKACK", null);
-            protocols.put("UNICAST2", null);
-            protocols.put("pbcast.STABLE", null);
-            protocols.put("pbcast.GMS", null);
-            protocols.put("UFC", null);
-            protocols.put("MFC", null);
-            protocols.put("FRAG2", null);
-            protocols.put("RSVP", null);
-
-            Properties transportProperties = new Properties();
-            transportProperties.put("socket-binding", "jgroups-tcp");
-            transportProperties.put("type", "TCP");
-            jmsAdminOperations.addJGroupsStack("tcp2", protocols, transportProperties);
+//            LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
+//            Properties tcpPingProperties = new Properties();
+//            tcpPingProperties.put("initial_hosts", "127.0.0.1[7600],127.0.0.1[8600]");
+//            tcpPingProperties.put("port_range", "10");
+//            tcpPingProperties.put("timeout", "3000");
+//            tcpPingProperties.put("num_initial_members", "2");
+//            protocols.put("TCPPING", tcpPingProperties);
+//            protocols.put("MERGE2", null);
+//            protocols.put("FD_SOCK", null);
+//            protocols.put("FD", null);
+//            protocols.put("VERIFY_SUSPECT", null);
+//            protocols.put("pbcast.NAKACK", null);
+//            protocols.put("UNICAST2", null);
+//            protocols.put("pbcast.STABLE", null);
+//            protocols.put("pbcast.GMS", null);
+//            protocols.put("UFC", null);
+//            protocols.put("MFC", null);
+//            protocols.put("FRAG2", null);
+//            protocols.put("RSVP", null);
+//
+//            Properties transportProperties = new Properties();
+//            transportProperties.put("socket-binding", "jgroups-tcp");
+//            transportProperties.put("type", "TCP");
+//            jmsAdminOperations.addJGroupsStack("tcp2", protocols, transportProperties);
 
 
 //            jmsAdminOperations.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "http-connector");

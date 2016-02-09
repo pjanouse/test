@@ -10,16 +10,12 @@ import groovy.xml.XmlUtil
  * f.e. 6.3.0.ER10
  * f.e. 6.2.3.CP.CR3
  *
- * if natives are at common location then the is optional property natives.url which defines them.
- * f.e. http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/natives/jboss-eap-native-6.3.0.ER10-RHEL6-x86_64.zip
- *
  * if automatic modification of standalone-full-ha.xml, mgmt-groups|mgmt-users.properties is not good for you then
  * specify configuration.dir.url (TODO this is not yet implemented)
  *
  * For backward compatibility tests between EAP 6.x versions set properties (old servers will be in server1,server2 dirs):
  * eap.zip.url.old
  * eap.version.old
- * optionally natives.url.old, configuration.dir.url.old
  *
  * Disable trace logging at server:
  * Trace logs can be disabled by -DdisableTraceLogs like:
@@ -35,19 +31,14 @@ public class PrepareServers7 {
     public static String eapDirName = "jboss-eap"
     public static String downloadedEAPZipFileName = 'jboss-eap.zip'
     public static String whereToUnzipEAPDirName = ''
-    public static String downloadedNativeZipFileName = "jboss-eap-native.zip"
-    // this is the same as natives must be unzipped into JBOSS_HOME
-    public static String whereToUnzipNativeDirName = whereToUnzipEAPDirName
 
     public static String eapZipUrl = getUniversalProperty('eap.zip.url')
     public static String patchVersion = getUniversalProperty('patch.version')
     public static String eapVersion = getUniversalProperty('eap.version')
-    public static String nativesUrl = getUniversalProperty('natives.url')
     public static String configurationDirUrl = getUniversalProperty('configuration.dir.url')
 
     public static String eapZipUrlOld = getUniversalProperty('eap.zip.url.old')
     public static String eapVersionOld = getUniversalProperty('eap.version.old')
-    public static String nativesUrlOld = getUniversalProperty('natives.url.old')
     public static String configurationDirUrlOld = getUniversalProperty('configuration.dir.url.old')
 
     public static String disableTraceLogs = getUniversalProperty('disable.trace.logs')
@@ -79,12 +70,10 @@ public class PrepareServers7 {
         println "eapZipUrl = " + eapZipUrl
         println "patchVersion = " + patchVersion
         println "eapVersion = " + eapVersion
-        println "nativesUrl = " + nativesUrl
         println "configurationDirUrl = " + configurationDirUrl
 
         println "eapZipUrlOld  = " + eapZipUrlOld
         println "eapVersionOld = " + eapVersionOld
-        println "nativesUrlOld = " + nativesUrlOld
         println "configurationDirUrlOld = " + configurationDirUrlOld
 
         println "legacyExtensionUrl = " + legacyExtensionUrl
@@ -143,7 +132,7 @@ public class PrepareServers7 {
  *
  * @return absolute path to EAP server
  */
-    public String prepareServer(String eapZipUrl, String nativesUrl, String configurationDirUrl) {
+    public String prepareServer(String eapZipUrl, String configurationDirUrl) {
 
         if (eapZipUrl == null || eapZipUrl == '') {
             throw new IllegalArgumentException("eapZipUrl cannot be empty or null")
@@ -156,26 +145,6 @@ public class PrepareServers7 {
 
         // unzip jboss-eap.zip -> jboss-eap
         unzip(downloadedEAPZipFileName, whereToUnzipEAPDirName)
-
-        // download native zip to jboss-eap-native.zip //////////////
-        if (new Platform().isRHEL()) {
-            try {
-                if (nativesUrl == null || nativesUrl == '') { // get zip from eapZipUrl
-                    downloadNativeZipBasedOnEapZipUrl(eapZipUrl)
-                } else if (nativesUrl.endsWith('.zip')) {     // else if zip then download it
-                    downloadFile(nativesUrl, downloadedNativeZipFileName)
-                } else { //else if it's directory then get platform and download the correct zip     todo
-                    throw new UnsupportedOperationException("natives url cannot be a directory, this was not yet implemented")
-                }
-                // unzip jboss-eap-native.zip over jboss-eap
-                unzip(downloadedNativeZipFileName, whereToUnzipNativeDirName)
-            } catch (Exception ex) {
-                println "############################################ WARNING ############################################";
-                println "Natives could not be found/downloaded and will NOT be installed.";
-                println "########################################################################################";
-            }
-        }
-        ///////////////////////////////////////////////////////
 
         // rename everything with jboss-eap-* to jboss-eap
         renameEAPDir(eapDirName)
@@ -214,7 +183,6 @@ public class PrepareServers7 {
         AntBuilder ant = new AntBuilder();
         ant.delete(dir: eapDirName, failonerror: 'false')
         ant.delete(dir: downloadedEAPZipFileName, failonerror: 'false')
-        ant.delete(dir: downloadedNativeZipFileName, failonerror: 'false')
         ant.delete(failonerror: 'false', includeemptydirs: 'true') {
             fileset(dir: new File(".").absolutePath) {
                 include(name: "jboss-eap-*")
@@ -242,40 +210,6 @@ public class PrepareServers7 {
                 }
             }
         }
-    }
-
-/**
- * This is expecting our QA Lab conventions that directory "natives" (so "natives/jboss-eap-native-*.zip")
- * is in the same directory as eap zip
- */
-    public static void downloadNativeZipBasedOnEapZipUrl(String eapZipUrl) {
-
-        println "Trying to get native zip based on eap.zip.url: " + eapZipUrl
-
-        // parse eapZipUrl and get path to baseDir
-        String eapZipFileName = eapZipUrl.tokenize("/")[-1]
-        String baseDir = eapZipUrl.replaceAll(eapZipFileName, "")
-
-        println " - base dir is: " + baseDir + ", eap zip file name is: " + eapZipFileName
-
-        // build path to native zip file - jboss-eap-6.3.0.ER10.zip
-        StringBuilder nativeFileNameBuilder = new StringBuilder(eapZipFileName);
-        int indexWhereToPlacePlatform = nativeFileNameBuilder.indexOf(".zip")
-        //println "index is: " + indexWhereToPlacePlatform
-        nativeFileNameBuilder.insert(indexWhereToPlacePlatform, getPlatformVersion())
-        nativeFileNameBuilder.insert(10, "native-")
-
-        String nativeFileName = nativeFileNameBuilder.toString()
-
-        // download this zip
-        try {
-            downloadFile(baseDir + "natives" + "/" + nativeFileName, downloadedNativeZipFileName)
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace()
-            println("Trying native instead of natives.")
-            downloadFile(baseDir + "native" + "/" + nativeFileName, downloadedNativeZipFileName)
-        }
-
     }
 
     public static String getPlatformVersion() {
@@ -700,12 +634,11 @@ public class PrepareServers7 {
 //        eapVersionOld = "6.2.0"
         //def eapZipUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/jboss-eap-6.3.0.ER10.zip'
 //        eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
-        //def nativesUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/natives/jboss-eap-native-6.3.0.ER10-RHEL6-x86_64.zip'
         PrepareServers7 p = new PrepareServers7()
-        p.prepareServer(eapZipUrl, nativesUrl, configurationDirUrl)
+        p.prepareServer(eapZipUrl, configurationDirUrl)
         p.copyServers(4)
         if (eapZipUrlOld != null && eapZipUrlOld != '') {
-            p.prepareServer(eapZipUrlOld, nativesUrlOld, configurationDirUrlOld);
+            p.prepareServer(eapZipUrlOld, configurationDirUrlOld);
             p.copyServers(2)
         }
         cleanUp();

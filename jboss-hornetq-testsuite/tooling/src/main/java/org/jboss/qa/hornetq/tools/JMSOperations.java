@@ -1852,4 +1852,10 @@ public interface JMSOperations {
     void addOutgoingInterceptor(String serverName, String moduleName, String className);
 
     void addOutgoingInterceptor(String moduleName, String className);
+
+    void setAutoCreateJMSQueue(boolean autoCreateJmsQueue);
+
+    void setAutoDeleteJMSQueue(boolean autoDeleteJmsQueue);
+
+    long getCountOfMessagesOnRuntimeQueue(String coreQueueName);
 }
