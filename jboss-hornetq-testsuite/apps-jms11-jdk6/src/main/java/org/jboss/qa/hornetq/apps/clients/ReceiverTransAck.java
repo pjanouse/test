@@ -291,11 +291,6 @@ public class ReceiverTransAck extends Client {
                 counter = counter - listOfReceivedMessagesToBeCommited.size();
                 listOfReceivedMessagesToBeCommited.clear();
                 setOfReceivedMessagesWithPossibleDuplicates.clear();
-                try {
-                    session.rollback();
-                } catch (Exception e) {
-                    logger.error(" Receiver - got trancation rollback exception and tried to call session.rollback() but it threw another exception: " + ex.getMessage(), e);
-                }
 
                 return;
 
