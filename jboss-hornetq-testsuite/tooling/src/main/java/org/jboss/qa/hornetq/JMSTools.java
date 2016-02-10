@@ -212,7 +212,7 @@ public final class JMSTools {
             env.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, hostname, jndiPort));
         }
         if (Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT.equals(contextType)) {
-            env.put(Context.URL_PKG_PREFIXES, Constants.EJB_URL_PKG_PREFIX_EAP7);
+            env.put("jboss.naming.client.ejb.context", true);
         }
         return new InitialContext(env);
     }
