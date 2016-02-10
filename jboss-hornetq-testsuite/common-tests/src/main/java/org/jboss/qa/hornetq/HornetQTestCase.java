@@ -131,13 +131,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
 
     static {
         // Path to the journal
-        String tmpJournalA = System.getenv("JOURNAL_DIRECTORY_A");
+        String tmpJournalA = getEnvProperty("JOURNAL_DIRECTORY_A");
         JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
-        String tmpJournalB = System.getenv("JOURNAL_DIRECTORY_B");
+        String tmpJournalB = getEnvProperty("JOURNAL_DIRECTORY_B");
         JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
-        String tmpJournalC = System.getenv("JOURNAL_DIRECTORY_C");
+        String tmpJournalC = getEnvProperty("JOURNAL_DIRECTORY_C");
         JOURNAL_DIRECTORY_C = (tmpJournalC != null) ? tmpJournalC : "../../../../hornetq-journal-C";
-        String tmpJournalD = System.getenv("JOURNAL_DIRECTORY_D");
+        String tmpJournalD = getEnvProperty("JOURNAL_DIRECTORY_D");
         JOURNAL_DIRECTORY_D = (tmpJournalD != null) ? tmpJournalD : "../../../../hornetq-journal-D";
 
         // IP addresses for the servers
@@ -393,7 +393,6 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
      * @param name name of
      * @return value of the defined property or null
      */
-    @Deprecated
     private static String getEnvProperty(String name) {
 
         String envProperty = System.getProperty(name);

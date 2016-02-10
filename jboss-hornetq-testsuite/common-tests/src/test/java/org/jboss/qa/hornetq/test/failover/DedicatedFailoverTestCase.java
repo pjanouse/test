@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -60,8 +61,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     String clusterConnectionName = "my-cluster";
 
-        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-//    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
+    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients;
 
     /**
@@ -365,6 +366,141 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         container(2).stop();
 
     }
+
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMultipleFailoverReceiver() throws Exception {
+
+        boolean shutdown = false;
+        String testQueue0JndiName = queueJndiNamePrefix + "0";
+
+        int numberOfMessages = 50000;
+        MessageBuilder messageBuilder = new TextMessageBuilder(10);
+
+        prepareSimpleDedicatedTopology();
+
+        container(1).start();
+
+        container(2).start();
+
+        Thread.sleep(10000);
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setCommitAfter(100);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 3, 10);
+        receiver1.setTimeout(10);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+
+        long startTime = System.currentTimeMillis();
+        while (receiver1.getListOfReceivedMessages().size() < 120 && System.currentTimeMillis() - startTime < 60000) {
+            Thread.sleep(1000);
+        }
+
+        for (int numberOfFailovers = 0; numberOfFailovers < 5; numberOfFailovers++) {
+
+            logger.warn("########################################");
+            logger.warn("Running new cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            if (!shutdown) {
+
+                logger.warn("########################################");
+                logger.warn("Kill live server - number of failovers: " + numberOfFailovers);
+                logger.warn("########################################");
+                container(1).kill();
+
+            } else {
+
+                logger.warn("########################################");
+                logger.warn("Shutdown live server - number of failovers: " + numberOfFailovers);
+                logger.warn("########################################");
+                container(1).stop();
+            }
+
+            logger.warn("Wait some time to give chance backup to come alive and receiver to failover");
+            Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
+                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
+                    container(2).getHornetqPort(), 300000));
+
+
+            if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
+                Assert.fail("Consumer crashed before test finished so crashing the test " +
+                        "- check logs.");
+            }
+
+            waitForClientToFailover(receiver1, 300000);
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+            container(1).start();
+
+            Assert.assertTrue("Live did not start again - failback failed - number of failovers: "
+                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+
+            logger.warn("########################################");
+            logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+
+            // check that backup is really down
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
+
+
+            if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
+                Assert.fail("Consumer crashed before test finished so crashing the test " +
+                        "- check logs.");
+            }
+
+            waitForClientToFailover(receiver1, 300000);
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("Ending cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+        }
+
+
+        if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
+            Assert.fail("Consumer crashed before test finished so crashing the test " +
+                    "- check logs.");
+        }
+
+        waitForClientToFailover(receiver1, 300000);
+
+        receiver1.join();
+
+        boolean isOk = messageVerifier.verifyMessages();
+        Assert.assertTrue("There are failures detected by clients. More information in log - search for \"Lost\" or \"Duplicated\" messages",
+                isOk);
+
+        container(1).stop();
+
+        container(2).stop();
+
+    }
+
 
     /**
      * @tpTestDetails This scenario tests failover on dedicated topology with shared-store and kill. Clients
@@ -747,6 +883,17 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             }
         } while (consumersCounts.size() > 0);
 
+    }
+
+    private void waitForClientToFailover(Client client, long timeout) throws Exception {
+        long startTime = System.currentTimeMillis();
+        int initialCount = client.getCount();
+        while (client.getCount() <= initialCount) {
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Client - " + client.toString() + " did not failover/failback in: " + timeout + " ms");
+            }
+            Thread.sleep(1000);
+        }
     }
 
     /**
