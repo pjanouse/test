@@ -232,6 +232,7 @@ public class ClusterTestCase extends ClusterTestBase {
         int numberOfMessages = 100000;
         prepareServers();
         setClusterNetworkTimeOuts(container(1), 2000, 2000, 4000);
+        setClusterNetworkTimeOuts(container(2), 2000, 2000, 4000);
         container(2).start();
         container(1).start();
 
@@ -259,7 +260,7 @@ public class ClusterTestCase extends ClusterTestBase {
         producer1.join();
 
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 5000, 100, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 30000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
