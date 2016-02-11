@@ -750,6 +750,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicySharedStoreMaster(5000, true);
+        jmsAdminOperations.setNodeIdentifier(454545);
 
         jmsAdminOperations.close();
 
@@ -845,6 +846,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicySharedStoreSlave(true, 5000, true, true, false, null, null, null, null);
+        jmsAdminOperations.setNodeIdentifier(7842365);
 
         jmsAdminOperations.close();
         container.stop();

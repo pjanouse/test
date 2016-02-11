@@ -255,6 +255,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.removeAddressSettings("#");
         setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterConnectionName, replicationGroupName);
+        jmsAdminOperations.setNodeIdentifier(454545);
 
         jmsAdminOperations.close();
 
@@ -307,7 +308,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
         jmsAdminOperations.createPooledConnectionFactory(pooledConnectionFactoryName, "java:/jmsXALocal", connectorName);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorName);
-        jmsAdminOperations.setNodeIdentifier(1231);
+        jmsAdminOperations.setNodeIdentifier(8974);
 
         jmsAdminOperations.close();
         container.stop();
@@ -335,6 +336,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setNodeIdentifier(65789);
 
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
