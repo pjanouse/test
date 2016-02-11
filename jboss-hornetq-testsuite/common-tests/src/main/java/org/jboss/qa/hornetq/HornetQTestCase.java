@@ -132,13 +132,13 @@ public class HornetQTestCase implements ContextProvider, HornetQTestCaseConstant
     static {
         // Path to the journal
         String tmpJournalA = getEnvProperty("JOURNAL_DIRECTORY_A");
-        JOURNAL_DIRECTORY_A = (tmpJournalA != null) ? tmpJournalA : "../../../../hornetq-journal-A";
+        JOURNAL_DIRECTORY_A = (tmpJournalA != null && !"".equals(tmpJournalA)) ? tmpJournalA : "../../../../hornetq-journal-A";
         String tmpJournalB = getEnvProperty("JOURNAL_DIRECTORY_B");
-        JOURNAL_DIRECTORY_B = (tmpJournalB != null) ? tmpJournalB : "../../../../hornetq-journal-B";
+        JOURNAL_DIRECTORY_B = (tmpJournalB != null && !"".equals(tmpJournalB)) ? tmpJournalB : "../../../../hornetq-journal-B";
         String tmpJournalC = getEnvProperty("JOURNAL_DIRECTORY_C");
-        JOURNAL_DIRECTORY_C = (tmpJournalC != null) ? tmpJournalC : "../../../../hornetq-journal-C";
+        JOURNAL_DIRECTORY_C = (tmpJournalC != null && !"".equals(tmpJournalC)) ? tmpJournalC : "../../../../hornetq-journal-C";
         String tmpJournalD = getEnvProperty("JOURNAL_DIRECTORY_D");
-        JOURNAL_DIRECTORY_D = (tmpJournalD != null) ? tmpJournalD : "../../../../hornetq-journal-D";
+        JOURNAL_DIRECTORY_D = (tmpJournalD != null && !"".equals(tmpJournalD)) ? tmpJournalD : "../../../../hornetq-journal-D";
 
         // IP addresses for the servers
         String tmpIpAddress = getEnvProperty("MYTESTIP_1");
