@@ -384,6 +384,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         int numberOfMessages = 50000;
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
+        messageBuilder.setAddDuplicatedHeader(true);
 
         prepareSimpleDedicatedTopology();
 
