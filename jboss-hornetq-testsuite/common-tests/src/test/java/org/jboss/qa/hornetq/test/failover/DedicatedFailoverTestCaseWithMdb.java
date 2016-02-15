@@ -510,7 +510,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(2).start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 500));
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 200));
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
