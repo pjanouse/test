@@ -144,6 +144,8 @@
                         <!--<MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>-->
                         <JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
                         <JOURNAL_DIRECTORY_B>${env.JOURNAL_DIRECTORY_B}</JOURNAL_DIRECTORY_B>
+                        <JOURNAL_DIRECTORY_C>${env.JOURNAL_DIRECTORY_C}</JOURNAL_DIRECTORY_C>
+                        <JOURNAL_DIRECTORY_D>${env.JOURNAL_DIRECTORY_D}</JOURNAL_DIRECTORY_D>
                         <!-- when you redefine these - DON'T FORGET TO CHANGE "rmiPort" and "MANAGEMENT_PORT" in arquillian-4-nodes.xml -->
                         <!-- 1 and 2 are for EAP 5 server - when redefine these then change "EAP5_VMARGS" and "EAP5_VMARGS_2" in hornetq-interop profile  -->
                         <!--<PORT_OFFSET_1>0</PORT_OFFSET_1>-->
