@@ -19,6 +19,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueNoRebalancing;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -501,15 +502,17 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testFailbackWithLargeMessages() throws Exception {
+    public void testJustFailbackWithLargeMessages() throws Exception {
 
+        int numberOfMessages = 500;
         prepareRemoteJcaTopology();
+        setClusterNetworkTimeOuts(container(1), 60000, 60000, 120000);
+        setClusterNetworkTimeOuts(container(2), 60000, 60000, 120000);
 
         // start live-backup servers
         container(1).start();
-        container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 200));
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
@@ -519,28 +522,35 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.join();
 
 
-        container(1).kill();
-        logger.info("Container 1 killed.");
+//        container(1).kill();
+//        logger.info("Container 1 killed.");
+//
+//        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
+//
+//        Thread.sleep(10000);
+//
+//        logger.info("Container 1 starting...");
+//        container(1).start();
+//        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 3600000);
+//        logger.info("Container 1 started again");
+        container(2).start();
 
-        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiName, 30000, 100, 10);
+        receiver1.setTimeout(100);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
 
-        Thread.sleep(10000);
+        int receivedCount = 0;
+        while ((receivedCount = receiver1.getCount()) < numberOfMessages/10)  {
+            logger.info("Receiver received: " + receivedCount);
+            Thread.sleep(500);
+        }
 
-        logger.info("Container 1 starting...");
-        container(1).start();
-        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 3600000);
-        logger.info("Container 1 started again");
-        Thread.sleep(10000);
         logger.info("Container 2 stopping...");
         container(2).stop();
         logger.info("Container 2 stopped");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiName, 30000, 100, 10);
-        receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.start();
         receiver1.join();
-
 
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
@@ -550,6 +560,19 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).stop();
         Assert.assertEquals("There is different number of sent and received messages.",
                 producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+    }
+
+    private void setClusterNetworkTimeOuts(Container container, long callTimout, long checkPeriod, long ttl) {
+        String clusterGroupName = "my-cluster";
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+        jmsAdminOperations.setJournalMinCompactFiles(0);
+        jmsAdminOperations.setJournalMinFiles(100);
+        jmsAdminOperations.setClusterConnectionCallTimeout(clusterGroupName, callTimout);
+        jmsAdminOperations.setClusterConnectionCheckPeriod(clusterGroupName, checkPeriod);
+        jmsAdminOperations.setClusterConnectionTTL(clusterGroupName, ttl);
+        jmsAdminOperations.close();
+        container.stop();
     }
 
     /**
