@@ -22,9 +22,9 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @author ochaloup@redhat.com
  * @author msvehla@redhat.com
  */
-public class Eap6ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
+public class Eap7ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
 
-    private static final Logger log = Logger.getLogger(Eap6ClientCompatibilityTestCase.class);
+    private static final Logger log = Logger.getLogger(Eap7ClientCompatibilityTestCase.class);
 
     /**
      * Set all jms binding which will be needed for tests.
