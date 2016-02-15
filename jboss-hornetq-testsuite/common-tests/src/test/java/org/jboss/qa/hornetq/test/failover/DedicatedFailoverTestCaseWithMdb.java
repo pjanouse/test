@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueNoRebalancing;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
@@ -43,6 +44,7 @@ import java.util.List;
 /**
  * This is modified failover with mdb test case which is testing remote jca.
  *
+ * @author mnovak@redhat.com
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter FAILOVER OF HORNETQ RESOURCE ADAPTER WITH SHARED STORE AND REPLICATED JOURNAL IN DEDICATED TOPOLOGY - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-dedicated-mdb/
@@ -51,8 +53,6 @@ import java.util.List;
  * testing remote jca. There are two servers in dedicated HA topology and MDB
  * deployed on another server. Live server is shutdown/killed and correct
  * failover/failback is tested. Live and backup servers use shared stores.
- *
- * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
@@ -118,7 +118,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     public void before() {
         messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
     }
- 
+
     /**
      * @tpTestDetails There are three servers. Live server (Node 1) and backup
      * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
@@ -126,7 +126,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * When all messages are sent, deploy message driven bean on Node 3. MDB
      * sends messages form InQueue to OutQueue. Rebalancing is enabled. Kill live server. Receive
      * messages from OutQueue from backup server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -138,7 +137,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testKillWithRebalancing() throws Exception {
         testFailoverWithRemoteJca(false, mdbWithRebalancing);
     }
@@ -150,7 +150,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * When all messages are sent, deploy message driven bean on Node 3. MDB
      * sends messages form InQueue to OutQueue. Kill live server. Receive
      * messages from OutQueue from backup server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -162,7 +161,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testKill() throws Exception {
         testFailoverWithRemoteJca(false, mdbWithNORebalancing);
     }
@@ -174,7 +174,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * When all messages are sent, deploy message driven bean on Node 3. MDB
      * sends messages form InQueue to OutQueue. Re-balancing is enabled. Kill live server. Receive
      * messages from OutQueue from backup server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -186,11 +185,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testKillMdbWithRebalancing() throws Exception {
         testFailoverWithRemoteJca(false, mdbWithRebalancing);
     }
-    
+
     /**
      * @tpTestDetails There are three servers. Live server (Node 1) and backup
      * server (Node 2) are in dedicated HA topology. InQueue and OutQueue are
@@ -199,7 +199,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * sends messages form InQueue to OutQueue. Kill live server. Wait for
      * backup server to come alive, then start live server again and stop backup.
      * Receive messages from OutQueue from live server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -212,7 +211,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testKillWithFailback() throws Exception {
         testFailbackWithRemoteJca(false, mdbWithNORebalancing);
     }
@@ -225,7 +225,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * sends messages form InQueue to OutQueue. Rebalancing is enabled. Kill live server. Wait for
      * backup server to come alive, then start live server again and stop backup.
      * Receive messages from OutQueue from live server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -238,11 +237,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testKillWithFailbackWithRebalancing() throws Exception {
         testFailbackWithRemoteJca(false, mdbWithRebalancing);
     }
-    
+
     /**
      * @tpTestDetails There are three servers. Live server (Node 1) and backup
      * server (Node 2) are in dedicated HA topology. InQueue and OutQueue are
@@ -251,7 +251,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * sends messages form InQueue to OutQueue. Shutdown live server. Wait for
      * backup server to come alive, then start live server again and stop backup.
      * Receive messages from OutQueue from live server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -264,7 +263,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testShutdownWithFailback() throws Exception {
         testFailbackWithRemoteJca(true, mdbWithNORebalancing);
     }
@@ -277,7 +277,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * sends messages form InQueue to OutQueue. Rebalancing is enabled. Shutdown live server. Wait for
      * backup server to come alive, then start live server again and stop backup.
      * Receive messages from OutQueue from live server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -290,11 +289,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testShutdownWithFailbackWithRebalancing() throws Exception {
         testFailbackWithRemoteJca(true, mdbWithRebalancing);
     }
-   
+
     /**
      * @tpTestDetails There are three servers. Live server (Node 1) and backup
      * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
@@ -302,7 +302,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * When all messages are sent, deploy message driven bean on Node 3. MDB
      * sends messages form InQueue to OutQueue. Shutdown live server. Receive
      * messages from OutQueue from backup server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -314,7 +313,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testShutdown() throws Exception {
         testFailoverWithRemoteJca(true, mdbWithNORebalancing);
     }
@@ -326,7 +326,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * When all messages are sent, deploy message driven bean on Node 3. MDB
      * sends messages form InQueue to OutQueue. Rebalacing is enabled. Shutdown live server. Receive
      * messages from OutQueue from backup server.
-     *
      * @tpProcedure <ul>
      * <li>Start live and its backup server with shared/replicated journal</li>
      * <li>Start producer which sends messages to InQueue</li>
@@ -338,7 +337,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     @RunAsClient
     @Test
-    @RestoreConfigBeforeTest @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
     public void testShutdownWithRebalancing() throws Exception {
         testFailoverWithRemoteJca(true, mdbWithRebalancing);
     }
@@ -471,7 +471,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
-            messageVerifier.verifyMessages();
+        messageVerifier.verifyMessages();
 
 
         logger.info("Undeploy mdb from mdb server and stop servers 1 and 3.");
@@ -484,20 +484,89 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
+     * @tpTestDetails There are 2 servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology.InQueue is
+     * deployed on live and backup. Send large messages to InQueue to live server.
+     * When all messages are sent, kill live server and start again. Receive
+     * messages from InQueue from live server.
+     * @tpProcedure <ul>
+     * <li>Start live and its backup server with shared/replicated journal</li>
+     * <li>Start producer which sends large messages to InQueue</li>
+     * <li>Kill live server</li>
+     * <li>Receive messages from OutQueue from backup</li>
+     * </ul>
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
+    @RunAsClient
+    @Test
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testFailbackWithLargeMessages() throws Exception {
+
+        prepareRemoteJcaTopology();
+
+        // start live-backup servers
+        container(1).start();
+        container(2).start();
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 500));
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setCommitAfter(500);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+
+        container(1).kill();
+        logger.info("Container 1 killed.");
+
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
+
+        Thread.sleep(10000);
+
+        logger.info("Container 1 starting...");
+        container(1).start();
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 3600000);
+        logger.info("Container 1 started again");
+        Thread.sleep(10000);
+        logger.info("Container 2 stopping...");
+        container(2).stop();
+        logger.info("Container 2 stopped");
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiName, 30000, 100, 10);
+        receiver1.setTimeout(0);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        container(2).stop();
+        container(1).stop();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+    }
+
+    /**
      * Return true if numberOfMessages is in queue in the given timeout. Otherwise false.
      *
-     * @param container test container
-     * @param queueName queue name (not jndi name)
+     * @param container        test container
+     * @param queueName        queue name (not jndi name)
      * @param numberOfMessages number of messages
-     * @param timeout time out
+     * @param timeout          time out
      * @return returns true if numberOfMessages is in queue in the given timeout. Otherwise false.
      * @throws Exception
      */
-    private boolean waitForMessagesOnOneNode(Container container, String queueName, int numberOfMessages, long timeout) throws Exception{
+    private boolean waitForMessagesOnOneNode(Container container, String queueName, int numberOfMessages, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         JMSOperations jmsOperations = container.getJmsOperations();
-        while (numberOfMessages > (jmsOperations.getCountOfMessagesOnQueue(queueName)))   {
-            if (System.currentTimeMillis() - startTime > timeout)  {
+        while (numberOfMessages > (jmsOperations.getCountOfMessagesOnQueue(queueName))) {
+            if (System.currentTimeMillis() - startTime > timeout) {
                 return false;
             }
             Thread.sleep(1000);
@@ -510,7 +579,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     /**
      * Be sure that both of the servers are stopped before and after the test.
      * Delete also the journal directory.
-     *
      */
     @Before
     @After
@@ -862,7 +930,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
+     * <p>
      * TODO - change config by cli console
      */
     protected void copyApplicationPropertiesFiles() throws IOException {
