@@ -1431,7 +1431,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         if(isTwoWay && provideKeystoreViaConnector){
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath); // client will use this keystore to prove him self to the server
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
-            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
         }
 
         if(provideTruststoreViaConnector) {
