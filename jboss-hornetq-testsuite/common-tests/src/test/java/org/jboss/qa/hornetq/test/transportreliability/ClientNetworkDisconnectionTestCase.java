@@ -167,17 +167,18 @@ public class ClientNetworkDisconnectionTestCase extends HornetQTestCase {
         // subscribe to topic
         String connectionId = "testConnectionIdSubscriber";
         String subscriberName = "testSubscriber";
+        JMSOperations jmsOperations = container(1).getJmsOperations();
         SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiName, 30000, 1, 1, connectionId, subscriberName);
         subscriber.subscribe();
         subscriber.start();
-
+        Assert.assertNull("There is an exception on subscriber", subscriber.getException());
         // stop proxies
         stopProxies();
 
         // check that client was disconnected
         // list durable active subscribers on topic
         // check there are none after 60s
-        JMSOperations jmsOperations = container(1).getJmsOperations();
+
         int numberOfSubscribers = 0;
         long startTime = System.currentTimeMillis();
         do {

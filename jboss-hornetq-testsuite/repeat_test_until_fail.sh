@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in {1..500}
+for i in {1..5}
 do
         echo "Run test for the $i time."        
 

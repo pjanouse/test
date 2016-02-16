@@ -74,7 +74,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void testFailover(int acknowledge, boolean failback) throws Exception {
-
         testFailover(acknowledge, failback, false);
 
     }
