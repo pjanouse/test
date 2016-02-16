@@ -97,7 +97,7 @@ public class SubscriberTransAck extends Client {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
 
-        } catch (JMSException ex) {
+        } catch (JMSRuntimeException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
         } catch (Exception ex) {
