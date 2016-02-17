@@ -1243,6 +1243,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
+    @Ignore
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
@@ -1664,7 +1665,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         final String securityRealmName = "https";
         final String listenerName = "undertow-https";
         final String sockerBinding = "https";
-        final String verifyClientPolitic = "NOT_REQUESTED";
+        String verifyClientPolitic = "NOT_REQUESTED";
         final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.keystore").getPath();
         final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.truststore").getPath();
         final String password = "123456";
@@ -1680,10 +1681,12 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         if (setKeyStore && setTrustStore) {
             ops.addServerIdentity(securityRealmName, keyStorePath, password);
             ops.addAuthentication(securityRealmName, trustStorePath, password);
+            verifyClientPolitic = "REQUIRED";
         } else if (setKeyStore) {
             ops.addServerIdentity(securityRealmName, keyStorePath, password);
         } else if (setTrustStore) {
             ops.addAuthentication(securityRealmName, trustStorePath, password);
+            verifyClientPolitic = "REQUIRED";
         } else {
             throw new IllegalArgumentException("At least one of setKeyStore or setTrustStore must be true");
         }
