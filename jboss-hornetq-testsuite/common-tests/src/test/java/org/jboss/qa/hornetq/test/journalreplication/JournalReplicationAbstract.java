@@ -516,8 +516,8 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
                 maxHops = 1,
                 retryInterval = 1000,
                 useDuplicateDetection = true,
-                connectorName = proxyConnectorName);
-//                connectorName = "netty");
+                connectorName = "http-connector");
+
         adminLive.removeBroadcastGroup(broadCastGroupName);
         adminLive.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
 
@@ -740,8 +740,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
                 maxHops = 1,
                 retryInterval = 1000,
                 useDuplicateDetection = true,
-                connectorName = proxyConnectorName);
-//                connectorName = "netty");
+                connectorName =  "http-connector");
 
         adminBackup.removeBroadcastGroup(broadCastGroupName);
         adminBackup.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, proxyConnectorName, "");
