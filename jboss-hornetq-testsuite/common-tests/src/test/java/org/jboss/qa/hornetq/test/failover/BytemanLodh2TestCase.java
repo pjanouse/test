@@ -649,13 +649,13 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             executeFailureSequence(failureSequence, 30000);
         }
 
-        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 300000, container(1), container(3));
+        producer1.join();
+        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 10000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
 
         receiver1.start();
-        producer1.join();
         receiver1.join();
 
         logger.info("Number of sent messages: "
