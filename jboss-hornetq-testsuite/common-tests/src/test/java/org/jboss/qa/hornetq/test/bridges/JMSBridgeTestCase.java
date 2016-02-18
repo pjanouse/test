@@ -383,7 +383,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     private void prepareServersEAP7(Container inServer, Container outServer, String qualityOfService) {
         prepareServerEAP7(inServer);
         if (!inServer.getName().equals(outServer.getName())) {
-            prepareServerEAP6(outServer);
+            prepareServerEAP7(outServer);
         }
         deployBridgeEAP7(inServer, outServer, qualityOfService, -1);
     }
