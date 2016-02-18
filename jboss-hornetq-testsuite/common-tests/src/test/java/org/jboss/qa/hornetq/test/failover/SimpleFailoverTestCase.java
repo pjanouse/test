@@ -228,7 +228,7 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
                 Set<String> duplicationCache = new HashSet<String>();
                 System.out.println("Start receive messages");
                 for (int i = 0; i < numMsg; ) {
-                    message = consumer.receive(5000);
+                    message = consumer.receive(60000);
                     Assert.assertNotNull(message);
                     System.out.println("Received message " + message.getStringProperty("id"));
 
