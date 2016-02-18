@@ -3,6 +3,8 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.as.cli.handlers.ifelse.IfHandler;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -39,6 +41,8 @@ import java.util.Set;
  */
 @RunWith(Arquillian.class)
 public class SimpleFailoverTestCase extends HornetQTestCase {
+
+    private static final Logger log = Logger.getLogger(SimpleFailoverTestCase.class);
 
     public static final String QUEUE_NAME = "testQueue";
 
@@ -196,11 +200,11 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
 
         Message message = null;
 
-        System.out.println("Start receive messages");
+        log.info("Start receive messages");
         for (int i = 0; i < numMsg; i++) {
             message = consumer.receive(5000);
             Assert.assertNotNull(message);
-            System.out.println("Received message " + message.getStringProperty("id"));
+            log.info("Received message " + message.getStringProperty("id"));
             Assert.assertEquals("message-" + i, message.getStringProperty("id"));
         }
 
@@ -219,21 +223,31 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
         Assert.assertEquals(1, expectedErrors);
 
         if (failback) {
-            System.out.println("FAILBACK: Start live server again.");
+            log.info("FAILBACK: Start live server again.");
             container(1).start();
         }
 
+        int numReceivedMsg;
+        int duplicationsDetected;
         while (true) {
             try {
                 Set<String> duplicationCache = new HashSet<String>();
-                System.out.println("Start receive messages");
+                numReceivedMsg = 0;
+                duplicationsDetected = 0;
+                log.info("Start receive messages");
                 for (int i = 0; i < numMsg; ) {
-                    message = consumer.receive(60000);
-                    Assert.assertNotNull(message);
+                    Message msg = consumer.receive(60000);
+                    if (msg == null) {
+                        break;
+                    } else {
+                        message = msg;
+                        numReceivedMsg++;
+                    }
                     System.out.println("Received message " + message.getStringProperty("id"));
 
                     if (duplicationCache.contains(message.getStringProperty("id"))) {
-                        Assert.fail("Duplication detected " + message.getStringProperty("id"));
+                        duplicationsDetected++;
+                        log.warn("Duplication detected " + message.getStringProperty("id"));
                     } else {
                         duplicationCache.add(message.getStringProperty("id"));
                         i++;
@@ -241,17 +255,24 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
                 }
 
                 if (ackMode == Session.CLIENT_ACKNOWLEDGE) {
+                    log.info("CALLING message acknowledge");
                     message.acknowledge();
                 } else if (ackMode == Session.SESSION_TRANSACTED) {
+                    log.info("CALLING session commit");
                     session.commit();
                 }
                 break;
             }
             catch (JMSException e) {
+                log.warn("JMS EXCEPTION CATCHED", e);
                 // retry
             }
         }
 
+        log.info("Received messages: " + numReceivedMsg);
+        log.info("Duplicated messages: " + duplicationsDetected);
+        Assert.assertEquals(numMsg, numReceivedMsg);
+        Assert.assertEquals(0, duplicationsDetected);
         Assert.assertNull(consumer.receive(5000));
     }
 
