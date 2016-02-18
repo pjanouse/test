@@ -19,14 +19,10 @@ package org.jboss.qa.hornetq.tools.byteman.rule;
 
 
 import org.apache.log4j.Logger;
-import org.jboss.byteman.agent.install.Install;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.ProcessIdUtils;
+import org.junit.Assert;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 
 /**
  * MethodRuleInstaller
@@ -45,14 +41,34 @@ public class RuleInstaller {
      * This will install rule which is described in annotation of caller method.
      *
      * @param testClass class with test
+     */
+    public static void installRule(Class testClass)  {
+
+        installRule(testClass, "localhost", 9091);
+
+    }
+
+    /**
+     * This will install rule which is described in annotation of caller method.
+     *
+     * @param testClass class with test
      * @param container container to deploy the rule
      */
     public static void installRule(Class testClass, Container container)  {
+        installRule(testClass, container.getHostname(), container.getBytemanPort());
+    }
 
-        installBytemanAgent(container);
+    /**
+     * This will install rule which is described in annotation of caller method.
+     *
+     * @param testClass class with test
+     * @param host      hostname where byteman listen to
+     * @param port      port where byteman listen to
+     */
+    public static void installRule(Class testClass, String host, int port)  {
 
-        SubmitUtil.host = container.getHostname();
-        SubmitUtil.port = container.getBytemanPort();
+        SubmitUtil.host = host;
+        SubmitUtil.port = port;
 
         RuleInstaller ruleInstaller = new RuleInstaller();
         Throwable t = new Throwable();
@@ -114,39 +130,6 @@ public class RuleInstaller {
         String script = ExtractScriptUtil.extract(method);
         if (script != null) {
             SubmitUtil.uninstall(generateKey(METHOD_KEY_PREFIX), script);
-        }
-    }
-
-    private static void installBytemanAgent(Container container) {
-        if (isBytemanAgentInstalled(container)) {
-            return;
-        }
-        String[] params = new String[] {
-                "-h", container.getHostname(),
-                "-p", "" + container.getBytemanPort(),
-                "" + ProcessIdUtils.getProcessId(container)
-        };
-        log.info("Install byteman agent");
-        Install.main(params);
-    }
-
-    private static boolean isBytemanAgentInstalled(Container container) {
-        InetSocketAddress inetSocketAddress = new InetSocketAddress(container.getHostname(), container.getBytemanPort());
-        Socket socket = null;
-        try {
-            socket = new Socket();
-            socket.connect(inetSocketAddress, 1000);
-            return true;
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (socket == null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

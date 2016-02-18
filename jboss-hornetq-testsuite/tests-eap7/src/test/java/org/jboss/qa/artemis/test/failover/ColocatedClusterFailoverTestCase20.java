@@ -173,7 +173,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
             container(1).stop();
         } else {
             // install rule to first server
-            RuleInstaller.installRule(this.getClass(), container(1));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
             container(1).waitForKill();
         }
 

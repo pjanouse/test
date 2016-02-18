@@ -162,6 +162,7 @@ public class ContainerEAP7 implements Container {
         // modify properties for arquillian.xml
         // set port off set based on how it was configured here
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
+        // replace 9091 for byteman port
 
         Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
 
@@ -172,6 +173,7 @@ public class ContainerEAP7 implements Container {
         javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
         javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
         javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
+        javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
         start(containerProperties);

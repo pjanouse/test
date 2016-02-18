@@ -167,7 +167,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         if (testKill) {
 
-            RuleInstaller.installRule(ServerUnavailableTestCase.class, container(1));
+            RuleInstaller.installRule(ServerUnavailableTestCase.class);
             Thread.sleep(5000);
             log.info("############# Kill server 1.");
             container(1).waitForKill();
@@ -228,7 +228,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         if (testKill) {
 
-            RuleInstaller.installRule(ServerUnavailableTestCase.class, container(1));
+            RuleInstaller.installRule(ServerUnavailableTestCase.class);
             Thread.sleep(10000);
             log.info("############# Kill server 1.");
             container(1).waitForKill();

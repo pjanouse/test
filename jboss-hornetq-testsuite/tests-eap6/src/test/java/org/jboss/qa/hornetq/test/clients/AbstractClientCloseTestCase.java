@@ -100,7 +100,7 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
             Thread.sleep(20000);
 
             LOG.info("Force closing the org.jboss.qa.hornetq.apps.clients");
-            RuleInstaller.installRule(this.getClass(), container(1));
+            RuleInstaller.installRule(this.getClass());
 
             boolean closeOperationSucceeded = closer.closeClients();
             clients.ensureClientThreadsClosed();

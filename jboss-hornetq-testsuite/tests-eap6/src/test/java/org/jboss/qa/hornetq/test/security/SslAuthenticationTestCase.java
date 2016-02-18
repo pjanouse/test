@@ -227,7 +227,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.close();
         container(1).restart();
 
-        RuleInstaller.installRule(this.getClass(), container(1));
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CLIENT_PORT);
 
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.HOST_PROP_NAME, container(1).getHostname());

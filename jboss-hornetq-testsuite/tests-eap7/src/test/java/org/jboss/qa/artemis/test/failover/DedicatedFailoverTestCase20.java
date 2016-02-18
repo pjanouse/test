@@ -174,7 +174,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).waitForKill();
         } else {
             logger.warn("########################################");
@@ -784,7 +784,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
 
         logger.warn("Deploy byteman rule:");
 
-        RuleInstaller.installRule(this.getClass(), container(1));
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
         waitForServerToBeKilled(container(1), 60000);
 
@@ -1949,7 +1949,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("Kill live server");
             logger.warn("########################################");
-            RuleInstaller.installRule(this.getClass(), container(1));
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).kill();
         } else {
             logger.warn("########################################");
