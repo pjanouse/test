@@ -122,7 +122,7 @@ public class PublisherAutoAck extends Client {
                 numberOfRetries = 0;
                 return;
 
-            } catch (JMSException ex) {
+            } catch (JMSRuntimeException ex) {
                 try {
                     logger.info("SEND RETRY - Publisher for node: " + hostname
                             + ". Sent message with property count: " + counter

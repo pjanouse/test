@@ -521,18 +521,6 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-
-//        container(1).kill();
-//        logger.info("Container 1 killed.");
-//
-//        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
-//
-//        Thread.sleep(10000);
-//
-//        logger.info("Container 1 starting...");
-//        container(1).start();
-//        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 3600000);
-//        logger.info("Container 1 started again");
         container(2).start();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiName, 30000, 100, 10);
@@ -541,7 +529,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         receiver1.start();
 
         int receivedCount = 0;
-        while ((receivedCount = receiver1.getCount()) < numberOfMessages/10)  {
+        while ((receivedCount = receiver1.getCount()) < 5)  {
             logger.info("Receiver received: " + receivedCount);
             Thread.sleep(500);
         }

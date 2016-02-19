@@ -166,9 +166,11 @@ public class PublisherTransAck extends Client {
             logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
                     + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             counter++;
-        } catch (JMSException ex) {
+        } catch (JMSRuntimeException ex) {
             logger.error("Failed to send message - counter: " + counter, ex);
             sendMessage(destination, msg);
+        } catch (JMSException e) {
+            logger.warn(e);
         }
     }
 

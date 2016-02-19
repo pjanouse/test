@@ -131,7 +131,7 @@ public class ProducerClientAck extends Client {
 
                 return;
 
-            } catch (JMSException ex) {
+            } catch (JMSRuntimeException ex) {
 
                 try {
                     logger.info("SEND RETRY - Producer for node: " + hostname

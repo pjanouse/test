@@ -120,7 +120,7 @@ public class ReceiverClientAck extends Client {
                 }
             }
 
-        } catch (JMSException ex) {
+        } catch (JMSRuntimeException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
             exception = ex;
         } catch (Exception ex) {
@@ -192,7 +192,7 @@ public class ReceiverClientAck extends Client {
 
                 return;
 
-            } catch (JMSException ex) {
+            } catch (JMSRuntimeException ex) {
                 // now it's screwed because we don't have response for sent ACK
                 // next receive can have duplicates or new messages
                 setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeAcked);

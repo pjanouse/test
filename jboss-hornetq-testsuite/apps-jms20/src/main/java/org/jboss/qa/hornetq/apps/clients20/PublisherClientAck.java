@@ -131,7 +131,7 @@ public class PublisherClientAck extends Client {
 
                 return;
 
-            } catch (JMSException ex) {
+            } catch (JMSRuntimeException ex) {
                 ex.printStackTrace();
                 try {
                     logger.info("SEND RETRY - Publisher for node: " + hostname

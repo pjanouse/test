@@ -32,7 +32,7 @@ public class CliReloadTest extends HornetQTestCase {
     public void reloadServerTest() throws InterruptedException {
 
         container(1). start();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100;) {
 
             try {
                 CLI cli = CLI.newInstance();
@@ -45,6 +45,7 @@ public class CliReloadTest extends HornetQTestCase {
                 logger.info("!!!!!!!!!!!!!!!!!!! Done !!!!!!!!!!!!!!!!!!!!!!");
 
                 Assert.assertTrue(CheckServerAvailableUtils.waitForLiveServerToReload(cliConf.getHost(), cliConf.getPort(), 60000));
+                i++;
             } catch (IllegalStateException e) {
                 logger.warn(e);
             }
