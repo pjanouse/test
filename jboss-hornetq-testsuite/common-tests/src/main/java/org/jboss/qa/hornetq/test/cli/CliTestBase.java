@@ -21,7 +21,7 @@ public class CliTestBase extends HornetQTestCase {
         if (isWritable) {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
             if (cliClient.reloadRequired()) {
-                Assert.assertTrue(cliClient.reload());
+                Assert.assertTrue("Reload operation fails after 3 attempts.", reload(cliClient, 3));
                 long startTime = System.currentTimeMillis();
                 while (true) {
                     try {
@@ -79,5 +79,17 @@ public class CliTestBase extends HornetQTestCase {
 
         return isWritable;
 
+    }
+
+    private boolean reload(CliClient cliClient, int attempts) {
+        for (int i = 0; i < attempts; i++) {
+            try {
+                cliClient.reload();
+                return true;
+            } catch (Exception e) {
+                log.warn(e);
+            }
+        }
+        return false;
     }
 }
