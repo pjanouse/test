@@ -39,12 +39,13 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     /**
      * Prepare two servers in colocated topology in cluster.
      */
-    public void prepareColocatedTopologyInCluster() {
+    @Override
+    public void prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE connectorType) {
 
         if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
-            prepareLiveServerEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_A, "group1", Constants.CONNECTOR_TYPE.NETTY_NIO);
+            prepareLiveServerEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_A, "group1", connectorType);
             prepareBackupServerEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_B, "group2");
-            prepareLiveServerEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_C, "group2", Constants.CONNECTOR_TYPE.NETTY_NIO);
+            prepareLiveServerEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_C, "group2", connectorType);
             prepareBackupServerEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_D, "group1");
         } else {
             prepareLiveServerEAP6(container(1), "firstPair", "firstPairJournalLive");
@@ -114,7 +115,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String acceptorName = "netty-backup";
         String inVmConnectorName = "in-vm";
         String socketBindingName = "messaging-backup";
-        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
+        int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
         String pooledConnectionFactoryName = "activemq-ra";
         String jgroupsChannel = "activemq-cluster";
         String jgroupsStack = "udp";
@@ -171,7 +172,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      */
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
-        prepareColocatedTopologyInCluster();
+        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
 
         container(1).start();
         container(2).start();

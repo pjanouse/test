@@ -31,6 +31,7 @@ public class Constants {
     public static final int JGROUPS_TCP_PORT_DEFAULT_EAP7 = 7600;
     public static final int PORT_ARTEMIS_DEFAULT_EAP7 = 8080;
     public static final int PORT_ARTEMIS_NETTY_DEFAULT_EAP7 = 5445;
+    public static final int PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 = 5446;
     public static final int PORT_HORNETQ_DEFAULT_BACKUP_EAP7 = 8080;
     public static final int JNDI_PORT_DEFAULT_EAP7 = 8080;
     public static final String CONNECTION_FACTORY_EAP7 = "RemoteConnectionFactory";
