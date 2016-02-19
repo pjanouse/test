@@ -173,10 +173,16 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
                     notificationListener, null, null);
 
-            PublisherAutoAck producer = new PublisherAutoAck(container(1),
-                    TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer");
-            producer.setMessageBuilder(new TextMessageBuilder(10));
-            producer.setTimeout(0);
+            PublisherAutoAck producer1 = new PublisherAutoAck(container(1),
+                    TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer1");
+            producer1.setMessageBuilder(new TextMessageBuilder(10));
+            producer1.setTimeout(0);
+            PublisherAutoAck producer2 = new PublisherAutoAck(container(1),
+                    TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer2");
+            producer2.setMessageBuilder(new TextMessageBuilder(10));
+            producer2.setTimeout(0);
+
+
 
             NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
                     container(1), TOPIC_JNDI_NAME);
@@ -185,9 +191,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
 
             connection.start();
-            producer.start();
             fastConsumer.start();
             slowConsumer.start();
+            producer1.start();
+            producer2.start();
+
 
             Thread.sleep(15000);
 
@@ -195,7 +203,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
             ops.close();
 
-            producer.join();
+            producer1.join();
+            producer2.join();
             fastConsumer.join();
             slowConsumer.join();
 
