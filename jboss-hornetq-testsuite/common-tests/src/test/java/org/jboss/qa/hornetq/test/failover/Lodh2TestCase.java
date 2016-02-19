@@ -1530,7 +1530,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         // enable trace logging
 //            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-//            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // both are remote
         if (isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
@@ -1577,7 +1577,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
+     * <p>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
