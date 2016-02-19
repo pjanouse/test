@@ -284,6 +284,8 @@ public class JcaTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testJcaInClusterWithLoad() throws Exception {
 
+        logger.info("os.name=" + System.getProperty("os.name"));
+        logger.info("os.version=" + System.getProperty("os.version"));
         Assume.assumeTrue((System.getProperty("os.name").contains("Linux")
                 && (System.getProperty("os.version").contains("el7") || System.getProperty("os.version").contains("fc2"))));
         int numberOfMesasges = 10000;
