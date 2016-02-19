@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
 /**
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith;
  * difference in these tests: testKillInClusterLargeMessages, testShutdownInClusterLargeMessages, testShutdownInClusterSmallMessages,
  * testKillInClusterSmallMessages. Difference is, that node-2 is not started after kill/shutdown.
  */
+@Ignore
 @RunWith(Arquillian.class)
 public class NewConfReplicatedColocatedClusterFailoverTestCase extends NewConfColocatedClusterFailoverTestCase {
 

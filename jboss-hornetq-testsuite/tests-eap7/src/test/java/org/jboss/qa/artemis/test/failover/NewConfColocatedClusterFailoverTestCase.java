@@ -60,6 +60,7 @@ import java.util.Map;
  * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
  * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
+@Ignore
 @RunWith(Arquillian.class)
 public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
 
