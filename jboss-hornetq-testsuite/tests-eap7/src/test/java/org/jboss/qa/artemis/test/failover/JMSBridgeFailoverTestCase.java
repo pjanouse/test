@@ -150,10 +150,10 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
 
         JMSTools jmsTools = new JMSTools();
 
-        if(failback){
-            logger.info("Messages in outQueue on server 1: " + jmsTools.countMessages(outQueueName,container(1)));
-        }else{
-            logger.info("Messages in outQueue on server 2: " + jmsTools.countMessages(outQueueName,container(2)));
+        if (failback) {
+            logger.info("Messages in outQueue on server 1: " + jmsTools.countMessages(outQueueName, container(1)));
+        } else {
+            logger.info("Messages in outQueue on server 2: " + jmsTools.countMessages(outQueueName, container(2)));
         }
 
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
@@ -164,13 +164,23 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
             Assert.assertEquals("Number of sent and received messages is different.", producerToInQueue1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size());
         } else if (QUALITY_OF_SERVICE.AT_MOST_ONCE.equals(qualityOfService)) {
-            Assert.assertTrue("Number of sent must be same or higher than number of received messages. Producer: "
-                            + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
-                    producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
+            //in case of fail, print information about duplicate messages-, not only assert message
+            if (producerToInQueue1.getListOfSentMessages().size() < receiver1.getListOfReceivedMessages().size()) {
+                logger.info("Info about lost messages can be ignored, since AT_MOST_ONCE mode is in use. Look for DUPLICATE messages");
+                messageVerifier.verifyMessages();
+                Assert.assertTrue("Number of sent must be same or higher than number of received messages. Producer: "
+                                + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
+                        producerToInQueue1.getListOfSentMessages().size() >= receiver1.getListOfReceivedMessages().size());
+            }
         } else if (QUALITY_OF_SERVICE.DUPLICATES_OK.equals(qualityOfService)) {
-            Assert.assertTrue("Number of sent must be same or less than number of received messages. Producer: "
-                            + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
-                    producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
+            //in case of fail, print information about missing messages-, not only assert message
+            if (producerToInQueue1.getListOfSentMessages().size() > receiver1.getListOfReceivedMessages().size()) {
+                logger.info("Info about duplicates can be ignored, since DUPLICATES_OK mode is in use. Look for LOST messages");
+                messageVerifier.verifyMessages();
+                Assert.assertTrue("Number of sent must be same or less than number of received messages. Producer: "
+                                + producerToInQueue1.getListOfSentMessages().size() + " Receiver: " + receiver1.getListOfReceivedMessages().size(),
+                        producerToInQueue1.getListOfSentMessages().size() <= receiver1.getListOfReceivedMessages().size());
+            }
         }
         container(3).stop();
         container(2).stop();
@@ -613,12 +623,12 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
     }
 
 
-    protected void setConnectionFactoryForBridge(Container container){
+    protected void setConnectionFactoryForBridge(Container container) {
         String CF = "bridgeCF";
-        String JNDI_CF = "java:jboss/exported/jms/"+CF;
+        String JNDI_CF = "java:jboss/exported/jms/" + CF;
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.createConnectionFactory(CF,JNDI_CF,"http-connector");
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CF,0);
+        jmsAdminOperations.createConnectionFactory(CF, JNDI_CF, "http-connector");
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CF, 0);
         jmsAdminOperations.close();
 
 
