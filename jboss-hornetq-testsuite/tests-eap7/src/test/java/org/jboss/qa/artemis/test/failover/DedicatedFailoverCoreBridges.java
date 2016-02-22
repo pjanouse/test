@@ -130,6 +130,8 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
      */
     public void testFailoverWithBridge(Constants.CONNECTOR_TYPE connectorType, boolean failback, Constants.FAILURE_TYPE failureType, boolean connectorToBackup) throws Exception {
 
+        Container outContainer = failback ? container(1) : container(2);
+
         prepareServers(connectorType, connectorToBackup);
 
         // start live-backup servers
@@ -181,15 +183,12 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         producerToInQueue1.join();
 
         ReceiverClientAck receiver1;
-        if (failback) {
-            receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
-        } else {
-            receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 30000, 100, 10);
-        }
+        receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 30000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
+        logger.info("Messages in outQueue on server: " + new JMSTools().countMessages(outQueueName, outContainer));
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 
