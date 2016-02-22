@@ -148,6 +148,14 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
+        JMSTools jmsTools = new JMSTools();
+
+        if(failback){
+            logger.info("Messages in outQueue on server 1: " + jmsTools.countMessages(outQueueName,container(1)));
+        }else{
+            logger.info("Messages in outQueue on server 2: " + jmsTools.countMessages(outQueueName,container(2)));
+        }
+
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 
