@@ -1371,8 +1371,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
         jmsAdminOperations.createTopic(inTopicName, inTopicJndiName);
 
-        jmsAdminOperations.setIdCacheSize(2000);
-        jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
+//        jmsAdminOperations.setIdCacheSize(20000);
+//        jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
 
         jmsAdminOperations.close();
 
