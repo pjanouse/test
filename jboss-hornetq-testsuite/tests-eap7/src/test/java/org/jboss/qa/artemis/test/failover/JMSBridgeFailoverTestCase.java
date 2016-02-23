@@ -82,6 +82,8 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
     public void testFailoverWithBridge(CONNECTOR_TYPE connectorType, boolean failback,
                                        FAILURE_TYPE failureType, QUALITY_OF_SERVICE qualityOfService) throws Exception {
 
+        Container outContainer = failback ? container(1) : container(2);
+
         prepareServers(connectorType, qualityOfService);
 
         // start live-backup servers
@@ -134,28 +136,21 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3), 1);
         ReceiverClientAck receiver1;
         if (failback) {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(1), 1);
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
 //            logger.warn("########################################");
 //            logger.warn("WAITING 3 minutes");
 //            logger.warn("########################################");
 //            Thread.sleep(180000);
-            receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         } else {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(2), 1);
-            receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 30000, 100, 10);
+            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
         }
+        receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 30000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
-        JMSTools jmsTools = new JMSTools();
-
-        if (failback) {
-            logger.info("Messages in outQueue on server 1: " + jmsTools.countMessages(outQueueName, container(1)));
-        } else {
-            logger.info("Messages in outQueue on server 2: " + jmsTools.countMessages(outQueueName, container(2)));
-        }
-
+        logger.info("Messages in outQueue on server from which it is read: " + new JMSTools().countMessages(outQueueName, outContainer));
+        logger.info("Messages in inQueue on bridge server : " + new JMSTools().countMessages(inQueueName, container(3)));
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 
