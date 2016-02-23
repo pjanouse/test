@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq;
 
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -20,9 +21,14 @@ public class JournalDirectory {
             return;
         }
 
-        boolean isDeleted = FileUtils.deleteQuietly(new File(getJournalDirectory(jbossHome, pathToJournal)));
-        logger.info("Delete of journal directory: " + new File(getJournalDirectory(jbossHome, pathToJournal)).getAbsolutePath()
-                + " - success=" + isDeleted);
+        try {
+            FileUtils.deleteDirectory(new File(getJournalDirectory(jbossHome, pathToJournal)));
+            logger.info("Delete of journal directory: " + new File(getJournalDirectory(jbossHome, pathToJournal)).getAbsolutePath()
+                    + " - success");
+        } catch (IOException e) {
+            logger.warn("Could not delete journal directory: " + new File(getJournalDirectory(jbossHome, pathToJournal)).getAbsolutePath()
+                    + " - failed", e);
+        }
     }
 
     private static String getJournalDirectory(final String jbossHome, final String pathToJournal) {
