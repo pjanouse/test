@@ -36,8 +36,9 @@ public class JournalDirectory {
             return pathToJournal;
         } else {
             // take relative path against data directory
+
             return jbossHome + File.separator + "standalone" + File.separator + "data"
-                    + File.separator + pathToJournal.replaceAll("/", File.separator);
+                    + File.separator + pathToJournal.replace("/", File.separator);
         }
     }
 
