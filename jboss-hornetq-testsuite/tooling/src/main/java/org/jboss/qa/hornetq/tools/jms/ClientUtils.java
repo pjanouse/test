@@ -124,7 +124,7 @@ public class ClientUtils {
         for (Client c : receivers) {
             while (c.getCount() < numberOfMessages) {
                 if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
-                    Assert.fail("Receiver: " + c + " did not receive " + numberOfMessages + " in timeout: " + timeout);
+                    Assert.fail("Receiver: " + c + " did not receive " + numberOfMessages + " in timeout: " + timeout + ". Only " + c.getCount() + " messages received.");
                 }
                 try {
                     Thread.sleep(500);
