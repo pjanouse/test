@@ -437,8 +437,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
-        prepareLiveServerEAP6(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareLiveServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
+        prepareTwoNodeClusterTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
 
         container(2).start();
         container(1).start();
@@ -452,7 +451,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -1258,6 +1257,20 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         prepareBackupServerEAP7(container(1), JOURNAL_DIRECTORY_B, journalType);
         prepareLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, connectorType);
         prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A, journalType);
+    }
+
+    /**
+     * Prepare two servers in cluster (without backups).
+     */
+    public void prepareTwoNodeClusterTopology(Constants.CONNECTOR_TYPE connectorType) {
+        if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
+            String journalType = getJournalType();
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, journalType, connectorType);
+            prepareLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, connectorType);
+        } else {
+            prepareLiveServerEAP6(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
+            prepareLiveServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
+        }
     }
 
 
