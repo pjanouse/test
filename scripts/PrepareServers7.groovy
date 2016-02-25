@@ -150,7 +150,7 @@ public class PrepareServers7 {
         renameEAPDir(eapDirName)
 
         // install legacy extension if legacyExtensionUrl is set
-        if (legacyExtensionUrl != null && !''.equals(legacyExtensionUrl))   {
+        if (legacyExtensionUrl != null && !''.equals(legacyExtensionUrl)) {
             installLegacyExtension();
         }
 
@@ -166,7 +166,7 @@ public class PrepareServers7 {
         return new File(eapDirName).absolutePath
     }
 
-    public static void installLegacyExtension()    {
+    public static void installLegacyExtension() {
 
         println "Legacy extension will be installed. Provided url to legacy extension is: " + legacyExtensionUrl
 
@@ -191,7 +191,6 @@ public class PrepareServers7 {
             }
         }
     }
-
 
 /** Create server{1..4} and copy jboss-eap into them
  *
@@ -345,7 +344,7 @@ public class PrepareServers7 {
 
         if (disableTraceLogs == null) {
             setupLogging(standaloneProfile, false)
-        }else{
+        } else {
             setupLogging(standaloneProfile, true)
             print "Disabling trace logs"
         }
@@ -368,7 +367,7 @@ public class PrepareServers7 {
 
         // copy original full-ha profile and full-ha-sockets 4 times and rename it to full-ha-N / full-ha-sockets-N
         def profiles = domainDocument.profiles.get(0)
-        def originalProfile = profiles.profile.findAll{ it.@name == 'full-ha' }.get(0)
+        def originalProfile = profiles.profile.findAll { it.@name == 'full-ha' }.get(0)
 
         disableSecurity(originalProfile)
         enableDebugConsle(originalProfile)
@@ -387,13 +386,13 @@ public class PrepareServers7 {
         updateInterfacesHostnames(hostDocument)
 
         def servers = hostDocument.servers.get(0)
-        servers.server.each{ servers.remove(it) }
+        servers.server.each { servers.remove(it) }
 
         for (i in 1..4) {
-            def newServer = servers.appendNode('server', [name:"server-${i}", group:"server-group-${i}", 'auto-start':'false'])
+            def newServer = servers.appendNode('server', [name: "server-${i}", group: "server-group-${i}", 'auto-start': 'false'])
             if (i != 1) {
                 int portOffset = i * 10000
-                newServer.appendNode('socket-bindings', ['port-offset':portOffset])
+                newServer.appendNode('socket-bindings', ['port-offset': portOffset])
             }
         }
 
@@ -478,29 +477,29 @@ public class PrepareServers7 {
 
     private static void disableSecurity(Node profile) {
         Node messagingServer = profile.subsystem.'server'.get(0)
-       // messagingServer.appendNode('security', [enabled:"false"])
-        messagingServer.children().add(1, new Node(null, 'security', [enabled:"false"]))
+        // messagingServer.appendNode('security', [enabled:"false"])
+        messagingServer.children().add(1, new Node(null, 'security', [enabled: "false"]))
         def journalType = messagingServer.get('journal')
-        if(journalType != null && journalType.size()>0) {
+        if (journalType != null && journalType.size() > 0) {
             messagingServer.remove(journalType)
         }
-        messagingServer.children().add(1, new Node(null, 'journal', [type:"ASYNCIO",'compact-min-files':'0','min-files':"10" ]))
+        messagingServer.children().add(1, new Node(null, 'journal', [type: "ASYNCIO", 'compact-min-files': '0', 'min-files': "10"]))
         //messagingServer.appendNode('journal ', [type:"ASYNCIO"])
-        def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find{ it.@name == 'other' }
-        def remotingSecurity = securityDomainOther.authentication.'login-module'.find{ it.@code == 'Remoting' }
-        remotingSecurity.appendNode('module-option', [name:'unauthenticatedIdentity', value:'guest'])
-        Node remotingSubsystem=  profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:remoting:') }
+        def securityDomainOther = profile.subsystem.'security-domains'.'security-domain'.find { it.@name == 'other' }
+        def remotingSecurity = securityDomainOther.authentication.'login-module'.find { it.@code == 'Remoting' }
+        remotingSecurity.appendNode('module-option', [name: 'unauthenticatedIdentity', value: 'guest'])
+        Node remotingSubsystem = profile.subsystem.find {
+            it.name().getNamespaceURI().startsWith('urn:jboss:domain:remoting:')
+        }
         Node httpConnectorOld = remotingSubsystem.get('http-connector').get(0);
         remotingSubsystem.remove(httpConnectorOld);
-        remotingSubsystem.appendNode('http-connector', [name:'http-remoting-connector','connector-ref':'default'])
+        remotingSubsystem.appendNode('http-connector', [name: 'http-remoting-connector', 'connector-ref': 'default'])
 
     }
 
     private static void enableDebugConsle(Node profile) {
-        def logging = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
-        logging.'console-handler'.find{ it.@name == 'CONSOLE' }.level.each{ it.@name = 'DEBUG' }
-
-
+        def logging = profile.subsystem.find { it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
+        logging.'console-handler'.find { it.@name == 'CONSOLE' }.level.each { it.@name = 'DEBUG' }
 
         //consoleHandler.formatter.'named-formatter'.each{ consoleHandler.formatter.remove(it) }
         //def formatter = consoleHandler.appendNode('formatter')
@@ -519,7 +518,7 @@ public class PrepareServers7 {
     }
 
     private static void cloneSocketBindings(Node sockets) {
-        def originalSockets = sockets.'socket-binding-group'.find{ it.@name == 'full-ha-sockets' }
+        def originalSockets = sockets.'socket-binding-group'.find { it.@name == 'full-ha-sockets' }
         for (i in 1..4) {
             // clone on Node is only in Groovy 2+
             // def newSockets = originalSockets.clone()
@@ -531,20 +530,20 @@ public class PrepareServers7 {
     }
 
     private static void cloneServerGroups(Node serverGroups) {
-        serverGroups.'server-group'.each{ serverGroups.remove(it) }
+        serverGroups.'server-group'.each { serverGroups.remove(it) }
 
         for (i in 1..4) {
-            def newServerGroup = serverGroups.appendNode('server-group', [name:"server-group-${i}", profile:"full-ha-${i}"])
-            def jvm = newServerGroup.appendNode('jvm', [name:'default'])
-            jvm.appendNode('heap', [size:'64m', 'max-size':'788m'])
-            jvm.appendNode('permgen', ['max-size':'256m'])
-            newServerGroup.appendNode('socket-binding-group', [ref:"full-ha-sockets-${i}"])
+            def newServerGroup = serverGroups.appendNode('server-group', [name: "server-group-${i}", profile: "full-ha-${i}"])
+            def jvm = newServerGroup.appendNode('jvm', [name: 'default'])
+            jvm.appendNode('heap', [size: '64m', 'max-size': '788m'])
+            jvm.appendNode('permgen', ['max-size': '256m'])
+            newServerGroup.appendNode('socket-binding-group', [ref: "full-ha-sockets-${i}"])
         }
     }
 
     private static void updateInterfacesHostnames(Node host) {
         def interfaces = host.interfaces.get(0)
-        def addressList = interfaces.interface.collect{ it.'inet-address'.get(0) }
+        def addressList = interfaces.interface.collect { it.'inet-address'.get(0) }
 
         for (address in addressList) {
             if (address.@value.startsWith('${jboss.bind.address')) {
@@ -564,9 +563,11 @@ public class PrepareServers7 {
         }
     }
 
-    private static void setupLogging(Node profile, boolean dissableTrace){
-        Node loggingSubsystem = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
-        if(!dissableTrace) {
+    private static void setupLogging(Node profile, boolean dissableTrace) {
+        Node loggingSubsystem = profile.subsystem.find {
+            it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:')
+        }
+        if (!dissableTrace) {
             setupTraceFileHandler(loggingSubsystem)
             setupActivemqLogger(loggingSubsystem)
             setupRootLogger(loggingSubsystem)
@@ -575,61 +576,80 @@ public class PrepareServers7 {
         setupFileHandler(loggingSubsystem)
 
     }
-    private static void setupConsoleHandler(Node loggingSubsystem){
 
-        Node consoleHandler = new Node(null, 'console-handler',[name:"CONSOLE"])
-        consoleHandler.appendNode('level', [name:"INFO"])
-        Node formaterParent = new Node (null, 'formatter')
-        Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
-        consoleHandler.append(formaterParent)
-        formaterParent.append(formatterNew)
-        loggingSubsystem.append(consoleHandler)
+    private static void setupConsoleHandler(Node loggingSubsystem) {
+
+        def isExistingConsoleHandler = loggingSubsystem.'console-handler'.find { it.@name == 'CONSOLE' }
+
+        if (!isExistingConsoleHandler) {
+            Node consoleHandler = new Node(null, 'console-handler', [name: "CONSOLE"])
+            consoleHandler.appendNode('level', [name: "INFO"])
+            Node formaterParent = new Node(null, 'formatter')
+            Node formatterNew = new Node(null, 'pattern-formatter', [pattern: '%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+            consoleHandler.append(formaterParent)
+            formaterParent.append(formatterNew)
+            loggingSubsystem.append(consoleHandler)
+        } else {
+            Node consoleHandler = loggingSubsystem.'console-handler'.get(0)
+            consoleHandler.remove(consoleHandler.level.get(0))
+            consoleHandler.appendNode('level', [name: "INFO"])
+            Node formatterOld = consoleHandler.formatter.'named-formatter'.get(0)
+            Node formatterNew = new Node(null, 'pattern-formatter', [pattern: '%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+            Node parent = formatterOld.parent();
+            parent.remove(formatterOld);
+            parent.append(formatterNew);
+        }
 
     }
 
-    private static void setupFileHandler(Node loggingSubsystem){
-        Node  fileHandler = loggingSubsystem.'periodic-rotating-file-handler'.find{ it.@name == 'FILE'}
-        fileHandler.appendNode('level',[name:"INFO"])
+    private static void setupFileHandler(Node loggingSubsystem) {
+        Node fileHandler = loggingSubsystem.'periodic-rotating-file-handler'.find { it.@name == 'FILE' }
+        fileHandler.appendNode('level', [name: "INFO"])
         Node formatterOld = fileHandler.formatter.'named-formatter'.get(0)
-        Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+        Node formatterNew = new Node(null, 'pattern-formatter', [pattern: '%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
         Node parent = formatterOld.parent();
         parent.remove(formatterOld);
         parent.append(formatterNew);
     }
 
-    private static void setupTraceFileHandler(Node loggingSubsystem){
-        Node fileHandlerTrace = new Node(loggingSubsystem, 'size-rotating-file-handler',[name:"FILE-TRACE", autoflush:"true"])
+    private static void setupTraceFileHandler(Node loggingSubsystem) {
+        Node fileHandlerTrace = new Node(loggingSubsystem, 'size-rotating-file-handler', [name: "FILE-TRACE", autoflush: "true"])
         Node formater = new Node(fileHandlerTrace, 'formatter')
-        formater.appendNode('pattern-formatter', [pattern:"%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"])
-        fileHandlerTrace.appendNode('level',[name:"TRACE"])
-        fileHandlerTrace.appendNode('rotate-size',[value:"500M"])
-        fileHandlerTrace.appendNode('max-backup-index',[value:"500"])
-        fileHandlerTrace.appendNode('file',['relative-to':"jboss.server.log.dir", path:"server-trace.log"])
-        fileHandlerTrace.appendNode('append', [value:"true"])
+        formater.appendNode('pattern-formatter', [pattern: "%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"])
+        fileHandlerTrace.appendNode('level', [name: "TRACE"])
+        fileHandlerTrace.appendNode('rotate-size', [value: "500M"])
+        fileHandlerTrace.appendNode('max-backup-index', [value: "500"])
+        fileHandlerTrace.appendNode('file', ['relative-to': "jboss.server.log.dir", path: "server-trace.log"])
+        fileHandlerTrace.appendNode('append', [value: "true"])
     }
-    private static void setupActivemqLogger(Node loggingSubsystem){
-        Node activeMQOldLogger = loggingSubsystem.logger.find{ it.@category == 'org.apache.activemq' }
-        Node activeMQNewLogger = new Node(null, 'logger',[category:"org.apache.activemq"])
-        activeMQNewLogger.appendNode('level', [name:"TRACE"])
-        if(activeMQOldLogger != null){
+
+    private static void setupActivemqLogger(Node loggingSubsystem) {
+        Node activeMQOldLogger = loggingSubsystem.logger.find { it.@category == 'org.apache.activemq' }
+        Node activeMQNewLogger = new Node(null, 'logger', [category: "org.apache.activemq"])
+        activeMQNewLogger.appendNode('level', [name: "TRACE"])
+        if (activeMQOldLogger != null) {
             Node parent = activeMQOldLogger.parent();
             parent.remove(activeMQOldLogger);
             parent.append(activeMQNewLogger);
 
-        }else{
+        } else {
             loggingSubsystem.append(activeMQNewLogger)
         }
 
     }
-    private static void setupRootLogger(Node loggingSubsystem){
+
+    private static void setupRootLogger(Node loggingSubsystem) {
         Node handlers = loggingSubsystem.'root-logger'.handlers.get(0)
-        handlers.appendNode('handler',[name:"FILE-TRACE"])
-        handlers.appendNode('handler',[name:"CONSOLE"])
+        handlers.appendNode('handler', [name: "FILE-TRACE"])
+
+        def isExistingConsoleHandler = handlers.handler.find { it.@name == 'CONSOLE' }
+        if(!isExistingConsoleHandler) handlers.appendNode('handler', [name: "CONSOLE"])
     }
-    private static void setupSocketBingingGroup(Node document){
+
+    private static void setupSocketBingingGroup(Node document) {
         Node socketBinging = document.'socket-binding-group'.get(0)
-        socketBinging.appendNode('socket-binding',[name:"messaging-group", port:"0", 'multicast-address':'${jboss.messaging.group.address:231.7.7.7}',
-        'multicast-port':'${jboss.messaging.group.port:9876}'])
+        socketBinging.appendNode('socket-binding', [name: "messaging-group", port: "0", 'multicast-address': '${jboss.messaging.group.address:231.7.7.7}',
+                                                    'multicast-port': '${jboss.messaging.group.port:9876}'])
 
     }
 
