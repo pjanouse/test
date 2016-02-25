@@ -81,13 +81,14 @@ public class CliTestBase extends HornetQTestCase {
 
     }
 
-    private boolean reload(CliClient cliClient, int attempts) {
+    private boolean reload(CliClient cliClient, int attempts) throws InterruptedException {
         for (int i = 0; i < attempts; i++) {
             try {
                 cliClient.reload();
                 return true;
             } catch (Exception e) {
                 log.warn(e);
+                Thread.sleep(3000);
             }
         }
         return false;
