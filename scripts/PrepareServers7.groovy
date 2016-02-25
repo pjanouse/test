@@ -342,13 +342,17 @@ public class PrepareServers7 {
         def standaloneProfile = standaloneDocument.profile.get(0)
 
         disableSecurity(standaloneProfile)
-        enableDebugConsle(standaloneProfile)
+
         if (disableTraceLogs == null) {
             setupLogging(standaloneProfile, false)
         }else{
             setupLogging(standaloneProfile, true)
             print "Disabling trace logs"
         }
+
+//        uncomment to enble DEBUG lvl
+//        enableDebugConsle(standaloneProfile)
+
         setupSocketBingingGroup(standaloneDocument)
 
         new XmlNodePrinter(new IndentPrinter(new FileWriter(standaloneTemp))).print(standaloneDocument)
@@ -496,6 +500,8 @@ public class PrepareServers7 {
         def logging = profile.subsystem.find{ it.name().getNamespaceURI().startsWith('urn:jboss:domain:logging:') }
         logging.'console-handler'.find{ it.@name == 'CONSOLE' }.level.each{ it.@name = 'DEBUG' }
 
+
+
         //consoleHandler.formatter.'named-formatter'.each{ consoleHandler.formatter.remove(it) }
         //def formatter = consoleHandler.appendNode('formatter')
         //formatter.appendNode('pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
@@ -570,14 +576,15 @@ public class PrepareServers7 {
 
     }
     private static void setupConsoleHandler(Node loggingSubsystem){
-            Node consoleHandler = loggingSubsystem.'console-handler'.get(0)
-            consoleHandler.remove(consoleHandler.level.get(0))
-            consoleHandler.appendNode('level', [name:"INFO"])
-            Node formatterOld = consoleHandler.formatter.'named-formatter'.get(0)
-            Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
-            Node parent =formatterOld.parent();
-            parent.remove(formatterOld);
-            parent.append(formatterNew);
+
+        Node consoleHandler = new Node(null, 'console-handler',[name:"CONSOLE"])
+        consoleHandler.appendNode('level', [name:"INFO"])
+        Node formaterParent = new Node (null, 'formatter')
+        Node formatterNew = new Node(null, 'pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+        consoleHandler.append(formaterParent)
+        formaterParent.append(formatterNew)
+        loggingSubsystem.append(consoleHandler)
+
     }
 
     private static void setupFileHandler(Node loggingSubsystem){
@@ -617,6 +624,7 @@ public class PrepareServers7 {
     private static void setupRootLogger(Node loggingSubsystem){
         Node handlers = loggingSubsystem.'root-logger'.handlers.get(0)
         handlers.appendNode('handler',[name:"FILE-TRACE"])
+        handlers.appendNode('handler',[name:"CONSOLE"])
     }
     private static void setupSocketBingingGroup(Node document){
         Node socketBinging = document.'socket-binding-group'.get(0)
