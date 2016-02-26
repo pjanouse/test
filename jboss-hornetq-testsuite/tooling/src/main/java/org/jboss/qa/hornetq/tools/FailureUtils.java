@@ -128,8 +128,6 @@ public class FailureUtils {
 
             } catch (Exception ex) {
                 log.error("Print exception: ", ex);
-            } finally {
-                container.undeploy(FailureUtils.getOOMServlet());
             }
         } else if (Constants.FAILURE_TYPE.GC_PAUSE.equals(failureType)) {
             // deploy gc pause servlet

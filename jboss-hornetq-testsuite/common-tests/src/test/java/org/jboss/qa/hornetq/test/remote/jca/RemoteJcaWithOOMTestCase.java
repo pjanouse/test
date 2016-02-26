@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -117,6 +118,7 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
 
         new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
 
+        int pid = ProcessIdUtils.getProcessId(containerForOOM);
         logger.info("Going to cause oom on server: " + containerForOOM.getName());
         containerForOOM.fail(Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
         logger.info("OOM was caused on server: " + containerForOOM.getName());
@@ -124,7 +126,12 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
         logger.info("Wait for 5 min and restart.");
         Thread.sleep(300000);
         logger.info("Restarting server with OOM: " + containerForOOM.getName());
-        containerForOOM.kill();
+        ProcessIdUtils.killProcess(pid);
+        containerForOOM.waitForKill();
+
+        // this is a workaround - arquillian sometimes fails to start server and calls Proccess.destroy()
+        // this for some reason does not take effect and hangs in Process.waitFor() forever
+        // so wrap this call and try to kill server this server again and start
         containerForOOM.start();
         logger.info("Server with OOM was restarted: " + containerForOOM.getName());
 
