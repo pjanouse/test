@@ -881,6 +881,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
         switch (connectorType) {
             case HTTP_CONNECTOR:
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
+                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
                 jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), container(1).getHornetqPort());
                 jmsAdminOperations.createHttpConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
                 jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), container(2).getHornetqPort());
