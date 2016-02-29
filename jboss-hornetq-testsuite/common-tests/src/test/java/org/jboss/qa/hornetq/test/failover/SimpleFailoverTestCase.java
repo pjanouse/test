@@ -269,11 +269,15 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
             }
         }
 
+        Message nullMessage = consumer.receive(5000);
+
+        connection.close();
+
         log.info("Received messages: " + numReceivedMsg);
         log.info("Duplicated messages: " + duplicationsDetected);
         Assert.assertEquals(numMsg, numReceivedMsg);
         Assert.assertEquals(0, duplicationsDetected);
-        Assert.assertNull(consumer.receive(5000));
+        Assert.assertNull(nullMessage);
     }
 
     public void prepareSimpleDedicatedTopology() throws Exception {
