@@ -130,7 +130,7 @@ public final class JMSTools {
                 } catch (Exception ex) {
                     if (numberOfTries > 2)  {
                         throw new RuntimeException("getCountOfMessagesOnQueue() failed for queue:" + queueName
-                                + " and container: " + container.getConnectionFactoryName() + ". Number of tries: " + numberOfTries);
+                                + " and container: " + container.getName() + ". Number of tries: " + numberOfTries);
                     }
                 }
             }
