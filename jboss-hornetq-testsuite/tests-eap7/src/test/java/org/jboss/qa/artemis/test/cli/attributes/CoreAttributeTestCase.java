@@ -129,7 +129,7 @@ import static org.junit.Assert.*;
 public class CoreAttributeTestCase extends CliTestBase {
 
     @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+    public Timeout timeout = new Timeout(600000);
 
     private static final Logger log = Logger.getLogger(CoreAttributeTestCase.class);
 
