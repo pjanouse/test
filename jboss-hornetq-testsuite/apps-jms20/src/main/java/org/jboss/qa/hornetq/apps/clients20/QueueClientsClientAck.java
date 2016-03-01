@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class QueueClientsClientAck implements Clients {
         // create producers and receivers
         for (int destinationNumber = 0; destinationNumber < getNumberOfQueues(); destinationNumber++) {
 
-            queueTextMessageVerifier = new TextMessageVerifier();
+            queueTextMessageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
             verifiers.put(getQueueJndiNamePrefix() + destinationNumber, queueTextMessageVerifier);
 

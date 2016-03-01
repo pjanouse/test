@@ -7,6 +7,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 
@@ -79,7 +80,7 @@ public class TopicClientsTransAck implements Clients {
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
-                verifier = new TextMessageVerifier();
+                verifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
                 subscriber.setMessageVerifier(verifier);
 
