@@ -895,6 +895,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
                 }
                 break;
             case NETTY_NIO:
+                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+                jmsAdminOperations.removeBroadcastGroup(broadcastGroupName);
+                jmsAdminOperations.removeClusteringGroup(clusterConnectionName);
                 jmsAdminOperations.addRemoteSocketBinding(removeSocketBindingToLive, container(1).getHostname(), defaultPortForMessagingSocketBinding + container(1).getPortOffset());
                 jmsAdminOperations.createRemoteConnector(remoteConnectorNameToLive, removeSocketBindingToLive, null);
                 jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingToBackup, container(2).getHostname(), defaultPortForMessagingSocketBinding + container(2).getPortOffset());
