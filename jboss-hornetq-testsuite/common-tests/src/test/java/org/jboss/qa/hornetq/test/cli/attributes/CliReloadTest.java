@@ -30,9 +30,21 @@ public class CliReloadTest extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void reloadServerTest() throws InterruptedException {
+        reloadServerTest(100);
+    }
 
-        container(1). start();
-        for (int i = 0; i < 100;) {
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void reloadServerOOMTest() throws InterruptedException {
+        reloadServerTest(10000);
+    }
+
+    public void reloadServerTest(int numberOfReloads) throws InterruptedException {
+
+        container(1).start();
+        for (int i = 0; i < numberOfReloads; ) {
 
             try {
                 CLI cli = CLI.newInstance();
