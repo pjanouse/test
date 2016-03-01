@@ -16,6 +16,7 @@
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
                     -Djboss.bind.address.unsecure=${MYTESTIP_1}
+                    -Djboss.bind.address.private=${MYTESTIP_1}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
 		    -Djava.net.preferIPv6Addresses=true
@@ -41,6 +42,7 @@
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
+                    -Djboss.bind.address.private=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=false
 		    -Djava.net.preferIPv6Addresses=true
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
@@ -64,6 +66,7 @@
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
+                    -Djboss.bind.address.private=${MYTESTIP_3}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
 		    -Djava.net.preferIPv6Addresses=true
@@ -87,6 +90,7 @@
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}
+                    -Djboss.bind.address.private=${MYTESTIP_4}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
 		    -Djava.net.preferIPv6Addresses=true

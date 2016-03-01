@@ -22,6 +22,7 @@
                     -Djboss.bind.address=${MYTESTIP_1}
                     -Djboss.bind.address.management=${MYTESTIP_1}
                     -Djboss.bind.address.unsecure=${MYTESTIP_1}
+                    -Djboss.bind.address.private=${MYTESTIP_1}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=true
                     -Djboss.modules.policy-permissions=true
@@ -45,6 +46,7 @@
                     -Djboss.bind.address=${MYTESTIP_2}
                     -Djboss.bind.address.management=${MYTESTIP_2}
                     -Djboss.bind.address.unsecure=${MYTESTIP_2}
+                    -Djboss.bind.address.private=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=false
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
@@ -67,6 +69,7 @@
                     -Djboss.bind.address=${MYTESTIP_3}
                     -Djboss.bind.address.management=${MYTESTIP_3}
                     -Djboss.bind.address.unsecure=${MYTESTIP_3}
+                    -Djboss.bind.address.private=${MYTESTIP_3}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
@@ -89,6 +92,7 @@
                     -Djboss.bind.address=${MYTESTIP_4}
                     -Djboss.bind.address.management=${MYTESTIP_4}
                     -Djboss.bind.address.unsecure=${MYTESTIP_4}
+                    -Djboss.bind.address.private=${MYTESTIP_4}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=false
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
