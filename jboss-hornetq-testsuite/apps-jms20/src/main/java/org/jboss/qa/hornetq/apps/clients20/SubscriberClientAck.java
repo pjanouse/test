@@ -192,7 +192,7 @@ public class SubscriberClientAck extends Client {
 
                 return;
 
-            } catch (JMSRuntimeException ex) {
+            } catch (JMSException ex) {
                 // now it's screwed because we don't have response for sent ACK
                 // next receive can have duplicates or new messages
                 setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeAcked);
