@@ -611,7 +611,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer and consumer.");
         // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 50);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 300);
 
         MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
 
