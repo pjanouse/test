@@ -18,7 +18,7 @@ import org.junit.experimental.categories.Category;
  * <p>
  * Test remove Jndi operation.
  */
-@Category(FunctionalTests.class)
+//@Category(FunctionalTests.class)
 public class CliReloadTest extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(CliReloadTest.class);
