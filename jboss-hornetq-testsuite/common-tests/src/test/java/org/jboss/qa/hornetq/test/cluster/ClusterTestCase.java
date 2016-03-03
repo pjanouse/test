@@ -1164,9 +1164,11 @@ public class ClusterTestCase extends ClusterTestBase {
         ProducerResp responsiveProducer = new ProducerResp(container(1), inQueueJndiNameForMdb, NUMBER_OF_MESSAGES_PER_PRODUCER);
         JMSOperations jmsAdminOperationsContainer1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperationsContainer2 = container(2).getJmsOperations();
+        log.info("Starting producer");
         responsiveProducer.start();
         // Wait fro creating connections and send few messages
         Thread.sleep(5000);
+        log.info("Producer sent " + responsiveProducer.getCount() + " to temp queue " + inQueueJndiNameForMdb);
         cont1Count = jmsAdminOperationsContainer1.getNumberOfTempQueues();
         cont2Count = jmsAdminOperationsContainer2.getNumberOfTempQueues();
         responsiveProducer.join();
