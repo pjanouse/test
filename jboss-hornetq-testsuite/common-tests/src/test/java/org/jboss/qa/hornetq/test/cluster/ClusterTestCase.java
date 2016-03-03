@@ -1166,7 +1166,7 @@ public class ClusterTestCase extends ClusterTestBase {
         JMSOperations jmsAdminOperationsContainer2 = container(2).getJmsOperations();
         responsiveProducer.start();
         // Wait fro creating connections and send few messages
-        Thread.sleep(1000);
+        Thread.sleep(5000);
         cont1Count = jmsAdminOperationsContainer1.getNumberOfTempQueues();
         cont2Count = jmsAdminOperationsContainer2.getNumberOfTempQueues();
         responsiveProducer.join();
