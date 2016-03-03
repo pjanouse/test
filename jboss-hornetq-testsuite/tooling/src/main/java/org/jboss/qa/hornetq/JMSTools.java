@@ -123,12 +123,14 @@ public final class JMSTools {
             JMSOperations jmsOperations = container.getJmsOperations();
             long count = -1;
             int numberOfTries = 0;
-            while (count == -1 && numberOfTries < 3) {
+            int maxNumberOfTries = 10;
+            while (count == -1 && numberOfTries < maxNumberOfTries) {
                 try {
                     numberOfTries++;
                     count = jmsOperations.getCountOfMessagesOnQueue(queueName);
+                    break;
                 } catch (Exception ex) {
-                    if (numberOfTries > 2)  {
+                    if (numberOfTries > maxNumberOfTries - 1)  {
                         throw new RuntimeException("getCountOfMessagesOnQueue() failed for queue:" + queueName
                                 + " and container: " + container.getName() + ". Number of tries: " + numberOfTries, ex);
                     }
