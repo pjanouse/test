@@ -880,11 +880,14 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         int numberOfConsumer1 = countNumberOfConsumersOnTopic(container(1), clientId, subscriptionName);
         int numberOfConsumer3 = countNumberOfConsumersOnTopic(container(3), clientId, subscriptionName);
 
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
+
         logger.info(container(1).getName() + " - Number of consumers on queue " + inTopicName + " is " + numberOfConsumer1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inTopicName + " is " + numberOfConsumer3);
 
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 30000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
