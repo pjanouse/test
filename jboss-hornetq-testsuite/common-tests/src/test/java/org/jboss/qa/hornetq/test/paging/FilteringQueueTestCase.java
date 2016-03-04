@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.ColoredMessagesBuilder;
@@ -259,6 +260,9 @@ public class FilteringQueueTestCase extends HornetQTestCase {
         if (ContainerUtils.isEAP6(container)) {
             jmsAdminOperations.setClustered(false);
             jmsAdminOperations.setSharedStore(true);
+        }
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
         }
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
