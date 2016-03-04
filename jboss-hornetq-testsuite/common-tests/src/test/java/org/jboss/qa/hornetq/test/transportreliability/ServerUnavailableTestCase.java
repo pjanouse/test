@@ -5,12 +5,14 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -20,6 +22,8 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import java.util.Random;
 
 /**
  * Purpose of this test case is to test how jms client will handle server shutdown
@@ -193,13 +197,15 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         subscriber.join();
 
         Assert.assertEquals("There is differen number sent and recieved messages. Sent messages" + producer.getListOfSentMessages().size() +
-                "Received: " + receiver.getListOfReceivedMessages().size(),
+                        "Received: " + receiver.getListOfReceivedMessages().size(),
                 producer.getListOfSentMessages().size(),
                 receiver.getListOfReceivedMessages().size());
         Assert.assertEquals("There is different number sent and received messages. Publisher sent messages" + publisher.getListOfSentMessages().size() +
                         "Subscriber: " + subscriber.getListOfReceivedMessages().size(),
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
+        Assert.assertTrue("Producer did not sent any message", producer.getListOfSentMessages().size() > 0);
+        Assert.assertTrue("Publisher did not sent any message", publisher.getListOfSentMessages().size() > 0);
 
         container(1).stop();
 
@@ -261,13 +267,15 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         subscriber.join();
 
         Assert.assertEquals("There is different number sent and received messages. Sent messages" + producer.getListOfSentMessages().size() +
-                "Received: " + receiver.getListOfReceivedMessages().size(),
+                        "Received: " + receiver.getListOfReceivedMessages().size(),
                 producer.getListOfSentMessages().size(),
                 receiver.getListOfReceivedMessages().size());
         Assert.assertEquals("There is different number sent and received messages. Publisher sent messages" + publisher.getListOfSentMessages().size() +
                         "Subscriber: " + subscriber.getListOfReceivedMessages().size(),
                 publisher.getListOfSentMessages().size(),
                 subscriber.getListOfReceivedMessages().size());
+        Assert.assertTrue("Producer did not sent any message", producer.getListOfSentMessages().size() > 0);
+        Assert.assertTrue("Publisher did not sent any message", publisher.getListOfSentMessages().size() > 0);
 
         container(1).stop();
         container(2).stop();
@@ -283,7 +291,6 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             prepareServerEAP6(container(2));
         }
     }
-
 
 
     /**
@@ -348,37 +355,63 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
-        int udpGroupPort = 9875;
-        int broadcastBindingPort = 56880;
+        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+        try {
 
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, container.getHostname(), broadcastBindingPort, container.MCAST_ADDRESS, udpGroupPort, 2000, connectorName, "");
+            if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
+                jmsAdminOperations.setClustered(true);
 
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, container.getHostname(), container.MCAST_ADDRESS, udpGroupPort, 10000);
+            }
+            if (JMSTools.isIpv6Address(container.getHostname())) {
+                jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
+            }
+            jmsAdminOperations.setPersistenceEnabled(true);
 
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
-        jmsAdminOperations.disableSecurity();
+            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
+            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
+                    connectorName);
 
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, jndiContextPrefix + queueJndiNamePrefix + queueNumber, true);
+            jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+            jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+            jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+            jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+            jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+
+            jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
+            jmsAdminOperations.disableSecurity();
+            // jmsAdminOperations.setLoggingLevelForConsole("INFO");
+            // jmsAdminOperations.addLoggerCategory("org.hornetq", "DEBUG");
+
+            jmsAdminOperations.removeAddressSettings("#");
+            jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+
+            for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+                jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+            }
+
+            for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+                jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        } finally {
+            jmsAdminOperations.close();
+            container.stop();
+
         }
-
-        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
-            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, jndiContextPrefix + topicJndiNamePrefix + topicNumber);
-        }
-
-        jmsAdminOperations.close();
-        container.stop();
     }
 
     @Before
