@@ -50,7 +50,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName,NUMBER_OF_MESSAGES_PER_PRODUCER);
@@ -98,7 +98,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
 
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1),relativeJndiInQueueName);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1),relativeJndiInQueueName, 120000, 100, 5);
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
