@@ -697,23 +697,17 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
         String remoteConnectorName = "remote-http-connector";
         String remoteConnectorNameBackup = "remote-http-connector-backup";
-        String pooledConnectionFactoryName = "ra-connection-factory";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-//        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-//        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-//        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
+        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         setAddressSettings(jmsAdminOperations);
         jmsAdminOperations.addRemoteSocketBinding("messaging-remote", containerLive.getHostname(), containerLive.getHornetqPort());
@@ -723,15 +717,13 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         List<String> connectorList = new ArrayList<String>();
         connectorList.add(remoteConnectorName);
-//        connectorList.add(remoteConnectorNameBackup);
+        connectorList.add(remoteConnectorNameBackup);
         jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, connectorList);
         jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
         jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
         jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 1000L);
         jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 1.0);
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
-        jmsAdminOperations.createPooledConnectionFactory(pooledConnectionFactoryName, "java:/jmsXALocal", connectorName);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorName);
         jmsAdminOperations.setNodeIdentifier(123);
 
         jmsAdminOperations.close();
