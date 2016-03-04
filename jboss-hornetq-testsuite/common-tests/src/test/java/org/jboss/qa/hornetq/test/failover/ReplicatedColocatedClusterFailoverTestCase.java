@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -70,6 +71,10 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
+        }
+
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -123,6 +128,10 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
+        }
 
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
 

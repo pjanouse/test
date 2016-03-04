@@ -1394,6 +1394,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
+        }
+
         jmsAdminOperations.setBindingsDirectory(journalDirectory);
         jmsAdminOperations.setPagingDirectory(journalDirectory);
         jmsAdminOperations.setJournalDirectory(journalDirectory);
@@ -1439,6 +1443,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        if (JMSTools.isIpv6Address(container.getHostname())) {
+            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
+        }
 
         jmsAdminOperations.addMessagingSubsystem(backupServerName);
         jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectory);
