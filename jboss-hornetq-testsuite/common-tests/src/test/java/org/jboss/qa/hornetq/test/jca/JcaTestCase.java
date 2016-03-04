@@ -218,6 +218,8 @@ public class JcaTestCase extends HornetQTestCase {
 
         JMSOperations jmsOperations = container(1).getJmsOperations();
 
+        long timeout = System.currentTimeMillis() + (60 * 60 * 1000); //max one hour wait
+
         while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < numberOfMessages) {
             JMXConnector connector = null;
             try {
@@ -230,6 +232,9 @@ public class JcaTestCase extends HornetQTestCase {
             } finally {
                 if (connector != null) {
                     connector.close();
+                }
+                if (System.currentTimeMillis() > timeout){
+                    Assert.fail("Queue contains only " + jmsOperations.getCountOfMessagesOnQueue(outQueueName) + " messages. Expected number is " + numberOfMessages );
                 }
             }
             Thread.sleep(500);
