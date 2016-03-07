@@ -936,14 +936,18 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         executeFailureSequence(failureSequence, 5000, failureType);
 
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+                container(3), container(4));
+
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(4));
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+        // wait some time so recovered rollbacked TXs have some time to be processed
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 60000, container(1), container(2),
                 container(3), container(4));
-        
+
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 30000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
