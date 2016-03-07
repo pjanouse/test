@@ -94,7 +94,7 @@ public class RemoteConnectionFactoryTestCase extends CliTestBase {
     private static final Logger logger = Logger.getLogger(RemoteConnectionFactoryTestCase.class);
 
     @Rule
-    public Timeout timeout = new Timeout(600000);
+    public Timeout timeout = new Timeout(12000000);
 
     private Properties attributes;
 
