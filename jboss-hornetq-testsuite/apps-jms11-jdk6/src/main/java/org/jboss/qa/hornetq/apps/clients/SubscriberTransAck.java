@@ -30,6 +30,7 @@ public class SubscriberTransAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
+    private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
     private int counter = 0;
     private Exception exception = null;
     private String subscriberName;
@@ -40,8 +41,7 @@ public class SubscriberTransAck extends Client {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
-    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
-    private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
+
 
 
     /**
@@ -137,13 +137,14 @@ public class SubscriberTransAck extends Client {
             Message message = null;
 
             while ((message = receiveMessage(subscriber)) != null) {
+
                 Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeCommited.add(message);
 
                 counter++;
 
-                logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
+                logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                         + ". Received message - counter: "
                         + counter + ", messageId:" + message.getJMSMessageID()
                         + ", dupId: " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
@@ -153,7 +154,23 @@ public class SubscriberTransAck extends Client {
                 }
             }
 
-            commitSession(session);
+            boolean isLastCommitSuccessful = commitSession(session);
+            if (!isLastCommitSuccessful)   {
+                throw new Exception("Last call session commit was not successful. There might be still messages in the queue. " +
+                        "Thus throwing exception.");
+            }
+
+            addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);
+
+            if (listOfReceivedInDoubtMessages.size() > 0 && listOfReceivedInDoubtMessages.size() % commitAfter != 0)    {
+                throw new Exception("Size of list of in doubt messages (messages for unsuccessful commit) is not multiplication of "
+                        + commitAfter + ". Size of the list is : " + listOfReceivedInDoubtMessages.size() + ". This should never happen " +
+                        "as only every " + commitAfter + "th message is committed.");
+            }
+
+            logInDoubtMessages();
+
+            counter = counter + listOfReceivedInDoubtMessages.size();
 
             logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                     + ". Received NULL - number of received messages: " + counter);
@@ -186,223 +203,101 @@ public class SubscriberTransAck extends Client {
         }
     }
 
-//    /**
-//     * Try to acknowledge a message.
-//     *
-//     * @param session session
-//     * @throws JMSException
-//     */
-//    public void commitSession(Session session) throws Exception {
-//
-//        int numberOfRetries = 0;
-//
-//        while (numberOfRetries < maxRetries) {
-//            try {
-//
-//                // if dups_id is used then check if we got duplicates after last failed ack
-//                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
-//                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
-//                    if (areThereDuplicates()) {
-//                        // decrease counter
-//                        // add just new messages
-//                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
-//
-//                    } else {
-//                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
-//                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
-//                        StringBuilder stringBuilder = new StringBuilder();
-//                        for (Message m : listOfReceivedMessagesToBeCommited) {
-//                            stringBuilder.append(m.getJMSMessageID());
-//                        }
-//                        logger.debug("Adding messages: " + stringBuilder.toString());
-//                    }
-//                    setOfReceivedMessagesWithPossibleDuplicates.clear();
-//                }
-//
-//                session.commit();
-//
-//                logger.info("Receiver for node: " + hostname + ". Received message - counter: "
-//                        + counter + " SENT COMMIT");
-//
-//                addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
-//                StringBuilder stringBuilder = new StringBuilder();
-//                for (Message m : listOfReceivedMessagesToBeCommited) {
-//                    stringBuilder.append(m.getJMSMessageID());
-//                }
-//                logger.debug("Adding messages: " + stringBuilder.toString());
-//
-//                return;
-//
-//            } catch (TransactionRolledBackException ex) {
-//                logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-//                        + ". Received message - counter: " + counter + ", retrying receive", ex);
-//                // all unacknowledge messges will be received again
-//                ex.printStackTrace();
-//                counter = counter - listOfReceivedMessagesToBeCommited.size();
-//                setOfReceivedMessagesWithPossibleDuplicates.clear();
-//
-//                return;
-//
-//            } catch (JMSException ex) {
-//                // we need to know which messages we got in the first try because we need to detect possible duplicates
-//                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
-//
-//                logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-//                        + ". Received message - counter: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
-//                ex.printStackTrace();
-//                numberOfRetries++;
-//            } finally {
-//                // we clear this list because next time we get new or duplicated messages and we compare it with set possible duplicates
-//                listOfReceivedMessagesToBeCommited.clear();
-//            }
-//        }
-//
-//        throw new Exception("FAILURE - MaxRetry reached for Subscriber - name: " + getSubscriberName() + " - for node: " + hostname + " during commit");
-//    }
     /**
      * Try to commit session a message.
      *
      * @param session session
      * @throws javax.jms.JMSException
      */
-    public void commitSession(Session session) throws Exception {
+    /**
+     * Try to commit session a message.
+     *
+     * @param session session
+     * @throws javax.jms.JMSException
+     */
+    public boolean commitSession(Session session) throws Exception {
 
-        int numberOfRetries = 0;
+        boolean commitSuccessful = true;
+        try {
+            checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts();
 
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+            session.commit();
 
-        while (numberOfRetries < maxRetries) {
-            try {
+            logger.info("Receiver for node: " + hostname + ". Received message - count: "
+                    + counter + " COMMIT");
 
-//                // if dups_id is used then check if we got duplicates after last failed ack
-//                if (numberOfRetries == 0 && listOfReceivedMessages.size() > 0 && listOfReceivedMessages.get(0).get("_HQ_DUPL_ID") != null
-//                        && setOfReceivedMessagesWithPossibleDuplicates.size() > 0) {
-//                    if (areThereDuplicates()) {
-//                        // decrease counter
-//                        // add just new messages
-//                        counter = counter - setOfReceivedMessagesWithPossibleDuplicates.size();
-//
-//                    } else {
-//                        // this actually does not mean that messages were successfully committed
-//                        // in previous receive cycle
-//                        // we just can receive it some time later but no one knows when
-//                        // so add this message now and when we receive it later
-//                        // we throw it away based on its dupId
-//                        logger.info("No duplicates were found after JMSException/TransactionRollbackException - add messages from previous commit");
-//                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
-//                        StringBuilder stringBuilder = new StringBuilder();
-//                        for (Message m : listOfReceivedMessagesToBeCommited) {
-//                            stringBuilder.append(m.getJMSMessageID());
-//                        }
-//                        logger.debug("Adding messages: " + stringBuilder.toString());
-//                        setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(listOfReceivedMessagesToBeCommited);
-//                    }
-//                    setOfReceivedMessagesWithPossibleDuplicates.clear();
-//                }
+            addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
 
-                areThereDuplicatesInLaterDetection();
+            logListOfAddedMessages(listOfReceivedMessagesToBeCommited);
 
-                session.commit();
+        } catch (TransactionRolledBackException ex) {
+            logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                    + ". Received message - count: " + counter + ", retrying receive", ex);
+            counter = counter - listOfReceivedMessagesToBeCommited.size();
+            commitSuccessful = false;
 
-                logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                        + counter + " SENT COMMIT");
+        } catch (JMSException ex) {
+            logger.error(" Receiver - COMMIT FAILED - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
+                    + ". Received message - count: " + counter + ", retrying receive", ex);
+            counter = counter - listOfReceivedMessagesToBeCommited.size();
+            // if JMSException is thrown then it's not clear if messages were committed or not
+            // we add them to the list of in doubt messages and if duplicates will be received in next
+            // receive phase then we remove those messages from this list (compared by DUP ID)
+            // if not duplicates will be received then we add this list to the list of received messages
+            // when NULL is returned from consumer.receive(timeout)
+            listOfReceivedInDoubtMessages.addAll(listOfReceivedMessagesToBeCommited);
+            logInDoubtMessages();
+            commitSuccessful = false;
 
-                addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
-                }
-                logger.debug("Adding messages: " + stringBuilder.toString());
-
-                return;
-
-            } catch (TransactionRolledBackException ex) {
-                logger.error(" Receiver - COMMIT FAILED - TransactionRolledBackException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-                        + ". Received message - count: " + counter + ", retrying receive", ex);
-                // all unacknowledge messges will be received again
-                ex.printStackTrace();
-                counter = counter - listOfReceivedMessagesToBeCommited.size();
-                listOfReceivedMessagesToBeCommited.clear();
-                setOfReceivedMessagesWithPossibleDuplicates.clear();
-
-                return;
-
-            } catch (JMSException ex) {
-                // we need to know which messages we got in the first try because we need to detect possible duplicates
-//                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeCommited);
-                setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection.addAll(listOfReceivedMessagesToBeCommited);
-
-                addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeCommited);
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Message m : listOfReceivedMessagesToBeCommited) {
-                    stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader + "\n"));
-                }
-                logger.debug("Adding messages: " + stringBuilder.toString());
-
-                logger.error(" Receiver - JMSException thrown during commit: " + ex.getMessage() + ". Receiver for node: " + hostname
-                        + ". Received message - count: " + counter + ", COMMIT will be tried again - TRY:" + numberOfRetries, ex);
-                ex.printStackTrace();
-                numberOfRetries++;
-            } finally {
-                // we clear this list because next time we get new or duplicated messages and we compare it with set possible duplicates
-                listOfReceivedMessagesToBeCommited.clear();
-            }
+        } finally {
+            listOfReceivedMessagesToBeCommited.clear();
         }
-
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
+        return commitSuccessful;
     }
 
-    private boolean areThereDuplicatesInLaterDetection() throws JMSException {
-        boolean isDup = false;
+    private void logInDoubtMessages() throws JMSException {
         String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
-        Set<String> setOfReceivedMessages = new HashSet<String>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Message m : listOfReceivedInDoubtMessages) {
+            stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
+        }
+        logger.info("List of  in doubt messages: \n" + stringBuilder.toString());
+    }
+
+    private void checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts() throws JMSException {
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
+        // clone list of inDoubtMessages
+        List<Message> listCloneOfInDoubtMessages = new ArrayList<Message>();
+        for (Message m : listOfReceivedInDoubtMessages) {
+            listCloneOfInDoubtMessages.add(m);
+        }
+
+        // if duplicate received then remove from the list of in doubt messages
+        String inDoubtMessageDupId = null;
+        String receivedMessageDupId = null;
+        for (Message inDoubtMessage : listCloneOfInDoubtMessages) {
+            inDoubtMessageDupId = inDoubtMessage.getStringProperty(duplicatedHeader);
+            for (Message receivedMessage : listOfReceivedMessagesToBeCommited) {
+                receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader);
+                if (receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
+                    logger.info("Duplicated in doubt message was received. Removing message with dup id: " + inDoubtMessageDupId
+                            + " and messageId: " + inDoubtMessage.getJMSMessageID() + " from list of in doubt messages");
+                    listOfReceivedInDoubtMessages.remove(inDoubtMessage);
+                }
+            }
+        }
+    }
+
+    private void logListOfAddedMessages(List<Message> listOfReceivedMessagesToBeCommited) throws JMSException {
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
+        StringBuilder stringBuilder = new StringBuilder();
         for (Message m : listOfReceivedMessagesToBeCommited) {
-            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
+            stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
         }
-        StringBuilder foundDuplicates = new StringBuilder();
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection) {
-            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
-                foundDuplicates.append(m.getJMSMessageID());
-                counter -= 1;
-                // remove this duplicate from the list
-                List<Message> iterationList = new ArrayList<Message>(listOfReceivedMessagesToBeCommited);
-                for (Message receivedMessage : iterationList)    {
-                    if (receivedMessage.getStringProperty(duplicatedHeader).equals(m.getStringProperty(duplicatedHeader))) {
-                        listOfReceivedMessagesToBeCommited.remove(receivedMessage);
-                    }
-                }
-
-                isDup = true;
-            }
-        }
-        if (!"".equals(foundDuplicates.toString())) {
-            logger.info("Later detection found duplicates, will be discarded: " + foundDuplicates.toString());
-            logger.info("List of messages to be added to list: " + listOfReceivedMessagesToBeCommited.toString());
-        }
-        return isDup;
-    }
-
-    private boolean areThereDuplicates() throws JMSException {
-        boolean isDup = false;
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
-        Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Message m : listOfReceivedMessagesToBeCommited)    {
-            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
-        }
-
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
-            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
-                isDup=true;
-            }
-        }
-
-        if (isDup)  {
-            logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + hostname + " detected duplicates after failover.");
-        }
-
-        return isDup;
+        logger.info("New messages added to list of received messages: \n" + stringBuilder.toString());
     }
 
     /**
@@ -426,7 +321,7 @@ public class SubscriberTransAck extends Client {
 
                 msg = consumer.receive(receiveTimeOut);
                 if (msg != null) {
-                    logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
+                    logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + topicNameJndi
                             + ". Received message - counter: "
                             + counter + ", messageId:" + msg.getJMSMessageID()
                             + ", dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));

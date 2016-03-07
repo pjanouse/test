@@ -402,8 +402,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 3, 10);
-        receiver1.setTimeout(10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 5, 10);
+        receiver1.setTimeout(5);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
 
@@ -412,7 +412,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             Thread.sleep(1000);
         }
 
-        for (int numberOfFailovers = 0; numberOfFailovers < 5; numberOfFailovers++) {
+        for (int numberOfFailovers = 0; numberOfFailovers < 10; numberOfFailovers++) {
 
             logger.warn("########################################");
             logger.warn("Running new cycle for multiple failover - number of failovers: " + numberOfFailovers);
@@ -439,9 +439,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     container(2).getHornetqPort(), 300000));
 
 
-            if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
-                Assert.fail("Consumer crashed before test finished so crashing the test " +
-                        "- check logs.");
+            if (!receiver1.isAlive()) {
+                break;
             }
 
             waitForClientToFailover(receiver1, 300000);
@@ -453,22 +452,18 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             container(1).start();
 
-            Assert.assertTrue("Live did not start again - failback failed - number of failovers: "
-                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
 
             logger.warn("########################################");
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
-
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
 
 
-            if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
-                Assert.fail("Consumer crashed before test finished so crashing the test " +
-                        "- check logs.");
+            if (!receiver1.isAlive()) {
+                break;
             }
 
             waitForClientToFailover(receiver1, 300000);
@@ -480,14 +475,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
 
         }
-
-
-        if (!receiver1.isAlive() && receiver1.getListOfReceivedMessages().size() < numberOfMessages) {
-            Assert.fail("Consumer crashed before test finished so crashing the test " +
-                    "- check logs.");
-        }
-
-        waitForClientToFailover(receiver1, 300000);
 
         receiver1.join();
 
@@ -888,7 +875,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     private void waitForClientToFailover(Client client, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         int initialCount = client.getCount();
-        while (client.getCount() <= initialCount) {
+        while (client.isAlive() && client.getCount() <= initialCount) {
             if (System.currentTimeMillis() - startTime > timeout) {
                 Assert.fail("Client - " + client.toString() + " did not failover/failback in: " + timeout + " ms");
             }

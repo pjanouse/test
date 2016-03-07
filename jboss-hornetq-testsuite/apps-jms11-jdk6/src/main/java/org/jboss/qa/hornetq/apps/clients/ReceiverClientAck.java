@@ -24,21 +24,19 @@ public class ReceiverClientAck extends Client {
     private long receiveTimeOut;
     private int ackAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
+    private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
     private int count = 0;
     private Exception exception = null;
-    private boolean possibleDuplicates = false;
-    private Set<Message> setOfReceivedMessagesWithPossibleDuplicates = new HashSet<Message>();
+    private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
 
 
     /**
-     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
-     * Creates a receiver to queue with client acknowledge.
-     *
      * @param hostname      hostname
      * @param port          jndi port
      * @param queueJndiName jndi name of the queue
+     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
+     * Creates a receiver to queue with client acknowledge.
      */
     @Deprecated
     public ReceiverClientAck(String hostname, int port, String queueJndiName) {
@@ -50,14 +48,15 @@ public class ReceiverClientAck extends Client {
     /**
      * Creates a receiver to queue with auto acknowledge.
      *
-     * @param container container to which to connect
+     * @param container     container to which to connect
      * @param queueJndiName jndi name of the queue
      */
     public ReceiverClientAck(Container container, String queueJndiName) {
 
-        this(container, queueJndiName, 60000,10,30);
+        this(container, queueJndiName, 60000, 10, 30);
 
     }
+
     /**
      * Creates a receiver to queue with client acknowledge.
      *
@@ -67,7 +66,7 @@ public class ReceiverClientAck extends Client {
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
      */
-    public ReceiverClientAck(Container container, String queueJndiName , long receiveTimeOut,int ackAfter, int maxRetries){
+    public ReceiverClientAck(Container container, String queueJndiName, long receiveTimeOut, int ackAfter, int maxRetries) {
         super(container);
         this.hostname = container.getHostname();
         this.port = container.getJNDIPort();
@@ -94,15 +93,14 @@ public class ReceiverClientAck extends Client {
     }
 
     /**
-     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
-     * Creates a receiver to queue with client acknowledge.
-     *
      * @param hostname       hostname
      * @param port           jndi port
      * @param queueJndiName  jndi name of the queue
      * @param receiveTimeOut how long to wait to receive message
      * @param ackAfter       send ack after how many messages
      * @param maxRetries     how many times to retry receive before giving up
+     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
+     * Creates a receiver to queue with client acknowledge.
      */
     @Deprecated
     public ReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
@@ -167,32 +165,33 @@ public class ReceiverClientAck extends Client {
             String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
             while ((message = receiveMessage(receiver)) != null) {
+
                 Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeAcked.add(message);
 
                 count++;
 
+                logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                        + ". Received message - count: "
+                        + count + ", message-counter: " + message.getStringProperty("counter")
+                        + ", messageId:" + message.getJMSMessageID()
+                        + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""));
+
                 if (count % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
-
-                    listOfReceivedMessagesToBeAcked.clear();
-
-                } else { // i don't want to ack now
-                    logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
-                            + ". Received message - count: "
-                            + count + ", message-counter: " + message.getStringProperty("counter")
-                            + ", messageId:" + message.getJMSMessageID()
-                            + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""));
                 }
 
                 // hold information about last message so we can ack it when null is received = queue empty
                 lastMessage = message;
             }
 
-            if (lastMessage != null) {
-                acknowledgeMessage(lastMessage);
+            if (lastMessage != null && !acknowledgeMessage(lastMessage)) {
+                throw new RuntimeException("Last call message acknowlege was not successful. There might be still messages in the queue.\n" +
+                        "Thus throwing exception.");
             }
+
+            addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);
 
             logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                     + ". Received NULL - number of received messages: " + count);
@@ -201,13 +200,9 @@ public class ReceiverClientAck extends Client {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
             }
 
-        } catch (JMSException ex) {
-            logger.error("JMSException was thrown during receiving messages:", ex);
-            exception = ex;
         } catch (Exception ex) {
             logger.error("Exception was thrown during receiving messages:", ex);
             exception = ex;
-            ex.printStackTrace();
             throw new RuntimeException("Fatal exception was thrown in receiver. Receiver for node: " + hostname, ex);
 
         } finally {
@@ -228,87 +223,88 @@ public class ReceiverClientAck extends Client {
         }
     }
 
+    private void checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts() throws JMSException {
+        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
+        // clone list of inDoubtMessages
+        List<Message> listCloneOfInDoubtMessages = new ArrayList<Message>();
+        for (Message m : listOfReceivedInDoubtMessages) {
+            listCloneOfInDoubtMessages.add(m);
+        }
+
+        // if duplicate received then remove from the list of in doubt messages
+        String inDoubtMessageDupId = null;
+        String receivedMessageDupId = null;
+        for (Message inDoubtMessage : listCloneOfInDoubtMessages) {
+            inDoubtMessageDupId = inDoubtMessage.getStringProperty(duplicatedHeader);
+            for (Message receivedMessage : listOfReceivedMessagesToBeAcked) {
+                receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader);
+                if (receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
+                    logger.info("Duplicated in doubt message was received. Removing message with dup id: " + inDoubtMessageDupId
+                            + " and messageId: " + inDoubtMessage.getJMSMessageID() + " from list of in doubt messages");
+                    listOfReceivedInDoubtMessages.remove(inDoubtMessage);
+                }
+            }
+        }
+    }
+
     /**
      * Try to acknowledge a message.
      *
      * @param message message to be acknowledged
      * @throws javax.jms.JMSException
      */
-    public void acknowledgeMessage(Message message) throws Exception {
-
-        int numberOfRetries = 0;
+    public boolean acknowledgeMessage(Message message) throws Exception {
 
         String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+        boolean isAckSuccessful = true;
 
-        while (numberOfRetries < maxRetries) {
-            try {
-                // if dups_id is used then check if we got duplicates after last failed ack
-                if (numberOfRetries == 0 && message.getStringProperty(duplicatedHeader) != null && setOfReceivedMessagesWithPossibleDuplicates.size() > 0)    {
-                    if (areThereDuplicates())  {
-                        // decrease counter
-                        // add just new messages
-//                        listOfReceivedMessagesToBeAcked.clear();
-                        count = count - setOfReceivedMessagesWithPossibleDuplicates.size();
+        try {
 
-                    } else {
-                        addSetOfMessages(listOfReceivedMessages, setOfReceivedMessagesWithPossibleDuplicates);
-                    }
-                    setOfReceivedMessagesWithPossibleDuplicates.clear();
-                }
+            checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts();
 
-                message.acknowledge();
+            message.acknowledge();
 
-                logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                        + count + ", message-counter: " + message.getStringProperty("counter")
-                        + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
+            logger.info("Receiver for node: " + hostname + ". Received message - count: "
+                    + count + ", message-counter: " + message.getStringProperty("counter")
+                    + ", messageId:" + message.getJMSMessageID() + " ACKNOWLEDGED");
 
-                if (numberOfRetries == 0)    {
-                    addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
-                }
+            addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
 
-                return;
+            logListOfAddedMessages(listOfReceivedMessagesToBeAcked);
 
-            } catch (TransactionRolledBackException ex) {
-                logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                        + count + ", messageId:" + message.getJMSMessageID()
-                        + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""), ex);
-                // all unacknowledge messges will be received again
-                ex.printStackTrace();
-                count = count - listOfReceivedMessagesToBeAcked.size();
-                listOfReceivedMessagesToBeAcked.clear();
-                return;
+        } catch (TransactionRolledBackException ex) {
+            logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                    + count + ", messageId:" + message.getJMSMessageID()
+                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
+            // all unacknowledge messges will be received again
+            count = count - listOfReceivedMessagesToBeAcked.size();
+            isAckSuccessful = false;
 
-            } catch (JMSException ex) {
-                // now it's screwed because we don't have response for sent ACK
-                // next receive can have duplicates or new messages
-                setOfReceivedMessagesWithPossibleDuplicates.addAll(listOfReceivedMessagesToBeAcked);
+        } catch (JMSException ex) {
 
-                logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                        + count + ", messageId:" + message.getJMSMessageID()
-                        + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) :""), ex);
+            logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
+                    + count + ", messageId:" + message.getJMSMessageID()
+                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
 
-                ex.printStackTrace();
-                numberOfRetries++;
-            }
+            listOfReceivedInDoubtMessages.addAll(listOfReceivedMessagesToBeAcked);
+            count = count - listOfReceivedMessagesToBeAcked.size();
+            isAckSuccessful = false;
+
+        } finally {
+            listOfReceivedMessagesToBeAcked.clear();
         }
-
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname + " during acknowledge");
+        return isAckSuccessful;
     }
 
-    private boolean areThereDuplicates() throws JMSException {
-        boolean isDup = false;
+    private void logListOfAddedMessages(List<Message> listOfReceivedMessagesToBeCommited) throws JMSException {
         String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
-        Set<String> setOfReceivedMessages = new HashSet<String>();
-        for (Message m : listOfReceivedMessagesToBeAcked)    {
-            setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader));
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Message m : listOfReceivedMessagesToBeCommited) {
+            stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
         }
-        for (Message m : setOfReceivedMessagesWithPossibleDuplicates)   {
-            if (!setOfReceivedMessages.add(m.getStringProperty(duplicatedHeader))) {
-                isDup=true;
-            }
-        }
-        return isDup;
+        logger.info("New messages added to list of received messages: \n" + stringBuilder.toString());
     }
 
     /**
@@ -418,14 +414,14 @@ public class ReceiverClientAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Map<String,String>> getListOfReceivedMessages() {
+    public List<Map<String, String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String, String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -451,6 +447,7 @@ public class ReceiverClientAck extends Client {
     public void setAckAfter(int ackAfter) {
         this.ackAfter = ackAfter;
     }
+
     public int getCount() {
         return count;
     }
