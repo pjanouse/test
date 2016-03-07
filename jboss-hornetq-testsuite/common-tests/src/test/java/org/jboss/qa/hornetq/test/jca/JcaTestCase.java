@@ -417,7 +417,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), outQueueName, numberOfMessages * 9 / 10, 60000);
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 2, 60000, container(1));
 
         // call stop delivery
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -426,6 +426,8 @@ public class JcaTestCase extends HornetQTestCase {
         jmsOperations.startDeliveryToMdb("mdb-lodh1");
 
         jmsOperations.close();
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1));
 
         logger.info("Start receiver.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
