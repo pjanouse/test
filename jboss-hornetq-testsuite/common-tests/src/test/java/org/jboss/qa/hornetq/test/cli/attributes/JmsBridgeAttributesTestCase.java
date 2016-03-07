@@ -60,7 +60,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
     String outQueueJndiName = "jms/queue/" + outQueueName;
 
     @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
+    public Timeout timeout = new Timeout(2 * DEFAULT_TEST_TIMEOUT);
 
     private Properties attributes;
 
