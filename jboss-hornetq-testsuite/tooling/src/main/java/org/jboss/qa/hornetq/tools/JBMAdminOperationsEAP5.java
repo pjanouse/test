@@ -1281,6 +1281,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalCompactMinFiles(String serverName, int numFiles) {
+        throw new UnsupportedOperationException("setJournalCompactMinFiles is not supported for eap5 opeartions");
+    }
+
+    @Override
+    public void setJournalCompactMinFiles(int numFiles) {
+        throw new UnsupportedOperationException("setJournalCompactMinFiles is not supported for eap5 opeartions");
+    }
+
+    @Override
     public void setJournalType(String serverName, String journalType) {
         logger.info("This operation is not supported: " + getMethodName());
     }

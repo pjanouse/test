@@ -1274,6 +1274,19 @@ public interface JMSOperations {
     void setJournalPoolFiles(int numFiles);
 
     /**
+     * The minimal number of journal data files before we can start compacting.
+     * @param serverName
+     * @param numFiles
+     */
+    void setJournalCompactMinFiles(String serverName, int numFiles);
+
+    /**
+     * The minimal number of journal data files before we can start compacting.
+     * @param numFiles
+     */
+    void setJournalCompactMinFiles(int numFiles);
+
+    /**
      * Can be "NIO" or "AIO"
      *
      * @param serverName  set name of hornetq server

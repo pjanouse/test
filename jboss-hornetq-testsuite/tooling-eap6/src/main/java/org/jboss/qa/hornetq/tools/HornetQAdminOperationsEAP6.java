@@ -1359,6 +1359,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("setJournalPoolFiles is not supported for eap6 opeartions");
     }
 
+    @Override
+    public void setJournalCompactMinFiles(String serverName, int numFiles) {
+        throw new UnsupportedOperationException("setJournalCompactMinFiles is not supported for eap6 opeartions");
+    }
+
+    @Override
+    public void setJournalCompactMinFiles(int numFiles) {
+        throw new UnsupportedOperationException("setJournalCompactMinFiles is not supported for eap6 opeartions");
+    }
+
     /**
      * Can be "NIO" or "AIO"
      *
