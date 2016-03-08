@@ -213,7 +213,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
     }
 
-    public void testCore(NetworkFailurePoint testPoint) throws RemoteException, InterruptedException {
+    public void testCore(NetworkFailurePoint testPoint) throws Exception {
         ControllableProxy proxyToLive = createProxyToLive();
         proxyToLive.start();
 
@@ -239,7 +239,14 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         log.info("Waiting additional " + 60 + " s");
         sleepSeconds(60);
 
-        MessageConsumer receiver = createConsumerForLive();
+        Context context = container(1).getContext();
+        ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
+        Connection connection = connectionFactory.createConnection();
+        connection.start();
+        Queue queue = (Queue) context.lookup(JNDI_QUEUE);
+        Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
+
+        MessageConsumer receiver = session.createConsumer(queue);
 
         if (testPoint == NetworkFailurePoint.POST_INITIAL_REPLICATION) {
             // random 1-3
@@ -284,6 +291,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
                 messagesAcknowledgedNum += ACKNOWLEDGE_EVERY;
             }
         }
+        connection.close();
 
         assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
 
@@ -817,26 +825,6 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
     public void setJournalType(String name) {
         // TODO Auto-generated method stub
 
-    }
-
-    public MessageConsumer createConsumerForLive() {
-        try {
-            Context context = container(1).getContext();
-
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
-
-            Connection connection = connectionFactory.createConnection();
-
-            connection.start();
-
-            Queue queue = (Queue) context.lookup(JNDI_QUEUE);
-
-            Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
-
-            return session.createConsumer(queue);
-        } catch (Exception jmsException) {
-            throw new RuntimeException(jmsException);
-        }
     }
 
     public ProducerTransAck createSenderToLive(int MESSAGES_NUM) {
