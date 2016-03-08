@@ -960,6 +960,8 @@ public class Lodh2TestCase extends HornetQTestCase {
         logger.info("Number of received messages: " + (receiver1.getListOfReceivedMessages().size()
                 + ", Consumer from jms1 server received: " + receiver1.getListOfReceivedMessages().size() + " messages"));
 
+        printThreadDumpsOfAllServers();
+
         Assert.assertTrue("Test failed: ", messageVerifier.verifyMessages());
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
@@ -979,6 +981,14 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(1).stop();
         container(3).stop();
     }
+
+    private void printThreadDumpsOfAllServers() {
+        ContainerUtils.printThreadDump(container(1));
+        ContainerUtils.printThreadDump(container(2));
+        ContainerUtils.printThreadDump(container(3));
+        ContainerUtils.printThreadDump(container(4));
+    }
+
 
     /**
      * @tpTestDetails There are 4 nodes. Cluster A with node 1 and 3 is started and queues InQueue and OutQueue are deployed to both of them.
