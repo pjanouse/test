@@ -53,8 +53,9 @@
         <httpclient.version>4.1.3</httpclient.version>
         <surefire-version>2.19.1</surefire-version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
+        <MYTESTIP_1>127.0.0.1</MYTESTIP_1>
         <hornetq.surefire.jvm.options>-Xmx2G -Xms2G
-            -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:0.0.0.0,port:9591
+            -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9591
             -Djboss.modules.system.pkgs=org.jboss.byteman
             -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
         </hornetq.surefire.jvm.options>
@@ -144,7 +145,7 @@
                         <JBOSS_HOME_2>${env.JBOSS_HOME_2}</JBOSS_HOME_2>
                         <JBOSS_HOME_3>${env.JBOSS_HOME_3}</JBOSS_HOME_3>
                         <JBOSS_HOME_4>${env.JBOSS_HOME_4}</JBOSS_HOME_4>
-                        <MYTESTIP_1>127.0.0.1</MYTESTIP_1>
+                        <MYTESTIP_1>${MYTESTIP_1}</MYTESTIP_1>
                         <MYTESTIP_2>127.0.0.1</MYTESTIP_2>
                         <MYTESTIP_3>127.0.0.1</MYTESTIP_3>
                         <MYTESTIP_4>127.0.0.1</MYTESTIP_4>
