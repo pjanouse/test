@@ -310,6 +310,7 @@ public class TransportProtocolsTestCase extends HornetQTestCase {
         jmsAdminOperations.removeRemoteAcceptor("netty");
         jmsAdminOperations.createRemoteAcceptor("netty", socketBindingName, params);
         jmsAdminOperations.createQueue("default", IN_QUEUE_NAME_FOR_MDB, IN_QUEUE_JNDI_NAME_FOR_MDB, true);
+        jmsAdminOperations.setConnectorOnConnectionFactory(ContainerUtils.isEAP6(container) ? Constants.CONNECTION_FACTORY_EAP6 : Constants.CONNECTION_FACTORY_EAP7, "netty");
 
         container.stop();
     }
