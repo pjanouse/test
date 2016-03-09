@@ -294,7 +294,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
 
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 50 * 1024 * 1024, 60000, 2000, 10485760, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024, 60000, 2000, 512 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
     }
 
     /**
