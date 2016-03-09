@@ -1,16 +1,12 @@
 #This script is useful to replace artemis jars inside EAP 7/Wildfly 10
-# you need to set correct version to VERSION variable
-# run this from the project home
 echo "Scripts takes 2 arguments: <artemis_project_home_dir> <eap7_home>"
 
 export ARTEMIS_HOME=$1
 export JBOSS_HOME=$2
 
-
-############## fix the Artemis VERSION before running it ##########################
 export VERSION=`grep -ir -A 2 "artemis-pom" $1/pom.xml | grep version | sed s,.*\<version\>,,g |sed s,\<\/version\>,,g `
 echo "VERSION = $VERSION"
-##########################################################################
+
 #replace jars
 cp $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-cli-*.jar
 cp $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-hqclient-protocol-*.jar
