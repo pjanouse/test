@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -222,7 +223,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         container(1).start();
 
         ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", 100000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
         PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
@@ -243,6 +244,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             log.info("############# Starting server 1.");
             container(1).start();
             log.info("############# Server 1 started.");
+            Thread.sleep(10000);
 
         } else {
 
@@ -254,12 +256,13 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             log.info("############# Starting server 1.");
             container(1).start();
             log.info("############# Server 1 started.");
+            Thread.sleep(10000);
         }
 
         producer.stopSending();
         publisher.stopSending();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 100000, 10, 30);
         receiver.start();
         receiver.join();
 
