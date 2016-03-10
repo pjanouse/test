@@ -28,7 +28,8 @@ public class JournalDirectory {
                     + " - success");
         } catch (IOException e) {
             logger.warn("Could not delete journal directory: " + new File(getJournalDirectory(jbossHome, pathToJournal)).getAbsolutePath()
-                    + " - failed", e);
+                    + " - failed" + e.getMessage());
+            logger.debug("Stacktrace of exception during delete of " + new File(getJournalDirectory(jbossHome, pathToJournal)).getAbsolutePath() + " : ", e);
         }
     }
 
