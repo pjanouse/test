@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.apps.clients20.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.ReceiverAutoAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -80,7 +81,8 @@ public class JournalPropertiesTest extends HornetQTestCase {
     }
 
     private int numberOfFilesInJournal() {
-        File journalDir = new File(JOURNAL_DIRECTORY_A, "journal");
+
+        File journalDir = new File(JournalDirectory.getJournalDirectory(container(1).getServerHome(), JOURNAL_DIRECTORY_A), "journal");
         Assert.assertTrue(journalDir.exists(), "Journal directory does not exists");
         Assert.assertTrue(journalDir.isDirectory(), "Journal directory is not a directory");
 

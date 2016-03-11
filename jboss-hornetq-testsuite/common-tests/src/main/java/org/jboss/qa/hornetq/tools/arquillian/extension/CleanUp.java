@@ -73,6 +73,15 @@ public class CleanUp {
                     continue;
                 }
 
+                // it's necessary to clean for all JOURNAL_DIRECTORY_A,B,C,D because it's not clear what was set in configuration
+                // if journal directory environemnt variable is not set then do nothing
+                // if journal directory is relative then expect it's relative against data directory
+                // if journal directory is absolute then delete this absolute path
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_A);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_B);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_C);
+                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_D);
+
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "tmp"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "log"));
                 FileUtils.deleteQuietly(new File(pathToStandaloneDirectory + File.separator + "data"));
@@ -83,15 +92,6 @@ public class CleanUp {
                 }
 
                 FileUtils.deleteQuietly(new File(pathToTestModulesDirectory.toString()));
-
-                // it's necessary to clean for all JOURNAL_DIRECTORY_A,B,C,D because it's not clear what was set in configuration
-                // if journal directory environemnt variable is not set then do nothing
-                // if journal directory is relative then expect it's relative against data directory
-                // if journal directory is absolute then delete this absolute path
-                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_A);
-                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_B);
-                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_C);
-                JournalDirectory.deleteJournalDirectory(jbossHome, HornetQTestCase.JOURNAL_DIRECTORY_D);
             }
         }
     }

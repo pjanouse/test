@@ -144,7 +144,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         } else {
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
         }
-        receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 80000, 100, 10);
+        receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 360000, 100, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();

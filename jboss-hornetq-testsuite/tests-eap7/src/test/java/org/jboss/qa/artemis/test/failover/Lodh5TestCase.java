@@ -158,6 +158,33 @@ public class Lodh5TestCase extends HornetQTestCase {
 
     /**
      * @tpTestDetails Start server with MDB which read messages from queue and
+     * insert them to PostgreSQL 9.4 database. Kill server when the MDB is
+     * processing messages.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     * @tpProcedure <ul>
+     * <li>start server container with deployed InQueue</li>
+     * <li>send messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and for each message
+     * inserts a new record to the database (in XA transaction)</li>
+     * <li>kill the server container when the MDB is processing messages and
+     * restart it</li>
+     * <li>read the messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit The database must contain the same number of records as the
+     * number of sent messages
+     * @tpSince 7.0.0
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgre94() throws Exception {
+        testFail(POSTGRESQL94);
+    }
+
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and
      * insert them to Enterprise DB Postgres Plus Advanced Server 9.3 database.
      * Kill server when the MDB is processing messages.
      * @tpInfo For more information see related test case described in the
@@ -181,6 +208,33 @@ public class Lodh5TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testPosgrePlus93() throws Exception {
         testFail(POSTGRESQLPLUS93);
+    }
+
+    /**
+     * @tpTestDetails Start server with MDB which read messages from queue and
+     * insert them to Enterprise DB Postgres Plus Advanced Server 9.4 database.
+     * Kill server when the MDB is processing messages.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     * @tpProcedure <ul>
+     * <li>start server container with deployed InQueue</li>
+     * <li>send messages to InQueue</li>
+     * <li>deploy MDB which reads messages from InQueue and for each message
+     * inserts a new record to the database (in XA transaction)</li>
+     * <li>kill the server container when the MDB is processing messages and
+     * restart it</li>
+     * <li>read the messages from OutQueue</li>
+     * </ul>
+     * @tpPassCrit The database must contain the same number of records as the
+     * number of sent messages
+     * @tpSince 7.0.0
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testPosgrePlus94() throws Exception {
+        testFail(POSTGRESQLPLUS94);
     }
 
     /**
@@ -440,7 +494,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         }
         return listOfLostMessages;
     }
-    
+
     @Before
     @After
     public void removeInstalledModules() {
@@ -1059,9 +1113,10 @@ public class Lodh5TestCase extends HornetQTestCase {
             jmsAdminOperations.setXADatasourceAtribute(poolName,"user-name", "crashrec");
             jmsAdminOperations.setXADatasourceAtribute(poolName,"password", "crashrec");
 
-            
 
-        } else if (POSTGRESQLPLUS92.equals(database) || POSTGRESQLPLUS93.equals(database) || POSTGRESQL92.equalsIgnoreCase(database) || POSTGRESQL93.equalsIgnoreCase(database)) {
+        } else if (POSTGRESQL92.equalsIgnoreCase(database) || POSTGRESQLPLUS92.equalsIgnoreCase(database) ||
+                   POSTGRESQL93.equalsIgnoreCase(database) || POSTGRESQLPLUS93.equalsIgnoreCase(database) ||
+                   POSTGRESQL94.equalsIgnoreCase(database) || POSTGRESQLPLUS94.equalsIgnoreCase(database)) {
 //            <xa-datasource jndi-name="java:jboss/xa-datasources/CrashRecoveryDS" pool-name="CrashRecoveryDS" enabled="true">
 //            <xa-datasource-property name="ServerName">db14.mw.lab.eng.bos.redhat.com</xa-datasource-property>
 //            <xa-datasource-property name="PortNumber">5432</xa-datasource-property>

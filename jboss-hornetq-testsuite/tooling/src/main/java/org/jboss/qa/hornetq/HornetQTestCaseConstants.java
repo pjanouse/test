@@ -100,8 +100,10 @@ public interface HornetQTestCaseConstants {
     public static final String MYSQL57 = "mysql57";
     public static final String POSTGRESQL92 ="postgresql92";
     public static final String POSTGRESQL93 ="postgresql93";
+    public static final String POSTGRESQL94 ="postgresql94";
     public static final String POSTGRESQLPLUS92 = "postgresplus92";
     public static final String POSTGRESQLPLUS93 = "postgresplus93";
+    public static final String POSTGRESQLPLUS94 = "postgresplus94";
     public static final String MSSQL2014 = "mssql2014";
     public static final String MSSQL2012 = "mssql2012";
     public static final String MSSQL2008R2 = "mssql2008R2";

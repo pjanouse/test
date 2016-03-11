@@ -936,10 +936,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         executeFailureSequence(failureSequence, 5000, failureType);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 400000, container(1), container(2),
                 container(3), container(4));
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(4));

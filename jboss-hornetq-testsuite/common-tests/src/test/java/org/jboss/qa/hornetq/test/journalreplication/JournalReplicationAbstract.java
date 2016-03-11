@@ -213,79 +213,100 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         testCore(NetworkFailurePoint.POST_INITIAL_REPLICATION);
     }
 
-    public void testCore(NetworkFailurePoint testPoint) throws RemoteException, InterruptedException {
-        ControllableProxy proxyToLive = createProxyToLive();
-        proxyToLive.start();
+    public void testCore(NetworkFailurePoint testPoint) throws Exception {
+        ProducerTransAck producer = null;
+        Connection connection = null;
 
-        ControllableProxy proxyToBackup = createProxyToBackup();
-        proxyToBackup.start();
+        try {
+            ControllableProxy proxyToLive = createProxyToLive();
+            proxyToLive.start();
 
-        startLiveServer();
+            ControllableProxy proxyToBackup = createProxyToBackup();
+            proxyToBackup.start();
 
-        sendMessagesToLive();
+            startLiveServer();
 
-        if (testPoint == NetworkFailurePoint.INITIAL_REPLICATION) {
-            // random 4-6
-            int initialDelay = new Random().nextInt(2) + 4;
-            new NetworkProblemController(proxyToLive, initialDelay).start();
-            new NetworkProblemController(proxyToBackup, initialDelay).start();
-        }
+            producer = sendMessagesToLive();
 
-        startBackupServer();
+            if (testPoint == NetworkFailurePoint.INITIAL_REPLICATION) {
+                // random 4-6
+                int initialDelay = new Random().nextInt(2) + 4;
+                new NetworkProblemController(proxyToLive, initialDelay).start();
+                new NetworkProblemController(proxyToBackup, initialDelay).start();
+            }
+
+            startBackupServer();
 
         /*
          * replication start point and network failures
          */
-        log.info("Waiting additional " + 60 + " s");
-        sleepSeconds(60);
+            log.info("Waiting additional " + 60 + " s");
+            sleepSeconds(60);
 
-        MessageConsumer receiver = createConsumerForLive();
+            Context context = container(1).getContext();
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
+            connection = connectionFactory.createConnection();
+            connection.start();
+            Queue queue = (Queue) context.lookup(JNDI_QUEUE);
+            Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
 
-        if (testPoint == NetworkFailurePoint.POST_INITIAL_REPLICATION) {
-            // random 1-3
-            int initialDelay = new Random().nextInt(2) + 1;
-            new NetworkProblemController(proxyToLive, initialDelay).start();
-            new NetworkProblemController(proxyToBackup, initialDelay).start();
-        }
+            MessageConsumer receiver = session.createConsumer(queue);
 
-        boolean isKillTrigered = false;
-        int messagesRecievedNum = 0;
-        int messagesAcknowledgedNum = 0;
-
-        while (messagesRecievedNum < MESSAGES_NUM) {
-            Message message = receiveMessage(receiver, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
-
-            if (message == null) {
-                log.info("Got null message. Breaking...");
-                break;
-            } else {
-                messagesRecievedNum++;
-                log.info("Received [" + messagesRecievedNum + "] messages...");
+            if (testPoint == NetworkFailurePoint.POST_INITIAL_REPLICATION) {
+                // random 1-3
+                int initialDelay = new Random().nextInt(2) + 1;
+                new NetworkProblemController(proxyToLive, initialDelay).start();
+                new NetworkProblemController(proxyToBackup, initialDelay).start();
             }
 
-            if (messagesRecievedNum % ACKNOWLEDGE_EVERY == 0) {
-                if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered) {
-                    proxyToLive.stop();
-                    proxyToBackup.stop();
+            boolean isKillTrigered = false;
+            int messagesRecievedNum = 0;
+            int messagesAcknowledgedNum = 0;
 
-                    container(1).kill();
+            while (messagesRecievedNum < MESSAGES_NUM) {
+                Message message = receiveMessage(receiver, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
 
-                    isKillTrigered = true;
-
-                    sleepSeconds(10);
-                }
-
-                boolean isAcknowledged = acknowlegeMessage(message, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
-
-                if (!isAcknowledged) {
-                    log.error("Messages were not acknowledged. Breaking...");
+                if (message == null) {
+                    log.info("Got null message. Breaking...");
                     break;
+                } else {
+                    messagesRecievedNum++;
+                    log.info("Received [" + messagesRecievedNum + "] messages...");
                 }
-                messagesAcknowledgedNum += ACKNOWLEDGE_EVERY;
+
+                if (messagesRecievedNum % ACKNOWLEDGE_EVERY == 0) {
+                    if (messagesRecievedNum > MESSAGES_NUM / 2 && !isKillTrigered) {
+                        proxyToLive.stop();
+                        proxyToBackup.stop();
+
+                        container(1).kill();
+
+                        isKillTrigered = true;
+
+                        sleepSeconds(10);
+                    }
+
+                    boolean isAcknowledged = acknowlegeMessage(message, RETRY_MAX_ATTEMPTS, RETRY_SLEEP_SECS);
+
+                    if (!isAcknowledged) {
+                        log.error("Messages were not acknowledged. Breaking...");
+                        break;
+                    }
+                    messagesAcknowledgedNum += ACKNOWLEDGE_EVERY;
+                }
+            }
+
+            assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
+
+        } finally {
+            if (producer != null) {
+                producer.stopSending();
+                producer.join();
+            }
+            if (connection != null) {
+                connection.close();
             }
         }
-
-        assertEquals("Incorrect number received:", MESSAGES_NUM, messagesAcknowledgedNum);
 
     }
 
@@ -305,7 +326,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         ThreadUtil.sleepSeconds(seconds);
     }
 
-    private void sendMessagesToLive() {
+    private ProducerTransAck sendMessagesToLive() {
 //		SoakProducerClientAck producerToLive = createSenderToLive(MESSAGES_NUM);
 //
 //		producerToLive.run();
@@ -313,6 +334,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
         ProducerTransAck p = createSenderToLive(MESSAGES_NUM);
         p.setMessageBuilder(new TextMessageBuilder(300 * 1024));
         p.start();
+        return p;
     }
 
     private Message receiveMessage(MessageConsumer receiver, int maxRetryNum, int retrySleepSeconds) {
@@ -817,26 +839,6 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
     public void setJournalType(String name) {
         // TODO Auto-generated method stub
 
-    }
-
-    public MessageConsumer createConsumerForLive() {
-        try {
-            Context context = container(1).getContext();
-
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(JNDI_CONNECTION_FACTORY);
-
-            Connection connection = connectionFactory.createConnection();
-
-            connection.start();
-
-            Queue queue = (Queue) context.lookup(JNDI_QUEUE);
-
-            Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
-
-            return session.createConsumer(queue);
-        } catch (Exception jmsException) {
-            throw new RuntimeException(jmsException);
-        }
     }
 
     public ProducerTransAck createSenderToLive(int MESSAGES_NUM) {

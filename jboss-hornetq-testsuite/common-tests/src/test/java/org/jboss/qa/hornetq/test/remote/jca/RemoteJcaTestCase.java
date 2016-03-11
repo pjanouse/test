@@ -1434,7 +1434,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         producer1.start();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 15000, 10, 10);
 
         receiver1.start();
 
