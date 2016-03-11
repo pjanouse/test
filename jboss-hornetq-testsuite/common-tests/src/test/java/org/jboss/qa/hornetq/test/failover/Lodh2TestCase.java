@@ -1338,6 +1338,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         jmsAdminOperations.setIdCacheSize(2000);
         jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
 
         jmsAdminOperations.close();
 
@@ -1389,6 +1390,8 @@ public class Lodh2TestCase extends HornetQTestCase {
 
 //        jmsAdminOperations.setIdCacheSize(20000);
 //        jmsAdminOperations.setConfirmationWindowsSizeOnClusterConnection(clusterGroupName, 10000);
+
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq.artemis", "TRACE");
 
         jmsAdminOperations.close();
 
@@ -1452,8 +1455,8 @@ public class Lodh2TestCase extends HornetQTestCase {
 //            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
 
         // enable trace logging
-//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-//            jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // both are remote
         if (isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
@@ -1545,7 +1548,7 @@ public class Lodh2TestCase extends HornetQTestCase {
 //            jmsAdminOperations.setPropertyReplacement("spec-descriptor-property-replacement", true);
 
         // enable trace logging
-//            jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq.artemis", "TRACE");
         jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // both are remote
