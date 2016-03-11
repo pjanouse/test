@@ -31,7 +31,6 @@ public class SubscriberTransAck extends Client {
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
-    private int counter = 0;
     private Exception exception = null;
     private String subscriberName;
     private String clientId;
