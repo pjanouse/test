@@ -1666,6 +1666,8 @@ public interface JMSOperations {
 
     void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
+    void setMinLargeMessageSizeOnPooledConnectionFactory(String connectionFactoryName, long size);
+
     void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
     void removeJGroupsStack(String stackName);

@@ -9,6 +9,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
@@ -31,6 +32,7 @@ import javax.naming.Context;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import static org.apache.activemq.artemis.api.core.Message.HDR_SCHEDULED_DELIVERY_TIME;
 
 import static org.junit.Assert.*;
@@ -38,14 +40,12 @@ import static org.junit.Assert.*;
 /**
  * Tests for creating and manipulating messages.
  *
- *
+ * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  * @tpChapter Functional testing
  * @tpSubChapter MESSAGE CONTENT - TEST SCENARIOS
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpTestCaseDetails Tests for creating and manipulating messages.
- *
- * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -69,11 +69,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails Server is started and queue is deployed. Send one message
      * with scheduled delivery time set to 1200 seconds to queue and then try to
      * remove it. Check whether queue contains no messages.
-     *
      * @tpProcedure <ul>
      * <li>Start server and deploy queue</li>
      * <li>Send one message to queue with scheduled delivery time set to 1200
@@ -137,7 +135,99 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         container(1).stop();
 
     }
-    
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testMessageListenerWitLargeMessage() throws Exception {
+
+        int numberOfMessages = 10000;
+        prepareServer(container(1));
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+
+        container(1).start();
+
+        Context ctx = null;
+        Connection connection = null;
+        Session session = null;
+        Message msg = null;
+
+        try {
+
+            ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+            MessageBuilder builder = new TextMessageBuilder(1024 * 200);
+            builder.setAddDuplicatedHeader(true);
+            producer1.setMessageBuilder(builder);
+            producer1.setTimeout(0);
+            producer1.setCommitAfter(10);
+            producer1.start();
+
+            ctx = container(1).getContext();
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+            Queue testQueue = (Queue) ctx.lookup(inQueueJndiName);
+            connection = cf.createConnection();
+
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            MyMessageListener listener = new MyMessageListener();
+
+            MessageConsumer messageConsumer = session.createConsumer(testQueue);
+            messageConsumer.setMessageListener(listener);
+            connection.start();
+
+            for (int j = 0; j < 50; j++) {
+                Thread.sleep(30000);
+                log.info("Stop server.");
+                container(1).kill();
+                Thread.sleep(30000);
+                container(1).start();
+                log.info("Start server.");
+            }
+
+
+            producer1.join();
+
+            new JMSTools().waitUntilMessagesAreStillConsumed(inQueue, 60000, container(1));
+
+            log.info("Number of send messages: " + producer1.getListOfSentMessages().size());
+            log.info("Number of received messages: " + listener.getCount());
+            Assert.assertEquals(producer1.getListOfSentMessages().size(), listener.getCount());
+
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+
+            if (connection != null) {
+                connection.stop();
+                connection.close();
+            }
+
+            if (ctx != null) {
+                ctx.close();
+            }
+        }
+        container(1).stop();
+
+    }
+
+    class MyMessageListener implements MessageListener {
+
+        int counter = 0;
+
+        @Override
+        public void onMessage(Message message) {
+
+            log.info("Message received - count: " + counter++ + " message: " + (TextMessage) message);
+
+        }
+
+        public int getCount() {
+            return counter;
+        }
+    }
+
     /**
      * @tpTestDetails Server is started and topic is deployed. Send one large message
      * to topic and then try to
@@ -182,13 +272,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
 
     /**
-     *
      * @tpTestDetails Server with configured exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Send one message with
      * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
      * message from DivertedQueue and check whether message is delivered to
      * DivertedQueue in correct time range.
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -207,13 +295,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails Server with configured exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Send one large message with
      * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
      * message from DivertedQueue and check whether message is delivered to
      * DivertedQueue in correct time range.
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -232,13 +318,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails Server with configured non exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Send one message with
      * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
      * message from OriginalQueue and DivertedQueue and check whether message is
      * delivered to DivertedQueue and OriginalQueue in correct time range.
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -259,13 +343,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     }
 
     /**
-     *
      * @tpTestDetails Server with configured non exclusive divert is started and
      * OriginalQueue and DivertedQueue are deployed. Send one large message with
      * scheduled delivery time set to 5 seconds to OriginalQueue. Try to receive
      * message from OriginalQueue and DivertedQueue and check whether message is
      * delivered to DivertedQueue and OriginalQueue in correct time range.
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -362,8 +444,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * OriginalQueue and DivertedQueue are deployed. Create message producer
      * with time to live set to 1 second. Send message to OriginalQueue. After 2
      * seconds, create consumer and try to receive message from DivertedQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -387,8 +467,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * with time to live set to 1 second. Send message to OriginalQueue. After 2
      * seconds, create consumers and try to receive message from DivertedQueue
      * and OriginalQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -413,8 +491,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * with time to live set to 1 second. Send large message to OriginalQueue.
      * After 2 seconds, create consumer and try to receive message from
      * DivertedQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -438,8 +514,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * with time to live set to 1 second. Send large message to OriginalQueue.
      * After 2 seconds, create consumers and try to receive message from
      * DivertedQueue and OriginalQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -530,8 +604,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
      * 100 messages to OriginalQueue. Receive messages from DivertedQueue.
      * Compare send messages to received messages.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -555,8 +627,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * OriginalQueue and DivertedQueue are deployed. Create Jms client and sent
      * 100 large messages to OriginalQueue. Receive messages from DivertedQueue.
      * Compare send messages to received messages.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -581,8 +651,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * 100 messages to OriginalQueue. Receive messages from DivertedQueue and
      * OriginalQueue. Compare send messages to messages received from
      * DivertedQueue and OriginalQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -610,8 +678,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
      * 100 large messages to OriginalQueue. Receive messages from DivertedQueue
      * and OriginalQueue. Compare send messages to messages received from
      * DivertedQueue and OriginalQueue.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server with configured non exclusive divert and deploy
      * OriginalQueue and DivertedQueue</li>
@@ -824,8 +890,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     /**
      * @tpTestDetails Start server. Send MapMessage with null in map and receive
      * it.
-     *
-     *
      * @tpProcedure <ul>
      * <li>Start server</li>
      * <li>Send MapMessage with null in object and 100 in long</li>
