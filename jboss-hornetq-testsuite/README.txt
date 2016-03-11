@@ -3,21 +3,52 @@ HornetQ test suite:
 Change JMS client version if necessary (for example when running with different EAP version) by setting property, for example:
 -Deap6.org.jboss.qa.hornetq.apps.clients.version=6.4.0.ER1
 
-How to make it work:
+How to make it work with EAP7:
 
-- Run PrepareServers.groovy script to prepare environment
-    - groovy -DEAP.VERSION=6.3.0.ER10 PrepareServers.groovy (this will download distribution)
-    - groovy -DEAP_ZIP_URL=file:///home/mnovak/tmp/jboss-eap-6.2.4-patched.zip
-        -DNATIVES_URL=file:///home/mnovak/tmp/jboss-eap-native-6.2.0-RHEL6-x86_64.zip PrepareServers.groovy (bits are on local disk)
-- Set environment properties JBOSS_HOME_1..4 in bash shell to previously created directories
+from eap-tests-hornetq dir run following commands
 
-Run test suite
- - mvn clean install -Peap6x-common
+cd scripts/
 
-Run one test
- - mvn clean install -Dtest=JmsBridgeAttributesTestCase
+git checkout refactoring_modules
 
- Important!!!
- Add new test to "eap6x-common" profile if it should be there!
+groovy -DEAP_VERSION=7.0.0.ER4  PrepareServers7.groovy
+
+export WORKSPACE=$PWD
+
+export JBOSS_HOME_1=$WORKSPACE/server1/jboss-eap
+
+export JBOSS_HOME_2=$WORKSPACE/server2/jboss-eap
+
+export JBOSS_HOME_3=$WORKSPACE/server3/jboss-eap
+
+export JBOSS_HOME_4=$WORKSPACE/server4/jboss-eap
+
+cd ../jboss-hornetq-testsuite/
+
+mvn clean test  -DfailIfNoTests=false  -Deap=7x  
 
 
+
+How to make it work with EAP6:
+
+from eap-tests-hornetq dir run following commands
+
+cd scripts/
+
+git checkout refactoring_modules
+
+groovy -DEAP_VERSION=6.4.0  PrepareServers.groovy
+
+export WORKSPACE=$PWD
+
+export JBOSS_HOME_1=$WORKSPACE/server1/jboss-eap
+
+export JBOSS_HOME_2=$WORKSPACE/server2/jboss-eap
+
+export JBOSS_HOME_3=$WORKSPACE/server3/jboss-eap
+
+export JBOSS_HOME_4=$WORKSPACE/server4/jboss-eap
+
+cd ../jboss-hornetq-testsuite/
+
+mvn clean test  -DfailIfNoTests=false 
