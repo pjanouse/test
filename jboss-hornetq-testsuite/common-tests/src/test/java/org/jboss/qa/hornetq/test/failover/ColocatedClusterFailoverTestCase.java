@@ -275,7 +275,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
+        producerToInQueue1.setCommitAfter(100);
         FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
@@ -450,7 +450,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
+        producerToInQueue1.setCommitAfter(100);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
