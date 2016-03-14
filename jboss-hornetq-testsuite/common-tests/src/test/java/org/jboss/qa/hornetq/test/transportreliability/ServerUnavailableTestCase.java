@@ -7,10 +7,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -19,11 +16,12 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -65,6 +63,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         testWithProducer(new TextMessageBuilder(1024 * 1024), false);
     }
 
+    @Ignore("Testing only normal 1kb and large 1mb messages is sufficient")
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
@@ -78,7 +77,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testShutdownWithConsumerNormalMessages1KB() throws Exception {
-        testWithConsumer(new TextMessageBuilder(1000), false);
+        testWithConsumer(new TextMessageBuilder(1000), false, false);
     }
 
     @Test
@@ -86,15 +85,16 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testShutdownWithConsumerLargeMessages1MB() throws Exception {
-        testWithConsumer(new TextMessageBuilder(1024 * 1024), false);
+        testWithConsumer(new TextMessageBuilder(1024 * 1024), false, true);
     }
 
+    @Ignore("Testing only normal 1kb and large 1mb messages is sufficient")
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testShutdownWithConsumerLargeMessages20MB() throws Exception {
-        testWithProducer(new TextMessageBuilder(1024 * 1024 * 20), false);
+        testWithConsumer(new TextMessageBuilder(1024 * 1024 * 20), false, true);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithProducerNormalMessages1KB() throws Exception {
-        testWithProducer(new TextMessageBuilder(1000), false);
+        testWithProducer(new TextMessageBuilder(1000), true);
     }
 
     @Test
@@ -113,12 +113,13 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         testWithProducer(new TextMessageBuilder(1024 * 1024), false);
     }
 
+    @Ignore("Testing only normal 1kb and large 1mb messages is sufficient")
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithProducerLargeMessages20MB() throws Exception {
-        testWithProducer(new TextMessageBuilder(1024 * 1024 * 20), false);
+        testWithProducer(new TextMessageBuilder(1024 * 1024 * 20), true);
     }
 
     @Test
@@ -126,7 +127,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithConsumerNormalMessages1KB() throws Exception {
-        testWithConsumer(new TextMessageBuilder(1000), false);
+        testWithConsumer(new TextMessageBuilder(1000), true, false);
     }
 
     @Test
@@ -134,57 +135,61 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithConsumerLargeMessages1MB() throws Exception {
-        testWithConsumer(new TextMessageBuilder(1024 * 1024), false);
+        testWithConsumer(new TextMessageBuilder(1024 * 1024), true, true);
     }
 
+    @Ignore("Testing only normal 1kb and large 1mb messages is sufficient")
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithConsumerLargeMessages20MB() throws Exception {
-        testWithProducer(new TextMessageBuilder(1024 * 1024 * 20), false);
+        testWithConsumer(new TextMessageBuilder(1024 * 1024 * 20), false, true);
     }
 
-    public void testWithConsumer(MessageBuilder messageBuilder, boolean testKill) throws Exception {
+    public void testWithConsumer(MessageBuilder messageBuilder, boolean testKill, boolean isLargeMessages) throws Exception {
 
         prepareServers();
-
         container(2).start();
 
         container(1).start();
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = isLargeMessages ? new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 80) : new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 500);
         producer.setMessageBuilder(messageBuilder);
 
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", 30000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
-        publisher.setMessageBuilder(messageBuilder);
-        publisher.start();
 
+        PublisherClientAck publisher = isLargeMessages ? new PublisherClientAck(container(1), topicJndiNamePrefix + "0", 80, "myClientIdPublisher") : new PublisherClientAck(container(1), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
+        publisher.setMessageBuilder(messageBuilder);
+
+        publisher.start();
         producer.start();
         producer.join();
         publisher.join();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0");
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 10, 30);
+        receiver.setTimeout(1000);
+        subscriber.setTimeout(1000);
         receiver.start();
         subscriber.start();
 
-        if (testKill) {
+        List<Client> clientList = new ArrayList<Client>();
+        clientList.add(receiver);
+        clientList.add(subscriber);
 
-            RuleInstaller.installRule(ServerUnavailableTestCase.class);
-            Thread.sleep(5000);
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(clientList, 10, 120000);
+
+
+        if (testKill) {
             log.info("############# Kill server 1.");
-            container(1).waitForKill();
+            container(1).kill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
             container(1).start();
             log.info("############# Server 1 started.");
-
         } else {
-
-            Thread.sleep(10000);
             log.info("############# Stopping server 1.");
             container(1).stop();
             log.info("############# Server 1 stopped.");
@@ -193,6 +198,11 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             container(1).start();
             log.info("############# Server 1 started.");
         }
+
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1),120000);
+
+        receiver.setTimeout(0);
+        subscriber.setTimeout(0);
 
         receiver.join();
         subscriber.join();
@@ -223,7 +233,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         container(1).start();
 
         ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", 100000, 10, 30, "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", 30000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
         PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
@@ -233,22 +243,18 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         producer.start();
 
-        if (testKill) {
+        new JMSTools().waitForMessages(queueNamePrefix + "0", 10, 120000, container(1), container(2));
 
-            RuleInstaller.installRule(ServerUnavailableTestCase.class);
-            Thread.sleep(10000);
+        if (testKill) {
             log.info("############# Kill server 1.");
-            container(1).waitForKill();
+            container(1).kill();
             log.info("############# Server 1 killed.");
             Thread.sleep(5000);
             log.info("############# Starting server 1.");
             container(1).start();
             log.info("############# Server 1 started.");
-            Thread.sleep(10000);
 
         } else {
-
-            Thread.sleep(10000);
             log.info("############# Stopping server 1.");
             container(1).stop();
             log.info("############# Server 1 stopped.");
@@ -256,17 +262,20 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             log.info("############# Starting server 1.");
             container(1).start();
             log.info("############# Server 1 started.");
-            Thread.sleep(10000);
         }
+
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1),120000);
 
         producer.stopSending();
         publisher.stopSending();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 100000, 10, 30);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 10, 30);
         receiver.start();
+        receiver.setTimeout(0);
         receiver.join();
 
         subscriber.start();
+        subscriber.setTimeout(0);
         subscriber.join();
 
         Assert.assertEquals("There is different number sent and received messages. Sent messages" + producer.getListOfSentMessages().size() +
