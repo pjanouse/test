@@ -2904,6 +2904,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setMinLargeMessageSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("min-large-message-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");

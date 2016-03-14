@@ -2305,6 +2305,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setMinLargeMessageSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
         logger.info("This operation is not supported: " + getMethodName());
     }
