@@ -39,39 +39,9 @@ public class JournalDirectory {
             return pathToJournal;
         } else {
             // take relative path against data directory
-            String path = jbossHome + File.separator + "standalone" + File.separator + "data"
+            return jbossHome + File.separator + "standalone" + File.separator + "data"
                     + File.separator + pathToJournal.replace("/", File.separator);
-
-            if (!path.contains(".."))
-                return path;
-            else {
-                String pattern = Pattern.quote(File.separator);
-                String[] pathParts = path.split(pattern);
-                for (int i = 0; i < pathParts.length; i++) {
-                    if (pathParts[i].equals("..")) {
-                        pathParts[i] = null;
-                        for (int j = i - 1; j > 0; j--) {
-                            if (pathParts[j] != null && !pathParts[j].equals("..") && !pathParts[j].isEmpty()) {
-                                pathParts[j] = null;
-                                break;
-                            }
-                        }
-                    }
-                }
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < pathParts.length; i++) {
-                    if (pathParts[i] != null && !pathParts[i].isEmpty()) {
-                        if (!System.getProperty("os.name").contains("win") || i != 0){
-                            sb.append(File.separator);
-                        }
-                        sb.append(pathParts[i]);
-                    }
-                }
-                return sb.toString();
-            }
 
         }
     }
-
-
 }
