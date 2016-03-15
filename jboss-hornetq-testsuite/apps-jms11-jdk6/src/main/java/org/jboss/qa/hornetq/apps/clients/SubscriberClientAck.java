@@ -26,7 +26,6 @@ public class SubscriberClientAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
-    private int count = 0;
     private Exception exception = null;
     private String subscriberName;
     private String clientId;
@@ -171,15 +170,15 @@ public class SubscriberClientAck extends Client {
 
                 listOfReceivedMessagesToBeAcked.add(message);
 
-                count++;
+                counter++;
 
-                if (count % ackAfter == 0) { // try to ack message
+                if (counter % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
                     listOfReceivedMessagesToBeAcked.clear();
                 } else { // i don't want to ack now
                     logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                             + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
+                            + counter + ", messageId:" + message.getJMSMessageID());
                 }
 
                 // hold information about last message so we can ack it when null is received = topic empty
@@ -191,14 +190,15 @@ public class SubscriberClientAck extends Client {
                         "Thus throwing exception.");
             }
 
-            logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
-                    + ". Received NULL - number of received messages: " + count);
+            addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);
+
+            counter = counter + listOfReceivedInDoubtMessages.size();
+
+            logger.info("Subscriber for node: " + hostname + " and queue: " + topicNameJndi
+                    + ". Subscriber received NULL - number of received messages: " + counter);
 
             if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
-            } else {
-                logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
-                        + " was message verifier: NULL");
             }
 
         } catch (JMSException ex) {
@@ -244,7 +244,7 @@ public class SubscriberClientAck extends Client {
             message.acknowledge();
 
             logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", message-counter: " + message.getStringProperty("counter")
+                    + counter + ", message-counter: " + message.getStringProperty("counter")
                     + ", messageId:" + message.getJMSMessageID() + " ACKNOWLEDGED");
 
             addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
@@ -253,20 +253,20 @@ public class SubscriberClientAck extends Client {
 
         } catch (TransactionRolledBackException ex) {
             logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID()
+                    + counter + ", messageId:" + message.getJMSMessageID()
                     + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
             // all unacknowledge messges will be received again
-            count = count - listOfReceivedMessagesToBeAcked.size();
+            counter = counter - listOfReceivedMessagesToBeAcked.size();
             isAckSuccessful = false;
 
         } catch (JMSException ex) {
 
             logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID()
+                    + counter + ", messageId:" + message.getJMSMessageID()
                     + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
 
             listOfReceivedInDoubtMessages.addAll(listOfReceivedMessagesToBeAcked);
-            count = count - listOfReceivedMessagesToBeAcked.size();
+            counter = counter - listOfReceivedMessagesToBeAcked.size();
             isAckSuccessful = false;
 
         } finally {
@@ -337,7 +337,7 @@ public class SubscriberClientAck extends Client {
 
             } catch (JMSException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1)
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1)
                         + "ex: " + ex.getMessage());
             }
         }
@@ -504,7 +504,7 @@ public class SubscriberClientAck extends Client {
     }
 
     public int getCount() {
-        return count;
+        return counter;
     }
 
     public static void main(String[] args) throws InterruptedException, Exception {

@@ -75,7 +75,7 @@ public class JournalPropertiesTest extends HornetQTestCase {
         receiver.join();
         Assert.assertEquals(receiver.getCount(), NUM_MESSAGES, "Different number sent and received messages.");
 
-        Assert.assertTrue(numberOfFilesInJournal() == JOURNAL_POOL_FILES, "Number of files in journal is not equal to journal-pool-files param");
+        Assert.assertEquals(numberOfFilesInJournal(), JOURNAL_POOL_FILES, "Number of files in journal is not equal to journal-pool-files param");
 
         container(1).stop();
     }
