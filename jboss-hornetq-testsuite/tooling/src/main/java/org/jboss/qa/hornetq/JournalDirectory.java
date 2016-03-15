@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -44,7 +45,8 @@ public class JournalDirectory {
             if (!path.contains(".."))
                 return path;
             else {
-                String[] pathParts = path.split(File.separator);
+                String pattern = Pattern.quote(File.separator);
+                String[] pathParts = path.split(pattern);
                 for (int i = 0; i < pathParts.length; i++) {
                     if (pathParts[i].equals("..")) {
                         pathParts[i] = null;
