@@ -136,97 +136,97 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
     }
 
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    public void testMessageListenerWitLargeMessage() throws Exception {
-
-        int numberOfMessages = 10000;
-        prepareServer(container(1));
-        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
-
-        container(1).start();
-
-        Context ctx = null;
-        Connection connection = null;
-        Session session = null;
-        Message msg = null;
-
-        try {
-
-            ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
-            MessageBuilder builder = new TextMessageBuilder(1024 * 200);
-            builder.setAddDuplicatedHeader(true);
-            producer1.setMessageBuilder(builder);
-            producer1.setTimeout(0);
-            producer1.setCommitAfter(10);
-            producer1.start();
-
-            ctx = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
-            Queue testQueue = (Queue) ctx.lookup(inQueueJndiName);
-            connection = cf.createConnection();
-
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-            MyMessageListener listener = new MyMessageListener();
-
-            MessageConsumer messageConsumer = session.createConsumer(testQueue);
-            messageConsumer.setMessageListener(listener);
-            connection.start();
-
-            for (int j = 0; j < 50; j++) {
-                Thread.sleep(30000);
-                log.info("Stop server.");
-                container(1).kill();
-                Thread.sleep(30000);
-                container(1).start();
-                log.info("Start server.");
-            }
-
-
-            producer1.join();
-
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueue, 60000, container(1));
-
-            log.info("Number of send messages: " + producer1.getListOfSentMessages().size());
-            log.info("Number of received messages: " + listener.getCount());
-            Assert.assertEquals(producer1.getListOfSentMessages().size(), listener.getCount());
-
-        } finally {
-            if (session != null) {
-                session.close();
-            }
-
-            if (connection != null) {
-                connection.stop();
-                connection.close();
-            }
-
-            if (ctx != null) {
-                ctx.close();
-            }
-        }
-        container(1).stop();
-
-    }
-
-    class MyMessageListener implements MessageListener {
-
-        int counter = 0;
-
-        @Override
-        public void onMessage(Message message) {
-
-            log.info("Message received - count: " + counter++ + " message: " + (TextMessage) message);
-
-        }
-
-        public int getCount() {
-            return counter;
-        }
-    }
+//    @Test
+//    @RunAsClient
+//    @RestoreConfigBeforeTest
+//    @CleanUpBeforeTest
+//    public void testMessageListenerWitLargeMessage() throws Exception {
+//
+//        int numberOfMessages = 10000;
+//        prepareServer(container(1));
+//        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+//
+//        container(1).start();
+//
+//        Context ctx = null;
+//        Connection connection = null;
+//        Session session = null;
+//        Message msg = null;
+//
+//        try {
+//
+//            ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+//            MessageBuilder builder = new TextMessageBuilder(1024 * 200);
+//            builder.setAddDuplicatedHeader(true);
+//            producer1.setMessageBuilder(builder);
+//            producer1.setTimeout(0);
+//            producer1.setCommitAfter(10);
+//            producer1.start();
+//
+//            ctx = container(1).getContext();
+//            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+//            Queue testQueue = (Queue) ctx.lookup(inQueueJndiName);
+//            connection = cf.createConnection();
+//
+//            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+//
+//            MyMessageListener listener = new MyMessageListener();
+//
+//            MessageConsumer messageConsumer = session.createConsumer(testQueue);
+//            messageConsumer.setMessageListener(listener);
+//            connection.start();
+//
+//            for (int j = 0; j < 50; j++) {
+//                Thread.sleep(30000);
+//                log.info("Stop server.");
+//                container(1).kill();
+//                Thread.sleep(30000);
+//                container(1).start();
+//                log.info("Start server.");
+//            }
+//
+//
+//            producer1.join();
+//
+//            new JMSTools().waitUntilMessagesAreStillConsumed(inQueue, 60000, container(1));
+//
+//            log.info("Number of send messages: " + producer1.getListOfSentMessages().size());
+//            log.info("Number of received messages: " + listener.getCount());
+//            Assert.assertEquals(producer1.getListOfSentMessages().size(), listener.getCount());
+//
+//        } finally {
+//            if (session != null) {
+//                session.close();
+//            }
+//
+//            if (connection != null) {
+//                connection.stop();
+//                connection.close();
+//            }
+//
+//            if (ctx != null) {
+//                ctx.close();
+//            }
+//        }
+//        container(1).stop();
+//
+//    }
+//
+//    class MyMessageListener implements MessageListener {
+//
+//        int counter = 0;
+//
+//        @Override
+//        public void onMessage(Message message) {
+//
+//            log.info("Message received - count: " + counter++ + " message: " + (TextMessage) message);
+//
+//        }
+//
+//        public int getCount() {
+//            return counter;
+//        }
+//    }
 
     /**
      * @tpTestDetails Server is started and topic is deployed. Send one large message
