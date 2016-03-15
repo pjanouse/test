@@ -39,7 +39,7 @@ public class AIOJournalLoadTestCase extends HornetQTestCase {
         
         log.info(System.getProperty("os.name"));
         
-        Assume.assumeTrue("This test dont run only on Linux machines", System.getProperty("os.name").contains("Linux"));
+        Assume.assumeTrue("This test run only on Linux machines", System.getProperty("os.name").contains("Linux"));
         
         Container container = container(1);
         
