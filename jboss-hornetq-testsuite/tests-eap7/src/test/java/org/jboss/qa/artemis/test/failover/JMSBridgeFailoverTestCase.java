@@ -133,6 +133,8 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.stopSending();
         producerToInQueue1.join();
 
+        new JMSTools().waitForMessages(outQueueName, producerToInQueue1.getCount(), 180000, outContainer);
+
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3), 1);
         ReceiverClientAck receiver1;
         if (failback) {

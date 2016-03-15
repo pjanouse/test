@@ -44,10 +44,9 @@ public class TransactionUtils {
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
-        while (numberOfPreparedTransaction > toleratedNumberOfTransactions && System.currentTimeMillis() - startTime < timeout) {
+        while (System.currentTimeMillis() - startTime < timeout && numberOfPreparedTransaction != 0) {
 
             numberOfPreparedTransaction = jmsOperations.getNumberOfPreparedTransaction();
-
             Thread.sleep(1000);
 
         }
@@ -55,12 +54,17 @@ public class TransactionUtils {
         jmsOperations.close();
 
         if (System.currentTimeMillis() - startTime > timeout) {
-            log.error("There are prepared transactions in HornetQ/Artemis journal on node: " + container.getName() + " after timeout: " + timeout);
-            if (failTestIfUnfinishedTransactions) {
-                Assert.fail("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction);
+            boolean isInTolerance = numberOfPreparedTransaction <= toleratedNumberOfTransactions;
+            if (isInTolerance) {
+                log.warn("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction + ". That is in tolerance of " + toleratedNumberOfTransactions + " transactions");
             } else {
-                log.warn("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction);
-                return false;
+                log.error("There are prepared transactions in HornetQ/Artemis journal on node: " + container.getName() + " after timeout: " + timeout);
+                if (failTestIfUnfinishedTransactions) {
+                    Assert.fail("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction);
+                } else {
+                    log.warn("There are prepared transactions in HornetQ/Artemis journal - number of prepared transactions is: " + numberOfPreparedTransaction);
+                    return false;
+                }
             }
         }
         return true;
