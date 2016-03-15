@@ -68,7 +68,9 @@ public class JournalPropertiesTest extends HornetQTestCase {
         producer.join();
         Assert.assertEquals(producer.getCount(), NUM_MESSAGES, "Producer does not send all messages.");
 
-        Assert.assertTrue(numberOfFilesInJournal() > JOURNAL_POOL_FILES, "Number of files in journal is not greater than journal-pool-files param");
+        int journalFilesAll = numberOfFilesInJournal();
+        log.info("Number of journal files after all messages send " + journalFilesAll);
+        Assert.assertTrue(journalFilesAll > JOURNAL_POOL_FILES, "Number of files in journal is not greater than journal-pool-files param");
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), queueJNDI);
         receiver.start();
