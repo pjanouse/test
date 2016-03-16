@@ -302,9 +302,9 @@ public class ClusterTestCase extends ClusterTestBase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
 
-        new JMSTools().waitForMessages(inQueueNameForMdb, 300, 60000, container(1), container(2));
+        new JMSTools().waitForMessages(inQueueNameForMdb, 300, 10000, container(1), container(2));
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             container(2).kill();
             Thread.sleep(5000);
             container(2).start();
@@ -322,6 +322,8 @@ public class ClusterTestCase extends ClusterTestBase {
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 20000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.setMessageVerifier(messageVerifier);
+
+
         receiver1.start();
         receiver1.join();
 
