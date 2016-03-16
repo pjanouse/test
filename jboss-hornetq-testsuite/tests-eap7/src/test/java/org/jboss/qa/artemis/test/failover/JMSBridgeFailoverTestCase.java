@@ -130,6 +130,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
         }
 
+        Thread.sleep(30000);    //wait for more messages
         producerToInQueue1.stopSending();
         producerToInQueue1.join();
 
