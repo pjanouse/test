@@ -237,8 +237,8 @@ public class ReceiverClientAck extends Client {
         for (Message inDoubtMessage : listCloneOfInDoubtMessages) {
             inDoubtMessageDupId = inDoubtMessage.getStringProperty(duplicatedHeader);
             for (Message receivedMessage : listOfReceivedMessagesToBeAcked) {
-                receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader);
-                if (receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
+                if (((receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader)) != null) &&
+                        receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
                     logger.info("Duplicated in doubt message was received. Removing message with dup id: " + inDoubtMessageDupId
                             + " and messageId: " + inDoubtMessage.getJMSMessageID() + " from list of in doubt messages");
                     listOfReceivedInDoubtMessages.remove(inDoubtMessage);
