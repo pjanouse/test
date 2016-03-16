@@ -1366,6 +1366,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalCompactPercentage(String serverName, int percentage) {
+        throw new UnsupportedOperationException("setJournalCompactpercentage is not supported for eap5 opeartions");
+    }
+
+    @Override
+    public void setJournalCompactPercentage(int percentage) {
+        throw new UnsupportedOperationException("setJournalCompactPercentage is not supported for eap5 opeartions");
+    }
+
+    @Override
     public void setJournalType(String serverName, String journalType) {
         logger.info("This operation is not supported: " + getMethodName());
     }

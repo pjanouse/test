@@ -49,6 +49,7 @@ public class JournalPropertiesTest extends HornetQTestCase {
         jmsOperations.setJournalMinFiles(2);
         jmsOperations.setJournalPoolFiles(JOURNAL_POOL_FILES);
         jmsOperations.setJournalCompactMinFiles(JOURNAL_POOL_FILES);
+        jmsOperations.setJournalCompactPercentage(100);
         jmsOperations.close();
         container.stop();
     }

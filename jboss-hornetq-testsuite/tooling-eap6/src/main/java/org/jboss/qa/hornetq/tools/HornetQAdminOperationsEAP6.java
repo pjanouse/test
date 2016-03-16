@@ -1369,6 +1369,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("setJournalCompactMinFiles is not supported for eap6 opeartions");
     }
 
+    @Override
+    public void setJournalCompactPercentage(String serverName, int percentage) {
+        throw new UnsupportedOperationException("setJournalCompactPercentage is not supported for eap6 opeartions");
+    }
+
+    @Override
+    public void setJournalCompactPercentage(int percentage) {
+        throw new UnsupportedOperationException("setJournalCompactPercentage is not supported for eap6 opeartions");
+    }
+
     /**
      * Can be "NIO" or "AIO"
      *

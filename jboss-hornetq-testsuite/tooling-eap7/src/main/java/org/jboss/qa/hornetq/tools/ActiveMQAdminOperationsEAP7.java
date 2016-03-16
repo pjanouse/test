@@ -1588,6 +1588,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         setJournalCompactMinFiles(NAME_OF_MESSAGING_DEFAULT_SERVER, numFiles);
     }
 
+    @Override
+    public void setJournalCompactPercentage(int percentage) {
+        setJournalCompactPercentage(NAME_OF_MESSAGING_DEFAULT_SERVER, percentage);
+    }
+
+    @Override
+    public void setJournalCompactPercentage(String serverName, int percentage) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get("name").set("journal-compact-percentage");
+        model.get("value").set(percentage);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Adds journal-type attribute.
      *

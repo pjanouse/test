@@ -1287,6 +1287,23 @@ public interface JMSOperations {
     void setJournalCompactMinFiles(int numFiles);
 
     /**
+     * The threshold to start compacting. When less than this percentage is considered live data, we start compacting.
+     * Note also that compacting won't kick in until you have at least journal-compact-min-files data files on the journal
+     *
+     * @param percentage
+     */
+    void setJournalCompactPercentage(int percentage);
+
+    /**
+     * The threshold to start compacting. When less than this percentage is considered live data, we start compacting.
+     * Note also that compacting won't kick in until you have at least journal-compact-min-files data files on the journal
+     *
+     * @param serverName
+     * @param percentage
+     */
+    void setJournalCompactPercentage(String serverName, int percentage);
+
+    /**
      * Can be "NIO" or "AIO"
      *
      * @param serverName  set name of hornetq server
