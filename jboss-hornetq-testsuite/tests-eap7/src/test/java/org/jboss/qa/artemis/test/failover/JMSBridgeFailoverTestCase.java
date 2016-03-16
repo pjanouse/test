@@ -536,9 +536,9 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         String targetConnectionFactory = "jms/bridgeCF";
         String targetDestination = outQueueJndiName;
         long failureRetryInterval = 1000;
-        long maxBatchSize = 10;
+        long maxBatchSize = 1000;
         long maxBatchTime = 100;
-        boolean addMessageIDInHeader = true;
+        boolean addMessageIDInHeader = false;
         Map<String, String> targetContext = new HashMap<String, String>();
         targetContext.put(Context.INITIAL_CONTEXT_FACTORY, INITIAL_CONTEXT_FACTORY_EAP7);
         targetContext.put(Context.PROVIDER_URL, PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + container(1).getHostname()
