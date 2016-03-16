@@ -110,7 +110,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithProducerLargeMessages1MB() throws Exception {
-        testWithProducer(new TextMessageBuilder(1024 * 1024), false);
+        testWithProducer(new TextMessageBuilder(1024 * 1024), true);
     }
 
     @Ignore("Testing only normal 1kb and large 1mb messages is sufficient")
@@ -144,29 +144,33 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void testKillWithConsumerLargeMessages20MB() throws Exception {
-        testWithConsumer(new TextMessageBuilder(1024 * 1024 * 20), false, true);
+        testWithConsumer(new TextMessageBuilder(1024 * 1024 * 20), true, true);
     }
 
     public void testWithConsumer(MessageBuilder messageBuilder, boolean testKill, boolean isLargeMessages) throws Exception {
+
+        final int numberOfMessages = isLargeMessages ? 80 : 500;
 
         prepareServers();
         container(2).start();
 
         container(1).start();
 
-        ProducerClientAck producer = isLargeMessages ? new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 80) : new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 500);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
         producer.setMessageBuilder(messageBuilder);
 
         SubscriberClientAck subscriber = new SubscriberClientAck(container(1), topicJndiNamePrefix + "0", 30000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
 
-        PublisherClientAck publisher = isLargeMessages ? new PublisherClientAck(container(1), topicJndiNamePrefix + "0", 80, "myClientIdPublisher") : new PublisherClientAck(container(1), topicJndiNamePrefix + "0", 500, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiNamePrefix + "0", numberOfMessages, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
 
         publisher.start();
         producer.start();
         producer.join();
         publisher.join();
+
+        new JMSTools().waitForMessages(queueNamePrefix + "0", numberOfMessages, 18000, container(1));
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 10, 30);
         receiver.setTimeout(1000);
@@ -199,7 +203,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             log.info("############# Server 1 started.");
         }
 
-        CheckServerAvailableUtils.waitForBrokerToActivate(container(1),120000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 120000);
 
         receiver.setTimeout(0);
         subscriber.setTimeout(0);
@@ -243,7 +247,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         producer.start();
 
-        new JMSTools().waitForMessages(queueNamePrefix + "0", 10, 120000, container(1), container(2));
+        new JMSTools().waitForMessages(queueNamePrefix + "0", 20, 120000, container(1));
 
         if (testKill) {
             log.info("############# Kill server 1.");
@@ -264,10 +268,18 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
             log.info("############# Server 1 started.");
         }
 
-        CheckServerAvailableUtils.waitForBrokerToActivate(container(1),120000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 120000);
+
+        Thread.sleep(20000);
 
         producer.stopSending();
         publisher.stopSending();
+        producer.join();
+        publisher.join();
+
+        log.info("Waiting for all messages in queue0");
+        new JMSTools().waitForMessages(queueNamePrefix + "0", producer.getCount(), 180000, container(1));
+        log.info("Finished waiting for all messages in queue0");
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 10, 30);
         receiver.start();
