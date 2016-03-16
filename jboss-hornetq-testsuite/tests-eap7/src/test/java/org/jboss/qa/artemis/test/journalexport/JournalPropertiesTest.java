@@ -49,7 +49,6 @@ public class JournalPropertiesTest extends HornetQTestCase {
         jmsOperations.setJournalMinFiles(2);
         jmsOperations.setJournalPoolFiles(JOURNAL_POOL_FILES);
         jmsOperations.setJournalCompactMinFiles(JOURNAL_POOL_FILES);
-        jmsOperations.setJournalCompactPercentage(100);
         jmsOperations.close();
         container.stop();
     }
@@ -77,6 +76,10 @@ public class JournalPropertiesTest extends HornetQTestCase {
         receiver.start();
         receiver.join();
         Assert.assertEquals(receiver.getCount(), NUM_MESSAGES, "Different number sent and received messages.");
+
+        ProducerAutoAck producer2 = new ProducerAutoAck(container(1), queueJNDI, 10);
+        producer2.start();
+        producer2.join();
 
         Assert.assertEquals(numberOfFilesInJournal(), JOURNAL_POOL_FILES, "Number of files in journal is not equal to journal-pool-files param");
 
