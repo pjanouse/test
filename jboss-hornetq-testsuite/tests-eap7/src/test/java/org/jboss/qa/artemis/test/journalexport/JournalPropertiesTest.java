@@ -47,11 +47,23 @@ public class JournalPropertiesTest extends HornetQTestCase {
         jmsOperations.setLargeMessagesDirectory(JOURNAL_DIRECTORY_A);
         jmsOperations.setJournalFileSize(10 * 1024);
         jmsOperations.setJournalMinFiles(2);
-        jmsOperations.setJournalPoolFiles(JOURNAL_POOL_FILES);
-        jmsOperations.setJournalCompactMinFiles(JOURNAL_POOL_FILES);
+//        jmsOperations.setJournalPoolFiles(JOURNAL_POOL_FILES);
+//        jmsOperations.setJournalCompactMinFiles(JOURNAL_POOL_FILES);
         jmsOperations.close();
         container.stop();
     }
+
+    protected void setupCompacting(Container container) {
+        container.start();
+        JMSOperations jmsOperations = container.getJmsOperations();
+        jmsOperations.setJournalPoolFiles(JOURNAL_POOL_FILES);
+        jmsOperations.setJournalCompactMinFiles(JOURNAL_POOL_FILES);
+        jmsOperations.setJournalCompactPercentage(100);
+        jmsOperations.close();
+        container.stop();
+    }
+
+
 
     @RunAsClient
     @Test
@@ -76,6 +88,10 @@ public class JournalPropertiesTest extends HornetQTestCase {
         receiver.start();
         receiver.join();
         Assert.assertEquals(receiver.getCount(), NUM_MESSAGES, "Different number sent and received messages.");
+
+        container(1).stop();
+        setupCompacting(container(1));
+        container(1).start();
 
         ProducerAutoAck producer2 = new ProducerAutoAck(container(1), queueJNDI, 10);
         producer2.start();
