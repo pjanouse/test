@@ -20,6 +20,9 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -902,6 +905,26 @@ public class Lodh2TestCase extends HornetQTestCase {
     /**
      * @throws Exception
      */
+    @BMRules({
+            @BMRule(name = "Log if LargeMessageControllerImpl.popPacket called",
+                    targetClass = "org.apache.activemq.artemis.core.client.impl.LargeMessageControllerImpl",
+                    targetMethod = "popPacket",
+                    action = "System.out.println(\"org.apache.activemq.artemis.core.client.impl.LargeMessageControllerImpl.poppacket - invoked\")"),
+            @BMRule(name = "Log if LargeMessageControllerImpl.popPacket called",
+                    targetClass = "org.apache.activemq.artemis.core.client.impl.LargeMessageControllerImpl",
+                    targetMethod = "popPacket",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"org.apache.activemq.artemis.core.client.impl.LargeMessageControllerImpl.poppacket. - exit\")"),
+            @BMRule(name = "Log if LargeMessageControllerImpl.popPacket called",
+                    targetClass = "org.hornetq.core.client.impl.LargeMessageControllerImpl",
+                    targetMethod = "popPacket",
+                    action = "System.out.println(\"org.hornetq.core.client.impl.LargeMessageControllerImpl.poppacket - invoked\")"),
+            @BMRule(name = "Log if LargeMessageControllerImpl.popPacket called",
+                    targetClass = "org.hornetq.core.client.impl.LargeMessageControllerImpl",
+                    targetMethod = "popPacket",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"org.hornetq.core.client.impl.LargeMessageControllerImpl.poppacket() - exit\")"),
+    })
     public void testRemoteJcaInCluster(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isFiltered, Container inServer, Container outServer) throws Exception {
 
         prepareRemoteJcaTopology(inServer, outServer);
@@ -911,6 +934,9 @@ public class Lodh2TestCase extends HornetQTestCase {
         // cluster B
         container(2).start();
         container(4).start();
+
+        installBytemanRules(container(2));
+        installBytemanRules(container(4));
 
         ProducerTransAck producer1 = new ProducerTransAck(inServer, inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
@@ -982,11 +1008,15 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(3).stop();
     }
 
-    private void printThreadDumpsOfAllServers() {
+    private void printThreadDumpsOfAllServers() throws IOException {
         ContainerUtils.printThreadDump(container(1));
         ContainerUtils.printThreadDump(container(2));
         ContainerUtils.printThreadDump(container(3));
         ContainerUtils.printThreadDump(container(4));
+    }
+
+    private void installBytemanRules(Container container)  {
+        RuleInstaller.installRule(this.getClass(), container.getHostname(), container.getBytemanPort());
     }
 
 
@@ -1210,6 +1240,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                 logger.info("Start server: " + container.getName());
                 container.start();
                 logger.info("Server: " + container.getName() + " -- STARTED");
+                installBytemanRules(container);
             }
         } else if (FAILURE_TYPE.KILL.equals(failureType)) {
             for (Container container : failureSequence) {
@@ -1219,6 +1250,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                 logger.info("Start server: " + container.getName());
                 container.start();
                 logger.info("Server: " + container.getName() + " -- STARTED");
+                installBytemanRules(container);
             }
         } else if (FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE.equals(failureType)) {
             for (Container container : failureSequence) {
@@ -1229,6 +1261,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                 logger.info("Start server: " + container.getName());
                 container.start();
                 logger.info("Server: " + container.getName() + " -- STARTED");
+                installBytemanRules(container);
             }
         }
     }

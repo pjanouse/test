@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -18,6 +19,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -149,6 +151,8 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
         receiver1.join();
         messageVerifier.addReceivedMessages(receiver1.getListOfReceivedMessages());
 
+        printThreadDumpsOfAllServers();
+
         Assert.assertTrue("There is different number of sent and received messages. Check logs for message IDs of missing/lost messages.",
                 messageVerifier.verifyMessages());
         Assert.assertTrue("There should be no prepared transactions after restart in HornetQ/Artemis but there are!!!", noPreparedTransactions);
@@ -159,6 +163,13 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
         container(4).stop();
         container(3).stop();
         container(1).stop();
+    }
+
+    private void printThreadDumpsOfAllServers() throws IOException {
+        ContainerUtils.printThreadDump(container(1));
+        ContainerUtils.printThreadDump(container(2));
+        ContainerUtils.printThreadDump(container(3));
+        ContainerUtils.printThreadDump(container(4));
     }
 
     @Override
