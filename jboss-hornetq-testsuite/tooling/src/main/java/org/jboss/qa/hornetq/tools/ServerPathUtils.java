@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 /**
  * Utility class for server path discovery independent on server version.
- *
+ * <p>
  * Works for EAP 6 only.
  */
 public class ServerPathUtils {
@@ -22,13 +22,12 @@ public class ServerPathUtils {
 
     /**
      * Returns path to given module root directory (including "main" directory).
-     *
+     * <p>
      * Abstracts user away from eap version and potential patch overlay installed.
      *
-     * @param container EAP root directory
+     * @param container  EAP root directory
      * @param modulePath Module path (e.g. "org/hornetq")
      * @return File with module directory path (e.g. ".../org/hornetq/main" directory)
-     *
      * @throws IOException
      */
     public static File getModuleDirectory(final Container container, final String modulePath) throws IOException {
@@ -45,13 +44,27 @@ public class ServerPathUtils {
     }
 
     /**
-     * Returns path to the directory with module tree root.
+     * Returns path to given data directory
      *
+     * @param container EAP root directory
+     * @return File with module directory path (e.g. ".../org/hornetq/main" directory)
+     * @throws IOException
+     */
+    public static File getStandaloneDataDirectory(final Container container) throws IOException {
+
+        String dataDir = container.getServerHome() + File.separator + "standalone" + File.separator + "data";
+
+        return new File(dataDir);
+
+    }
+
+    /**
+     * Returns path to the directory with module tree root.
+     * <p>
      * Always returns base modules root directory, not overlay root if there's any patch installed.
      *
      * @param eapHome EAP root directory
      * @return File object with directory with modules root.
-     *
      * @throws IOException
      */
     public static File modulesRootDirectory(final String eapHome) throws IOException {
@@ -69,7 +82,6 @@ public class ServerPathUtils {
      *
      * @param container EAP root directory
      * @return File object with directory with active overlay root, or null if there is no patch installed.
-     *
      * @throws IOException
      */
     public static File getOverlayDirectory(final Container container) throws IOException {
