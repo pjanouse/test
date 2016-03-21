@@ -1,27 +1,25 @@
-package org.jboss.qa.hornetq.test.cli.attributes;
+package org.jboss.qa.hornetq.test.soak;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 /**
- * Created by mnovak on 9/16/14.
+ * Created by mnovak on 3/21/16.
  * <p>
- * Test remove Jndi operation.
+ * You need to attach visualVM to check possible memory/thread leak.
+ * <p>
  */
-@Category(FunctionalTests.class)
-public class CliReloadTest extends HornetQTestCase {
+public class CliReloadSoakTestCase extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(CliReloadTest.class);
+    private static final Logger logger = Logger.getLogger(CliReloadSoakTestCase.class);
 
     CliConfiguration cliConf = new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword());
 
@@ -29,8 +27,8 @@ public class CliReloadTest extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void reloadServerTest() throws InterruptedException {
-        reloadServerTest(100);
+    public void reloadServerOOMTest() throws InterruptedException {
+        reloadServerTest(10000);
     }
 
     public void reloadServerTest(int numberOfReloads) throws InterruptedException {
@@ -57,4 +55,5 @@ public class CliReloadTest extends HornetQTestCase {
         container(1).stop();
     }
 }
+
 
