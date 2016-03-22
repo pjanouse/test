@@ -22,7 +22,7 @@
                     -Djboss.modules.policy-permissions=true
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">180</property>
+                <property name="startupTimeoutInSeconds">300</property>
                 <property name="managementAddress" >${MYTESTIP_1}</property>
                 <property name="managementPort">9990</property>
                 <property name="username">admin</property>
@@ -46,7 +46,7 @@
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">180</property>
+                <property name="startupTimeoutInSeconds">300</property>
                 <property name="managementAddress" >${MYTESTIP_2}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
@@ -69,7 +69,7 @@
                     -Djava.net.preferIPv4Stack=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">180</property>
+                <property name="startupTimeoutInSeconds">300</property>
                 <property name="managementAddress" >${MYTESTIP_3}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
@@ -92,7 +92,7 @@
                     -Djava.net.preferIPv4Stack=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
-                <property name="startupTimeoutInSeconds">180</property>
+                <property name="startupTimeoutInSeconds">300</property>
                 <property name="managementAddress" >${MYTESTIP_4}</property>
                 <property name="username">admin</property>
                 <property name="password">minono532/20</property>
