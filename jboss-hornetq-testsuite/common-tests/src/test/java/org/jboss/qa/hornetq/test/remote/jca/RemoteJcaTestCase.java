@@ -1099,6 +1099,8 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
 
+        printThreadDumpsOfAllServers();
+
         Assert.assertTrue("Message verifier detected lost/duplicated messages.", messageVerifier.verifyMessages());
         // assert that number of consumers on both server is almost equal
         Assert.assertTrue("Number of consumers should be almost equal. Number of consumers on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
@@ -1106,12 +1108,20 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
 
+
         container(2).undeploy(mdb1WithRebalancing);
         container(4).undeploy(mdb1WithRebalancing);
         container(2).stop();
         container(1).stop();
         container(3).stop();
         container(4).stop();
+    }
+
+    private void printThreadDumpsOfAllServers() throws IOException {
+        ContainerUtils.printThreadDump(container(1));
+        ContainerUtils.printThreadDump(container(2));
+        ContainerUtils.printThreadDump(container(3));
+        ContainerUtils.printThreadDump(container(4));
     }
 
     /**

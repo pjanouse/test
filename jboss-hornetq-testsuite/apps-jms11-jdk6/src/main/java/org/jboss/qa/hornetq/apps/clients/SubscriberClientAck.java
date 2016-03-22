@@ -162,10 +162,20 @@ public class SubscriberClientAck extends Client {
             }
 
             Message message = null;
-
             Message lastMessage = null;
+            boolean running = true;
+            while (running) {
 
-            while ((message = receiveMessage(subscriber)) != null) {
+                message = receiveMessage(subscriber);
+
+                // in case that ack of last message fails then receive the whole message window again and ack again
+                if (message == null) {
+                    if (acknowledgeMessage(lastMessage)) {
+                        running = false;
+                    }
+                    continue;
+                }
+
                 Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeAcked.add(message);
@@ -183,11 +193,6 @@ public class SubscriberClientAck extends Client {
 
                 // hold information about last message so we can ack it when null is received = topic empty
                 lastMessage = message;
-            }
-
-            if (lastMessage != null && !acknowledgeMessage(lastMessage)) {
-                throw new RuntimeException("Last call message acknowlege was not successful. There might be still messages in the queue.\n" +
-                        "Thus throwing exception.");
             }
 
             addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);

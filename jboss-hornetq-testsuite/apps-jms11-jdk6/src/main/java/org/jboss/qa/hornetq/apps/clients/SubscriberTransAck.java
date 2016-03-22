@@ -135,7 +135,18 @@ public class SubscriberTransAck extends Client {
 
             Message message = null;
 
-            while ((message = receiveMessage(subscriber)) != null) {
+            boolean running = true;
+            while (running) {
+
+                message = receiveMessage(subscriber);
+
+                // in case that commit of last message fails then receive the whole message window again and commit again
+                if (message == null) {
+                    if (commitSession(session)) {
+                        running = false;
+                    }
+                    continue;
+                }
 
                 Thread.sleep(getTimeout());
 
@@ -153,19 +164,7 @@ public class SubscriberTransAck extends Client {
                 }
             }
 
-            boolean isLastCommitSuccessful = commitSession(session);
-            if (!isLastCommitSuccessful)   {
-                throw new Exception("Last call session commit was not successful. There might be still messages in the queue. " +
-                        "Thus throwing exception.");
-            }
-
             addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);
-
-            if (listOfReceivedInDoubtMessages.size() > 0 && listOfReceivedInDoubtMessages.size() % commitAfter != 0)    {
-                throw new Exception("Size of list of in doubt messages (messages for unsuccessful commit) is not multiplication of "
-                        + commitAfter + ". Size of the list is : " + listOfReceivedInDoubtMessages.size() + ". This should never happen " +
-                        "as only every " + commitAfter + "th message is committed.");
-            }
 
             logInDoubtMessages();
 

@@ -163,7 +163,18 @@ public class ReceiverClientAck extends Client {
 
             String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
-            while ((message = receiveMessage(receiver)) != null) {
+            boolean running = true;
+            while (running) {
+
+                message = receiveMessage(receiver);
+
+                // in case that ack of last message fails then receive the whole message window again and ack again
+                if (message == null) {
+                    if (acknowledgeMessage(lastMessage)) {
+                        running = false;
+                    }
+                    continue;
+                }
 
                 Thread.sleep(getTimeout());
 
@@ -185,12 +196,10 @@ public class ReceiverClientAck extends Client {
                 lastMessage = message;
             }
 
-            if (lastMessage != null && !acknowledgeMessage(lastMessage)) {
-                throw new RuntimeException("Last call message acknowlege was not successful. There might be still messages in the queue.\n" +
-                        "Thus throwing exception.");
-            }
-
+            // add all in doubt messages
             addMessages(listOfReceivedMessages, listOfReceivedInDoubtMessages);
+
+            counter = counter + listOfReceivedInDoubtMessages.size();
 
             logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                     + ". Received NULL - number of received messages: " + counter);
