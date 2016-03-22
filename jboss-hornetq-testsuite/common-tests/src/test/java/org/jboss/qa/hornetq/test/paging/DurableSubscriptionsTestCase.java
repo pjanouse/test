@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -203,7 +204,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
             Topic topic = (Topic) context.lookup(TOPIC_JNDI);
 
             producer = new HighLoadProducerWithSemaphores("producer", topic, cf, semaphores[0], gapBetweenConsumers,
-                    messagesCount, messageBuilder);
+                    messagesCount, messageBuilder, ContainerUtils.getJMSImplementation(container(1)));
             for (int i = 0; i < consumers.length; i++) {
                 consumers[i] = new HighLoadConsumerWithSemaphores("consumer " + i, topic, cf, semaphores[i],
                         (i + 1 < semaphores.length) ? semaphores[i + 1] : null,
