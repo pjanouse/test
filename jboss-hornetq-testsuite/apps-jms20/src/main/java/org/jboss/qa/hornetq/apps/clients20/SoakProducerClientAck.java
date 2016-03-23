@@ -37,7 +37,6 @@ public class SoakProducerClientAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private Exception exception = null;
     private boolean stop = false;
-    private int counter = 0;
 
     /**
      * @param container         EAP container

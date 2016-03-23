@@ -31,8 +31,6 @@ public class SoakPublisherClientAck extends Client {
     private String clientId;
     private boolean stop = false;
 
-    private int counter = 0;
-
     /**
      * @param container         EAP container
      * @param topicNameJndi     jndi name of topic to publish messages

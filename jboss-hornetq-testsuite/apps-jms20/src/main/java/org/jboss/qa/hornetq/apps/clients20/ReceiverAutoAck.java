@@ -24,7 +24,6 @@ public class ReceiverAutoAck extends Client {
     private long receiveTimeOut;
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
-    private int count = 0;
     private Exception exception = null;
     private boolean securityEnabled = false;
     private String userName;
@@ -86,15 +85,15 @@ public class ReceiverAutoAck extends Client {
 
                     addMessage(listOfReceivedMessages, message);
 
-                    count++;
+                    counter++;
 
                     logger.debug("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
                             + ". Received message - count: "
-                            + count + ", messageId:" + message.getJMSMessageID());
+                            + counter + ", messageId:" + message.getJMSMessageID());
                 }
 
                 logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
-                        + ". Received NULL - number of received messages: " + count);
+                        + ". Received NULL - number of received messages: " + counter);
 
                 if (messageVerifier != null) {
                     messageVerifier.addReceivedMessages(listOfReceivedMessages);
@@ -146,7 +145,7 @@ public class ReceiverAutoAck extends Client {
 
             } catch (JMSRuntimeException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (count + 1));
+                logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (counter + 1));
             }
         }
 
@@ -312,7 +311,7 @@ public class ReceiverAutoAck extends Client {
     }
 
     public int getCount() {
-        return count;
+        return counter;
     }
 
 }

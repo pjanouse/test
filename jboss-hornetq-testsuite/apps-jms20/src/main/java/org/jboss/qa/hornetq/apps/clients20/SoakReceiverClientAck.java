@@ -24,7 +24,6 @@ public class SoakReceiverClientAck extends Client {
     private long receiveTimeOut;
     private int ackAfter;
     private List<String> listOfReceivedMessages = new ArrayList<String>();
-    private int count = 0;
     private Exception exception = null;
 
     /**
@@ -72,13 +71,13 @@ public class SoakReceiverClientAck extends Client {
 
                 while ((message = receiveMessage(receiver)) != null) {
 
-                    count++;
-                    if (count % ackAfter == 0) { // try to ack message
+                    counter++;
+                    if (counter % ackAfter == 0) { // try to ack message
                         acknowledgeMessage(message);
                     } else { // i don't want to ack now
                         logger.debug("Receiver for node: " + hostname + " and queue: " + queueNameJndi
                                 + ". Received message - count: "
-                                + count + ", message-counter: " + message.getStringProperty("counter")
+                                + counter + ", message-counter: " + message.getStringProperty("counter")
                                 + ", messageId:" + message.getJMSMessageID());
                     }
                     listOfReceivedMessages.add(message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
@@ -91,7 +90,7 @@ public class SoakReceiverClientAck extends Client {
                 }
 
                 logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
-                        + ". Received NULL - number of received messages: " + count);
+                        + ". Received NULL - number of received messages: " + counter);
             }
 
 
@@ -124,14 +123,14 @@ public class SoakReceiverClientAck extends Client {
             logger.info("Try to ack message: " + message);
             message.acknowledge();
             logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", message-counter: " + message.getStringProperty("counter")
+                    + counter + ", message-counter: " + message.getStringProperty("counter")
                     + ", messageId:" + message.getJMSMessageID() + " SENT ACKNOWLEDGE");
 
         } catch (Exception ex) {
             logger.error("Exception thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + count + ", messageId:" + message.getJMSMessageID());
+                    + counter + ", messageId:" + message.getJMSMessageID());
             ex.printStackTrace();
-            setCount(count - ackAfter);
+            setCount(counter - ackAfter);
         }
     }
 
@@ -159,7 +158,7 @@ public class SoakReceiverClientAck extends Client {
 
             } catch (JMSRuntimeException ex) {
                 numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (count + 1));
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1));
             }
         }
 
@@ -254,14 +253,14 @@ public class SoakReceiverClientAck extends Client {
      * @return the count
      */
     public int getCount() {
-        return count;
+        return counter;
     }
 
     /**
      * @param count the count to set
      */
     public void setCount(int count) {
-        this.count = count;
+        this.counter = count;
     }
 
     public long getReceiveTimeOut() {

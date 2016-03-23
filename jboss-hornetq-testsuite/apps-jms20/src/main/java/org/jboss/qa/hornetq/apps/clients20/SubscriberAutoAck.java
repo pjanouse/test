@@ -27,7 +27,6 @@ public class SubscriberAutoAck extends Client {
     private FinalTestMessageVerifier messageVerifier;
     private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
     private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
-    private int count = 0;
     private Exception exception = null;
     private String subscriberName;
     private String clientId;
@@ -85,15 +84,15 @@ public class SubscriberAutoAck extends Client {
 
                 addMessage(listOfReceivedMessages, message);
 
-                count++;
+                counter++;
 
                 logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
                         + ". Received message - count: "
-                        + count + ", messageId:" + message.getJMSMessageID());
+                        + counter + ", messageId:" + message.getJMSMessageID());
             }
 
             logger.info("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
-                    + ". Received NULL - number of received messages: " + count);
+                    + ". Received NULL - number of received messages: " + counter);
 
             if (messageVerifier != null) {
                 messageVerifier.addReceivedMessages(listOfReceivedMessages);
@@ -254,7 +253,7 @@ public class SubscriberAutoAck extends Client {
     }
 
     public int getCount() {
-        return count;
+        return counter;
     }
 
     /**
