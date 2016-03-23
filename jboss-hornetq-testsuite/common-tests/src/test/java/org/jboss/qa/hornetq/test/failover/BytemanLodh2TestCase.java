@@ -279,7 +279,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2KillWithFiltersOnTransactionCommit() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
+        testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false, true);
     }
 
     /**
@@ -308,7 +308,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     public void testSimpleLodh2KillWithFiltersOnTransactionPrepare() throws Exception {
         List<Container> failureSequence = new ArrayList<Container>();
         failureSequence.add(container(2));
-        testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false);
+        testRemoteJcaInCluster(failureSequence, SHORT_TEST_NUMBER_OF_MESSAGES, false, true);
     }
 
     /**
