@@ -391,9 +391,6 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
                 jmsAdminOperations.setClustered(true);
 
             }
-            if (JMSTools.isIpv6Address(container.getHostname())) {
-                jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
-            }
             jmsAdminOperations.setPersistenceEnabled(true);
 
             jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);

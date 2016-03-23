@@ -61,10 +61,6 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
             jmsAdminOperations.setSharedStore(true);
         }
 
-        if (JMSTools.isIpv6Address(container.getHostname())) {
-            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
-        }
-
         jmsAdminOperations.setPersistenceEnabled(true);
 
 

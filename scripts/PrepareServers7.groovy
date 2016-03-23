@@ -353,6 +353,7 @@ public class PrepareServers7 {
 //        enableDebugConsle(standaloneProfile)
 
         setupSocketBingingGroup(standaloneDocument)
+        parametrizeModCluster(standaloneDocument)
 
         new XmlNodePrinter(new IndentPrinter(new FileWriter(standaloneTemp))).print(standaloneDocument)
         copyFile(standaloneTemp, standaloneFile)
@@ -504,6 +505,11 @@ public class PrepareServers7 {
         //consoleHandler.formatter.'named-formatter'.each{ consoleHandler.formatter.remove(it) }
         //def formatter = consoleHandler.appendNode('formatter')
         //formatter.appendNode('pattern-formatter', [pattern:'%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'])
+    }
+
+    private static void parametrizeModCluster(Node standaloneDoc) {
+        def socketBinding = standaloneDoc.'socket-binding-group'.'socket-binding'.find { it.@name == 'modcluster' }
+        socketBinding.'@multicast-address' = '${jboss.default.multicast.address:224.0.1.105}'
     }
 
     private static void cloneProfiles(Node profiles, Node originalProfile) {

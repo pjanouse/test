@@ -261,9 +261,6 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             jmsAdminOperations.setClustered(false);
             jmsAdminOperations.setSharedStore(true);
         }
-        if (JMSTools.isIpv6Address(container.getHostname())) {
-            jmsAdminOperations.setMulticastAddressOnSocketBinding("modcluster", System.getenv("MCAST_ADDRV6"));
-        }
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 100 * 1024);
