@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 
 import javax.annotation.Resource;
@@ -12,6 +13,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,6 +41,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
     public static AtomicInteger numberOfProcessedMessages = new AtomicInteger();
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbWithRemoteOutQueueWithOutQueueLookups.class.getName());
+    private static final JMSImplementation jmsImplementation = ServiceLoader.load(JMSImplementation.class).iterator().next();
 
     private String outQueueJndiName = "jms/queue/OutQueue";
 
@@ -80,7 +83,7 @@ public class MdbWithRemoteOutQueueWithOutQueueLookups implements MessageListener
             MessageProducer sender = session.createProducer(outQueue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
-            newMessage.setStringProperty("_HQ_DUPL_ID", message.getStringProperty("_HQ_DUPL_ID"));
+            newMessage.setStringProperty(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             sender.send(newMessage);
             con.close();
 
