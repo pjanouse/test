@@ -16,6 +16,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
@@ -28,6 +29,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -82,13 +84,17 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
     @TargetsContainer(SERVER_GROUP2)
-    public static Archive getDeployment1() throws Exception {
+    public Archive getDeployment1() throws Exception {
         File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
         writer.close();
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
@@ -97,10 +103,14 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_MAPPED_NAME)
     @TargetsContainer(SERVER_GROUP2)
-    public static Archive getDeploymentMdbWithProperties() throws Exception {
+    public Archive getDeploymentMdbWithProperties() throws Exception {
 
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_MAPPED_NAME + ".jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementProperties.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
@@ -116,10 +126,14 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_WITH_PROPERTIES_NAME)
     @TargetsContainer(SERVER_GROUP2)
-    public static Archive getDeploymentMdbWithPropertiesName() throws Exception {
+    public Archive getDeploymentMdbWithPropertiesName() throws Exception {
 
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, MDB_WITH_PROPERTIES_NAME + ".jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
 
@@ -135,13 +149,17 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_2)
     @TargetsContainer(SERVER_GROUP4)
-    public static Archive getDeployment2() throws Exception {
+    public Archive getDeployment2() throws Exception {
 
         File propertyFile = new File(getJbossHome(CONTAINER4_NAME)+ File.separator + "mdb2.properties");
         PrintWriter writer = new PrintWriter(propertyFile);
         writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
         writer.close();
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
@@ -151,9 +169,13 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_WITH_FILTER_1)
     @TargetsContainer(SERVER_GROUP2)
-    public static Archive getDeploymentWithFilter1() throws Exception {
+    public Archive getDeploymentWithFilter1() throws Exception {
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
@@ -162,10 +184,13 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_WITH_FILTER_2)
     @TargetsContainer(SERVER_GROUP4)
-    public static Archive getDeploymentWithFilter2() throws Exception {
-
+    public Archive getDeploymentWithFilter2() throws Exception {
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
@@ -173,10 +198,13 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_ON_NON_DURABLE_TOPIC)
     @TargetsContainer(SERVER_GROUP2)
-    public static Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
-
+    public Archive getDeploymentNonDurableMdbOnTopic() throws Exception {
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;

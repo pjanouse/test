@@ -25,6 +25,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -150,6 +151,10 @@ public class Lodh2TestCase extends HornetQTestCase {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbWithPropertiesName.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
 
         //          Uncomment when you want to see what's in the servlet

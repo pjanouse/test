@@ -147,30 +147,50 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
         writer.println("remote-jms-server=" + container(3).getHostname());
         writer.close();
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(3));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner2.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
 
     public Archive getDeploymentWithFilter1() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter1.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
 
     }
 
     public Archive getDeploymentWithFilter2() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(3));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2WithFilter.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaninerWithFilter2.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
 
     public Archive getDeploymentNonDurableMdbOnTopic() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(2));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "nonDurableMdbOnTopic.jar");
         mdbJar.addClasses(MdbListenningOnNonDurableTopic.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }

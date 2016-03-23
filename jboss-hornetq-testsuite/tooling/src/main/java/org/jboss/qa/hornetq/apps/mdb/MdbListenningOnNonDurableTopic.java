@@ -2,10 +2,12 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
+import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,6 +32,7 @@ public class    MdbListenningOnNonDurableTopic implements MessageListener {
 
     private static final long serialVersionUID = 2770941392406343837L;
     private static final Logger log = Logger.getLogger(MdbListenningOnNonDurableTopic.class.getName());
+    private static final JMSImplementation jmsImplementation = ServiceLoader.load(JMSImplementation.class).iterator().next();
     private Queue queue = null;
     public static AtomicInteger numberOfProcessedMessages= new AtomicInteger();
 
@@ -70,6 +73,7 @@ public class    MdbListenningOnNonDurableTopic implements MessageListener {
             MessageProducer sender = session.createProducer(queue);
             TextMessage newMessage = session.createTextMessage(text);
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
+            newMessage.setStringProperty(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
             sender.send(newMessage);
 
             int count = 0;
