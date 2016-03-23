@@ -6,6 +6,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.junit.Assert;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -109,14 +110,25 @@ public class CheckServerAvailableUtils {
 
     public static void waitForBrokerToDeactivate(Container container, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
-        JMSOperations jmsOperations = container.getJmsOperations();
-        while (jmsOperations.isActive("default")) {
-            Thread.sleep(1000);
-            if (System.currentTimeMillis() - startTime > timeout) {
-                Assert.fail("Server " + container.getName() + " should be down. Timeout was " + timeout);
+
+        for (int i = 0; i < 3; i++) {
+            try {
+                JMSOperations jmsOperations = container.getJmsOperations();
+                while (jmsOperations.isActive("default")) {
+                    Thread.sleep(1000);
+                    if (System.currentTimeMillis() - startTime > timeout) {
+                        Assert.fail("Server " + container.getName() + " should be down. Timeout was " + timeout);
+                    }
+                }
+                jmsOperations.close();
+                break;
+            } catch (Exception ex) {
+                log.error("Exception thrown during getting isActive() from container: " + container.getName() + " number of tries: " + i, ex);
             }
         }
-        jmsOperations.close();
+        // we should never get here
+        throw new RuntimeException("Checking status isActive() of container " + container.getName() + " was not successful." +
+                " Thus throwing exception to fail the test. Check test logs for more details.");
     }
 
     public static void waitForBrokerToActivate(Container container, long timeout) throws Exception {
