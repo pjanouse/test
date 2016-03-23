@@ -319,6 +319,11 @@ public class ContainerEAP7 implements Container {
             if (System.currentTimeMillis() - startTime > timeout) {
                 Assert.fail("Server: " + getName() + " was not killed in timeout: " + timeout);
             }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                //ignore
+            }
         }
     }
 

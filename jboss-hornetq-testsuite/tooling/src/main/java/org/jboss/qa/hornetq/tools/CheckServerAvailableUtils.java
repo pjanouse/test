@@ -41,6 +41,8 @@ public class CheckServerAvailableUtils {
             socket.connect(new InetSocketAddress(ipAddress, port), 100);
             return true;
         } catch (Exception ex) {
+            return false;
+        } finally {
             if (socket != null) {
                 try {
                     socket.close();
@@ -48,7 +50,6 @@ public class CheckServerAvailableUtils {
                     e.printStackTrace();
                 }
             }
-            return false;
         }
     }
 
