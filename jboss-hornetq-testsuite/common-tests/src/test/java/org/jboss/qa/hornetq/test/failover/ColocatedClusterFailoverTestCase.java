@@ -1434,7 +1434,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
         String pooledConnectionFactoryName = "activemq-ra";
         String jgroupsChannel = "activemq-cluster";
-        String jgroupsStack = "udp";
 
 
         container.start();
@@ -1451,8 +1450,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
         jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
 
-        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, jgroupsStack, jgroupsChannel, 1000, connectorName);
-        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, null, jgroupsChannel, 1000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, null, jgroupsChannel);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
         jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
 
@@ -1498,7 +1497,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         int defaultPortForMessagingSocketBinding = 5445;
         String discoveryGroupName = "dg-group1";
         String jgroupsChannel = "activemq-cluster";
-        String jgroupsStack = "udp";
         String broadcastGroupName = "bg-group1";
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -1524,7 +1522,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeClusteringGroup(serverName, clusterConnectionName);
                 jmsAdminOperations.setClusterConnections(serverName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
                 jmsAdminOperations.removeBroadcastGroup(serverName, broadcastGroupName);
-                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
+                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, null, jgroupsChannel, 1000, nettyConnectorName);
                 break;
             case NETTY_NIO:
                 jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingForConnector, defaultPortForMessagingSocketBinding);
@@ -1548,7 +1546,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                 jmsAdminOperations.removeClusteringGroup(serverName, clusterConnectionName);
                 jmsAdminOperations.setClusterConnections(serverName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, nettyConnectorName);
                 jmsAdminOperations.removeBroadcastGroup(serverName, broadcastGroupName);
-                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, jgroupsStack, jgroupsChannel, 1000, nettyConnectorName);
+                jmsAdminOperations.setBroadCastGroup(serverName, broadcastGroupName, null, jgroupsChannel, 1000, nettyConnectorName);
                 break;
             default:
                 break;
@@ -1560,7 +1558,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
 
         jmsAdminOperations.removeDiscoveryGroup(serverName, discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(serverName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.setDiscoveryGroup(serverName, discoveryGroupName, 1000, null, jgroupsChannel);
 
         jmsAdminOperations.close();
     }
