@@ -121,7 +121,7 @@ public class CheckServerAvailableUtils {
                     }
                 }
                 jmsOperations.close();
-                break;
+                return;
             } catch (Exception ex) {
                 log.error("Exception thrown during getting isActive() from container: " + container.getName() + " number of tries: " + i, ex);
             }
