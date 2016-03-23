@@ -22,6 +22,7 @@ import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -126,25 +127,21 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Kill server when a number of messages were received HQ",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Kill server when a number of messages were received AMQ",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
-                    targetMethod = "processRoute",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server when a number of messages were received",
-                    targetClass = "org.apache.activemq.artemis.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFail(acknowledge, failback, topic, shutdown, Constants.CONNECTOR_TYPE.NETTY_NIO);
+    }
 
-        prepareColocatedTopologyInCluster();
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+
+        prepareColocatedTopologyInCluster(connectorType);
 
         container(2).start();
 
@@ -172,7 +169,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
             container(1).stop();
         } else {
             // install rule to first server
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_PORT);
+            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
             container(1).waitForKill();
         }
 
@@ -185,8 +182,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
             logger.info("failback - Start first server again ");
             logger.info("########################################");
             container(1).start();
-            Assert.assertTrue("Live on server 1 did not start again after failback - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(
-                    container(1).getHostname(), container(1).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
 //            Thread.sleep(10000);
 //            logger.info("########################################");
 //            logger.info("failback - Stop second server to be sure that failback occurred");
@@ -238,7 +234,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsKill() throws Exception {
+    public void testFailbackWithMdbsKill() throws Exception {
 
         testFailWithMdbs(false);
     }
@@ -264,14 +260,14 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testFailoverWithMdbsShutdown() throws Exception {
+    public void testFailbackWithMdbsShutdown() throws Exception {
 
         testFailWithMdbs(true);
     }
 
     public void testFailWithMdbs(boolean shutdown) throws Exception {
 
-        prepareColocatedTopologyInCluster();
+        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
 
         container(2).start();
 
@@ -286,7 +282,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
+        producerToInQueue1.setCommitAfter(100);
         FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
@@ -311,7 +307,8 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         // when 1/2 is processed then start 2nd server
         new JMSTools().waitForMessages(outQueueName, numberOfMessages / 2, 120000, container(1));
 
-        Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqBackupPort(), 300000));
+        Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(),
+                Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 + container(1).getPortOffset(), 300000));
         Thread.sleep(10000);
 
         logger.info("########################################");
@@ -322,7 +319,9 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         logger.info("Second server started");
         logger.info("########################################");
 
-        Assert.assertTrue("Live server 2 is not up again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000));
+        logger.warn("Wait some time (5 min) to give chance live in container 2 to come alive after failback.");
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
+        logger.warn("Live in container is alive.");
         new JMSTools().waitForMessages(outQueueName, numberOfMessages, 120000, container(1), container(2));
 
         logger.info("Get information about transactions from HQ:");
@@ -445,8 +444,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
-        prepareLiveServerEAP6(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
-        prepareLiveServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
+        prepareTwoNodeClusterTopology(Constants.CONNECTOR_TYPE.NETTY_NIO);
 
         container(2).start();
         container(1).start();
@@ -459,8 +457,8 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        producerToInQueue1.setCommitAfter(100);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -692,7 +690,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
         int number_of_messages = 200;
 
-        prepareColocatedTopologyInCluster();
+        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
 
         configureMessageGrouping();
 
@@ -702,7 +700,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
         logger.info("@@@@@@@@@@@@@@@ SERVERS RUNNING @@@@@@@@@@@");
 
-        GroupMessageVerifier messageVerifier = new GroupMessageVerifier(ArtemisJMSImplementation.getInstance());
+        GroupMessageVerifier messageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueue, number_of_messages);
 
@@ -731,6 +729,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         logger.info("@@@@@@@@@@@@@@@ PRODUCERS RUNNING @@@@@@@@@@@");
         Thread.sleep(8000);
 
+        logger.info("################ KILL #######################");
         if (useKill) {
             containerToKill.kill();
         } else {
@@ -803,6 +802,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         long groupTimeout = 500;
         long reaperPeriod = 750;
         String liveServerName = "default";
+        String backupServerName = "backup";
 
         container(1).start();
 
@@ -813,8 +813,10 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         JMSOperations jmsAdminOperationsC2 = container(2).getJmsOperations();
 
         jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
 
         jmsAdminOperationsC2.addMessageGrouping(liveServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
 
         jmsAdminOperationsC1.close();
 
@@ -847,15 +849,15 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueue.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb1.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb1.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -866,15 +868,15 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
         mdbJar.addClass(LocalMdbFromQueue.class);
 
-        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
+        mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
         logger.info(mdbJar.toString(true));
 //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb2.jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        mdbJar.as(ZipExporter.class).exportTo(target, true);
+//        File target = new File("/tmp/mdb2.jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
     }
@@ -1050,6 +1052,27 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
     /**
      * @tpTestDetails This test scenario tests failover and failback of clients connected to queue (using SESSION_TRANSACTED session)
+     * on node which is killed in colocated cluster topology.
+     * @tpProcedure <ul>
+     * <li>start two nodes in colocated cluster topology</li>
+     * <li>start sending large messages with group id to inQueue on node-1 and receiving them from inQueue on node-1</li>
+     * <li>during sending and receiving kill node-1</li>
+     * <li>producer and consumer make failover on backup and continue in sending and receiving messages</li>
+     * <li>after producer sends 500 messages start node-1 again and wait for failback</li>
+     * <li>stop producer and consumer</li>
+     * </ul>
+     * @tpPassCrit receiver get all sent messages, none of clients gets any exception, failback was successful
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testFailbackTransAckQueueHttpConnectors() throws Exception {
+        testFail(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+    }
+
+    /**
+     * @tpTestDetails This test scenario tests failover and failback of clients connected to queue (using SESSION_TRANSACTED session)
      * on node which is killed in colocated cluster topology. NIO journal type is used.
      * @tpProcedure <ul>
      * <li>start two nodes in colocated cluster topology with NIO journal type</li>
@@ -1210,14 +1233,9 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
 
     }
 
-
     /**
      * Prepare two servers in colocated topology in cluster.
      */
-    public void prepareColocatedTopologyInCluster() {
-        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
-    }
-
     public void prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE connectorType) {
         if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
             prepareColocatedTopologyInClusterEAP7(connectorType);
@@ -1237,12 +1255,29 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         prepareColocatedBackupServerEAP6(container(2), "backup", JOURNAL_DIRECTORY_A, journalType);
     }
 
+    /**
+     * Prepare two servers in colocated topology in cluster.
+     */
     public void prepareColocatedTopologyInClusterEAP7(Constants.CONNECTOR_TYPE connectorType) {
         String journalType = getJournalType();
         prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, journalType, connectorType);
         prepareBackupServerEAP7(container(1), JOURNAL_DIRECTORY_B, journalType);
         prepareLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, connectorType);
         prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_A, journalType);
+    }
+
+    /**
+     * Prepare two servers in cluster (without backups).
+     */
+    public void prepareTwoNodeClusterTopology(Constants.CONNECTOR_TYPE connectorType) {
+        if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
+            String journalType = getJournalType();
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, journalType, connectorType);
+            prepareLiveServerEAP7(container(2), JOURNAL_DIRECTORY_B, journalType, connectorType);
+        } else {
+            prepareLiveServerEAP6(container(1), container(1).getHostname(), JOURNAL_DIRECTORY_A);
+            prepareLiveServerEAP6(container(2), container(2).getHostname(), JOURNAL_DIRECTORY_B);
+        }
     }
 
 
@@ -1356,17 +1391,11 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
     }
 
     /**
-     * Prepares colocated backup. It creates new configuration of backup server.
+     * Prepares live server for dedicated topology.
      *
-     * @param container            The arquilian container.
-     * @param backupServerName     Name of the new HornetQ backup server.
-     * @param journalDirectoryPath Absolute or relative path to journal directory.
+     * @param container        test container - defined in arquillian.xml
+     * @param journalDirectory path to journal directory
      */
-    public void prepareColocatedBackupServerEAP6(Container container,
-                                                 String backupServerName, String journalDirectoryPath) {
-        prepareColocatedBackupServerEAP6(container, backupServerName, journalDirectoryPath, "ASYNCIO");
-    }
-
     public void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         container.start();
@@ -1541,6 +1570,18 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         jmsAdminOperations.setDiscoveryGroup(serverName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
 
         jmsAdminOperations.close();
+    }
+
+    /**
+     * Prepares colocated backup. It creates new configuration of backup server.
+     *
+     * @param container            The arquilian container.
+     * @param backupServerName     Name of the new HornetQ backup server.
+     * @param journalDirectoryPath Absolute or relative path to journal directory.
+     */
+    public void prepareColocatedBackupServerEAP6(Container container,
+                                                 String backupServerName, String journalDirectoryPath) {
+        prepareColocatedBackupServerEAP6(container, backupServerName, journalDirectoryPath, "ASYNCIO");
     }
 
     /**
