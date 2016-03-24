@@ -144,10 +144,7 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
     public void testOracle12cMdbCpu() throws Exception {
         testFail(ORACLE12C, container(2), Constants.FAILURE_TYPE.CPU_OVERLOAD);
     }
-
-
-
-
+    
     public void testFail(String databaseName, Container containerToFail, Constants.FAILURE_TYPE failureType) throws Exception {
 
         int numberOfMessages = 2000;
@@ -281,8 +278,10 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
     public void deallocateDatabase() throws Exception {
         String response = "";
         try {
-            response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
-                    20, TimeUnit.SECONDS);
+            if (properties != null) {
+                response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
+                        20, TimeUnit.SECONDS);
+            }
         } catch (TimeoutException e) {
             logger.error("Database could not be deallocated. Response: " + response, e);
 
