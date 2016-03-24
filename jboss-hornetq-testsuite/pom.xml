@@ -37,7 +37,7 @@
 
 
         <arquillian.version>1.1.1.Final</arquillian.version>
-        <artemis.version>1.1.0.wildfly-010</artemis.version>
+        <artemis.version>1.1.0.wildfly-014</artemis.version>
         <artemis.wildfly.integration>1.0.2</artemis.wildfly.integration>
         <version.shrinkwrap.resolvers>2.0.0</version.shrinkwrap.resolvers>
         <version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>
@@ -741,16 +741,50 @@
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-server</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-service-extensions</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.activemq.artemis.integration</groupId>
@@ -867,16 +901,50 @@
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-server</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-service-extensions</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.activemq.artemis.integration</groupId>
@@ -1108,16 +1176,50 @@
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-server</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-service-extensions</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.activemq.artemis.integration</groupId>
@@ -1233,16 +1335,50 @@
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-server</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-journal</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>artemis-service-extensions</artifactId>
                     <version>${artemis.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-jms-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-core-client</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>artemis-commons</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.activemq.artemis.integration</groupId>
