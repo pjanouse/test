@@ -66,4 +66,8 @@ public class ContainerUtils {
             log.warn("Calling kill -3 for process  " + pid + " failed. There is probably no such process.", ex);
         }
     }
+
+    public static boolean isStarted(Container container)    {
+        return CheckServerAvailableUtils.checkThatServerIsReallyUp(container);
+    }
 }
