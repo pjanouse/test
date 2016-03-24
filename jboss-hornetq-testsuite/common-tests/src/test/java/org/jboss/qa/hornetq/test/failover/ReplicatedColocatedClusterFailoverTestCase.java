@@ -119,7 +119,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
         String pooledConnectionFactoryName = "activemq-ra";
         String jgroupsChannel = "activemq-cluster";
-        String jgroupsStack = "udp";
 
 
         container.start();
@@ -137,8 +136,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
         jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
 
-        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, jgroupsStack, jgroupsChannel, 1000, connectorName);
-        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, jgroupsStack, jgroupsChannel);
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, null, jgroupsChannel, 1000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, null, jgroupsChannel);
         jmsAdminOperations.setClusterConnections(backupServerName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
         jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
 
