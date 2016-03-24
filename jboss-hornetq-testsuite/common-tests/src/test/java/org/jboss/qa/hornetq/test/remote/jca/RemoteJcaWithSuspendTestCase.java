@@ -79,8 +79,6 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
 
     private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
 
-
-
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
         } else {

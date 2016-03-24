@@ -17,5 +17,10 @@
             <version>1.0.0.Final</version>
             <type>jar</type>
         </dependency>
+        <dependency> <!-- this is necessary for memory measurement -->
+            <groupId>jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.0.9</version>
+        </dependency>
     </dependencies>
 </project>

@@ -81,25 +81,6 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
     }
 
 
-    /**
-     * @tpTestDetails Start server with MDB which read messages from queue and
-     * insert them to Oracle 12c database. Kill server when the MDB is
-     * processing messages.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
-     * @tpProcedure <ul>
-     * <li>start server container with deployed InQueue</li>
-     * <li>send messages to InQueue</li>
-     * <li>deploy MDB which reads messages from InQueue and for each message
-     * inserts a new record to the database (in XA transaction)</li>
-     * <li>kill the server container when the MDB is processing messages and
-     * restart it</li>
-     * <li>read the messages from OutQueue</li>
-     * </ul>
-     * @tpPassCrit The database must contain the same number of records as the
-     * number of sent messages
-     * @tpSince 6.2.0
-     */
     @RunAsClient
     @Test
     @CleanUpBeforeTest
@@ -107,6 +88,64 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
     public void testOracle12cKillJms() throws Exception {
         testFail(ORACLE12C, container(1), Constants.FAILURE_TYPE.KILL);
     }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cJmsShutdown() throws Exception {
+        testFail(ORACLE12C, container(1), Constants.FAILURE_TYPE.SHUTDOWN);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cJmsOOM() throws Exception {
+        testFail(ORACLE12C, container(1), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cJmsCpu() throws Exception {
+        testFail(ORACLE12C, container(1), Constants.FAILURE_TYPE.CPU_OVERLOAD);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cMdbJms() throws Exception {
+        testFail(ORACLE12C, container(2), Constants.FAILURE_TYPE.KILL);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cMdbShutdown() throws Exception {
+        testFail(ORACLE12C, container(2), Constants.FAILURE_TYPE.SHUTDOWN);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cMdbOOM() throws Exception {
+        testFail(ORACLE12C, container(2), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testOracle12cMdbCpu() throws Exception {
+        testFail(ORACLE12C, container(2), Constants.FAILURE_TYPE.CPU_OVERLOAD);
+    }
+
+
 
 
     public void testFail(String databaseName, Container containerToFail, Constants.FAILURE_TYPE failureType) throws Exception {
@@ -173,15 +212,17 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
 
         containerToFail.fail(failureType);
 
-        if (Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE.equals(failureType)) {
+        if (Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE.equals(failureType) ||
+                Constants.FAILURE_TYPE.CPU_OVERLOAD.equals(failureType)) {
             try {
                 Thread.sleep(300000);
             } catch (InterruptedException e) {
                 // ignore
             }
+            containerToFail.kill();
         }
-
         containerToFail.start();
+
     }
 
     private void prepareServers(String databaseName) throws Exception {
@@ -196,7 +237,6 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         List<String> listOfLostMessages = new ArrayList<String>();
 
         Set<String> setOfReceivedMessages = new HashSet<String>();
-
         for (String id : listOfReceivedMessages) {
             setOfReceivedMessages.add(id);
         }
@@ -315,11 +355,9 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         String connectorName = "http-connector";
         String groupAddress = "233.6.88.5";
 
-        String inVmConnectorName = "in-vm";
         String remoteConnectorName = "http-connector-to-jms-server";
         String httpSocketBinding = "http";
         String messagingGroupSocketBindingName = "messaging-group";
-        String inVmHornetRaName = "local-activemq-ra";
 
         String jdbcDriverFileName = JdbcUtils.installJdbcDriverModule(container, database);
         DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
@@ -334,21 +372,18 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, -1);
         jmsAdminOperations.setJndiNameForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, "java:jboss/DefaultJMSConnectionFactory");
         jmsAdminOperations.createHttpConnector(connectorName, httpSocketBinding, null);
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
 
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
+        jmsAdminOperations.disableSecurity();
+
         jmsAdminOperations.close();
 
         container.restart();
 
         jmsAdminOperations = container.getJmsOperations();
-
         Random r = new Random();
         jmsAdminOperations.setNodeIdentifier(r.nextInt(9999));
         jmsAdminOperations.removeAddressSettings("#");
@@ -790,7 +825,7 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
                 container.start();
                 wasStarted = false;
             }
-            container(1).deploy(dbUtilServlet);
+            container.deploy(dbUtilServlet);
             String url = "http://" + container.getHostname() + ":" + container.getHttpPort() + "/DbUtilServlet/DbUtilServlet?op=printAll";
             logger.info("Calling servlet: " + url);
             String response = HttpRequest.get(url, 120, TimeUnit.SECONDS);
@@ -805,7 +840,7 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         } catch (Exception ex)  {
             logger.error("Calling print all records failed: ",ex);
         } finally {
-            container(1).undeploy(dbUtilServlet);
+            container.undeploy(dbUtilServlet);
         }
         if (!wasStarted) {
             container.stop();

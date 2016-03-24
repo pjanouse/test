@@ -232,7 +232,7 @@ public class ContainerEAP7 implements Container {
                             ContainerUtils.printThreadDump(pid);
                             // kill server because shutdown hangs and fail test
                             try {
-                                log.info("Killing the server with PID: " + pid + " after timeout: " + timeout);
+                                log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
                                 if (System.getProperty("os.name").contains("Windows")) {
                                     Runtime.getRuntime().exec("taskkill /PID " + pid);
                                 } else { // it's linux or Solaris

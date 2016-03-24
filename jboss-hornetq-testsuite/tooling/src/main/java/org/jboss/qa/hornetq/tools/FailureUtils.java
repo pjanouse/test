@@ -129,6 +129,15 @@ public class FailureUtils {
             } catch (Exception ex) {
                 log.error("Print exception: ", ex);
             }
+        } else if (Constants.FAILURE_TYPE.CPU_OVERLOAD.equals(failureType)) {
+            // bind mdb EAP server to cpu core
+            String cpuToBind = "0";
+            try {
+                HighCPUUtils.causeMaximumCPULoadOnContainer(container, cpuToBind);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            log.info("High Cpu loader was bound to cpu: " + cpuToBind);
         } else if (Constants.FAILURE_TYPE.GC_PAUSE.equals(failureType)) {
             // deploy gc pause servlet
             // cause gc pause servlet

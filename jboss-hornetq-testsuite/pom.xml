@@ -236,18 +236,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.naming</groupId>
-            <artifactId>jnp-client</artifactId>
-            <version>${version.jnp-client}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging-spi</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.jboss.byteman</groupId>
             <artifactId>byteman</artifactId>
             <version>${version.byteman}</version>
@@ -264,11 +252,11 @@
             <version>${version.commons-io}</version>
         </dependency>
 
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-            <version>${xalan.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--<groupId>xalan</groupId>-->
+        <!--<artifactId>xalan</artifactId>-->
+        <!--<version>${xalan.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>log4j</groupId>
@@ -276,44 +264,20 @@
             <version>${version.log4j}</version>
         </dependency>
 
-        <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
-            <groupId>org.jboss.jbossts.jta</groupId>
-            <artifactId>narayana-jta</artifactId>
-            <version>4.17.23.Final</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-journal</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hornetq</groupId>
-                    <artifactId>hornetq-commons</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.logmanager</groupId>
-                    <artifactId>jboss-logmanager</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.security</groupId>
-            <artifactId>jbosssx</artifactId>
-            <version>2.1.0.20091223</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--<groupId>org.jboss.security</groupId>-->
+        <!--<artifactId>jbosssx</artifactId>-->
+        <!--<version>2.1.0.20091223</version>-->
+        <!--</dependency>-->
 
 
-        <dependency>
-            <groupId>org.jdom</groupId>
-            <artifactId>jdom</artifactId>
-            <version>2.0.2</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--<groupId>org.jdom</groupId>-->
+        <!--<artifactId>jdom</artifactId>-->
+        <!--<version>2.0.2</version>-->
+        <!--</dependency>-->
 
-        <!-- json parser -->
+        <!-- json parser - need in HornetQServerCliOperationsTestCase -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -478,6 +442,30 @@
                     <artifactId>arquillian-protocol-servlet</artifactId>
                     <version>${arquillian.version}</version>
                 </dependency>
+                <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
+                    <groupId>org.jboss.jbossts.jta</groupId>
+                    <artifactId>narayana-jta</artifactId>
+                    <version>4.17.23.Final</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-journal</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.logmanager</groupId>
+                            <artifactId>jboss-logmanager</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
             </dependencies>
         </profile>
 
@@ -544,6 +532,30 @@
                     <artifactId>arquillian-protocol-servlet</artifactId>
                     <version>${arquillian.version}</version>
                 </dependency>
+                <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
+                    <groupId>org.jboss.jbossts.jta</groupId>
+                    <artifactId>narayana-jta</artifactId>
+                    <version>4.17.23.Final</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-journal</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.logmanager</groupId>
+                            <artifactId>jboss-logmanager</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
             </dependencies>
 
         </profile>
@@ -791,8 +803,30 @@
                     <artifactId>artemis-wildfly-integration</artifactId>
                     <version>${artemis.wildfly.integration}</version>
                 </dependency>
+                <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
+                    <groupId>org.jboss.jbossts.jta</groupId>
+                    <artifactId>narayana-jta</artifactId>
+                    <version>4.17.23.Final</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-journal</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.hornetq</groupId>
+                            <artifactId>hornetq-commons</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.logmanager</groupId>
+                            <artifactId>jboss-logmanager</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
             </dependencies>
-
         </profile>
 
         <profile>
@@ -952,7 +986,6 @@
                     <version>${artemis.wildfly.integration}</version>
                 </dependency>
             </dependencies>
-
         </profile>
 
         <profile>
@@ -1249,7 +1282,7 @@
                 <module>tests-eap7</module>
             </modules>
             <dependencies>
-                 <dependency>
+                <dependency>
                     <groupId>org.jboss.spec</groupId>
                     <artifactId>jboss-javaee-7.0</artifactId>
                     <version>${jboss.javaee7.version}</version>
