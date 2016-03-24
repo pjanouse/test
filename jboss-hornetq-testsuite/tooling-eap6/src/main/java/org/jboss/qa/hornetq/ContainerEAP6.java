@@ -177,6 +177,28 @@ public class ContainerEAP6 implements Container {
         ProcessIdUtils.resumeProcess(pid);
     }
 
+    @Override
+    public void start(long timeout) {
+
+        final Container container = this;
+        Thread startServerThread = new Thread() {
+            public void run() {
+                container.start();
+            }
+        };
+
+        startServerThread.start();
+
+        try {
+            startServerThread.join(timeout);
+            if (startServerThread.isAlive()) {
+                startServerThread.interrupt();
+                throw new RuntimeException("Start of the server " + container.getName() + " was not successful.");
+            }
+        } catch (InterruptedException e) {
+            // ignore
+        }
+    }
 
     @Override
     public void start() {
