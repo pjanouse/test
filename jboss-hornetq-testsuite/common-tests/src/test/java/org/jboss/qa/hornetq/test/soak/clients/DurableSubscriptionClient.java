@@ -12,6 +12,7 @@ import javax.jms.TopicSubscriber;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.Client;
@@ -32,17 +33,17 @@ public class DurableSubscriptionClient extends Client {
 
     private final String clientName = "durable-subscription-client-" + UUID.randomUUID().toString();
 
-    private final ContainerInfo container;
+    private final Container container;
 
     private final int port;
 
 
-    public DurableSubscriptionClient(final ContainerInfo container) {
-        this(container, HornetQTestCase.getJNDIPort(container.getName()));
+    public DurableSubscriptionClient(final Container container) {
+        this(container, container.getJNDIPort());
     }
 
 
-    public DurableSubscriptionClient(final ContainerInfo container, final int jndiPort) {
+    public DurableSubscriptionClient(final Container container, final int jndiPort) {
         super(container.getName());
         this.container = container;
         this.port = jndiPort;
@@ -56,7 +57,7 @@ public class DurableSubscriptionClient extends Client {
         Session session = null;
 
         try {
-            ctx = this.getContext(this.container.getIpAddress(), this.port);
+            ctx = container.getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryJndiName());
             conn = cf.createConnection();
             conn.setClientID(this.clientName);

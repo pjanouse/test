@@ -217,9 +217,6 @@ public class ContainerEAP7 implements Container {
             log.warn("Error during getting port of byteman agent.", ex);
         }
 
-        // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
-        // we kill server when it takes too long
-        final long pid = ProcessIdUtils.getProcessId(this);
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
 
@@ -232,6 +229,7 @@ public class ContainerEAP7 implements Container {
                             || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
+                            ContainerUtils.printThreadDump(pid);
                             // kill server because shutdown hangs and fail test
                             try {
                                 log.info("Killing the server with PID: " + pid + " after timeout: " + timeout);
@@ -263,7 +261,6 @@ public class ContainerEAP7 implements Container {
         log.info("Stopping the server.");
         containerController.stop(getName());
         try {
-            log.info("Killing the server.");
             containerController.kill(getName());
         } catch (Exception ex) {
             log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +

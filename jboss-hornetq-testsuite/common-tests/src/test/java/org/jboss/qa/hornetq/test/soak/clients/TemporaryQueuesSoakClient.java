@@ -18,6 +18,7 @@ import javax.jms.TemporaryQueue;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -41,7 +42,7 @@ public class TemporaryQueuesSoakClient extends Client {
 
     private final int port;
 
-    private final ContainerInfo container;
+    private final Container container;
 
     private final long numberOfMessages;
 
@@ -54,12 +55,12 @@ public class TemporaryQueuesSoakClient extends Client {
     private int numberOfReceivedMessages = 0;
 
 
-    public TemporaryQueuesSoakClient(final ContainerInfo container, final long numberOfMessages) {
-        this(container, HornetQTestCase.getJNDIPort(container.getName()), numberOfMessages, 10);
+    public TemporaryQueuesSoakClient(final Container container, final long numberOfMessages) {
+        this(container, container.getJNDIPort(), numberOfMessages, 10);
     }
 
 
-    public TemporaryQueuesSoakClient(final ContainerInfo container, final int jndiPort,
+    public TemporaryQueuesSoakClient(final Container container, final int jndiPort,
             final long numberOfMessages, final int numberOfResponseQueues) {
 
         super(container.getName());
@@ -78,7 +79,7 @@ public class TemporaryQueuesSoakClient extends Client {
         Session session = null;
 
         try {
-            ctx = this.getContext(this.container.getIpAddress(), this.port);
+            ctx = container.getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryJndiName());
             Queue outQueue = (Queue) ctx.lookup(TemporaryQueueSoakModule.TEMP_IN_QUEUE_JNDI);
 

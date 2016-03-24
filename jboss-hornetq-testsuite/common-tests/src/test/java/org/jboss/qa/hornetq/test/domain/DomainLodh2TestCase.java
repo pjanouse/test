@@ -85,10 +85,6 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
     @TargetsContainer(SERVER_GROUP2)
     public Archive getDeployment1() throws Exception {
-        File propertyFile = new File(getJbossHome(CONTAINER2_NAME) + File.separator + "mdb1.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER1_NAME));
-        writer.close();
         final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
@@ -151,10 +147,6 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     @TargetsContainer(SERVER_GROUP4)
     public Archive getDeployment2() throws Exception {
 
-        File propertyFile = new File(getJbossHome(CONTAINER4_NAME)+ File.separator + "mdb2.properties");
-        PrintWriter writer = new PrintWriter(propertyFile);
-        writer.println("remote-jms-server=" + getHostname(CONTAINER3_NAME));
-        writer.close();
         final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb2.jar");
         mdbJar.addClass(JMSImplementation.class);
@@ -784,8 +776,8 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 //        prepareJmsServer(CONTAINER3_NAME);
         prepareJmsServer("full-ha-1"); // use common profile for both node-1 and node-3
 
-        prepareMdbServer(container(2), container(1).getName(), inServer, outServer, "full-ha-2");
-        prepareMdbServer(container(4), container(3).getName(), inServer, outServer, "full-ha-4");
+        prepareMdbServer(container(2), container(1), inServer, outServer, "full-ha-2");
+        prepareMdbServer(container(4), container(3), inServer, outServer, "full-ha-4");
 
         copyApplicationPropertiesFiles();
     }
@@ -856,7 +848,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
      * @param container Test container - defined in arquillian.xml
      * @param profileName Name of the server domain profile
      */
-    private void prepareMdbServer(Container container, String jmsServerName, Container inServer, Container outServer,
+    private void prepareMdbServer(Container container, Container jmsServerName, Container inServer, Container outServer,
             String profileName) {
 
         String discoveryGroupName = "dg-group1";
@@ -907,14 +899,14 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
 
         // both are remote
         if (isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerName.getHostname(), jmsServerName.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
         }
         // local InServer and remote OutServer
         if (!isServerRemote(inServer.getName()) && isServerRemote(outServer.getName())) {
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerName.getHostname(), jmsServerName.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
@@ -928,7 +920,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         if (isServerRemote(inServer.getName()) && !isServerRemote(outServer.getName())) {
 
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
-            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", getHostname(jmsServerName), getHornetqPort(jmsServerName));
+            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerName.getHostname(), jmsServerName.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
             jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);

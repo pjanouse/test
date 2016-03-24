@@ -145,22 +145,6 @@ public final class JMSTools {
     }
 
     /**
-     * Returns EAP 5 context
-     *
-     * @param hostName host name
-     * @param port     target port with the service
-     * @return instance of the context
-     * @throws NamingException if something goes wrong
-     */
-    public static Context getEAP5Context(String hostName, int port) throws NamingException {
-        Properties properties = new Properties();
-        properties.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-        properties.setProperty("java.naming.provider.url", "jnp://" + hostName + ":" + port);
-        properties.setProperty("java.naming.factory.url.pkgs", "org.jnp.interfaces.NamingContextFactory");
-        return new InitialContext(properties);
-    }
-
-    /**
      * Determine if the given string is a valid IPv4 or IPv6 address.
      *
      * @param ipAddress A string that is to be examined to verify whether or not

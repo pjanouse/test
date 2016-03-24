@@ -480,7 +480,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         Session session = null;
         try {
             ctx = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryName());
+            ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
             Queue originalQueue = (Queue) ctx.lookup(inQueueJndiName);
             connection = cf.createConnection();
             connection.start();

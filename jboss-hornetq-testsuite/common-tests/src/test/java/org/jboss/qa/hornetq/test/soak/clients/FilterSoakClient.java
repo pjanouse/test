@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.soak.clients;
 
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
@@ -34,7 +35,7 @@ public class FilterSoakClient extends Client {
 
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
-    private final ContainerInfo container;
+    private final Container container;
 
     private final int port;
 
@@ -50,16 +51,10 @@ public class FilterSoakClient extends Client {
 
     private List<String> receivedMessages = new ArrayList<String>();
 
-
-    public FilterSoakClient(final ContainerInfo container, final int numberOfMessages) {
-        this(container, HornetQTestCase.getJNDIPort(container.getName()), numberOfMessages);
-    }
-
-
-    public FilterSoakClient(final ContainerInfo container, final int jndiPort, final int numberOfMessages) {
+    public FilterSoakClient(final Container container, final int numberOfMessages) {
         super(container.getName());
         this.container = container;
-        this.port = jndiPort;
+        this.port = container.getJNDIPort();
         this.numberOfMessages = numberOfMessages;
     }
 
@@ -71,7 +66,7 @@ public class FilterSoakClient extends Client {
         Session session = null;
 
         try {
-            ctx = this.getContext(this.container.getIpAddress(), this.port);
+            ctx = container.getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(this.getConnectionFactoryJndiName());
             Queue queue = (Queue) ctx.lookup(EjbSoakModule.EJB_IN_QUEUE_JNDI);
             Queue resultQueue = (Queue) ctx.lookup(EjbSoakModule.EJB_OUT_QUEUE_JNDI);

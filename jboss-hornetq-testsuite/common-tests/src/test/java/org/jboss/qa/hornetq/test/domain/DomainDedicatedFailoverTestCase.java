@@ -626,7 +626,7 @@ public class DomainDedicatedFailoverTestCase extends DomainHornetQTestCase {
         long startTime = System.currentTimeMillis();
 
         while (isRunning && System.currentTimeMillis() - startTime < timeout) {
-            isRunning = CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), getHttpPort(container));
+            isRunning = CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1).getHostname(), container(1).getHttpPort());
             logger.info("Container " + container + " is still running. Waiting for it to be killed.");
             Thread.sleep(1000);
         }

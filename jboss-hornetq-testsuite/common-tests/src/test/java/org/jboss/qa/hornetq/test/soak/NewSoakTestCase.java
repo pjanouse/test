@@ -192,11 +192,11 @@ public class NewSoakTestCase extends HornetQTestCase {
             consumers[i] = new SoakReceiverClientAck(container(1).getHostname(), this.container(1).getJNDIPort(),
                     DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI);
         }
-        DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(CONTAINER1_INFO);
+        DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(container(1));
 
-        TemporaryQueuesSoakClient tempQueuesClients = new TemporaryQueuesSoakClient(CONTAINER1_INFO,
+        TemporaryQueuesSoakClient tempQueuesClients = new TemporaryQueuesSoakClient(container(1),
                 NUMBER_OF_MESSAGES);
-        FilterSoakClient filterClients = new FilterSoakClient(CONTAINER1_INFO, NUMBER_OF_MESSAGES);
+        FilterSoakClient filterClients = new FilterSoakClient(container(1), NUMBER_OF_MESSAGES);
 
         // run
         producer.start();

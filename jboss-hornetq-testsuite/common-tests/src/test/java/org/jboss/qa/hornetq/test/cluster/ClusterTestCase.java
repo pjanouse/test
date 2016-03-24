@@ -1269,7 +1269,7 @@ public class ClusterTestCase extends ClusterTestBase {
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
         Context context = container(1).getContext();
         Queue inqueue = (Queue) context.lookup(inQueueJndiNameForMdb);
-        ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryName());
+        ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = cf.createConnection();
         Session session = connection.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
 
