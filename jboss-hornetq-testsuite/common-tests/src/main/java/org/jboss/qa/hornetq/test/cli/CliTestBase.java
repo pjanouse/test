@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.cli;
 import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.management.cli.CliClient;
 import org.junit.Assert;
 
@@ -21,7 +22,10 @@ public class CliTestBase extends HornetQTestCase {
         if (isWritable) {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
             if (cliClient.reloadRequired()) {
-                Assert.assertTrue("Reload operation failed after 3 attempts.", reload(cliClient, 3));
+                if (!reload(cliClient, 3)){
+                    ContainerUtils.printThreadDump(container(1));
+                    Assert.fail("Reload operation failed after 3 attempts.");
+                }
                 long startTime = System.currentTimeMillis();
                 while (true) {
                     try {
