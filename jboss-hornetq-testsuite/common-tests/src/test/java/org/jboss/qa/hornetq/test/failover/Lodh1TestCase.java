@@ -8,6 +8,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
@@ -21,6 +22,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
 import org.jboss.qa.hornetq.apps.mdb.MdbConnectionNotClosed;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -111,11 +113,15 @@ public class Lodh1TestCase extends HornetQTestCase {
         return ejbXml.toString();
     }
 
-    public static JavaArchive createLodh1Deployment() {
+    public JavaArchive createLodh1Deployment() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
 
         mdbJar.addClass(LocalMdbFromQueue.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming \n"), "MANIFEST.MF");
 

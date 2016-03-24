@@ -13,6 +13,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
@@ -20,6 +21,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.DomainOperations;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -99,11 +101,15 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
 
     @Deployment(managed = false, testable = false, name = MDB_NAME)
     @TargetsContainer(SERVER_GROUP1)
-    public static JavaArchive createLodh1Deployment() {
+    public JavaArchive createLodh1Deployment() {
 
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
 
         mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq \n"), "MANIFEST.MF");
 

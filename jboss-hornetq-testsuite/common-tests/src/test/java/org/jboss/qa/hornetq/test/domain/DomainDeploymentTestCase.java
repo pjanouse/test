@@ -6,8 +6,10 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.DomainContainer;
 import org.jboss.qa.hornetq.DomainHornetQTestCase;
 import org.jboss.qa.hornetq.DomainServerGroup;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.categories.DomainTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -40,8 +42,12 @@ public class DomainDeploymentTestCase extends DomainHornetQTestCase {
     // @Deployment(name = "server-group-deployment", managed = false)
     // @TargetsContainer("server-group-1")
     private WebArchive createServerGroupWebArchive() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         return ShrinkWrap.create(WebArchive.class)
-                .addClass(LocalMdbFromQueue.class);
+                .addClass(LocalMdbFromQueue.class)
+                .addClass(JMSImplementation.class)
+                .addClass(jmsImplementation.getClass())
+                .addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
     }
 
     // @Deployment(name = "server-deployment", managed = false)

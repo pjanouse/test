@@ -65,8 +65,11 @@ public class JcaTestCase extends HornetQTestCase {
     public JavaArchive createDeployment() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
-
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         StringBuffer ejbXml = new StringBuffer();
 

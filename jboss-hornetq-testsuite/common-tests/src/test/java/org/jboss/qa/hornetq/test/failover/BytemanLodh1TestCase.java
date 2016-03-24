@@ -7,6 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
@@ -14,6 +15,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -70,8 +72,13 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     private final Archive mdb2Copy = createLodh1CopyDeployment();
 
     public JavaArchive createLodh1Deployment() {
+
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         String ejbXml = createEjbJarXml(LocalMdbFromQueue.class);
         mdbJar.addAsManifestResource(new StringAsset(ejbXml), "jboss-ejb3.xml");

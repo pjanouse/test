@@ -2,10 +2,12 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
+import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
 public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
+
+    private static final JMSImplementation jmsImplementation = ServiceLoader.load(JMSImplementation.class).iterator().next();
 
     @Resource(mappedName = "java:/JmsXA")
     private  ConnectionFactory cf;
@@ -85,6 +89,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
             TextMessage newMessage = session.createTextMessage(text);
 
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
+            newMessage.setStringProperty(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
 
             sender.send(newMessage);
 

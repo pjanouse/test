@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -716,6 +717,10 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
 
         mdbJar.addClass(LocalMdbFromQueue.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
 
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
@@ -735,7 +740,10 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh2");
 
         mdbJar.addClass(LocalMdbFromQueue.class);
-
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming\n"), "MANIFEST.MF");
 
         logger.info(mdbJar.toString(true));

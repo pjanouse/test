@@ -6,6 +6,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -1781,9 +1782,13 @@ public class ClusterTestCase extends ClusterTestBase {
         container.stop();
     }
 
-    public static JavaArchive createDeploymentMdbOnQueue1() {
+    public JavaArchive createDeploymentMdbOnQueue1() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue1.jar");
         // if (target.exists()) {
@@ -1793,9 +1798,13 @@ public class ClusterTestCase extends ClusterTestBase {
         return mdbJar;
     }
 
-    public static JavaArchive createDeploymentMdbOnTempQueue1(Container container) {
+    public JavaArchive createDeploymentMdbOnTempQueue1(Container container) {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbTempQueue1.jar");
         mdbJar.addClass(LocalMdbFromQueue.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addAsManifestResource(new StringAsset(getJmsXmlWithQueues(container)), "hornetq-jms.xml");
         log.info(mdbJar.toString(true));
         File target = new File("/tmp/mdbOnQueue1.jar");
@@ -1818,9 +1827,13 @@ public class ClusterTestCase extends ClusterTestBase {
         return mdbJar;
     }
 
-    public static JavaArchive createDeploymentMdbOnQueue3() {
+    public JavaArchive createDeploymentMdbOnQueue3() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue3.jar");
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
         // if (target.exists()) {
@@ -1830,9 +1843,13 @@ public class ClusterTestCase extends ClusterTestBase {
         return mdbJar;
     }
 
-    public static JavaArchive createDeploymentMdbOnQueue4() {
+    public JavaArchive createDeploymentMdbOnQueue4() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbQueue4.jar");
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         mdbJar.addClass(LocalMdbFromQueue.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         log.info(mdbJar.toString(true));
         // File target = new File("/tmp/mdbOnQueue2.jar");
         // if (target.exists()) {

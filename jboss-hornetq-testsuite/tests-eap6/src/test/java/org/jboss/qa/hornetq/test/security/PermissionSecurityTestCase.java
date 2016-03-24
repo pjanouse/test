@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.test.security;
 
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.After;
 import org.junit.Assert;
@@ -384,6 +386,10 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
     public JavaArchive createDeploymentMdbOnQueue1Temp() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "localMdbFromQueue.jar");
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         mdbJar.addClass(LocalMdbFromQueue.class);
         logger.info(mdbJar.toString(true));
 //        File target = new File("/tmp/mdbOnQueue1.jar");
