@@ -144,28 +144,33 @@ public class ProducerTransAck extends Client {
 
     private void sendMessage(Destination destination, Message msg) {
         int numberOfRetries = 0;
-        try {
-            if (numberOfRetries > maxRetries) {
-                try {
-                    throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
 
-            if (numberOfRetries > 0) {
-                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+        while (numberOfRetries <= maxRetries) {
+            try {
+                if (numberOfRetries > 0) {
+                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+                }
+                numberOfRetries++;
+                producer.send(destination, msg);
+                logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
+                        + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
+                counter++;
+                //if successful -> finish method
+                return;
+            } catch (JMSRuntimeException ex) {
+                //resend
+                logger.error("Failed to send message - counter: " + counter, ex);
+            } catch (JMSException e) {
+                //do not try to resend
+                logger.warn(e);
+                return;
             }
-            numberOfRetries++;
-            producer.send(destination, msg);
-            logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
-            counter++;
-        } catch (JMSRuntimeException ex) {
-            logger.error("Failed to send message - counter: " + counter, ex);
-            sendMessage(destination, msg);
-        } catch (JMSException e) {
-            logger.warn(e);
+        }
+        //in case of maxRetries reached
+        try {
+            throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
