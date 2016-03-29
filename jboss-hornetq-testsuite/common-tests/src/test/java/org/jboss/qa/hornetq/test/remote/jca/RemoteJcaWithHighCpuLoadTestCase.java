@@ -109,6 +109,9 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
 
         messageVerifier.verifyMessages();
 
+        ContainerUtils.printThreadDump(container(1));
+        ContainerUtils.printThreadDump(container(2));
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!! Number of prepared TXs is: "
