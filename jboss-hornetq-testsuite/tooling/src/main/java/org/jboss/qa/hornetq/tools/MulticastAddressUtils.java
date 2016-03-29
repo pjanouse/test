@@ -13,7 +13,7 @@ public class MulticastAddressUtils {
 
     private static final Logger log = Logger.getLogger(MulticastAddressUtils.class);
 
-    private static String generateMulticastAddress()  {
+    public static String generateMulticastAddress()  {
         return new StringBuilder().append(randInt(224, 239)).append(".").append(randInt(1, 254)).append(".")
                 .append(randInt(1, 254)).append(".").append(randInt(1, 254)).toString();
     }

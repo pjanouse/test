@@ -1,33 +1,38 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
+import javax.jms.*;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@MessageDriven(name = "SimpleMdbToDb",
+@MessageDriven(name = "SimpleMdbToDbAndRemoteInQueue",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-public class SimpleMdbToDb implements MessageListener {
+public class SimpleMdbToDbAndRemoteInQueue implements MessageListener {
 
-    private static final Logger log = Logger.getLogger(SimpleMdbToDb.class.getName());
+    private static final Logger log = Logger.getLogger(SimpleMdbToDbAndRemoteInQueue.class.getName());
     private Connection connection;
     private DataSource dataSource;
     public static AtomicInteger counter = new AtomicInteger();
+    private static final JMSImplementation jmsImplementation = ServiceLoader.load(JMSImplementation.class).iterator().next();
+
+    private Queue queue = null;
+
+    @Resource(mappedName = "java:/JmsXA")
+    private ConnectionFactory cf;
 
     // used for the transaction rollback
     @Resource
@@ -40,9 +45,32 @@ public class SimpleMdbToDb implements MessageListener {
 
     @Override
     public void onMessage(Message message) {
+
+        javax.jms.Connection con = null;
+        Session session = null;
+
         try {
-            connection = dataSource.getConnection();
+
+            con = cf.createConnection();
+
+            session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            if (queue == null) {
+                queue = session.createQueue("InQueue");
+            }
+
+            con.start();
+
             MessageInfo messageInfo = (MessageInfo) ((ObjectMessage) message).getObject();
+
+            MessageProducer sender = session.createProducer(queue);
+            Message newMessage = session.createObjectMessage(messageInfo);
+            newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
+            newMessage.setStringProperty(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
+            sender.send(newMessage);
+
+            connection = dataSource.getConnection();
+
             String hqInternalMessageCounter = null;
             try {
                 hqInternalMessageCounter = message.getStringProperty("count");
@@ -56,14 +84,12 @@ public class SimpleMdbToDb implements MessageListener {
 
         } catch (JMSException jmse) {
             context.setRollbackOnly();
-            jmse.printStackTrace();
             try {
                 log.error("JMSException thrown during processing of message: " + message.getJMSMessageID(), jmse);
             } catch (JMSException ignore) {
             }
         } catch (SQLException sqle) {
             context.setRollbackOnly();
-            sqle.printStackTrace();
             try {
                 log.error("SQLException thrown during processing of message: " + message.getJMSMessageID(), sqle);
             } catch (JMSException ignore) {
@@ -76,18 +102,21 @@ public class SimpleMdbToDb implements MessageListener {
                 } catch (SQLException ex) {
                 }
             }
+            if (con != null) {
+                try {
+                    con.close();
+                    con = null;
+                } catch (Exception ex) {
+                }
+            }
         }
     }
 
     // This method would use JPA in the real world to persist the data
     private void processMessageInfo(Message message, MessageInfo messageInfo, int count) throws SQLException, JMSException {
-        PreparedStatement ps = connection.prepareStatement("INSERT INTO MESSAGE_INFO2"
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO MESSAGE_INFO1"
                 + "(MESSAGE_ID, MESSAGE_NAME, MESSAGE_ADDRESS) VALUES  (?, ?, ?)");
-        if (message.getStringProperty("inMessageId") == null) {
-            ps.setString(1, message.getJMSMessageID());
-        } else {
-            ps.setString(1, message.getStringProperty("inMessageId"));
-        }
+        ps.setString(1, message.getJMSMessageID());
         ps.setString(2, messageInfo.getName() + count);
         ps.setString(3, messageInfo.getAddress() + count);
         ps.executeUpdate();

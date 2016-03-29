@@ -59,6 +59,21 @@ public class ServerPathUtils {
     }
 
     /**
+     * Returns path to given data directory
+     *
+     * @param container EAP root directory
+     * @return File with module directory path (e.g. ".../org/hornetq/main" directory)
+     * @throws IOException
+     */
+    public static File getStandaloneLogDirectory(final Container container) {
+
+        String dataDir = container.getServerHome() + File.separator + "standalone" + File.separator + "log";
+
+        return new File(dataDir);
+
+    }
+
+    /**
      * Returns path to the directory with module tree root.
      * <p>
      * Always returns base modules root directory, not overlay root if there's any patch installed.
