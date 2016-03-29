@@ -219,7 +219,7 @@ public class ContainerEAP7 implements Container {
 
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
-
+        final Container con = this;
         Thread shutdownHook = new Thread() {
             public void run() {
 
@@ -229,7 +229,7 @@ public class ContainerEAP7 implements Container {
                             || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
-                            ContainerUtils.printThreadDump(pid);
+                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), getName() + "-thread-dump.txt") );
                             // kill server because shutdown hangs and fail test
                             try {
                                 log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
