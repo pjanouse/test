@@ -106,6 +106,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         receiver1.start();
         receiver1.join();
         long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
+        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1));
 
         messageVerifier.verifyMessages();
 
@@ -113,7 +114,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         ContainerUtils.printThreadDump(container(2));
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue + numberOfMessagesInOutQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!! Number of prepared TXs is: "
                 + areTherePreparedTransactions, areTherePreparedTransactions);
 
@@ -244,21 +245,22 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
-        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
-        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
+        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
+        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1), container(3));
+        logger.info("Number of messages in InQueue is: " + numberOfMessagesInInQueue);
+        logger.info("Number of messages in OutQueue is: " + numberOfMessagesInOutQueue);
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
         printThreadDumpsOfAllServers();
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue + numberOfMessagesInOutQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", areTherePreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);

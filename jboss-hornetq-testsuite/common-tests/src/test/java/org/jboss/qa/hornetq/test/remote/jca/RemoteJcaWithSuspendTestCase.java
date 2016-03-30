@@ -127,8 +127,9 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         receiver1.start();
         receiver1.join();
         long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
+        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1), container(3));
         logger.info("Number of messages in InQueue is: " + numberOfMessagesInInQueue);
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + numberOfMessagesInOutQueue);
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
@@ -136,7 +137,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
         printThreadDumpsOfAllServers();
 
         Assert.assertEquals("There is different number of sent and received messages.",
-                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue);
+                producer1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size() + numberOfMessagesInInQueue + numberOfMessagesInOutQueue);
         Assert.assertTrue("There should be no prepared transactions in HornetQ/Artemis but there are!!!", noPreparedTransactions);
 
         container(2).undeploy(mdbToDeploy);
