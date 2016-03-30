@@ -229,7 +229,7 @@ public class ContainerEAP7 implements Container {
                             || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
-                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), getName() + "-thread-dump.txt") );
+                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt") );
                             // kill server because shutdown hangs and fail test
                             try {
                                 log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
