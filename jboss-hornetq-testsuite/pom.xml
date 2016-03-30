@@ -255,11 +255,12 @@
             <version>${version.commons-io}</version>
         </dependency>
 
-        <!--<dependency>-->
-        <!--<groupId>xalan</groupId>-->
-        <!--<artifactId>xalan</artifactId>-->
-        <!--<version>${xalan.version}</version>-->
-        <!--</dependency>-->
+        <!-- Needed in EAP 6 profile -->
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>${xalan.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>log4j</groupId>
