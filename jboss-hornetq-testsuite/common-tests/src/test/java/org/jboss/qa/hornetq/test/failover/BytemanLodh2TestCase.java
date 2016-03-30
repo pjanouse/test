@@ -599,7 +599,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         logger.info("Number of received messages: "
                 + (receiver1.getCount() + ", Consumer from jms1 server received: " + receiver1.getCount() + " messages"));
 
-        printThreadDumpsOfAllServers();
+        printThreadDumpsOfAllServers(true);
 
         if (isDurable) {
             Assert.assertEquals("There is different number of sent and received messages.", producer1.getMessages(),
@@ -688,7 +688,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
                 + (receiver1.getListOfReceivedMessages().size() + ", Consumer from jms1 server received: "
                 + receiver1.getListOfReceivedMessages().size() + " messages"));
 
-        printThreadDumpsOfAllServers();
+        printThreadDumpsOfAllServers(false);
 
         Assert.assertTrue("There are lost ", messageVerifier.verifyMessages());
 
@@ -1001,11 +1001,13 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
     }
 
-    private void printThreadDumpsOfAllServers() throws IOException {
+    private void printThreadDumpsOfAllServers(boolean isTestWithTopic) throws IOException {
         ContainerUtils.printThreadDump(container(1));
         ContainerUtils.printThreadDump(container(2));
-        ContainerUtils.printThreadDump(container(3));
-        ContainerUtils.printThreadDump(container(4));
+        if (!isTestWithTopic) {
+            ContainerUtils.printThreadDump(container(3));
+            ContainerUtils.printThreadDump(container(4));
+        }
     }
 
     /**
