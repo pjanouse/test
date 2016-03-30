@@ -73,7 +73,7 @@ public class ContainerUtils {
         try {
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
                 log.warn("We cannot print thread dump on Windows machines. Printing thread dump for process: " + pid + " is canceled.");
-            } else if (System.getProperty("java.vm.name").contains("Java HotSpot")) {
+            } else if (System.getProperty("java.vm.name").contains("Java HotSpot") || System.getProperty("java.vm.name").contains("OpenJDK")) {
                 Process printThreadDump = null;
                 printThreadDump = Runtime.getRuntime().exec("jstack -l " + pid);
 

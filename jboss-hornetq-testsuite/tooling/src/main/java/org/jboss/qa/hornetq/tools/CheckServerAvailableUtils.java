@@ -141,6 +141,7 @@ public class CheckServerAvailableUtils {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {
                 jmsOperations.close();
+                ContainerUtils.printThreadDump(container);
                 Assert.fail("Server " + container.getName() + " should be up. Timeout was " + timeout);
             }
         }
