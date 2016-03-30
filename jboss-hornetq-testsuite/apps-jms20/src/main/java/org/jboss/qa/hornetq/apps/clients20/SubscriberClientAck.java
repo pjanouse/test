@@ -139,7 +139,7 @@ public class SubscriberClientAck extends Client {
                 try {
                     context.close();
                 } catch (Exception ex) {
-                    // ignore
+                    logger.error(ex);
                 }
             }
         }

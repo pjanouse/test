@@ -117,10 +117,14 @@ public class SubscriberTransAck extends Client {
             exception = ex;
             throw new RuntimeException("Fatal exception was thrown in subscriber. Subscriber for node: " + getHostname());
         } finally {
+            if (jmsContext != null) {
+                jmsContext.close();
+            }
             if (context != null) {
                 try {
                     context.close();
                 } catch (Exception e) {
+                    logger.error(e);
                 }
             }
         }
