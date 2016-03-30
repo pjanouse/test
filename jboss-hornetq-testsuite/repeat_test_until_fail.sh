@@ -10,7 +10,7 @@ do
         if [  x$GREP==x ] 
         then
                 echo "Breaking loop - there is failure"
-                break              #Abandon the loop.
+                exit 1
         fi
 done
-
+exit 0
