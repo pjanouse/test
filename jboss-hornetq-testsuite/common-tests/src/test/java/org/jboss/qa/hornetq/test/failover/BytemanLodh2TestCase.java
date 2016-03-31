@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.junit.Assert;
@@ -52,7 +53,7 @@ import java.util.*;
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-xa-transactions/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases 
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpSince EAP6
  * @tpTestCaseDetails Test case simulates server crashes and capability to
  * recover with XA transaction. There are 4 servers. First 2 servers are in
@@ -728,6 +729,8 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             logger.info("Starting server: " + container.getName());
             container.start();
             logger.info("Server " + container.getName() + " -- STARTED");
+            //verify server is really running
+            CheckServerAvailableUtils.waitHornetQToAlive(container, 10000);
             Thread.sleep(timeBetweenKills);
         }
     }
