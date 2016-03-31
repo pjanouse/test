@@ -208,6 +208,9 @@ public class SubscriberTransAck extends Client {
             } catch (JMSRuntimeException ex) {
                 numberOfRetries++;
                 logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with counter: " + (counter + 1), ex);
+            } catch (JMSException ex) {
+                numberOfRetries++;
+                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with counter: " + (counter + 1), ex);
             }
         }
 
