@@ -316,14 +316,30 @@ public class ContainerEAP7 implements Container {
 
         long startTime = System.currentTimeMillis();
 
-        while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
-                || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
+        int consecutiveUnavailableTimes = 0;
 
-            if (System.currentTimeMillis() - startTime > timeout) {
-                Assert.fail("Server: " + getName() + " was not killed in timeout: " + timeout);
+        //once server becomes unavailable, try 5 more times to verify it is really dead
+        while (consecutiveUnavailableTimes < 5) {
+
+            while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
+                    || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
+
+                consecutiveUnavailableTimes = 0;
+
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    Assert.fail("Server: " + getName() + " was not killed in timeout: " + timeout);
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    //ignore
+                }
             }
+            
+            consecutiveUnavailableTimes++;
+
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 //ignore
             }

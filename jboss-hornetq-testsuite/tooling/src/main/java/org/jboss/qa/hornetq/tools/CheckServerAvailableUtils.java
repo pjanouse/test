@@ -38,7 +38,7 @@ public class CheckServerAvailableUtils {
         Socket socket = null;
         try {
             socket = new Socket();
-            socket.connect(new InetSocketAddress(ipAddress, port), 100);
+            socket.connect(new InetSocketAddress(ipAddress, port), 150);
             return true;
         } catch (Exception ex) {
             return false;
