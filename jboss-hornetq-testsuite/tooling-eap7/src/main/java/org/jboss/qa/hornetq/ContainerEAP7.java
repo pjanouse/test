@@ -138,6 +138,14 @@ public class ContainerEAP7 implements Container {
         return containerDef.getContainerProperties().get("password");
     }
 
+    /**
+     * @return PID of container process
+     */
+    @Override
+    public int getProcessId(){
+        return pid;
+    }
+
     @Override
     public void fail(FAILURE_TYPE failureType) {
         new FailureUtils().fail(this, failureType);
@@ -282,8 +290,6 @@ public class ContainerEAP7 implements Container {
 
         log.info("Killing server: " + getName());
         try {
-
-            long pid = ProcessIdUtils.getProcessId(this);
 
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
                 Runtime.getRuntime().exec("taskkill /f /pid " + pid);

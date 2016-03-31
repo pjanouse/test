@@ -148,6 +148,14 @@ public class ContainerEAP6 implements Container {
         return containerDef.getContainerProperties().get("password");
     }
 
+    /**
+     * @return PID of container process
+     */
+    @Override
+    public int getProcessId(){
+        return pid;
+    }
+
     @Override
     public void fail(FAILURE_TYPE failureType) {
         new FailureUtils().fail(this, failureType);

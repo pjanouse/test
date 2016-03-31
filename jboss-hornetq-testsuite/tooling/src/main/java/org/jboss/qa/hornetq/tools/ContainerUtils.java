@@ -48,7 +48,12 @@ public class ContainerUtils {
     }
 
     public static void printThreadDump(Container container) {
-        long pid = ProcessIdUtils.getProcessId(container);
+        boolean isUp = CheckServerAvailableUtils.checkThatServerIsReallyUp(container);
+        if (!isUp) {
+            log.warn("Cannot print thread dumps because " + container.getName() + " is not runnig.");
+            return;
+        }
+        long pid = container.getProcessId();
         log.info("Print thread dump for container: " + container.getName() + " which has pid: " + pid);
         File toOutputFileForThreadump = new File(ServerPathUtils.getStandaloneLogDirectory(container), container.getName() + "-thread-dump.txt");
         printThreadDump(pid, toOutputFileForThreadump);

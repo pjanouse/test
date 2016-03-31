@@ -73,6 +73,10 @@ public class CheckServerAvailableUtils {
         return CheckServerAvailableUtils.checkThatServerIsReallyUp(ipAddress, port);
     }
 
+    public static boolean waitHornetQToAlive(Container container, long timeout) throws InterruptedException {
+        return waitHornetQToAlive(container.getHostname(), container.getPort(), timeout);
+    }
+
     public static boolean waitForLiveServerToReload(String ipAddress, int port, long timeout) {
 
         long start = System.currentTimeMillis();

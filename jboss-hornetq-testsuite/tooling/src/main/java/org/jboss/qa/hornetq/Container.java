@@ -47,6 +47,9 @@ public interface Container {
     int getHttpPort();
     String getUsername();
     String getPassword();
+
+    int getProcessId();
+
     void fail(Constants.FAILURE_TYPE failureType);
 
     String getServerVersion() throws FileNotFoundException;
