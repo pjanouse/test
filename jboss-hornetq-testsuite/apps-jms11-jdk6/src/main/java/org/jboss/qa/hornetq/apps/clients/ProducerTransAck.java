@@ -195,7 +195,7 @@ public class ProducerTransAck extends Client {
         }
     }
 
-    private void sendMessage(Message msg) {
+    private void sendMessage(Message msg) throws Exception {
         int numberOfRetries = 0;
 
         while (numberOfRetries <= maxRetries) {
@@ -209,16 +209,13 @@ public class ProducerTransAck extends Client {
                         + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
                 counter++;
                 return;
+
             } catch (JMSException ex) {
                 logger.error("Failed to send message - counter: " + counter, ex);
             }
         }
         //in case of maxRetries reached
-        try {
-            throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
     }
 
     private void commitSession(Session session) throws Exception {

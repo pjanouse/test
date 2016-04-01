@@ -142,7 +142,7 @@ public class ProducerTransAck extends Client {
         }
     }
 
-    private void sendMessage(Destination destination, Message msg) {
+    private void sendMessage(Destination destination, Message msg) throws Exception {
         int numberOfRetries = 0;
 
         while (numberOfRetries <= maxRetries) {
@@ -157,21 +157,14 @@ public class ProducerTransAck extends Client {
                 counter++;
                 //if successful -> finish method
                 return;
+
             } catch (JMSRuntimeException ex) {
                 //resend
                 logger.error("Failed to send message - counter: " + counter, ex);
-            } catch (JMSException e) {
-                //do not try to resend
-                logger.warn(e);
-                return;
             }
         }
         //in case of maxRetries reached
-        try {
-            throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
     }
 
     private void commitJMSContext(JMSContext jmsContext, Destination destination) throws Exception {

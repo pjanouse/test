@@ -168,43 +168,28 @@ public class ProducerClientAck extends Client {
      * @param msg
      */
     private void sendMessage(MessageProducer producer, Message msg) throws Exception {
-
         int numberOfRetries = 0;
 
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
         while (numberOfRetries < maxRetries) {
-
             try {
-
+                if (numberOfRetries > 0) {
+                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+                }
+                numberOfRetries++;
                 producer.send(msg);
-
                 msg = cleanMessage(msg);
-
                 addMessage(listOfSentMessages, msg);
-
                 counter++;
-
                 return;
 
             } catch (JMSException ex) {
-
-                try {
-                    logger.info("SEND RETRY - Producer for node: " + hostname
-                            + ". Sent message with property count: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID()
-                            + ((msg.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + msg.getStringProperty(duplicatedHeader) :""), ex);
-                } catch (JMSException e) {
-                } // ignore 
-
-                numberOfRetries++;
+                logger.error("Failed to send message - counter: " + counter, ex);
             }
         }
-
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for producer for node: " + hostname
                 + ". Sent message with property count: " + counter
                 + ", messageId:" + msg.getJMSMessageID());
-
     }
 
     /**

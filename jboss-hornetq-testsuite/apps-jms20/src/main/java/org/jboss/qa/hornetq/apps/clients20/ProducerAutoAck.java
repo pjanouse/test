@@ -110,42 +110,30 @@ public class ProducerAutoAck extends Client {
      * @param msg message
      */
     private void sendMessage(JMSProducer producer, Destination destination, Message msg) throws Exception {
-
         int numberOfRetries = 0;
 
         while (numberOfRetries < maxRetries) {
-
             try {
-
+                if (numberOfRetries > 0) {
+                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+                }
+                numberOfRetries++;
                 producer.send(destination, msg);
-
-//                listOfSentMessages.add(msg);
+                msg = cleanMessage(msg);
                 addMessage(listOfSentMessages, msg);
-
                 counter++;
-
-                numberOfRetries = 0;
-
                 return;
 
             } catch (JMSRuntimeException ex) {
-
-                try {
-                    logger.info("SEND RETRY - Producer for node: " + getHostname()
-                            + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID());
-                } catch (JMSException ignored) {
-                } // ignore
-
-                numberOfRetries++;
+                logger.error("Failed to send message - counter: " + counter, ex);
+            } catch (JMSException ex) {
+                logger.error("Failed to clean message - counter: " + counter, ex);
             }
         }
-
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for producer for node: " + getHostname()
                 + ". Sent message with property count: " + counter
                 + ", messageId:" + msg.getJMSMessageID());
-
     }
 
     public void stopSending() {

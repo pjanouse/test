@@ -194,80 +194,28 @@ public class PublisherTransAck extends Client {
         }
     }
 
-    private void sendMessage(Message msg) {
+    private void sendMessage(Message msg) throws Exception {
         int numberOfRetries = 0;
-        try {
-            if (numberOfRetries > maxRetries) {
-                try {
-                    throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+
+        while (numberOfRetries <= maxRetries) {
+            try {
+                if (numberOfRetries > 0) {
+                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
                 }
-            }
+                numberOfRetries++;
+                publisher.send(msg);
+                logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
+                        + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
+                counter++;
+                return;
 
-            if (numberOfRetries > 0) {
-                logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+            } catch (JMSException ex) {
+                logger.error("Failed to send message - counter: " + counter, ex);
             }
-            numberOfRetries++;
-            publisher.send(msg);
-            logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                    + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
-            counter++;
-        } catch (JMSException ex) {
-            logger.error("Failed to send message - counter: " + counter, ex);
-            sendMessage(msg);
         }
+        //in case of maxRetries reached
+        throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
     }
-
-
-//    /**
-//     * Send message to server. Try send message and if succeed than return. If
-//     * send fails and exception is thrown it tries send again until max retry is
-//     * reached. Then throws new Exception.
-//     *
-//     * @param publisher publisher
-//     * @param msg message
-//     */
-//    private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
-//
-//        int numberOfRetries = 0;
-//
-//        while (numberOfRetries < maxRetries) {
-//
-//            try {
-//
-//                publisher.send(msg);
-//
-//                counter++;
-//
-//                logger.debug("Publisher for node: " + hostname + ". Sent message: " + counter + ", messageId:" + msg.getJMSMessageID()
-//                        + ", dupId: " + msg.getStringProperty("_HQ_DUPL_ID"));
-//
-//                listOfMessagesToBeCommited.add(msg);
-//
-//                numberOfRetries = 0;
-//
-//                return;
-//
-//            } catch (JMSException ex) {
-//
-//                try {
-//                    logger.info("SEND RETRY - Publisher for node: " + getHostname()
-//                            + ". Sent message with property count: " + counter
-//                            + ", messageId:" + msg.getJMSMessageID());
-//                } catch (JMSException ignored) {
-//                } // ignore
-//
-//                numberOfRetries++;
-//            }
-//        }
-//
-//        // this is an error - here we should never be because max retrie expired
-//        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + getHostname()
-//                + ". Sent message with property count: " + counter
-//                + ", messageId:" + msg.getJMSMessageID());
-//
-//    }
 
     /**
      * Stop producer

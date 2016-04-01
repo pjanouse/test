@@ -111,44 +111,30 @@ public class PublisherClientAck extends Client {
      * @param msg
      */
     private void sendMessage(JMSProducer publisher, Destination destination, Message msg) throws Exception {
-
         int numberOfRetries = 0;
 
         while (numberOfRetries < maxRetries) {
-
             try {
-
+                if (numberOfRetries > 0) {
+                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
+                }
+                numberOfRetries++;
                 publisher.send(destination, msg);
-
                 msg = cleanMessage(msg);
-
-//                listOfSentMessages.add(msg);
                 addMessage(listOfSentMessages, msg);
-
                 counter++;
-
-                numberOfRetries = 0;
-
                 return;
 
             } catch (JMSRuntimeException ex) {
-                ex.printStackTrace();
-                try {
-                    logger.info("SEND RETRY - Publisher for node: " + hostname
-                            + ". Sent message with property count: " + counter
-                            + ", messageId:" + msg.getJMSMessageID(), ex);
-                } catch (JMSException e) {
-                } // ignore
-
-                numberOfRetries++;
+                logger.error("Failed to send message - counter: " + counter, ex);
+            } catch (JMSException ex) {
+                logger.error("Failed to clean message - counter: " + counter, ex);
             }
         }
-
         // this is an error - here we should never be because max retrie expired
         throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + hostname
                 + ". Sent message with property count: " + counter
                 + ", messageId:" + msg.getJMSMessageID());
-
     }
 
     /**
