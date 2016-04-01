@@ -310,6 +310,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
         container.stop();
     }
 
+
     protected abstract void setAddressSettings(JMSOperations jmsAdminOperations);
 
     /**
