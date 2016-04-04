@@ -41,7 +41,6 @@ public class CheckServerAvailableUtils {
             socket.connect(new InetSocketAddress(ipAddress, port), 150);
             return true;
         } catch (Exception ex) {
-            log.info("Server is dead, cannot connect",ex);
             return false;
         } finally {
             if (socket != null) {
