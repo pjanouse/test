@@ -231,11 +231,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         receiver.start();
         receiver.join();
 
-        log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
-        Assert.assertTrue(
+        log.info("Receiver got messages: " + receiver.getListOfReceivedMessages().size());
+        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2)));
+        Assert.assertEquals(
                 "Number received messages must be 0 as producer was not up in parallel with consumer. There should be 0"
-                        + " received but it's: " + receiver.getListOfReceivedMessages().size(), receiver
-                        .getListOfReceivedMessages().size() == 0);
+                        + " received but it's: " + receiver.getListOfReceivedMessages().size(), 0, receiver.getListOfReceivedMessages().size());
 
         container(1).stop();
         container(2).stop();
@@ -335,6 +335,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         verifier.verifyMessages();
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
+        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2)));
         Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 4
                         * NUMBER_OF_MESSAGES_PER_PRODUCER + " received but it's : " + receiver.getListOfReceivedMessages().size(),
                 4 * NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
@@ -484,6 +485,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             numberOfReceivedMessages += ((ReceiverTransAck) r).getListOfReceivedMessages().size();
         }
 
+        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2),container(3),container(4)));
         Assert.assertEquals("Number of send and received messages is different: ", numberOfSendMessages + 500,
                 numberOfReceivedMessages);
 
