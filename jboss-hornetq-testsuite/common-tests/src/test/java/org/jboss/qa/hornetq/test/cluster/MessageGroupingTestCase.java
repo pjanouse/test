@@ -313,11 +313,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         ProducerTransAck producerToInQueue3 = new ProducerTransAck(container(1), inQueueJndiNameForMdb,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        producerToInQueue3.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
         ProducerTransAck producerToInQueue4 = new ProducerTransAck(container(2), inQueueJndiNameForMdb,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
+        producerToInQueue4.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
         producerToInQueue3.start();
         producerToInQueue4.start();
