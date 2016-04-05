@@ -6,7 +6,9 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -404,6 +406,10 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         List<String> groups = new ArrayList<String>();
 
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        FinalTestMessageVerifier verifier = new TextMessageVerifier(jmsImplementation);
+        List<Map<String, String>> sendMessages = new ArrayList<Map<String, String>>();
+
         Context context = container(1).getContext();
         ConnectionFactory factory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = factory.createConnection();
@@ -420,7 +426,14 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             if (i % 100 == 0) {
                 groups.add(group);
             }
+            //add messages to message verifier
+            Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String, String>();
+            mapOfPropertiesOfTheMessage.put("messageId", m.getJMSMessageID());
+            mapOfPropertiesOfTheMessage.put(jmsImplementation.getDuplicatedHeader(), m.getStringProperty(jmsImplementation.getDuplicatedHeader()));
+            mapOfPropertiesOfTheMessage.put("JMSXGroupID", group);
+            sendMessages.add(mapOfPropertiesOfTheMessage);
         }
+        verifier.addSendMessages(sendMessages);
 
         // start producers and consumers
         List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>(); // create 500 groups
@@ -442,9 +455,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             ProducerTransAck producerToInQueue1 = new ProducerTransAck(serverToConnect, inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, group));
             producerToInQueue1.setCommitAfter(10);
+            producerToInQueue1.setMessageVerifier(verifier);
             producerToInQueue1.start();
             producers.add(producerToInQueue1);
             ReceiverTransAck receiver = new ReceiverTransAck(serverToConnect, inQueueJndiNameForMdb, 40000, 100, 10);
+            receiver.setMessageVerifier(verifier);
             receiver.start();
             receivers.add(receiver);
         }
@@ -469,25 +484,22 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         // wait timeout time to get messages redistributed to the other node
         JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(receivers, 600, 120000);
 
-        int numberOfSendMessages = 0;
-        int numberOfReceivedMessages = 0;
-
         // stop producers
         for (ProducerTransAck p : producers) {
             p.stopSending();
             p.join();
-            numberOfSendMessages += p.getListOfSentMessages().size();
         }
-
         // wait for consumers to finish
         for (Client r : receivers) {
             r.join();
-            numberOfReceivedMessages += ((ReceiverTransAck) r).getListOfReceivedMessages().size();
         }
 
-        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2),container(3),container(4)));
-        Assert.assertEquals("Number of send and received messages is different: ", numberOfSendMessages + 500,
-                numberOfReceivedMessages);
+        verifier.verifyMessages();
+
+        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1), container(2), container(3), container(4)));
+        Assert.assertEquals("Number of send and received messages is different: ", verifier.getSentMessages().size(),
+                verifier.getReceivedMessages().size());
+        Assert.assertNotEquals("No message send.", verifier.getSentMessages(), 0);
 
         container(1).stop();
         container(2).stop();
