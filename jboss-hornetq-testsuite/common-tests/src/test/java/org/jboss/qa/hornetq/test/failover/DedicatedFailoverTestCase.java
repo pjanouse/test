@@ -141,6 +141,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     })
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFailoverInternal(acknowledge, failback, topic, shutdown);
+    }
+
+    protected void testFailoverInternal(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
         prepareSimpleDedicatedTopology();
 

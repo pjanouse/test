@@ -689,6 +689,22 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container(1).stop();
     }
 
+    @BMRules({
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+    })
+    public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFailoverInternal(acknowledge, failback, topic, shutdown);
+    }
+
     /**
      * Prepares live server for dedicated topology.
      *
