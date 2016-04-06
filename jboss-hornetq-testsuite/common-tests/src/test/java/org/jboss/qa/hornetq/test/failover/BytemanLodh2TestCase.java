@@ -214,9 +214,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillOnTransactionCommit() throws Exception {
@@ -243,9 +243,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillOnTransactionPrepare() throws Exception {
@@ -272,9 +272,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq Kill in MDB server on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "Kill in MDB server on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis Kill in MDB server on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillWithFiltersOnTransactionCommit() throws Exception {
@@ -301,9 +301,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testSimpleLodh2KillWithFiltersOnTransactionPrepare() throws Exception {
@@ -330,9 +330,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "Hornetq JMS server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "JMS server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
+        @BMRule(name = "Artemis JMS server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionCommit() throws Exception {
@@ -359,9 +359,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "Hornetq server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
+        @BMRule(name = "Artemis server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testSimpleLodh3KillOnTransactionPrepare() throws Exception {
@@ -388,9 +388,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillOnTransactionCommit() throws Exception {
@@ -418,9 +418,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillOnTransactionPrepare() throws Exception {
@@ -448,9 +448,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction commit", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction commit", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "commit", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillWithTempTopicOnTransactionCommit() throws Exception {
@@ -478,9 +478,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
+        @BMRule(name = "Hornetq MDB server kill on transaction prepare", targetClass = "org.hornetq.ra.HornetQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()"),
-        @BMRule(name = "MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
+        @BMRule(name = "Artemis MDB server kill on transaction prepare", targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                 targetMethod = "prepare", action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM()")
     })
     public void testLodh2KillWithTempTopicOnTransactionPrepare() throws Exception {
@@ -508,9 +508,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "Hornetq server kill on client transaction commit", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
+        @BMRule(name = "Artemis server kill on client transaction commit", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "commit", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionCommit() throws Exception {
@@ -538,9 +538,9 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
+        @BMRule(name = "Hornetq server kill on client transaction prepare", targetClass = "org.hornetq.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();"),
-        @BMRule(name = "server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
+        @BMRule(name = "Artemis server kill on client transaction prepare", targetClass = "org.apache.activemq.artemis.core.transaction.Transaction",
                 targetMethod = "prepare", isInterface = true, action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")
     })
     public void testLodh3KillOnTransactionPrepare() throws Exception {

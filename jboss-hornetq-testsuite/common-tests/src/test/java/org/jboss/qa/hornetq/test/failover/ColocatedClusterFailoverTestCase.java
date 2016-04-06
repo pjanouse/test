@@ -121,11 +121,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Kill server when a number of messages were received HQ",
+            @BMRule(name = "Hornetq Kill server when a number of messages were received HQ",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server when a number of messages were received AMQ",
+            @BMRule(name = "Artemis Kill server when a number of messages were received AMQ",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})

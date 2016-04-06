@@ -54,13 +54,13 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Slow iteration",
+            @BMRule(name = "Artemis Slow iteration",
                     targetClass = "org.apache.activemq.artemis.core.management.impl.ActiveMQServerControlImpl",
                     targetMethod = "closeConsumerConnectionsForAddress",
                     isAfter = true,
                     targetLocation = "INVOKE Queue.getConsumers",
                     action = BYTEMAN_ACTION),
-            @BMRule(name = "Slow iteration",
+            @BMRule(name = "Hornetq Slow iteration ",
                     targetClass = "org.hornetq.core.management.impl.HornetQServerControlImpl",
                     targetMethod = "closeConsumerConnectionsForAddress",
                     isAfter = true,

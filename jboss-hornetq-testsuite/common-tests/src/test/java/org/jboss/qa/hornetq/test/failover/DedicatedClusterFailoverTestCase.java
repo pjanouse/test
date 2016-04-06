@@ -72,16 +72,16 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
+            @BMRule(name = "Hornetq Setup counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+            @BMRule(name = "Hornetq Info messages and counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
                             + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Hornetq Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>333",
