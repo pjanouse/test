@@ -111,30 +111,30 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl - hornetq",
+            @BMRule(name = "Hornetq Setup counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl - hornetq",
+            @BMRule(name = "Hornetq Info messages and counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
                             + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received - hornetq",
+            @BMRule(name = "Hornetq Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Setup counter for PostOfficeImpl",
+            @BMRule(name = "Artemis Setup counter for PostOfficeImpl",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+            @BMRule(name = "Artemis Info messages and counter for PostOfficeImpl",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
                             + "System.out.println(\"Called org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Artemis Kill server when a number of messages were received",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
@@ -1090,11 +1090,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
@@ -1110,11 +1110,11 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
@@ -2035,30 +2035,30 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Setup counter for PostOfficeImpl",
+            @BMRule(name = "Hornetq Setup counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+            @BMRule(name = "Hornetq Info messages and counter for PostOfficeImpl",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
                             + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Hornetq Kill server when a number of messages were received",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Setup counter for PostOfficeImpl",
+            @BMRule(name = "Artemis Setup counter for PostOfficeImpl",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "createCounter(\"counter\")"),
-            @BMRule(name = "Info messages and counter for PostOfficeImpl",
+            @BMRule(name = "Artemis Info messages and counter for PostOfficeImpl",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "incrementCounter(\"counter\");"
                             + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
-            @BMRule(name = "Kill server when a number of messages were received",
+            @BMRule(name = "Artemis Kill server when a number of messages were received",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>120",
