@@ -85,7 +85,23 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     condition = "readCounter(\"counter\")>333",
-                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Artemis Setup counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "createCounter(\"counter\")"),
+            @BMRule(name = "Artemis Info messages and counter for PostOfficeImpl",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.hornetq.core.postoffice.impl.PostOfficeImpl.processRoute  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Artemis Kill server when a number of messages were received",
+                    targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
+                    targetMethod = "processRoute",
+                    condition = "readCounter(\"counter\")>333",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+
+    })
     public void testFailover(int acknowledge, boolean failback, boolean topic) throws Exception {
 
         prepareDedicatedTopologyInCluster();

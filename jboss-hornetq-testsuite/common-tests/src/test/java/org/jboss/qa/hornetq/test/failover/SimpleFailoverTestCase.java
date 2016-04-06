@@ -137,11 +137,11 @@ public class SimpleFailoverTestCase extends HornetQTestCase {
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.transaction.impl.TransactionImpl",
                     targetMethod = "commit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")

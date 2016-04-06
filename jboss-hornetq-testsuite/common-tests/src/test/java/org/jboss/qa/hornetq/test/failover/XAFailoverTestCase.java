@@ -73,12 +73,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after xa start.",
+            @BMRule(name = "Hornetq Kill after xa start.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaStart",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after xa start.",
+            @BMRule(name = "Artemis Kill after xa start.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaStart",
                     targetLocation = "EXIT",
@@ -93,11 +93,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before xa end.",
+            @BMRule(name = "Hornetq Kill before xa end.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before xa end.",
+            @BMRule(name = "Artemis Kill before xa end.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -111,12 +111,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after end.",
+            @BMRule(name = "Hornetq Kill after end.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after end.",
+            @BMRule(name = "Artemis Kill after end.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     targetLocation = "EXIT",
@@ -131,11 +131,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before prepare is written to journal.",
+            @BMRule(name = "Hornetq Kill before prepare is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before prepare is written to journal.",
+            @BMRule(name = "Artemis Kill before prepare is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -149,12 +149,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after prepare is written to journal.",
+            @BMRule(name = "Hornetq Kill after prepare is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after prepare is written to journal.",
+            @BMRule(name = "Artemis Kill after prepare is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     targetLocation = "EXIT",
@@ -169,11 +169,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Hornetq Kill before commit is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Artemis Kill before commit is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -187,12 +187,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Hornetq Kill before commit is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Artemis Kill before commit is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     targetLocation = "EXIT",
@@ -212,12 +212,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after xa start.",
+            @BMRule(name = "Hornetq Kill after xa start.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaStart",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after xa start.",
+            @BMRule(name = "Artemis Kill after xa start.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaStart",
                     targetLocation = "EXIT",
@@ -232,11 +232,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before xa end.",
+            @BMRule(name = "Hornetq Kill before xa end.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before xa end.",
+            @BMRule(name = "Artemis Kill before xa end.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -250,12 +250,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after end.",
+            @BMRule(name = "Hornetq Kill after end.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after end.",
+            @BMRule(name = "Artemis Kill after end.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaEnd",
                     targetLocation = "EXIT",
@@ -270,11 +270,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before prepare is written to journal.",
+            @BMRule(name = "Hornetq Kill before prepare is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before prepare is written to journal.",
+            @BMRule(name = "Artemis Kill before prepare is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -288,12 +288,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill after prepare is written to journal.",
+            @BMRule(name = "Hornetq Kill after prepare is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill after prepare is written to journal.",
+            @BMRule(name = "Artemis Kill after prepare is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaPrepare",
                     targetLocation = "EXIT",
@@ -308,11 +308,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Hornetq Kill before commit is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Artemis Kill before commit is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
@@ -326,12 +326,12 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Hornetq Kill before commit is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Artemis Kill before commit is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     targetLocation = "EXIT",
@@ -529,11 +529,11 @@ public class XAFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @RunAsClient
     @BMRules({
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Hornetq Kill before commit is written to journal.",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill before commit is written to journal.",
+            @BMRule(name = "Artemis Kill before commit is written to journal.",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "xaCommit",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")

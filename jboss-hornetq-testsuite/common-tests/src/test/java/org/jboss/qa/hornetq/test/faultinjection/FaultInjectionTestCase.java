@@ -145,11 +145,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+            @BMRule(name = "Hornetq Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+            @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
                     action = BYTEMAN_KILL_ACTION)
@@ -191,12 +191,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after transactional data are written into journal - send",
+            @BMRule(name = "Hornetq Kill after transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after transactional data are written into journal - send",
+            @BMRule(name = "Artemis Kill after transactional data are written into journal - send",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeMessageTransactional",
                     targetLocation = "EXIT",
@@ -236,11 +236,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before transaction commit is written into journal - send",
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before transaction commit is written into journal - send",
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - send",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = BYTEMAN_KILL_ACTION)
@@ -279,12 +279,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after transaction commit is written into journal - send",
+            @BMRule(name = "Hornetq Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after transaction commit is written into journal - send",
+            @BMRule(name = "Artemis Kill after transaction commit is written into journal - send",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
@@ -325,11 +325,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before transaction commit is written into journal - receive",
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     action = BYTEMAN_KILL_ACTION)})
@@ -369,12 +369,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after transaction commit is written into journal - receive",
+            @BMRule(name = "Hornetq Kill after transaction commit is written into journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after transaction commit is written into journal - receive",
+            @BMRule(name = "Artemis Kill after transaction commit is written into journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
@@ -414,12 +414,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after message is deleted from journal - receive",
+            @BMRule(name = "Hornetq Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteMessage",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after message is deleted from journal - receive",
+            @BMRule(name = "Artemis Kill after message is deleted from journal - receive",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteMessage",
                     targetLocation = "EXIT",
@@ -458,11 +458,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before delivered to the consumer - recieve",
+            @BMRule(name = "Hornetq Kill before delivered to the consumer - recieve",
                 targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
                 targetMethod = "deliverStandardMessage",
                 action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before delivered to the consumer - recieve",
+            @BMRule(name = "Artemis Kill before delivered to the consumer - recieve",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
                     action = BYTEMAN_KILL_ACTION)})
@@ -500,12 +500,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after delivered to the consumer - recieve",
+            @BMRule(name = "Hornetq Kill after delivered to the consumer - recieve",
                 targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
                 targetMethod = "deliverStandardMessage",
                 targetLocation = "EXIT",
                 action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after delivered to the consumer - recieve",
+            @BMRule(name = "Artemis Kill after delivered to the consumer - recieve",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
                     targetLocation = "EXIT",
@@ -550,11 +550,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before do rollback - send",
+            @BMRule(name = "Hornetq Kill before do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before do rollback - send",
+            @BMRule(name = "Artemis Kill before do rollback - send",
                     targetClass = "org.apache.activemq.artemis.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     action = BYTEMAN_KILL_ACTION)})
@@ -591,12 +591,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after do rollback - send",
+            @BMRule(name = "Hornetq Kill after do rollback - send",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after do rollback - send",
+            @BMRule(name = "Artemis Kill after do rollback - send",
                     targetClass = "org.apache.activemq.artemis.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
@@ -635,11 +635,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before do rollback - receive",
+            @BMRule(name = "Hornetq Kill before do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before do rollback - receive",
+            @BMRule(name = "Artemis Kill before do rollback - receive",
                     targetClass = "org.apache.activemq.artemis.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     action = BYTEMAN_KILL_ACTION)})
@@ -677,12 +677,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after do rollback - receive",
+            @BMRule(name = "Hornetq Kill after do rollback - receive",
                     targetClass = "org.hornetq.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after do rollback - receive",
+            @BMRule(name = "Artemis Kill after do rollback - receive",
                     targetClass = "org.apache.activemq.artemis.core.transaction.impl.TransactionImpl",
                     targetMethod = "doRollback",
                     targetLocation = "EXIT",
@@ -721,12 +721,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before record is written into the journal - send",
+            @BMRule(name = "Hornetq Kill before record is written into the journal - send",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     targetLocation = "INVOKE org.hornetq.core.persistence.StorageManager.storeMessageTransactional",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before record is written into the journal - send",
+            @BMRule(name = "Artemis Kill before record is written into the journal - send",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     targetLocation = "INVOKE org.apache.activemq.artemis.core.persistence.StorageManager.storeMessageTransactional",
@@ -765,12 +765,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after record is written into a journal - send",
+            @BMRule(name = "Hornetq Kill after record is written into a journal - send",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     targetLocation = "EXIT",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after record is written into a journal - send",
+            @BMRule(name = "Artemis Kill after record is written into a journal - send",
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     targetLocation = "EXIT",
@@ -811,11 +811,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before delivered to the consumer - recieve",
+            @BMRule(name = "Hornetq Kill before delivered to the consumer - recieve",
                     targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before delivered to the consumer - recieve",
+            @BMRule(name = "Artemis Kill before delivered to the consumer - recieve",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
                     action = BYTEMAN_KILL_ACTION)})
@@ -854,12 +854,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after delivered to the consumer - recieve",
+            @BMRule(name = "Hornetq Kill after delivered to the consumer - recieve",
             		targetClass = "org.hornetq.core.server.impl.ServerConsumerImpl",
             		targetMethod = "deliverStandardMessage",
             		targetLocation = "EXIT",
             		action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill after delivered to the consumer - recieve",
+            @BMRule(name = "Artemis Kill after delivered to the consumer - recieve",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerConsumerImpl",
                     targetMethod = "deliverStandardMessage",
                     targetLocation = "EXIT",
@@ -905,19 +905,19 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before ack is written in journal",
+            @BMRule(name = "Hornetq Kill before ack is written in journal",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledge",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before ack is written in journal",
+            @BMRule(name = "Hornetq  Kill before ack is written in journal",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledgeTransactional",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before ack is written in journal",
+            @BMRule(name = "Artemis Kill before ack is written in journal",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledge",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before ack is written in journal",
+            @BMRule(name = "Artemis Kill before ack is written in journal",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledgeTransactional",
                     action = BYTEMAN_KILL_ACTION)}
@@ -955,12 +955,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill after acknowledge()",
+            @BMRule(name = "Hornetq Kill after acknowledge()",
                     targetClass = "org.hornetq.core.server.impl.ServerSessionImpl",
                     targetMethod = "acknowledge",
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");traceStack(\"found the caller!\\n\", 10);killJVM();"),
-            @BMRule(name = "Kill after acknowledge()",
+            @BMRule(name = "Artemis Kill after acknowledge()",
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "acknowledge",
                     targetLocation = "EXIT",
@@ -1000,11 +1000,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Kill before the record is written into the journal - send",
-                    targetClass = "org.apache.activemq.artemis.core.journal.impl.JournalImpl",
+            @BMRule(name = "Hornetq Kill before the record is written into the journal - send",
+                    targetClass = "org.hornetq.core.journal.impl.JournalImpl",
                     targetMethod = "appendRecord",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Kill before the record is written into the journal - send",
+            @BMRule(name = "Artemis Kill before the record is written into the journal - send",
                     targetClass = "org.apache.activemq.artemis.core.journal.impl.JournalImpl",
                     targetMethod = "appendRecord",
                     action = BYTEMAN_KILL_ACTION)})
