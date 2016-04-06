@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
+import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated2;
@@ -53,8 +54,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AnnotationsTestCase.class);
 
-    // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
 
     // queue to send messages in
     static String inQueueName = "InQueue";
@@ -429,22 +429,19 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), outTopic, "subscriber1",
                 "subscription1");
-        subscriber.start();
-        subscriber.join();
-
-        int counter = subscriber.getCount();
 
         logger.info("Start receiver.");
-
+        subscriber.start();
+        subscriber.join();
         logger.info("Receiver finished.");
 
         logger.info("Number of sent messages: " + producer1.getCounter());
-        logger.info("Number of received messages: " + counter);
+        logger.info("Number of received messages: " + subscriber.getCount());
 
         Assert.assertEquals("There is different number of sent and received messages.",
                 producer1.getCounter(),
-                counter);
-        Assert.assertTrue("No message was received.", counter > 0);
+                subscriber.getCount());
+        Assert.assertTrue("No message was received.", subscriber.getCount() > 0);
 
         //undeploy archives
         for (JavaArchive archive : mdbDeployment) {

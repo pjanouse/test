@@ -1,4 +1,3 @@
-// todo use constants for quality of service from Contstants class
 package org.jboss.qa.hornetq.test.bridges;
 
 import org.apache.log4j.Logger;
@@ -8,15 +7,12 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -24,9 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author mnovak@redhat.com
@@ -37,27 +31,23 @@ import java.util.Random;
  */
 public class JMSBridgeTestCase extends HornetQTestCase {
 
-    private static final Logger logger = Logger.getLogger(JMSBridgeTestCase.class);
+    protected static final Logger logger = Logger.getLogger(JMSBridgeTestCase.class);
 
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
+    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 500;
 
-    // quality services
-    public final static String AT_MOST_ONCE = "AT_MOST_ONCE";
-    public final static String DUPLICATES_OK = "DUPLICATES_OK";
-    public final static String ONCE_AND_ONLY_ONCE = "ONCE_AND_ONLY_ONCE";
     private static final String JMS_BRIDGE_NAME = "myBridge";
 
 
-    MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+    protected MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+    protected FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
     // Queue to send messages in
-    String inQueueName = "InQueue";
-    String inQueueJndiName = "jms/queue/" + inQueueName;
+    private String inQueueName = "InQueue";
+    private String inQueueJndiName = "jms/queue/" + inQueueName;
     // queue for receive messages out
-    String outQueueName = "OutQueue";
-    String outQueueJndiName = "jms/queue/" + outQueueName;
+    private String outQueueName = "OutQueue";
+    private String outQueueJndiName = "jms/queue/" + outQueueName;
 
     @Before
     @After
@@ -85,7 +75,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testOldNew_AT_MOST_ONCE() throws Exception {
 
-        testBridge(container(1), container(3), AT_MOST_ONCE);
+        testBridge(container(1), container(3), Constants.QUALITY_OF_SERVICE.AT_MOST_ONCE);
     }
 
     /**
@@ -107,7 +97,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testOldNew_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        testBridge(container(1), container(3), ONCE_AND_ONLY_ONCE);
+        testBridge(container(1), container(3), Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE);
     }
 
     /**
@@ -129,7 +119,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testOldNew_DUPLICATES_OK() throws Exception {
 
-        testBridge(container(1), container(3), DUPLICATES_OK);
+        testBridge(container(1), container(3), Constants.QUALITY_OF_SERVICE.DUPLICATES_OK);
     }
 
     /**
@@ -151,7 +141,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testNewOld_AT_MOST_ONCE() throws Exception {
 
-        testBridge(container(3), container(1), AT_MOST_ONCE);
+        testBridge(container(3), container(1), Constants.QUALITY_OF_SERVICE.AT_MOST_ONCE);
     }
 
     /**
@@ -173,7 +163,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testNewOld_ONCE_AND_ONLY_ONCE() throws Exception {
 
-        testBridge(container(3), container(1), ONCE_AND_ONLY_ONCE);
+        testBridge(container(3), container(1), Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE);
     }
 
     /**
@@ -195,13 +185,12 @@ public class JMSBridgeTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void testNewOld_DUPLICATES_OK() throws Exception {
 
-        testBridge(container(3), container(1), DUPLICATES_OK);
+        testBridge(container(3), container(1), Constants.QUALITY_OF_SERVICE.DUPLICATES_OK);
     }
-
     /**
      * @throws Exception
      */
-    public void testBridge(Container inServer, Container outServer, String qualityOfService) throws Exception {
+    public void testBridge(Container inServer, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService) throws Exception {
 
         prepareServers(inServer, outServer, qualityOfService);
         inServer.start();
@@ -212,27 +201,8 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         logger.info("JMS bridge should be connected now. Check logs above that is really so!");
         logger.info("#############################");
 
-        ProducerClientAck producerToInQueue1 = new ProducerClientAck(inServer,
-                inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
-        producerToInQueue1.start();
+        sendReceiveSubTest(inServer, outServer);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
-                outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.start();
-        receiver1.join();
-        producerToInQueue1.join();
-
-        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
-        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
-
-        messageVerifier.verifyMessages();
-
-        Assert.assertEquals("There is different number of sent and received messages.",
-                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
         outServer.stop();
         inServer.stop();
@@ -248,7 +218,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         Container inServer = container(1);
         Container outServer = container(3);
 
-        prepareServers(inServer, outServer, ONCE_AND_ONLY_ONCE);
+        prepareServers(inServer, outServer, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE);
         outServer.start();
         inServer.start();
 
@@ -309,7 +279,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         Container inServer = container(1);
         Container outServer = container(3);
 
-        prepareServers(inServer, outServer, ONCE_AND_ONLY_ONCE);
+        prepareServers(inServer, outServer, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE);
         outServer.start();
         inServer.start();
 
@@ -364,7 +334,39 @@ public class JMSBridgeTestCase extends HornetQTestCase {
 
     }
 
-    private void prepareServers(Container inServer, Container outServer, String qualityOfService) {
+    protected void sendReceiveSubTest(Container inServer, Container outServer) throws Exception{
+        ProducerClientAck producer = new ProducerClientAck(inServer,
+                inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer.setMessageBuilder(messageBuilder);
+        producer.setTimeout(0);
+        producer.setMessageVerifier(messageVerifier);
+        producer.start();
+
+        ReceiverClientAck receiver = new ReceiverClientAck(outServer,
+                outQueueJndiName, 10000, 100, 10);
+        receiver.setMessageVerifier(messageVerifier);
+        receiver.start();
+        receiver.join();
+        producer.join();
+
+        logger.info("Producer: " + producer.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver.getListOfReceivedMessages().size());
+
+        messageVerifier.verifyMessages();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producer.getListOfSentMessages().size(), receiver.getListOfReceivedMessages().size());
+        Assert.assertTrue("No send messages.", producer.getListOfSentMessages().size() > 0);
+
+    }
+
+    /**
+     * Prepares servers
+     * @param inServer source server
+     * @param outServer targetServer
+     * @param qualityOfService desired quality of service @see Constants.QUALITY_OF_SERVICE
+     */
+    private void prepareServers(Container inServer, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService) {
         if (ContainerUtils.isEAP6(inServer)) {
             prepareServersEAP6(inServer, outServer, qualityOfService);
         } else {
@@ -372,7 +374,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         }
     }
 
-    private void prepareServersEAP6(Container inServer, Container outServer, String qualityOfService) {
+    private void prepareServersEAP6(Container inServer, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService) {
         prepareServerEAP6(inServer);
         if (!inServer.getName().equals(outServer.getName())) {
             prepareServerEAP6(outServer);
@@ -380,7 +382,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         deployBridgeEAP6(inServer, outServer, qualityOfService, -1);
     }
 
-    private void prepareServersEAP7(Container inServer, Container outServer, String qualityOfService) {
+    private void prepareServersEAP7(Container inServer, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService) {
         prepareServerEAP7(inServer);
         if (!inServer.getName().equals(outServer.getName())) {
             prepareServerEAP7(outServer);
@@ -411,11 +413,15 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         // Random TX ID for TM
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
 
-        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        createDestinations(jmsAdminOperations);
 
         jmsAdminOperations.close();
         container.stop();
+    }
+
+    protected void createDestinations(JMSOperations jmsAdminOperations) {
+        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
     }
 
     protected void prepareServerEAP7(Container container) {
@@ -439,27 +445,24 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         // Random TX ID for TM
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
 
-        jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
-        jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        createDestinations(jmsAdminOperations);
 
         jmsAdminOperations.close();
         container.stop();
     }
 
 
-    private void deployBridgeEAP6(Container containerToDeploy, Container outServer, String qualityOfService, int maxRetries) {
+    private void deployBridgeEAP6(Container containerToDeploy, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService, int maxRetries) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
-        String sourceDestination = inQueueJndiName;
-
         String targetConnectionFactory = "jms/RemoteConnectionFactory";
-        String targetDestination = outQueueJndiName;
+
         Map<String, String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         targetContext.put("java.naming.provider.url", "remote://" + outServer.getHostname() + ":" + outServer.getJNDIPort());
 
-        if (qualityOfService == null || "".equals(qualityOfService)) {
-            qualityOfService = ONCE_AND_ONLY_ONCE;
+        if (qualityOfService == null || "".equals(qualityOfService.toString())) {
+            qualityOfService = Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE;
         }
 
         long failureRetryInterval = 1000;
@@ -472,27 +475,25 @@ public class JMSBridgeTestCase extends HornetQTestCase {
 
         // set XA on sourceConnectionFactory
         jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
-        jmsAdminOperations.createJMSBridge(JMS_BRIDGE_NAME, sourceConnectionFactory, sourceDestination, null,
-                targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,
+        jmsAdminOperations.createJMSBridge(JMS_BRIDGE_NAME, sourceConnectionFactory, getSourceDestination(), null,
+                targetConnectionFactory, getTargetDestination(), targetContext, qualityOfService.toString(), failureRetryInterval, maxRetries,
                 maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
         jmsAdminOperations.close();
         containerToDeploy.stop();
     }
 
-    private void deployBridgeEAP7(Container containerToDeploy, Container outServer, String qualityOfService, int maxRetries) {
+    private void deployBridgeEAP7(Container containerToDeploy, Container outServer, Constants.QUALITY_OF_SERVICE qualityOfService, int maxRetries) {
 
         String sourceConnectionFactory = "java:/ConnectionFactory";
-        String sourceDestination = inQueueJndiName;
-
         String targetConnectionFactory = "jms/RemoteConnectionFactory";
-        String targetDestination = outQueueJndiName;
+
         Map<String, String> targetContext = new HashMap<String, String>();
         targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
         targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + outServer.getHostname() + ":" + outServer.getJNDIPort());
 
-        if (qualityOfService == null || "".equals(qualityOfService)) {
-            qualityOfService = ONCE_AND_ONLY_ONCE;
+        if (qualityOfService == null || "".equals(qualityOfService.toString())) {
+            qualityOfService = Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE;
         }
 
         long failureRetryInterval = 1000;
@@ -506,11 +507,19 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         // set XA on sourceConnectionFactory
         jmsAdminOperations.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
 
-        jmsAdminOperations.createJMSBridge(JMS_BRIDGE_NAME, sourceConnectionFactory, sourceDestination, null,
-                targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval, maxRetries,
+        jmsAdminOperations.createJMSBridge(JMS_BRIDGE_NAME, sourceConnectionFactory, getSourceDestination(), null,
+                targetConnectionFactory, getTargetDestination(), targetContext, qualityOfService.toString(), failureRetryInterval, maxRetries,
                 maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
         jmsAdminOperations.close();
         containerToDeploy.stop();
+    }
+
+    protected String getSourceDestination(){
+        return inQueueJndiName;
+    }
+
+    protected String getTargetDestination(){
+        return outQueueJndiName;
     }
 }
