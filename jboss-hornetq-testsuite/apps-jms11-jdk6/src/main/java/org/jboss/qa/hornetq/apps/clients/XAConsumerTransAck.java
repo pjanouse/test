@@ -80,7 +80,7 @@ public class XAConsumerTransAck extends Client {
 
     private Queue queue = null;
 
-    protected int howManyTimesToRecoverTransactionsAfterClientFinishes = 3;
+    protected int howManyTimesToRecoverTransactionsAfterClientFinishes = 7;
 
     // list of received messages which were received and committed
     private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
@@ -188,6 +188,7 @@ public class XAConsumerTransAck extends Client {
             // we need at least 2 recovery scans
             for (int i = 0; i < howManyTimesToRecoverTransactionsAfterClientFinishes; i++) {
                 runRecoveryScan();
+                Thread.sleep(60000);
             }
 
             consumer.close();
@@ -529,6 +530,7 @@ public class XAConsumerTransAck extends Client {
         try {
             synchronized (recoveryManagerLock) {
                 recoveryManager.scan();
+
             }
         } catch (Exception ex) {
             logger.error("Exception when calling recovery scan. " + printInfoAboutTMOfConsumer(), ex);
