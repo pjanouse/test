@@ -2068,6 +2068,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
                     condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
     public void testFailoverNoPrepare(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFailoverNoPrepareInternal(acknowledge, failback, topic, shutdown);
+    }
+
+    protected void testFailoverNoPrepareInternal(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
 
         container(1).start();
 
@@ -2088,7 +2092,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("Kill live server");
             logger.warn("########################################");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
-            container(1).kill();
+            container(1).waitForKill();
         } else {
             logger.warn("########################################");
             logger.warn("Shutdown live server");

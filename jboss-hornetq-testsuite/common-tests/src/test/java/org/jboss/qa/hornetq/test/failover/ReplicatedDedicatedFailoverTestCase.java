@@ -706,6 +706,31 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     }
 
     /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @param acknowledge acknowledge type
+     * @param failback    whether to test failback
+     * @param topic       whether to test with topics
+     * @throws Exception
+     */
+    @BMRules({
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+    })
+    public void testFailoverNoPrepare(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFailoverNoPrepareInternal(acknowledge, failback, topic, shutdown);
+    }
+
+    /**
      * Prepares live server for dedicated topology.
      *
      * @param container Test container - defined in arquillian.xml
