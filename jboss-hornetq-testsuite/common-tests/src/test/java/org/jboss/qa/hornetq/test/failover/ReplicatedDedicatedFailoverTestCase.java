@@ -808,7 +808,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetMethod = "appendUpdateRecord",
                     condition = "!$0.isSynchronizing()",
                     action = "incrementCounter(\"counter\");"
-                            + "System.out.println(\"Called org.apache.activemq.artemis.core.replication.ReplicationManage.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
+                            + "System.out.println(\"Called org.hornetq.core.replication.ReplicationManage.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
             @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
