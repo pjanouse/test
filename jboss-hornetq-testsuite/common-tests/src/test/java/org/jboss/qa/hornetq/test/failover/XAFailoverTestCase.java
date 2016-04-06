@@ -413,7 +413,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
 
         logger.info("Get information about transactions from HQ:");
 
-        long timeout = 300000;
+        long timeout = 30000;
         long startTime = System.currentTimeMillis();
         int numberOfPreparedTransaction = 100;
         JMSOperations jmsOperations = container(2).getJmsOperations();
@@ -482,7 +482,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
                 container(2).getHostname(), container(2).getHornetqPort(), 300000));
 
-        waitForClientsToFinish(listOfReceivers, 300000);
+        waitForClientsToFinish(listOfReceivers, 2*300000);
 
         for (Client c : listOfReceivers) {
             messageVerifier.addReceivedMessages(((XAConsumerTransAck) c).getListOfReceivedMessages());
