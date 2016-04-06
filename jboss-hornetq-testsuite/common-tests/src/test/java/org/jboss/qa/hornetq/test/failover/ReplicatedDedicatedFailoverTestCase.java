@@ -66,11 +66,16 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "addToPage",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueMessageSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
@@ -94,12 +99,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
+                targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                targetMethod = "addToPage",
+                targetLocation = "EXIT",
+                action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
@@ -122,11 +133,16 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transaction commit is written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
@@ -148,12 +164,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueCommitSentAndStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
@@ -176,12 +198,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into backup's journal.  - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into backup's journal.  - send",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into backup's journal.  - send",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueCommitStoredInBackupNotStoredInLive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
     }
@@ -204,12 +232,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after message is deleted from journal - receive",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.replication.ReplicatedJournal",
                     targetMethod = "appendDeleteRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after message is deleted from journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicatedJournal",
+                    targetMethod = "appendDeleteRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueMessageReceivedNotAcked() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -231,10 +265,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill before commit is stored to journal - receive",
-            targetClass = "org.hornetq.core.replication.ReplicatedJournal",
-            targetMethod = "appendCommitRecord",
-            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before commit is stored to journal - receive",
+                    targetClass = "org.hornetq.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before commit is stored to journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+
+    })
     public void replicatedTestFailoverTransAckQueueCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -256,11 +297,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill after commit is stored to journal - receive",
-            targetClass = "org.hornetq.core.replication.ReplicatedJournal",
-            targetMethod = "appendCommitRecord",
-            targetLocation = "EXIT",
-            action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after commit is stored to journal - receive",
+                    targetClass = "org.hornetq.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\"); killJVM();"),
+            @BMRule(name = "Artemis Kill after commit is stored to journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -282,12 +330,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into backup's journal.  - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into backup's journal.  - send",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into backup's journal.  - send",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckQueueCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, true);
     }
@@ -331,11 +385,16 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "addToPage",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicMessageSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
@@ -359,12 +418,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transactional data are written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transactional data are written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "addToPage",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "addToPage",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
@@ -386,11 +451,16 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill before transaction commit is written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicCommitSentNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
@@ -412,12 +482,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into journal - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into journal - send",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "commit",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into journal - send",
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "commit",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicCommitSentAndStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
@@ -443,12 +519,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into backup's journal.  - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into backup's journal.  - send",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into backup's journal.  - send",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicCommitStoredInBackupNotStoredInLive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, false);
     }
@@ -470,12 +552,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after message is deleted from journal - receive",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after message is deleted from journal - receive",
                     targetClass = "org.hornetq.core.replication.ReplicatedJournal",
                     targetMethod = "appendDeleteRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after message is deleted from journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendDeleteRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+    })
     public void replicatedTestFailoverTransAckTopicMessageReceivedNotAcked() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
@@ -498,10 +586,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill before commit is stored to journal - receive",
-            targetClass = "org.hornetq.core.replication.ReplicatedJournal",
-            targetMethod = "appendCommitRecord",
-            action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    @BMRules({
+            @BMRule(name = "Hornetq Kill before commit is stored to journal - receive",
+                    targetClass = "org.hornetq.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill before commit is stored to journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+
+    })
+
     public void replicatedTestFailoverTransAckTopicCommitNotStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
@@ -523,11 +619,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRule(name = "Kill after commit is stored to journal - receive",
-            targetClass = "org.hornetq.core.replication.ReplicatedJournal",
-            targetMethod = "appendCommitRecord",
-            targetLocation = "EXIT",
-            action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after commit is stored to journal - receive",
+                    targetClass = "org.hornetq.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\"); killJVM();"),
+            @BMRule(name = "Artemis Kill after commit is stored to journal - receive",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicatedJournal",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\"); killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicCommitStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
@@ -549,12 +652,18 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @BMRules(
-            @BMRule(name = "Kill after transaction commit is written into backup's journal.  - send",
+    @BMRules({
+            @BMRule(name = "Hornetq Kill after transaction commit is written into backup's journal.  - send",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     targetLocation = "EXIT",
-                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"))
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
+            @BMRule(name = "Artemis Kill after transaction commit is written into backup's journal.  - send",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+    })
     public void replicatedTestFailoverTransAckTopicCommitStoredInBackupNotStoredInLiveReceive() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, true, true);
     }
