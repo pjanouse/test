@@ -7,6 +7,8 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -25,7 +27,7 @@ import java.util.Map;
 /**
  * Created by mnovak on 1/4/16.
  */
-public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
+public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
 
     private static final Logger logger = Logger.getLogger(RemoteJcaWithOOMTestCase.class);
 
@@ -33,8 +35,21 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfJmsServerInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(10);
+    public void oomOfJmsServerInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        oomOfJmsServerInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void oomOfJmsServerInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        oomOfJmsServerInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    public void oomOfJmsServerInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -48,8 +63,21 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfMdbServerInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(10);
+    public void oomOfMdbServerInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        oomOfMdbServerInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void oomOfMdbServerInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        oomOfMdbServerInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    public void oomOfMdbServerInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -63,8 +91,20 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfJmsServerInClusterWithNormalMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(10);
+    public void oomOfJmsServerInClusterWithNormalMdb10kbMessages() throws Exception{
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        oomOfJmsServerInClusterWithNormalMdb(messageBuilder);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void oomOfJmsServerInClusterWithNormalMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        oomOfJmsServerInClusterWithNormalMdb(messageBuilder);
+    }
+
+    public void oomOfJmsServerInClusterWithNormalMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -78,8 +118,20 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfMdbServerInClusterWithNormalMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(10);
+    public void oomOfMdbServerInClusterWithNormalMdb10kbMessages() throws Exception{
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        oomOfMdbServerInClusterWithNormalMdb(messageBuilder);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void oomOfMdbServerInClusterWithNormalMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        oomOfMdbServerInClusterWithNormalMdb(messageBuilder);
+    }
+
+    public void oomOfMdbServerInClusterWithNormalMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -173,9 +225,9 @@ public class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
         ContainerUtils.printThreadDump(container(4));
     }
 
-    @Override
-    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024, 60000, 2000, 100 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
-    }
+//    @Override
+//    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
+//        jmsAdminOperations.removeAddressSettings("#");
+//        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024, 60000, 2000, 100 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
+//    }
 }

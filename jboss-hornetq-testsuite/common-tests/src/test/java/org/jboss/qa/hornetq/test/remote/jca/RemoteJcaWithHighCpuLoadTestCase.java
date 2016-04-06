@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -26,7 +27,7 @@ import java.util.Map;
 /**
  * Created by mnovak on 12/14/15.
  */
-public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
+public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
 
     private static final Logger logger = Logger.getLogger(RemoteJcaWithHighCpuLoadTestCase.class);
 
@@ -127,8 +128,20 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void loadInClusterWithNormalMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void loadInClusterWithNormalMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        loadInClusterWithNormalMdb(messageBuilder);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadInClusterWithNormalMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        loadInClusterWithNormalMdb(messageBuilder);
+    }
+
+    public void loadInClusterWithNormalMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -141,8 +154,20 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void loadInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void loadInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        loadInClusterWithLodhLikeMdb(messageBuilder);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        loadInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    public void loadInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -157,7 +182,7 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void loadInClusterWithLodhLikeMdbMixMessages() throws Exception {
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 300);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -171,8 +196,25 @@ public class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void loadOnJmsInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void loadOnJmsInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        loadOnJmsInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadOnJmsInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        loadOnJmsInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void loadOnJmsInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));

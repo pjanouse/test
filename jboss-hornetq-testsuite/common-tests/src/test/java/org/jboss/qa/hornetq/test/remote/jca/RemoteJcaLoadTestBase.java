@@ -33,7 +33,7 @@ import java.util.*;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
 @RunWith(Arquillian.class)
-public class RemoteJcaLoadTestBase extends HornetQTestCase {
+public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(RemoteJcaLoadTestBase.class);
     protected static final int NUMBER_OF_DESTINATIONS = 2;
@@ -42,6 +42,15 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
     protected final Archive lodhLikemdb = getLodhLikeMdb();
 
     protected String messagingGroupSocketBindingName = "messaging-group";
+
+    protected static int MAX_SIZE_BYTES_PAGING = 1024 * 1024;
+    protected static int PAGE_SIZE_BYTES_PAGING = 400 * 1024;
+
+    protected static int MAX_SIZE_BYTES_DEFAULT = 10 * 1024 * 1024;
+    protected static int PAGE_SIZE_BYTES_DEFAULT = 1024 * 1024 * 2;
+
+    protected static int NORMAL_MESSAGE_SIZE_KB = 10;
+    protected static int LARGE_MESSAGE_SIZE_KB = 300;
 
     // queue to send messages in
     static String dlqQueueName = "DLQ";
@@ -298,10 +307,7 @@ public class RemoteJcaLoadTestBase extends HornetQTestCase {
         container.stop();
     }
 
-    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024, 60000, 2000, 512 * 1024, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
-    }
+    protected abstract void setAddressSettings(JMSOperations jmsAdminOperations);
 
     /**
      * Prepares jms server for remote jca topology.

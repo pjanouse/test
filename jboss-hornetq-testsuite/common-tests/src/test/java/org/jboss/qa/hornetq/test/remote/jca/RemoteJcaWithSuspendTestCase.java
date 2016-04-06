@@ -8,6 +8,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -25,15 +26,28 @@ import java.util.Map;
 /**
  * Created by mnovak on 12/14/15.
  */
-public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
+public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
     private static final Logger logger = Logger.getLogger(RemoteJcaWithHighCpuLoadTestCase.class);
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void suspendOfMdbInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void suspendOfMdbInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        suspendOfMdbInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfMdbInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        suspendOfMdbInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    public void suspendOfMdbInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -48,7 +62,7 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdbMixMessages() throws Exception {
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 1000);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -62,8 +76,24 @@ public class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void suspendOfJmsInClusterWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void suspendOfJmsInClusterWithLodhLikeMdb10kbMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        suspendOfJmsInClusterWithLodhLikeMdb(messageBuilder);
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfJmsInClusterWithLodhLikeMdbLargeMessages() throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
+        suspendOfJmsInClusterWithLodhLikeMdb(messageBuilder);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfJmsInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
