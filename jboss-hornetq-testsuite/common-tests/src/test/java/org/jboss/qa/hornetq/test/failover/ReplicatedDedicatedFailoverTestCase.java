@@ -799,15 +799,35 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     }
 
     @BMRules({
-            @BMRule(name = "Kill server after the backup is synced with live",
+            @BMRule(name = "HornetQ create counter",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "<init>",
+                    action = "createCounter(\"counter\");"),
+            @BMRule(name = "HornetQ increment counter",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
                     condition = "!$0.isSynchronizing()",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.apache.activemq.artemis.core.replication.ReplicationManage.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server after the backup is synced with live",
+            @BMRule(name = "Artemis create counter",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "<init>",
+                    action = "createCounter(\"counter\");"),
+            @BMRule(name = "Artemis increment counter",
                     targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
                     condition = "!$0.isSynchronizing()",
+                    action = "incrementCounter(\"counter\");"
+                            + "System.out.println(\"Called org.apache.activemq.artemis.core.replication.ReplicationManage.appendUpdateRecord  - \" + readCounter(\"counter\"));"),
+            @BMRule(name = "Artemis: Kill server after the backup is synced with live",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "readCounter(\"counter\")>120",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     })
     public void testFailover(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
