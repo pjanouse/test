@@ -13,6 +13,8 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 
@@ -36,6 +38,23 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
 
     private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
+
+
+    @BMRules({
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Kill server after the backup is synced with live",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendUpdateRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
+    })
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+        testFailInternal(acknowledge, failback, topic, shutdown, connectorType);
+    }
 
     /**
      * Prepare two servers in colocated topology in cluster.

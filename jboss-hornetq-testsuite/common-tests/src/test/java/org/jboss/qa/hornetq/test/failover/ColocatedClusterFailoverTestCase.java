@@ -120,6 +120,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param topic       whether to test with topics
      * @throws Exception
      */
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
+        testFail(acknowledge, failback, topic, shutdown, Constants.CONNECTOR_TYPE.NETTY_NIO);
+    }
+
     @BMRules({
             @BMRule(name = "Hornetq Kill server when a number of messages were received HQ",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
@@ -129,11 +133,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown) throws Exception {
-        testFail(acknowledge, failback, topic, shutdown, Constants.CONNECTOR_TYPE.NETTY_NIO);
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+        testFailInternal(acknowledge, failback, topic, shutdown, connectorType);
     }
 
-    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    protected void testFailInternal(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
 
         prepareColocatedTopologyInCluster(connectorType);
 
