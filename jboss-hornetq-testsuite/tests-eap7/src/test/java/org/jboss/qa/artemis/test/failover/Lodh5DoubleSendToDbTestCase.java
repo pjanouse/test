@@ -4,10 +4,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.marshalling.TraceInformation;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HttpRequest;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
@@ -41,16 +43,25 @@ import static org.jboss.qa.hornetq.constants.Constants.RESOURCE_ADAPTER_NAME_EAP
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
  * @tpSubChapter XA TRANSACTION RECOVERY TESTING WITH HORNETQ RESOURCE ADAPTER - TEST SCENARIOS (LODH SCENARIOS)
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh5/           /
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh5-double-send-to-db/           /
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
+public abstract class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5DoubleSendToDbTestCase.class);
 
     public static final String NUMBER_OF_ROLLBACKED_TRANSACTIONS = "Number of prepared transactions:";
+
+    protected static final int MAX_SIZE_BYTES_PAGING = 50 * 1024;
+    protected static final int PAGE_SIZE_BYTES_PAGING = 1024;
+
+    protected static final int MAX_SIZE_BYTES_DEFAULT = 10 * 1024 * 1024;
+    protected static final int PAGE_SIZE_BYTES_DEFAULT = 1024 * 1024 * 2;
+
+    private final int NORMAL_MESSAGE_SIZE_BYTES = 100;
+    private static final int LARGE_MESSAGE_SIZE_BYTES = 150 * 1024;
 
     private final Archive mdbForMdbCluster = createMDBDeployment();
     private final Archive mdbForJmsCluster = createJMSDeployement();
@@ -115,68 +126,133 @@ public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2KillJms() throws Exception {
-        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.KILL);
+    public void testORACLE11GR2KillJmsNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.KILL, false);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2JmsShutdown() throws Exception {
-        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.SHUTDOWN);
+    public void testORACLE11GR2KillJmsLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.KILL, true);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2JmsOOM() throws Exception {
-        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    public void testORACLE11GR2JmsShutdownNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.SHUTDOWN, false);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2JmsCpu() throws Exception {
-        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.CPU_OVERLOAD);
+    public void testORACLE11GR2JmsShutdownLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.SHUTDOWN, true);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2MdbJms() throws Exception {
-        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.KILL);
+    public void testORACLE11GR2JmsOOMNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE, false);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2MdbShutdown() throws Exception {
-        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.SHUTDOWN);
+    public void testORACLE11GR2JmsOOMLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE, true);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2MdbOOM() throws Exception {
-        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE);
+    public void testORACLE11GR2JmsCpuNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.CPU_OVERLOAD, false);
     }
 
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testORACLE11GR2MdbCpu() throws Exception {
-        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.CPU_OVERLOAD);
+    public void testORACLE11GR2JmsCpuLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(1), Constants.FAILURE_TYPE.CPU_OVERLOAD, true);
     }
 
-    public void testFail(String databaseName, Container containerToFail, Constants.FAILURE_TYPE failureType) throws Exception {
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbJmsNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.KILL, false);
+    }
 
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbJmsLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.KILL, true);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbShutdownNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.SHUTDOWN, false);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbShutdownLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.SHUTDOWN, true);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbOOMNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE, false);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbOOMLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.OUT_OF_MEMORY_HEAP_SIZE, true);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbCpuNormalMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.CPU_OVERLOAD, false);
+    }
+
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testORACLE11GR2MdbCpuLargeMessages() throws Exception {
+        testFail(ORACLE11GR2, container(2), Constants.FAILURE_TYPE.CPU_OVERLOAD, true);
+    }
+
+    public void testFail(String databaseName, Container containerToFail, Constants.FAILURE_TYPE failureType, boolean isLargeMessages) throws Exception {
+
+        MessageBuilder messageBuilder = isLargeMessages ? new InfoMessageBuilder(LARGE_MESSAGE_SIZE_BYTES) : new InfoMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = 2000;
 
         prepareServers(databaseName);
@@ -187,7 +263,7 @@ public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
         cleanDatabase();
 
         ProducerTransAck producer = new ProducerTransAck(container(1), inQueueRelativeJndiName, numberOfMessages);
-        producer.setMessageBuilder(new InfoMessageBuilder());
+        producer.setMessageBuilder(messageBuilder);
         producer.setCommitAfter(1000);
         producer.setTimeout(0);
         producer.start();
@@ -369,9 +445,6 @@ public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
-
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
         jmsAdminOperations.createQueue("default", inQueueHornetQName, inQueueRelativeJndiName, true);
@@ -420,8 +493,7 @@ public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
         Random r = new Random();
         jmsAdminOperations.setNodeIdentifier(r.nextInt(9999));
 
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
+        setAddressSettings(jmsAdminOperations);
 
         jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
@@ -818,6 +890,8 @@ public class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
             container.stop();
         }
     }
+
+    protected abstract void setAddressSettings(JMSOperations jmsAdminOperations);
 
 }
 

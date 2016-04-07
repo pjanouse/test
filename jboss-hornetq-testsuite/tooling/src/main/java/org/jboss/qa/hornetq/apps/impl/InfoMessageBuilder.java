@@ -22,12 +22,15 @@ public class InfoMessageBuilder implements MessageBuilder {
 
     private boolean addDuplicatedHeader = true;
 
-    private int sizeInBytes = 0;
+    private int sizeInBytes = 100;
 
     public InfoMessageBuilder() {
 
     }
 
+    /**
+     * @param sizeInBytes object message with given payload size is created (in bytes)
+     */
     public InfoMessageBuilder(int sizeInBytes) {
         this.sizeInBytes = sizeInBytes;
     }
@@ -36,7 +39,7 @@ public class InfoMessageBuilder implements MessageBuilder {
     public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
         long randomLong = r.nextLong();
         return messageCreator.createObjectMessage(new MessageInfo("name" + randomLong,
-                "cool-address" + randomLong));
+                "cool-address" + randomLong, sizeInBytes));
     }
 
     /**
