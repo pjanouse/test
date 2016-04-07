@@ -3,6 +3,9 @@ package org.jboss.qa.hornetq.test.cli.operations;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
@@ -62,7 +65,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
      * which uses local transactions, create consumer and start receiving
      * messages. Commit transaction after 50 received messages and use CLI
      * operation listDeliveringMessages to check number of delivering messages
-     *
      * @tpProcedure <ul>
      * <li>Start one server with deployed queue</li>
      * <li>Create producer and send messages to queue</li>
@@ -73,7 +75,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
      * <li>Use operation listDeliveringMessages to check number of delivering
      * messages</li>
      * </ul>
-     *
      * @tpPassCrit CLI operation listDeliveringMessages returns list which
      * contains correct number of delivering messages
      */
@@ -144,10 +145,52 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
     }
 
     /**
+     * @tpTestDetails Server with queue is started. Create producer and send 5GB of
+     * messages to queue. Once producer finishes, try to delete all messages from the queue.
+     * @tpProcedure <ul>
+     * <li>Start one server with deployed queue</li>
+     * <li>Send 5GB messages to queue</li>
+     * <li>Remove messages from queue</li>
+     * </ul>
+     * @tpPassCrit All messages will be removed from queue.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void removeMessagesFromLargeQueueTest() throws Exception {
+
+        prepareServer(container(1));
+
+        container(1).start();
+
+        int messageSize = 40 * 1024; // 40KB
+        int numberOfMessages = 5000 * 1024 * 1024 / messageSize; //5 GB
+        int commitAfter = 50;
+
+        ProducerTransAck producer = new ProducerTransAck(container(1), queueJndiName, numberOfMessages);
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 40);
+        producer.setMessageBuilder(messageBuilder);
+        producer.setCommitAfter(commitAfter);
+        producer.setTimeout(0);
+        producer.start();
+        producer.join();
+
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+        jmsOperations.removeMessagesFromQueue(queueName);
+        long numberOfMessagesInQueue = jmsOperations.getCountOfMessagesOnQueue(queueName);
+        jmsOperations.close();
+
+        Assert.assertEquals("Not all messages were removed from queue.", 0, numberOfMessages);
+
+        container(1).stop();
+
+    }
+
+    /**
      * @tpTestDetails Server with queue is started. Create producer and send 10
      * messages to queue. Once producer finishes, use CLI operation
      * listScheduledMessages to check number of scheduled messages.
-     *
      * @tpProcedure <ul>
      * <li>start one server with deployed queue</li>
      * <li>create producer and send messages to queue</li>
@@ -155,7 +198,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
      * <li>Use CLI operation listScheduledMessages to check number of scheduled
      * messages</li>
      * </ul>
-     * 
      * @tpPassCrit CLI operation listScheduledMessages returns list which
      * contains correct number of scheduled messages
      */
