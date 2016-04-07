@@ -34,8 +34,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdb10kbMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        suspendOfMdbInClusterWithLodhLikeMdb(messageBuilder);
+        suspendOfMdbInClusterWithLodhLikeMdb(false);
     }
 
     @Test
@@ -43,18 +42,19 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        suspendOfMdbInClusterWithLodhLikeMdb(messageBuilder);
+        suspendOfMdbInClusterWithLodhLikeMdb(true);
     }
 
-    public void suspendOfMdbInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+    private void suspendOfMdbInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
-        suspendInCluster(lodhLikemdb, container(2), messageBuilder);
+        suspendInCluster(lodhLikemdb, container(2), messageBuilder,numberOfMessages);
     }
 
     @Test
@@ -77,8 +77,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfJmsInClusterWithLodhLikeMdb10kbMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        suspendOfJmsInClusterWithLodhLikeMdb(messageBuilder);
+        suspendOfJmsInClusterWithLodhLikeMdb(false);
     }
 
     @Test
@@ -86,21 +85,19 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfJmsInClusterWithLodhLikeMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        suspendOfJmsInClusterWithLodhLikeMdb(messageBuilder);
+        suspendOfJmsInClusterWithLodhLikeMdb(true);
     }
-    @Test
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    @RunAsClient
-    public void suspendOfJmsInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+
+    private void suspendOfJmsInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
-        suspendInCluster(lodhLikemdb, container(3), messageBuilder);
+        suspendInCluster(lodhLikemdb, container(3), messageBuilder,numberOfMessages);
     }
 
     private void suspendInCluster(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder) throws Exception {
@@ -189,15 +186,27 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void suspendOfMdbInClusterWithRestartWithLodhLikeMdb() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void suspendOfMdbInClusterWithRestartWithLodhLikeMdb10kbMessages() throws Exception {
+        suspendOfMdbInClusterWithRestartWithLodhLikeMdb(false);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfMdbInClusterWithRestartWithLodhLikeMdbLargeMessages() throws Exception {
+        suspendOfMdbInClusterWithRestartWithLodhLikeMdb(true);
+    }
+
+    private void suspendOfMdbInClusterWithRestartWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
-        suspendInClusterWithRestart(lodhLikemdb, container(2), messageBuilder);
+        suspendInClusterWithRestart(lodhLikemdb, container(2), messageBuilder, numberOfMessages);
     }
 
     @Test
@@ -219,15 +228,27 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart() throws Exception {
-        TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
+    public void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart10kbMessages() throws Exception{
+        suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart(false);
+    }
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestartLargeMessages() throws Exception{
+        suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart(true);
+    }
+
+    private void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(true);
         messageBuilder.setJndiProperties(jndiProperties);
-        suspendInClusterWithRestart(lodhLikemdb, container(3), messageBuilder);
+        suspendInClusterWithRestart(lodhLikemdb, container(3), messageBuilder,numberOfMessages);
     }
 
     private void suspendInClusterWithRestart(Archive mdbToDeploy, Container containerToSuspend, MessageBuilder messageBuilder) throws Exception {

@@ -36,8 +36,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfJmsServerInClusterWithLodhLikeMdb10kbMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        oomOfJmsServerInClusterWithLodhLikeMdb(messageBuilder);
+        oomOfJmsServerInClusterWithLodhLikeMdb(false);
     }
 
     @Test
@@ -45,18 +44,19 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfJmsServerInClusterWithLodhLikeMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        oomOfJmsServerInClusterWithLodhLikeMdb(messageBuilder);
+        oomOfJmsServerInClusterWithLodhLikeMdb(true);
     }
 
-    public void oomOfJmsServerInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+    private void oomOfJmsServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        oomInClusterWithRestart(lodhLikemdb, container(3), messageBuilder, 50000);
+        oomInClusterWithRestart(lodhLikemdb, container(3), messageBuilder, numberOfMessages);
     }
 
     @Test
@@ -64,8 +64,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfMdbServerInClusterWithLodhLikeMdb10kbMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        oomOfMdbServerInClusterWithLodhLikeMdb(messageBuilder);
+        oomOfMdbServerInClusterWithLodhLikeMdb(false);
     }
 
     @Test
@@ -73,72 +72,75 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfMdbServerInClusterWithLodhLikeMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        oomOfMdbServerInClusterWithLodhLikeMdb(messageBuilder);
+        oomOfMdbServerInClusterWithLodhLikeMdb(true);
     }
 
-    public void oomOfMdbServerInClusterWithLodhLikeMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+    private void oomOfMdbServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        oomInClusterWithRestart(lodhLikemdb, container(2), messageBuilder, 50000);
+        oomInClusterWithRestart(lodhLikemdb, container(2), messageBuilder, numberOfMessages);
     }
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfJmsServerInClusterWithNormalMdb10kbMessages() throws Exception{
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        oomOfJmsServerInClusterWithNormalMdb(messageBuilder);
+    public void oomOfJmsServerInClusterWithNormalMdb10kbMessages() throws Exception {
+        oomOfJmsServerInClusterWithNormalMdb(false);
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfJmsServerInClusterWithNormalMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        oomOfJmsServerInClusterWithNormalMdb(messageBuilder);
+        oomOfJmsServerInClusterWithNormalMdb(true);
     }
 
-    public void oomOfJmsServerInClusterWithNormalMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+    private void oomOfJmsServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        oomInClusterWithRestart(mdb1, container(3), messageBuilder, 50000);
+        oomInClusterWithRestart(mdb1, container(3), messageBuilder, numberOfMessages);
     }
 
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
-    public void oomOfMdbServerInClusterWithNormalMdb10kbMessages() throws Exception{
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
-        oomOfMdbServerInClusterWithNormalMdb(messageBuilder);
+    public void oomOfMdbServerInClusterWithNormalMdb10kbMessages() throws Exception {
+        oomOfMdbServerInClusterWithNormalMdb(false);
     }
+
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void oomOfMdbServerInClusterWithNormalMdbLargeMessages() throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB);
-        oomOfMdbServerInClusterWithNormalMdb(messageBuilder);
+        oomOfMdbServerInClusterWithNormalMdb(true);
     }
 
-    public void oomOfMdbServerInClusterWithNormalMdb(ClientMixedMessageTypeBuilder messageBuilder) throws Exception {
+    private void oomOfMdbServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
-        oomInClusterWithRestart(mdb1, container(2), messageBuilder, 50000);
+        oomInClusterWithRestart(mdb1, container(2), messageBuilder, numberOfMessages);
     }
 
     private void oomInClusterWithRestart(Archive mdbToDeploy, Container containerForOOM, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
