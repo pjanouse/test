@@ -53,7 +53,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
     protected static int LARGE_MESSAGE_SIZE_KB = 300;
 
     protected static int LARGE_MESSAGE_TEST_MESSAGES = 15000;
-    protected static int NORMAL_MESSAGE_TEST_MESSAGES = 40000;
+    protected static int NORMAL_MESSAGE_TEST_MESSAGES = 50000;
 
     // queue to send messages in
     static String dlqQueueName = "DLQ";

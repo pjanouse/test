@@ -62,7 +62,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
         container(2).start();
 
         // send messages to queue
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 40000);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
         messageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
