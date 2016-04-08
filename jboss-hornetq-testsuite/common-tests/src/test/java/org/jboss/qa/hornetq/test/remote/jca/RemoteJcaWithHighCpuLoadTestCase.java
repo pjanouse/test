@@ -409,11 +409,13 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
         }
         // Wait until some messages are consumed from InQueue
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
-        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
-                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
-
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
         restartServers();
+
+        boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(120000, container(1), 0, false) &&
+                new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(120000, container(3), 0, false);
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
