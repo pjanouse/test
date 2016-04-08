@@ -4,22 +4,31 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.jms.Message;
 import javax.jms.Session;
 import java.io.File;
 import java.io.IOException;
@@ -106,10 +115,10 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                     targetLocation = "EXIT",
                     action = "System.out.println(\"Byteman will invoke kill\");killJVM();"),
             @BMRule(name = "Artemis Kill before transactional data are written into journal - send",
-                targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
-                targetMethod = "addToPage",
-                targetLocation = "EXIT",
-                action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
+                    targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
+                    targetMethod = "addToPage",
+                    targetLocation = "EXIT",
+                    action = "System.out.println(\"Byteman will invoke kill\");killJVM();")
     })
     public void replicatedTestFailoverTransAckQueueMessageSentStored() throws Exception {
         testFailoverWithByteman(Session.SESSION_TRANSACTED, false, false, false);
@@ -794,6 +803,185 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         producer.join();
 
         receiver.join();
+
+        container(1).stop();
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This test scenario tests if producer is not blocked or crashed when backup is killed after synchronization.
+     * @tpProcedure <ul>
+     * <li>Configure 2 nodes in replicated dedicated topology</li>
+     * <li>Start live (node-1) and backup (node-2) and start sending messages</li>
+     * <li>Start producer</li>
+     * <li>Kill node-2</li>
+     * <li>Start consumer, receiving messages from node-1</li>
+     * <li>Check if clients still send and receive messages</li>
+     * </ul>
+     * @tpPassCrit clients are not blocked after backup shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testProducerBackupIsKilledAfterSynchronization() throws Exception {
+        testProducerDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE.KILL, new ClientMixMessageBuilder(10, 200));
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This test scenario tests if producer is not blocked or crashed when backup is shutdown after synchronization.
+     * @tpProcedure <ul>
+     * <li>Configure 2 nodes in replicated dedicated topology</li>
+     * <li>Start live (node-1) and backup (node-2) and start sending messages</li>
+     * <li>Start producer</li>
+     * <li>Shut down node-2</li>
+     * <li>Start consumer, receiving messages from node-1</li>
+     * <li>Check if clients still send and receive messages</li>
+     * </ul>
+     * @tpPassCrit clients are not blocked after backup shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testProducerBackupIsShutdownAfterSynchronization() throws Exception {
+        testProducerDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE.SHUTDOWN, new ClientMixMessageBuilder(10, 200));
+    }
+
+
+    public void testProducerDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE failureType, MessageBuilder messageBuilder) throws Exception {
+
+        int numberOfMessages = 20000;
+
+        prepareSimpleDedicatedTopology();
+
+        container(2).start();
+        container(1).start();
+
+        // TODO once https://issues.jboss.org/browse/JBEAP-4136 is resolved then replace thread sleep by proper check
+        Thread.sleep(10000);
+
+        logger.info("Start producer to send: " + numberOfMessages + " messages.");
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.setMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        new JMSTools().waitForMessages(queueNamePrefix + "0", 300, 120000, container(1));
+
+        logger.info("Crash backup server - " + failureType);
+        container(2).fail(failureType);
+        logger.info("Backup server crashed by - " + failureType);
+
+        waitForClientToFailover(prod1, 120000);
+
+        new JMSTools().waitForMessages(queueNamePrefix + "0", 600, 120000, container(1));
+
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 20000, 1, 100);
+        receiver.setTimeout(0);
+        receiver.setMessageVerifier(messageVerifier);
+        receiver.start();
+
+        prod1.stopSending();
+        prod1.join();
+        receiver.join();
+
+        boolean isOK = messageVerifier.verifyMessages();
+        Assert.assertTrue("There were detected losses or duplicates. Check logs for more details.", isOK);
+
+        container(1).stop();
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This test scenario tests if clients is not blocked or crashed when backup is killed after synchronization.
+     * @tpProcedure <ul>
+     * <li>Configure 2 nodes in replicated dedicated topology</li>
+     * <li>Start live (node-1) and backup (node-2) and start sending messages</li>
+     * <li>Start producer and receiver</li>
+     * <li>Kill node-2</li>
+     * <li>Check if clients still send and receive messages</li>
+     * </ul>
+     * @tpPassCrit clients are not blocked after backup shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testClientsBackupIsKilledAfterSynchronization() throws Exception {
+        testClientsDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE.KILL, new ClientMixMessageBuilder(10, 200));
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This test scenario tests if clients is not blocked or crashed when backup is shutdown after synchronization.
+     * @tpProcedure <ul>
+     * <li>Configure 2 nodes in replicated dedicated topology</li>
+     * <li>Start live (node-1) and backup (node-2) and start sending messages</li>
+     * <li>Start producer and receiver</li>
+     * <li>Shut down node-2</li>
+     * <li>Start consumer, receiving messages from node-1</li>
+     * <li>Check if clients still send and receive messages</li>
+     * </ul>
+     * @tpPassCrit clients are not blocked after backup shutdown
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testClientsBackupIsShutdownAfterSynchronization() throws Exception {
+        testClientsDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE.SHUTDOWN, new ClientMixMessageBuilder(10, 200));
+    }
+
+    public void testClientsDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE failureType, MessageBuilder messageBuilder) throws Exception {
+
+        int numberOfMessages = 20000;
+
+        prepareSimpleDedicatedTopology();
+
+        container(2).start();
+        container(1).start();
+
+        // TODO once https://issues.jboss.org/browse/JBEAP-4136 is resolved then replace thread sleep by proper check
+        Thread.sleep(10000);
+
+        logger.info("Start producer to send: " + numberOfMessages + " messages.");
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.setMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver.setTimeout(0);
+        receiver.setMessageVerifier(messageVerifier);
+        receiver.start();
+
+        ClientUtils.waitForReceiverUntil(receiver, 200, 120000);
+
+        logger.info("Crash backup server - " + failureType);
+        container(2).fail(failureType);
+        logger.info("Backup server crashed by - " + failureType);
+
+        waitForClientToFailover(receiver, 120000);
+        waitForClientToFailover(prod1, 120000);
+
+        ClientUtils.waitForReceiverUntil(receiver, 400, 120000);
+        prod1.stopSending();
+        prod1.join();
+        receiver.setReceiveTimeOut(5000);
+        receiver.join();
+
+        boolean isOK = messageVerifier.verifyMessages();
+        Assert.assertTrue("There were detected losses or duplicates. Check logs for more details.", isOK);
 
         container(1).stop();
     }
