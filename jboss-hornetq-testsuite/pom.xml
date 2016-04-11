@@ -672,17 +672,6 @@
                 <module>tests-eap7</module>
             </modules>
             <dependencies>
-                <!-- uncomment these to use the snapshot version of artemis -->
-                <!--<dependency>-->
-                    <!--<groupId>org.apache.activemq</groupId>-->
-                    <!--<artifactId>artemis-core-client</artifactId>-->
-                    <!--<version>1.1.0.jboss-SNAPSHOT</version>-->
-                <!--</dependency>-->
-                <!--<dependency>-->
-                    <!--<groupId>org.apache.activemq</groupId>-->
-                    <!--<artifactId>artemis-jms-client</artifactId>-->
-                    <!--<version>1.1.0.jboss-SNAPSHOT</version>-->
-                <!--</dependency>-->
                 <dependency>
                     <groupId>org.jboss.spec</groupId>
                     <artifactId>jboss-javaee-7.0</artifactId>
@@ -721,15 +710,6 @@
                             <groupId>org.jboss.logging</groupId>
                             <artifactId>jboss-logging</artifactId>
                         </exclusion>
-                        <!-- uncomment these to use the snapshot version of artemis -->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.apache.activemq</groupId>-->
-                            <!--<artifactId>artemis-core-client</artifactId>-->
-                        <!--</exclusion>-->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.apache.activemq</groupId>-->
-                            <!--<artifactId>artemis-jms-client</artifactId>-->
-                        <!--</exclusion>-->
                     </exclusions>
                 </dependency>
                 <dependency>
@@ -912,11 +892,6 @@
                             <groupId>org.jboss.logging</groupId>
                             <artifactId>jboss-logging</artifactId>
                         </exclusion>
-                        <!-- uncomment these to use the snapshot version of artemis -->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.apache.activemq</groupId>-->
-                            <!--<artifactId>artemis-core-client</artifactId>-->
-                        <!--</exclusion>-->
                     </exclusions>
                 </dependency>
                 <dependency>
@@ -1077,12 +1052,6 @@
                 </plugins>
             </build>
             <dependencies>
-                <!-- uncomment these to use the snapshot version of artemis -->
-                <!--<dependency>-->
-                    <!--<groupId>org.apache.activemq</groupId>-->
-                    <!--<artifactId>artemis-core-client</artifactId>-->
-                    <!--<version>1.1.0.jboss-SNAPSHOT</version>-->
-                <!--</dependency>-->
                 <dependency>
                     <groupId>org.jboss.spec</groupId>
                     <artifactId>jboss-javaee-7.0</artifactId>
@@ -1094,13 +1063,6 @@
                     <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
                     <type>jar</type>
-                    <exclusions>
-                        <!-- uncomment these to use the snapshot version of artemis -->
-                        <!--<exclusion>-->
-                            <!--<groupId>org.apache.activemq</groupId>-->
-                            <!--<artifactId>artemis-core-client</artifactId>-->
-                        <!--</exclusion>-->
-                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>eap</groupId>
@@ -1628,5 +1590,4 @@
     </distributionManagement>
 
 </project>
-
 
