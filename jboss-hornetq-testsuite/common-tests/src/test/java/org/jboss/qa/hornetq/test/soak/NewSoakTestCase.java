@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.soak.modules.*;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -42,7 +43,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
- * 
  * @tpChapter PERFORMANCE TESTING
  * @tpSubChapter HORNETQ SOAK TEST
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-soak-test/
@@ -53,13 +53,9 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(NewSoakTestCase.class);
 
-    private static final String CONTAINER1_NAME_DEPLOYMENT = "container1-deployment";
+    private static final long DEFAULT_DURATION = TimeUnit.DAYS.toMillis(1);
 
-    private static final String CONTAINER2_DEPLOYMENT = "container2-deployment";
-
-    private static final long DEFAULT_DURATION = TimeUnit.DAYS.toMillis(3);
-
-    private static final int NUMBER_OF_MESSAGES = 10000000;
+    private static final int NUMBER_OF_MESSAGES = Integer.MAX_VALUE;
 
     private static final int NUMBER_OF_CLIENTS = 5;
 
@@ -67,83 +63,41 @@ public class NewSoakTestCase extends HornetQTestCase {
      * Submodules active in the soak test.
      */
     private final static SoakTestModule[] MODULES = {
-        new RemoteJcaSoakModule(),
-        new BridgeSoakModule(),
-        new JcaBridgeModuleConnection(), // connects previous 2 with mdb
-        new DurableSubscriptionsSoakModule(), // connects to bridge module
+            new RemoteJcaSoakModule(),
+            new BridgeSoakModule(),
+            new JcaBridgeModuleConnection(), // connects previous 2 with mdb
+            new DurableSubscriptionsSoakModule(), // connects to bridge module
 
-        new TemporaryQueueSoakModule(),
-        new EjbSoakModule()
+            new TemporaryQueueSoakModule(),
+            new EjbSoakModule()
     };
 
-
-    @Before
-    public void startUpServers() {
-
-        container(1).start();
-
-        container(2).start();
-
-    }
-
-    private Map<String,String> setMemoryForContainer(String containerName, int heapSizeInMB)    {
-        Map<String,String> containerProperties = new HashMap<String,String>();
-
-        ArquillianDescriptor descriptor = getArquillianDescriptor();
-        for (GroupDef groupDef : descriptor.getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-
-                if (containerDef.getContainerName().equals(containerName)) {
-                    containerProperties = containerDef.getContainerProperties();
-                    String vmArguments = containerProperties.get("javaVmArguments");
-
-                    if (vmArguments.contains("-Xmx"))    { //just change value
-                        vmArguments = vmArguments.replaceAll("-Xmx.* ", "-Xmx" + heapSizeInMB + "m ");
-                    } else { // add it
-                        vmArguments = vmArguments.concat(" -Xmx" + heapSizeInMB + "m ");
-                    }
-                    LOG.info("vmargument are: " + vmArguments);
-                    containerProperties.put("javaVmArguments", vmArguments);
-                }
-            }}
-        return containerProperties;
-    }
-
-
     @After
+    @Before
     public void stopServers() {
         container(2).stop();
         container(1).stop();
     }
 
-
-    @Deployment(managed = false, testable = false, name = CONTAINER1_NAME_DEPLOYMENT)
-    @TargetsContainer(CONTAINER1_NAME)
-    public static Archive getDeploymentForContainer1() {
-        return createArchiveForContainer(CONTAINER1_NAME);
+    public void startUpServers() {
+        container(2).start();
+        container(1).start();
     }
 
-
-    @Deployment(managed = false, testable = false, name = CONTAINER2_DEPLOYMENT)
-    @TargetsContainer(CONTAINER2_NAME)
-    public static Archive getDeploymentForContainer2() {
-        return createArchiveForContainer(CONTAINER2_NAME);
-    }
     /**
      * @tpTestDetails Two EAP 7 containers are started. Client sends messages to
      * one of them, where the messages go through various destinations and
      * components between servers. Client then reads the messages again from the
      * output destinations, see if all of the messages are available as
      * expected.
-     *
      * @tpProcedure <ul>
      * <li>Client sends messages to input queue. Messages then go through:</li>
-     *   <ul>
-     *      <li>one server to another through MDB reading and sending them from remote container through resource adapter</li>
-     *      <li>messages are forwarded from one server to another over JMS bridge and back over Core bridge</li>
-     *      <li>messages have JMSReplyTo defined with a temporary queue, that is filled with responses for the client</li>
-     *      <li>messages are read from the destination with stateless EJB and sent back to clients</li>
-     *   </ul>
+     * <ul>
+     * <li>one server to another through MDB reading and sending them from remote container through resource adapter</li>
+     * <li>messages are forwarded from one server to another over JMS bridge and back over Core bridge</li>
+     * <li>messages have JMSReplyTo defined with a temporary queue, that is filled with responses for the client</li>
+     * <li>messages are read from the destination with stateless EJB and sent back to clients</li>
+     * </ul>
      * <li>Client reads the messages after the pass through all the soak modules.</li>
      * </ul>
      * @tpPassCrit Receiver received all messages send by producer.
@@ -153,44 +107,41 @@ public class NewSoakTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void soakTest() throws Exception {
-        this.prepareServers();
-        this.setupJmsServer(container(1));
-        this.setupMdbServer(container(2));
 
-        this.restartAllServers();
+        //Prepare phase
+        Archive container1Deployment = createArchiveForContainer(container(1));
+        Archive container2Deployment = createArchiveForContainer(container(2));
 
-//        // start memory measuring of servers
+        startUpServers();
+
+        prepareServers();
+        setupJmsServer(container(1));
+        setupMdbServer(container(2));
+
+        restartAllServers();
+
+        container(1).deploy(container1Deployment);
+        container(2).deploy(container2Deployment);
+
+        // Start memory measuring of servers
         File jmsServerCsv = new File("jms-server-memory.csv");
-        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1).getHostname(), String.valueOf(container(1).getPort()), jmsServerCsv);
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1), jmsServerCsv);
         jmsServerMeasurement.start();
 
         File mdbServerCsv = new File("mdb-server-memory.csv");
-        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(container(2).getHostname(), String.valueOf(getPort(
-                CONTAINER2_NAME)), mdbServerCsv);
+        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(container(2), mdbServerCsv);
         mdbServerMeasurement.start();
 
-        this.deployer.deploy(CONTAINER1_NAME_DEPLOYMENT);
-        this.deployer.deploy(CONTAINER2_DEPLOYMENT);
-
-        String durationString = System.getProperty("soak.duration", String.valueOf(DEFAULT_DURATION));
-        long testDuration = 0;
-        try {
-            testDuration = Long.parseLong(durationString);
-        } catch (NumberFormatException e) {
-            LOG.error(String.format("Cannot set test duration to '%s'", durationString));
-            throw e;
-        }
-        LOG.info(String.format("Setting soak test duration to %dms", testDuration));
+        final long testDuration = getTestDuration();
 
         // create in/out org.jboss.qa.hornetq.apps.clients
-        SoakProducerClientAck producer = new SoakProducerClientAck(container(1).getHostname(), this.container(1).getJNDIPort(),
+        SoakProducerClientAck producer = new SoakProducerClientAck(container(1),
                 RemoteJcaSoakModule.JCA_IN_QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new TextMessageBuilder(104));
 
         SoakReceiverClientAck[] consumers = new SoakReceiverClientAck[NUMBER_OF_CLIENTS];
         for (int i = 0; i < consumers.length; i++) {
-            consumers[i] = new SoakReceiverClientAck(container(1).getHostname(), this.container(1).getJNDIPort(),
-                    DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI);
+            consumers[i] = new SoakReceiverClientAck(container(1), DurableSubscriptionsSoakModule.DURABLE_MESSAGES_QUEUE_JNDI, 60 * 1000, 100, 25);
         }
         DurableSubscriptionClient durableTopicClient = new DurableSubscriptionClient(container(1));
 
@@ -228,7 +179,7 @@ public class NewSoakTestCase extends HornetQTestCase {
             receivedMessagesCount += consumers[i].getCount();
         }
 
-//        // stop measuring
+        // stop measuring
         jmsServerMeasurement.stopMeasuring();
         mdbServerMeasurement.stopMeasuring();
         jmsServerMeasurement.join();
@@ -261,20 +212,25 @@ public class NewSoakTestCase extends HornetQTestCase {
         assertEquals("Number of messages received in filtering module should be half of sent messages",
                 filterModuleExpected, filterClients.getNumberOfReceivedMessages());
 
+        // stop test
+        container(1).undeploy(container1Deployment);
+        container(2).undeploy(container2Deployment);
+        container(1).stop();
+        container(2).stop();
+
     }
 
 
     /**
      * Collect required classes (MDBs and EJBs) to deploy in container X and create an archive with them.
      *
-     * @param containerName
-     *
+     * @param container
      * @return
      */
-    private static Archive createArchiveForContainer(final String containerName) {
-        JavaArchive archive = ShrinkWrap.create(JavaArchive.class, containerName.toLowerCase() + ".jar")
-                .addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq\n"),
-                "MANIFEST.MF");
+    private static Archive createArchiveForContainer(final Container container) {
+        String containerName = container.getName();
+
+        JavaArchive archive = ShrinkWrap.create(JavaArchive.class, containerName.toLowerCase() + "-deployment.jar");
 
         // add all component classes to the archive
         for (SoakTestModule module : MODULES) {
@@ -294,12 +250,20 @@ public class NewSoakTestCase extends HornetQTestCase {
             }
         }
 
-        //          Uncomment when you want to see what's in the servlet
-        File target = new File("/tmp/mdb-for-soak.jar");
-        if (target.exists()) {
-            target.delete();
+        if (ContainerUtils.isEAP6(container)) {
+            archive.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.hornetq\n"),
+                    "MANIFEST.MF");
+        } else {
+            archive.addAsManifestResource(new StringAsset("Dependencies: org.jboss.remote-naming, org.apache.activemq.artemis\n"),
+                    "MANIFEST.MF");
         }
-        archive.as(ZipExporter.class).exportTo(target, true);
+//          Uncomment when you want to see what's in the servlet
+//        File target = new File("/tmp/mdb-for-soak" + containerName + ".jar");
+//        if (target.exists()) {
+//            target.delete();
+//        }
+//        archive.as(ZipExporter.class).exportTo(target, true);
+
         return archive;
     }
 
@@ -321,22 +285,28 @@ public class NewSoakTestCase extends HornetQTestCase {
 
 
     private void setupJmsServer(final Container container) {
+        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
+
         JMSOperations ops = container.getJmsOperations();
-        ops.setClustered(true);
+
+        if (ContainerUtils.isEAP6(container)) {
+            ops.setClustered(true);
+            ops.setSharedStore(true);
+        }
+
         ops.setJournalType("NIO");
         ops.setPersistenceEnabled(true);
-        ops.setSharedStore(true);
         ops.disableSecurity();
         ops.addLoggerCategory("com.arjuna", "ERROR");
 
         ops.removeBroadcastGroup("bg-group1");
-        ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, "netty", "");
+        ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, connectorName, "");
 
         ops.removeDiscoveryGroup("dg-group1");
         ops.setDiscoveryGroup("dg-group1", "messaging-group", 10000);
 
         ops.removeClusteringGroup("my-cluster");
-        ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "netty");
+        ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, connectorName);
 
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 512 * 1204);
@@ -346,27 +316,72 @@ public class NewSoakTestCase extends HornetQTestCase {
 
 
     private void setupMdbServer(final Container container) {
+        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
+
         JMSOperations ops = container.getJmsOperations();
-        ops.setClustered(true);
+
+        if (ContainerUtils.isEAP6(container)) {
+            ops.setClustered(true);
+            ops.setSharedStore(true);
+        }
+
         ops.setJournalType("NIO");
         ops.setPersistenceEnabled(true);
-        ops.setSharedStore(true);
         ops.disableSecurity();
         ops.addLoggerCategory("com.arjuna", "ERROR");
 
         ops.removeBroadcastGroup("bg-group1");
-        ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, "netty", "");
+        ops.setBroadCastGroup("bg-group1", "messaging-group", 2000, connectorName, "");
 
         ops.removeDiscoveryGroup("dg-group1");
         ops.setDiscoveryGroup("dg-group1", "messaging-group", 10000);
 
         ops.removeClusteringGroup("my-cluster");
-        ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "netty");
+        ops.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, connectorName);
 
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1204);
 
         ops.close();
     }
+
+    private Map<String, String> setMemoryForContainer(String containerName, int heapSizeInMB) {
+        Map<String, String> containerProperties = new HashMap<String, String>();
+
+        ArquillianDescriptor descriptor = getArquillianDescriptor();
+        for (GroupDef groupDef : descriptor.getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+
+                if (containerDef.getContainerName().equals(containerName)) {
+                    containerProperties = containerDef.getContainerProperties();
+                    String vmArguments = containerProperties.get("javaVmArguments");
+
+                    if (vmArguments.contains("-Xmx")) { //just change value
+                        vmArguments = vmArguments.replaceAll("-Xmx.* ", "-Xmx" + heapSizeInMB + "m ");
+                    } else { // add it
+                        vmArguments = vmArguments.concat(" -Xmx" + heapSizeInMB + "m ");
+                    }
+                    LOG.info("vmargument are: " + vmArguments);
+                    containerProperties.put("javaVmArguments", vmArguments);
+                }
+            }
+        }
+        return containerProperties;
+    }
+
+
+    private long getTestDuration() {
+        Long testDuration = 0l;
+        String durationString = System.getProperty("soak.duration", String.valueOf(DEFAULT_DURATION));
+        try {
+            testDuration = Long.parseLong(durationString);
+        } catch (NumberFormatException e) {
+            LOG.error(String.format("Cannot set test duration to '%s'", durationString));
+            throw e;
+        }
+        LOG.info(String.format("Setting soak test duration to %dms", testDuration));
+        return testDuration;
+    }
+
 
 }

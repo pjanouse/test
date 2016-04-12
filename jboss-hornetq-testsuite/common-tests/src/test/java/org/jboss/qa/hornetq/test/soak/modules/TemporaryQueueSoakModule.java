@@ -25,12 +25,11 @@ public class TemporaryQueueSoakModule extends HornetQTestCase implements SoakTes
 
     public static final String TEMP_QUEUE_PREFIX = "jms/queue/soak/temporary/TempQueue";
 
-    private Container container;
+    private Container container = container(1);
 
 
     @Override
     public void setUpServers() {
-        this.container = container(1);
         JMSOperations ops = container.getJmsOperations();
         ops.createQueue(TEMP_IN_QUEUE, TEMP_IN_QUEUE_JNDI);
         ops.close();

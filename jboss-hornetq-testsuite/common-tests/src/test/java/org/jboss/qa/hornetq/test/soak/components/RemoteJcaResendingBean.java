@@ -7,6 +7,7 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.qa.hornetq.test.soak.modules.RemoteJcaSoakModule;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
 import javax.naming.Context;
@@ -34,7 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 })
 @TransactionManagement(TransactionManagementType.CONTAINER)
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
-@ResourceAdapter("hornetq-ra")
 public class RemoteJcaResendingBean implements MessageListener {
 
     private static final long serialVersionUID = 2770941392406343837L;
@@ -45,6 +45,7 @@ public class RemoteJcaResendingBean implements MessageListener {
 
     private static String hostname = null;
     private static int port = 0;
+    private static String providerPrefix = null;
 
     private static InitialContext ctx = null;
 
@@ -64,11 +65,12 @@ public class RemoteJcaResendingBean implements MessageListener {
 
             hostname = prop.getProperty("remote-jms-server");
             port = Integer.valueOf(prop.getProperty("remote-jms-jndi-port"));
+            providerPrefix = prop.getProperty("provider");
             LOG.info("Hostname of remote jms server is: " + hostname + ", port: " + port);
 
             final Properties env = new Properties();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-            env.put(Context.PROVIDER_URL, "remote://" + hostname + ":" + port);
+            env.put(Context.PROVIDER_URL, providerPrefix + hostname + ":" + port);
 
             ctxRemote = new InitialContext(env);
             queue = (Queue) ctxRemote.lookup(RemoteJcaSoakModule.JCA_OUT_QUEUE_JNDI);

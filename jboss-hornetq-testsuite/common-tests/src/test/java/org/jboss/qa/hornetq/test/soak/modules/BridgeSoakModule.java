@@ -1,11 +1,13 @@
 package org.jboss.qa.hornetq.test.soak.modules;
 
 
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.soak.FileDeploymentDefinition;
 import org.jboss.qa.hornetq.test.soak.SoakTestModule;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.ArrayList;
@@ -31,9 +33,9 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
     public final static String BRIDGE_OUT_QUEUE_JNDI = "jms/queue/soak/bridge/OutQueue";
 
-    private Container queueContainer;
+    private Container queueContainer = container(1);
 
-    private Container remoteContainer;
+    private Container remoteContainer = container(2);
 
     // from InQueue to RemoteQueue, default is CORE
     private final BridgeType outboundBridgeType;
@@ -55,8 +57,9 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
 
     @Override
     public void setUpServers() {
-        this.queueContainer = container(1);
-        this.remoteContainer = container(2);
+
+        String providerPrefix = ContainerUtils.isEAP6(remoteContainer) ? Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6 :
+                Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7;
 
         this.prepareQueues(this.queueContainer);
         this.prepareRemoteQueues(this.remoteContainer);
@@ -64,14 +67,19 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
         // bridge from inqueue to remotequeue
         JMSOperations ops = queueContainer.getJmsOperations();
         ops.addRemoteSocketBinding("messaging-bridge", remoteContainer.getHostname(), remoteContainer.getHornetqPort());
-        ops.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        if (ContainerUtils.isEAP6(queueContainer)) {
+            ops.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        } else {
+            ops.createHttpConnector("bridge-connector", "messaging-bridge", null);
+        }
+
         switch (this.outboundBridgeType) {
             case JMS:
                 Map<String, String> targetContext = new HashMap<String, String>(2);
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + remoteContainer.getHostname() + ":" + remoteContainer.getJNDIPort());
+                        providerPrefix + remoteContainer.getHostname() + ":" + remoteContainer.getJNDIPort());
 
                 ops.createJMSBridge("soak-outbound-bridge", "java:/ConnectionFactory",
                         "java:/" + BRIDGE_IN_QUEUE_JNDI, null,
@@ -90,7 +98,13 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
         // bridge from remotequeue to outqueue
         JMSOperations remoteOps = remoteContainer.getJmsOperations();
         remoteOps.addRemoteSocketBinding("messaging-bridge", queueContainer.getHostname(), queueContainer.getHornetqPort());
-        remoteOps.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+
+        if (ContainerUtils.isEAP6(remoteContainer)) {
+            remoteOps.createRemoteConnector("bridge-connector", "messaging-bridge", null);
+        } else {
+            remoteOps.createHttpConnector("bridge-connector", "messaging-bridge", null);
+        }
+
         switch (this.inboundBridgeType) {
             case CORE:
                 remoteOps.createCoreBridge("soak-inbound-bridge", "jms.queue." + BRIDGE_REMOTE_QUEUE,
@@ -106,7 +120,7 @@ public class BridgeSoakModule extends HornetQTestCase implements SoakTestModule 
                 targetContext.put("java.naming.factory.initial",
                         "org.jboss.naming.remote.client.InitialContextFactory");
                 targetContext.put("java.naming.provider.url",
-                        "remote://" + queueContainer.getHostname() + ":" + queueContainer.getJNDIPort());
+                        providerPrefix + queueContainer.getHostname() + ":" + queueContainer.getJNDIPort());//nekompatibilne s EAP6
 
                 remoteOps.setFactoryType("InVmConnectionFactory", "XA_GENERIC");
                 remoteOps.createJMSBridge("soak-inbound-bridge", "java:/ConnectionFactory",

@@ -22,7 +22,7 @@ import org.jboss.qa.hornetq.test.soak.ClassDeploymentDefinition;
  */
 public class JcaBridgeModuleConnection extends HornetQTestCase implements SoakTestModule {
 
-    private Container container;
+    private Container container = container(1);
 
 
     @Override

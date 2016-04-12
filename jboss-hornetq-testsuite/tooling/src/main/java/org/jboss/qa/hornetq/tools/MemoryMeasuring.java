@@ -22,13 +22,13 @@ import javax.management.remote.JMXServiceURL;
 import java.awt.*;
 import java.io.*;
 import java.util.List;
+import org.jboss.qa.hornetq.Container;
 
 
 public class MemoryMeasuring extends Thread {
 
     private static final Logger log = Logger.getLogger(MemoryCpuMeasuring.class);
 
-    String host;
     String url;
     File outCsvFile;
     MBeanServerConnection mbeanConn;
@@ -39,24 +39,13 @@ public class MemoryMeasuring extends Thread {
     long startTime;
 
     /**
-     * Connects to JMX to EAP 6 server to localhost:9999
+     * Connects to JMX to EAP management port
      *
+     * @param container  container to connect
      * @param outCsvFile file where data will be printed
      * @throws Exception
      */
-    public MemoryMeasuring(File outCsvFile) throws Exception {
-        this("localhost", "9999", outCsvFile);
-    }
-
-    /**
-     * Connects to JMX to EAP 6 management port
-     *
-     * @param hostname   hostname of management interface
-     * @param port       port where management port is listening
-     * @param outCsvFile file where data will be printed
-     * @throws Exception
-     */
-    public MemoryMeasuring(String hostname, String port, File outCsvFile) throws Exception {
+    public MemoryMeasuring(Container container, File outCsvFile) throws Exception {
 
         this.outCsvFile = outCsvFile;
         if (outCsvFile.exists()) {
@@ -64,9 +53,9 @@ public class MemoryMeasuring extends Thread {
         }
         outCsvFile.createNewFile();
 
-        host = System.getProperty("jmx.host", hostname);
-        port = System.getProperty("jmx.port", port);
-        url = "service:jmx:remoting-jmx://" + host + ":" + port;
+        String host = System.getProperty("jmx.host", container.getHostname());
+        String port = System.getProperty("jmx.port", String.valueOf(container.getPort()));
+        url =  ContainerUtils.isEAP6(container) ? "service:jmx:remoting-jmx://" + host + ":" + port : "service:jmx:remote+http://" + host + ":" + port;
         JMXServiceURL serviceUrl = new JMXServiceURL(url);
         try {
             jmxConnector = JMXConnectorFactory.connect(serviceUrl, null);
@@ -272,21 +261,21 @@ public class MemoryMeasuring extends Thread {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-
-        File f = new File("memory.csv");
-
-        MemoryMeasuring m = new MemoryMeasuring(f);
-
-        m.setIntervalBetweenMeasurements(1000);
-
-        m.start();
-        Thread.sleep(60000);
-        m.stopMeasuring();
-        m.join();
-        m.generatePng(f);
-
-
-    }
+//    public static void main(String[] args) throws Exception {
+//
+//        File f = new File("memory.csv");
+//
+//        MemoryMeasuring m = new MemoryMeasuring(f);
+//
+//        m.setIntervalBetweenMeasurements(1000);
+//
+//        m.start();
+//        Thread.sleep(60000);
+//        m.stopMeasuring();
+//        m.join();
+//        m.generatePng(f);
+//
+//
+//    }
 
 }

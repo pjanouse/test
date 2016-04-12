@@ -26,12 +26,11 @@ public class DurableSubscriptionsSoakModule extends HornetQTestCase implements S
 
     public static final String DURABLE_MESSAGES_QUEUE_JNDI = "jms/queue/soak/durable/OutQueue";
 
-    private Container container;
+    private Container container = container(1);
 
 
     @Override
     public void setUpServers() {
-        this.container = container(1);
         this.prepareDestinations(this.container);
     }
 

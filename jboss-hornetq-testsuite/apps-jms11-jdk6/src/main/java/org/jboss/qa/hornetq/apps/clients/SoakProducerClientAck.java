@@ -111,10 +111,13 @@ public class SoakProducerClientAck extends Client {
 
                 Thread.sleep(getTimeout());
 
-//                if (getCounter() % 1000 == 0) {
-                logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
+                if (getCounter() % 1000 == 0) {
+                    logger.info("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
                             + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
-//                }
+                } else {
+                    logger.debug("Producer for node: " + hostname + "and queue: " + queueNameJndi + ". Sent message with property my counter: " + getCounter()
+                            + ", message-counter: " + msg.getStringProperty("counter") + ", messageId:" + msg.getJMSMessageID());
+                }
             }
 
             producer.close();

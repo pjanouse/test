@@ -73,7 +73,7 @@ public class PageLeakSoakTestCase extends HornetQTestCase {
 
         // start measuring of
         File jmsServerCsv = new File("jms-server-memory.csv");
-        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1).getHostname(), String.valueOf(container(1).getPort()), jmsServerCsv);
+        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1), jmsServerCsv);
 
         jmsServerMeasurement.start();
 

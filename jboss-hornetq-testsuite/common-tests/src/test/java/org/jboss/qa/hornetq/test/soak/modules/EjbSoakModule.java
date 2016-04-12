@@ -31,12 +31,11 @@ public class EjbSoakModule extends HornetQTestCase implements SoakTestModule {
 
     public static final String EJB_OUT_TOPIC_JNDI = "jms/topic/soak/ejb/OutTopic";
 
-    private Container container;
+    private Container container = container(1);
 
 
     @Override
     public void setUpServers() {
-        this.container = container(1);
         JMSOperations ops = container.getJmsOperations();
         ops.createQueue(EJB_IN_QUEUE, EJB_IN_QUEUE_JNDI);
         ops.createQueue(EJB_OUT_QUEUE, EJB_OUT_QUEUE_JNDI);

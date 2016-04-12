@@ -44,7 +44,7 @@ public class DurableSubscriptionClient extends Client {
 
 
     public DurableSubscriptionClient(final Container container, final int jndiPort) {
-        super(container.getName());
+        super(container);
         this.container = container;
         this.port = jndiPort;
     }
