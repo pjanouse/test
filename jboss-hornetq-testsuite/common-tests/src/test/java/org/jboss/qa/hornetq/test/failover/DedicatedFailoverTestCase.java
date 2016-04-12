@@ -876,7 +876,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     }
 
-    private void waitForClientToFailover(Client client, long timeout) throws Exception {
+    protected void waitForClientToFailover(Client client, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         int initialCount = client.getCount();
         while (client.isAlive() && client.getCount() <= initialCount) {

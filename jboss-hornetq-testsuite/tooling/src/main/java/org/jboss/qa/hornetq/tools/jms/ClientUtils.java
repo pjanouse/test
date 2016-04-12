@@ -8,6 +8,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
@@ -36,7 +37,7 @@ public class ClientUtils {
 
 
     public static String sendMessage(final MessageProducer producer, final Message msg,
-            final int maxRetries) throws JMSException {
+                                     final int maxRetries) throws JMSException {
 
         int numberOfRetries = 0;
         Integer msgCounter;
@@ -92,7 +93,7 @@ public class ClientUtils {
 
 
     public static Message receiveMessage(final MessageConsumer consumer, final int counter,
-            final int maxRetries, final long timeout) throws JMSException {
+                                         final int maxRetries, final long timeout) throws JMSException {
 
         Message msg;
         int numberOfRetries = 0;
@@ -119,32 +120,44 @@ public class ClientUtils {
      * @param timeout          timeout
      */
     public static void waitForReceiversUntil(List<Client> receivers, int numberOfMessages, long timeout) {
+        for (Client c : receivers) {
+            waitForReceiverUntil(c, numberOfMessages, timeout);
+        }
+    }
+
+    /**
+     * Method blocks until all receivers gets the numberOfMessages or timeout expires
+     * <p/>
+     * This is NOT sum{receivers.getCount()}. Each receiver must have numberOfMessages.
+     *
+     * @param receiver        receiver
+     * @param numberOfMessages numberOfMessages
+     * @param timeout          timeout
+     */
+    public static void waitForReceiverUntil(Client receiver, int numberOfMessages, long timeout) {
+
         long startTimeInMillis = System.currentTimeMillis();
 
-        for (Client c : receivers) {
-            while (c.getCount() < numberOfMessages) {
-                if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
-                    Assert.fail("Receiver: " + c + " did not receive " + numberOfMessages + " in timeout: " + timeout + ". Only " + c.getCount() + " messages received.");
-                }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        while (receiver.getCount() < numberOfMessages) {
+            if ((System.currentTimeMillis() - startTimeInMillis) > timeout) {
+                Assert.fail("Receiver: " + receiver + " did not receive " + numberOfMessages + " in timeout: " + timeout + ". Only " + receiver.getCount() + " messages received.");
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
 
     /**
      * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
-     *
      */
     public static void waitForClientsToFinish(Clients clients) {
         waitForClientsToFinish(clients, 600000);
     }
 
     /**
-     *
      * Waits for the org.jboss.qa.hornetq.apps.clients to finish. If they do not finish in the specified time out then it fails the test.
      *
      * @param clients org.jboss.qa.hornetq.apps.clients
