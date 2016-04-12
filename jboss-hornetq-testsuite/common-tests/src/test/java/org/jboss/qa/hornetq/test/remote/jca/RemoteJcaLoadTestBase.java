@@ -449,6 +449,8 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
 
         setAddressSettings(jmsAdminOperations);
 
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq.artemis", "DEBUG");
+
         jmsAdminOperations.setTransactionTimeout(60000);
         jmsAdminOperations.setJournalMinCompactFiles(0);
         jmsAdminOperations.setJournalMinFiles(100);
@@ -684,6 +686,9 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
         jmsAdminOperations.setIdCacheSize(2000);
 
         setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteSevers);
+
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq.artemis", "DEBUG");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
 
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
