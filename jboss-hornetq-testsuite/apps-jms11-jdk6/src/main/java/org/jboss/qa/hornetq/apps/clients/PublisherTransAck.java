@@ -24,7 +24,7 @@ import java.util.Map;
 public class PublisherTransAck extends Client {
 
     private static final Logger logger = Logger.getLogger(PublisherTransAck.class);
-    private int maxRetries = 30;
+    private int maxRetries = 5;
     private String hostname;
     private int port;
     private String topicNameJndi;
@@ -389,7 +389,7 @@ public class PublisherTransAck extends Client {
 
     private void commitSession(Session session) throws Exception {
         int numberOfRetries = 0;
-        while (true) {
+        while (numberOfRetries < maxRetries) {
             try {
 
                 // try commit
@@ -398,27 +398,10 @@ public class PublisherTransAck extends Client {
                 // if successful -> return
                 return;
 
-            } catch (TransactionRolledBackException ex) {
-                // if transaction rollback exception -> send messages again and commit
-                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
-
-                // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 2) {
-                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
-                            + " Client will terminate.", ex);
-                }
-
-                counter -= listOfMessagesToBeCommited.size();
-
-                for (Message m : listOfMessagesToBeCommited) {
-                    sendMessage(m);
-                }
-
-                numberOfRetries++;
-
             } catch (JMSException ex) {
+                // if transaction rollback exception -> send messages again and commit
                 // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
-                ex.printStackTrace();
+                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once - it's exception because of duplicates
                 if (numberOfRetries > 0 && ex.getCause().getMessage().contains("Duplicate message detected")) {
@@ -433,6 +416,7 @@ public class PublisherTransAck extends Client {
                 numberOfRetries++;
             }
         }
+        throw new Exception("Commit was not successful after " + maxRetries + " retries. Message counter: " + counter);
     }
 
 //    /**
