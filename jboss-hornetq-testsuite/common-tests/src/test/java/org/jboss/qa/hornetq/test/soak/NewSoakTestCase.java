@@ -23,6 +23,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.measuring.Measure;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -124,12 +125,10 @@ public class NewSoakTestCase extends HornetQTestCase {
         container(2).deploy(container2Deployment);
 
         // Start memory measuring of servers
-        File jmsServerCsv = new File("jms-server-memory.csv");
-        MemoryMeasuring jmsServerMeasurement = new MemoryMeasuring(container(1), jmsServerCsv);
+        Measure jmsServerMeasurement = new Measure(container(1), "jms-server");
         jmsServerMeasurement.start();
 
-        File mdbServerCsv = new File("mdb-server-memory.csv");
-        MemoryMeasuring mdbServerMeasurement = new MemoryMeasuring(container(2), mdbServerCsv);
+        Measure mdbServerMeasurement = new Measure(container(2), "mdb-server");
         mdbServerMeasurement.start();
 
         final long testDuration = getTestDuration();
@@ -184,8 +183,6 @@ public class NewSoakTestCase extends HornetQTestCase {
         mdbServerMeasurement.stopMeasuring();
         jmsServerMeasurement.join();
         mdbServerMeasurement.join();
-        jmsServerMeasurement.generatePng(jmsServerCsv);
-        mdbServerMeasurement.generatePng(mdbServerCsv);
 
         // evaluate
         LOG.info("Soak test results:");
