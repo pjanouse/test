@@ -12,7 +12,7 @@ import java.util.StringTokenizer;
 /**
  * WARNING:
  * FIRST COLUMN IN CSV MUST BE TIME WILL BE X AXIS FOR OTHER VALUES IN NEXT COLUMNS.
- *
+ * <p>
  * A utility class for reading from a CSV file.
  * This initial version is very basic, and won't handle errors in the data
  * file very gracefully.
@@ -88,13 +88,62 @@ public class CSVDataSeriesReader {
 
     }
 
+
+    /**
+     * Reads a {@link XYSeries} from a CSV file or input source.
+     *
+     * @param in the input source.
+     * @return A category dataset.
+     * @throws IOException if there is an I/O problem.
+     */
+    public List<XYSeries> readDataset(Reader in, List<String> keys) throws IOException {
+
+        BufferedReader reader = new BufferedReader(in);
+        List<String> columnKeys = null;
+        List<Integer> rightColumnList = null;
+        int lineIndex = 0;
+        String line = reader.readLine();
+        List<XYSeries> dataset = new ArrayList<XYSeries>();
+        while (line != null) {
+            // trim field delimiter if in the end of start of line
+            line = trimFieldDelimiter(line);
+//            System.out.println("Print line after trim: " + line);
+            if (lineIndex == 0) {  // first line contains column keys
+                columnKeys = extractColumnKeys(line);
+                rightColumnList = getRightCollumns(keys, columnKeys);
+                for (String c : keys) {
+                    dataset.add(new XYSeries(c));
+                }
+            } else {  // remaining lines contain a row key and data values
+                extractRowKeyAndData(line, dataset, rightColumnList);
+            }
+            line = reader.readLine();
+            lineIndex++;
+        }
+        return dataset;
+
+    }
+
+    private List<Integer> getRightCollumns(List<String> keys, List<String> columnKeys) {
+        List<Integer> res = new ArrayList<Integer>();
+        for (int i = 0; i < columnKeys.size(); i++) {
+            for (int j = 0; j < keys.size(); j++) {
+                if (columnKeys.get(i).equals(keys.get(j))) {
+                    res.add(i);
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
     private String trimFieldDelimiter(String line) {
         StringBuilder stringBuilder = new StringBuilder(line);
         if (String.valueOf(stringBuilder.charAt(0)).equals(String.valueOf(fieldDelimiter))) {
             stringBuilder.deleteCharAt(0);
         }
-        if (String.valueOf(stringBuilder.charAt(stringBuilder.length()-1)).equals(String.valueOf(fieldDelimiter))) {
-            stringBuilder.deleteCharAt(stringBuilder.length()-1);
+        if (String.valueOf(stringBuilder.charAt(stringBuilder.length() - 1)).equals(String.valueOf(fieldDelimiter))) {
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         }
         return stringBuilder.toString();
     }
@@ -123,8 +172,8 @@ public class CSVDataSeriesReader {
      * - first is time - x axis
      * - second is value - y axis
      *
-     * @param line       the line from the input source.
-     * @param dataset    the dataset to be populated.
+     * @param line    the line from the input source.
+     * @param dataset the dataset to be populated.
      */
 
     private void extractRowKeyAndData(String line,
@@ -136,6 +185,22 @@ public class CSVDataSeriesReader {
         long time = Long.valueOf(tokenizer.nextToken());
         for (XYSeries xySeries : dataset) {
             xySeries.add(Double.valueOf(time), Double.valueOf(tokenizer.nextToken()));
+        }
+    }
+
+    private void extractRowKeyAndData(String line,
+                                      List<XYSeries> dataset, List<Integer> rightCollumn) {
+        String[] tokens = line.split(String.valueOf(fieldDelimiter));
+
+        // for each token add pair to XYSeries - time + value
+        // remember first column as it is time
+        Double time = Double.valueOf(tokens[0]);
+        for (XYSeries xySeries : dataset) {
+
+
+        }
+        for(int i=0; i< dataset.size() ;i++){
+            dataset.get(i).add(Double.valueOf(time), Double.valueOf(tokens[rightCollumn.get(i)+1]));
         }
     }
 
