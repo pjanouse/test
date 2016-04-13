@@ -4,8 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
+import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.management.cli.CliClient;
 import org.junit.Assert;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Parent class for all Cli tests.
@@ -23,6 +28,7 @@ public class CliTestBase extends HornetQTestCase {
             CliTestUtils.attributeOperationTest(cliClient, address, attributeName, value);
             if (cliClient.reloadRequired()) {
                 if (!reload(cliClient, 3)){
+                    DebugTools.printThreadDump();
                     ContainerUtils.printThreadDump(container(1));
                     Assert.fail("Reload operation failed after 3 attempts.");
                 }
@@ -85,15 +91,41 @@ public class CliTestBase extends HornetQTestCase {
 
     }
 
-    private boolean reload(CliClient cliClient, int attempts) throws InterruptedException {
-        for (int i = 0; i < attempts; i++) {
-            try {
-                return cliClient.reload();
-            } catch (Exception e) {
-                log.warn(e);
-                Thread.sleep(3000);
+    private boolean reload(final CliClient cliClient, final int attempts) throws InterruptedException {
+        final AtomicBoolean result = new AtomicBoolean(false);
+
+        Thread reload = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < attempts; i++) {
+                    try {
+                        result.set(cliClient.reload());
+                        return;
+                    } catch (Exception e) {
+                        log.warn(e);
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e2) {
+                            log.warn(e2);
+                        }
+                    }
+                }
             }
+        }, "reload-operation");
+
+        reload.start();
+        // Wait 5 minutes
+        reload.join(300000);
+        if (reload.isAlive()) {
+            DebugTools.printThreadDump(reload);
+            ContainerUtils.printThreadDump(container(1));
+
+            reload.interrupt();
+            reload.join();
+            Assert.fail("Reload operation timed out after 5 minutes.");
         }
-        return false;
+        return result.get();
     }
+
+
 }

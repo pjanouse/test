@@ -5,6 +5,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import org.junit.Assert;
@@ -226,24 +227,15 @@ public final class JMSTools {
             while (!clients.isFinished()) {
                 Thread.sleep(1000);
                 if (System.currentTimeMillis() - startTime > timeout) {
-                    Map<Thread, StackTraceElement[]> mst = Thread.getAllStackTraces();
-                    StringBuilder stacks = new StringBuilder("Stack traces of all threads:");
-                    for (Thread t : mst.keySet()) {
-                        stacks.append("Stack trace of thread: ").append(t.toString()).append("\n");
-                        StackTraceElement[] elements = mst.get(t);
-                        for (StackTraceElement e : elements) {
-                            stacks.append("---").append(e).append("\n");
-                        }
-                        stacks.append("---------------------------------------------\n");
-                    }
-                    log.error(stacks);
+                    DebugTools.printThreadDump();
+
                     for (Client c : clients.getConsumers()) {
                         c.interrupt();
                     }
                     for (Client c : clients.getProducers()) {
                         c.interrupt();
                     }
-                    Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all. Print all stacktraces:" + stacks);
+                    Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all.");
                 }
             }
         } catch (InterruptedException e) {
