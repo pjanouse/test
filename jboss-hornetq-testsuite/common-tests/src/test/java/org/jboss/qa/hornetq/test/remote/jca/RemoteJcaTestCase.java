@@ -589,6 +589,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3 + " and connections " + numberOfConnections3);
 
         container(2).undeploy(mdbWithOnlyInbound);
+        container(4).undeploy(mdbWithOnlyInbound);
         container(2).stop();
         container(4).stop();
         container(1).stop();
