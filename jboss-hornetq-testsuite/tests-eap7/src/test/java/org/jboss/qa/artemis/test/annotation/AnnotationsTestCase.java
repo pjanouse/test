@@ -54,7 +54,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AnnotationsTestCase.class);
 
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
+    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
     // queue to send messages in
     static String inQueueName = "InQueue";
