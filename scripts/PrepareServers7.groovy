@@ -239,7 +239,7 @@ public class PrepareServers7 {
         String originalEAPDir = null;
 
         for (File f : new File('.').listFiles()) {
-            if (f.isDirectory() && f.getName().contains("jboss-eap-")) {
+            if (f.isDirectory() && f.getName().contains("jboss-eap")) {
                 originalEAPDir = f.getName()
                 break
             }
