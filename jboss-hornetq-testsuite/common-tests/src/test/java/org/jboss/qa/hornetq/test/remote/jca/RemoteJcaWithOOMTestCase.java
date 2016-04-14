@@ -48,7 +48,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     }
 
     private void oomOfJmsServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -76,7 +76,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     }
 
     private void oomOfMdbServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -104,7 +104,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     }
 
     private void oomOfJmsServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -132,7 +132,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
     }
 
     private void oomOfMdbServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {

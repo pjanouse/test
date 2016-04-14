@@ -46,7 +46,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     }
 
     private void suspendOfMdbInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -62,7 +62,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     @RestoreConfigBeforeTest
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdbMixMessages() throws Exception {
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -89,7 +89,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     }
 
     private void suspendOfJmsInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -198,7 +198,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     }
 
     private void suspendOfMdbInClusterWithRestartWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -240,7 +240,7 @@ public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase
     }
 
     private void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {

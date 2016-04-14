@@ -63,7 +63,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
         messageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
         for (String key : jndiProperties.keySet()) {
@@ -140,7 +140,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
     }
 
     private void loadInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -167,7 +167,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
     }
 
     private void loadInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -183,7 +183,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
     @RestoreConfigBeforeTest
     @RunAsClient
     public void loadInClusterWithLodhLikeMdbMixMessages() throws Exception {
-        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_KB, LARGE_MESSAGE_SIZE_KB);
+        ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
@@ -210,7 +210,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
     }
 
     private void loadOnJmsInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
-        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
@@ -352,7 +352,7 @@ public abstract class RemoteJcaWithHighCpuLoadTestCase extends RemoteJcaLoadTest
     private void loadInClusterWithRestart(Archive mdbToDeploy, boolean isLargeMessage) throws Exception {
 
         final int numberOfMessages = isLargeMessage ? 15000 : 50000;
-        final ClientMixedMessageTypeBuilder messageBuilder = isLargeMessage ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_KB) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_KB);
+        final ClientMixedMessageTypeBuilder messageBuilder = isLargeMessage ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);

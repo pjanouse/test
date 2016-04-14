@@ -9,6 +9,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.test.soak.clients.DurableSubscriptionClient;
 import org.jboss.qa.hornetq.test.soak.clients.FilterSoakClient;
 import org.jboss.qa.hornetq.test.soak.clients.TemporaryQueuesSoakClient;
@@ -136,7 +137,7 @@ public class NewSoakTestCase extends HornetQTestCase {
         // create in/out org.jboss.qa.hornetq.apps.clients
         SoakProducerClientAck producer = new SoakProducerClientAck(container(1),
                 RemoteJcaSoakModule.JCA_IN_QUEUE_JNDI, NUMBER_OF_MESSAGES);
-        producer.setMessageBuilder(new TextMessageBuilder(104));
+        producer.setMessageBuilder(new ClientMixedMessageTypeBuilder(100));
 
         SoakReceiverClientAck[] consumers = new SoakReceiverClientAck[NUMBER_OF_CLIENTS];
         for (int i = 0; i < consumers.length; i++) {

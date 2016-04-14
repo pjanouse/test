@@ -70,13 +70,13 @@ public class ClientMixedMessageTypeBuilder implements MessageBuilder {
     /**
      * Setting size of messages in KiB. For large messages there should be defined number greater than 100 (KiB).
      *
-     * @param size size messages which will be used for sending (in Kb)
+     * @param size size messages which will be used for sending (in bytes)
      */
     public ClientMixedMessageTypeBuilder(int size) {
         this.sizeNormalMsg = size;
 
-        content = new String(new char[sizeNormalMsg * 1024]);
-        data = new byte[sizeNormalMsg * 1024];
+        content = new String(new char[sizeNormalMsg]);
+        data = new byte[sizeNormalMsg];
     }
 
     /**
@@ -89,7 +89,7 @@ public class ClientMixedMessageTypeBuilder implements MessageBuilder {
         }
 
         MapMessage mm = (MapMessage) message;
-        String stringContent = new String(new char[1024]); // size of one KB
+        String stringContent = new String(new char[1]); // size of one byte
         mapMessageKey = "a"; // starting with key 'a' on mapped message
         for (int i = 0; i < size; i++) {
             String key = getNextMapKey();
