@@ -289,7 +289,7 @@ public class ClusterTestCase extends ClusterTestBase {
 
         int numberOfMessages = 100000;
         prepareServers();
-        setClusterNetworkTimeOuts(container(1), 2000, 2000, 4000);
+        setClusterNetworkTimeOuts(container(1), 10000, 10000, 20000);
         container(2).start();
         container(1).start();
 
@@ -307,13 +307,13 @@ public class ClusterTestCase extends ClusterTestBase {
 
         for (int i = 0; i < 5; i++) {
             container(2).kill();
-            Thread.sleep(5000);
+            Thread.sleep(20000);
             container(2).start();
-            Thread.sleep(5000);
+            Thread.sleep(20000);
             container(1).kill();
-            Thread.sleep(5000);
+            Thread.sleep(20000);
             container(1).start();
-            Thread.sleep(5000);
+            Thread.sleep(20000);
         }
 
         producer1.stopSending();
