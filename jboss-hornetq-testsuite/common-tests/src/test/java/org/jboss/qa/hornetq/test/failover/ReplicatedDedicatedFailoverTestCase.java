@@ -16,12 +16,14 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -936,6 +938,129 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RestoreConfigBeforeTest
     public void testClientsBackupIsShutdownAfterSynchronization() throws Exception {
         testClientsDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE.SHUTDOWN, new ClientMixMessageBuilder(10, 200));
+    }
+
+    /**
+     * This test will start two servers in dedicated topology - no cluster. Sent
+     * some messages to first Receive messages from the second one
+     *
+     * @throws Exception
+     */
+    @BMRules({
+            @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+            @BMRule(name = "Artemis: Kill server after the backup is synced with live",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    condition = "!$0.isSynchronizing()",
+                    action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
+    })
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMultipleFailoverReceiver() throws Exception {
+
+        String testQueue0JndiName = queueJndiNamePrefix + "0";
+
+        int numberOfMessages = 50000;
+        MessageBuilder messageBuilder = new TextMessageBuilder(10);
+        messageBuilder.setAddDuplicatedHeader(true);
+
+        prepareSimpleDedicatedTopology();
+
+        container(1).start();
+
+        container(2).start();
+
+        Thread.sleep(10000);
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.setCommitAfter(100);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 5, 10);
+        receiver1.setTimeout(5);
+        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.start();
+
+        long startTime = System.currentTimeMillis();
+        while (receiver1.getListOfReceivedMessages().size() < 120 && System.currentTimeMillis() - startTime < 60000) {
+            Thread.sleep(1000);
+        }
+
+        for (int numberOfFailovers = 0; numberOfFailovers < 10; numberOfFailovers++) {
+
+            logger.warn("########################################");
+            logger.warn("Running new cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            logger.warn("########################################");
+            logger.warn("Kill live server - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+            RuleInstaller.installRule(this.getClass(), container(1));
+
+            logger.warn("Wait some time to give chance backup to come alive and receiver to failover");
+            Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
+                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
+                    container(2).getHornetqPort(), 300000));
+
+
+            if (!receiver1.isAlive()) {
+                break;
+            }
+
+            waitForClientToFailover(receiver1, 300000);
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+            container(1).start();
+
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
+
+            logger.warn("########################################");
+            logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+            // check that backup is really down
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
+
+
+            if (!receiver1.isAlive()) {
+                break;
+            }
+
+            waitForClientToFailover(receiver1, 300000);
+
+            Thread.sleep(5000); // give it some time
+
+            logger.warn("########################################");
+            logger.warn("Ending cycle for multiple failover - number of failovers: " + numberOfFailovers);
+            logger.warn("########################################");
+
+        }
+
+        receiver1.join();
+
+        boolean isOk = messageVerifier.verifyMessages();
+        Assert.assertTrue("There are failures detected by clients. More information in log - search for \"Lost\" or \"Duplicated\" messages",
+                isOk);
+
+        container(1).stop();
+
+        container(2).stop();
+
     }
 
     public void testClientsDontCrashWhenBackupIsCrashedAfterSynchronization(Constants.FAILURE_TYPE failureType, MessageBuilder messageBuilder) throws Exception {
