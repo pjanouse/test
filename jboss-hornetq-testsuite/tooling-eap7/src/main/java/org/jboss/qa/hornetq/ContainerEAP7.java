@@ -142,7 +142,7 @@ public class ContainerEAP7 implements Container {
      * @return PID of container process
      */
     @Override
-    public int getProcessId(){
+    public int getProcessId() {
         return pid;
     }
 
@@ -188,9 +188,36 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
-    public void start(Map<String, String> containerProperties) {
-        containerController.start(getName(), containerProperties);
-        pid = ProcessIdUtils.getProcessId(this);
+    public void start(final Map<String, String> containerProperties) {
+
+        final Container container = this;
+        long timeout = 180000;
+
+        Thread startServerThread = new Thread() {
+            public void run() {
+                containerController.start(container.getName(), containerProperties);
+            }
+        };
+
+        startServerThread.start();
+
+        try {
+            startServerThread.join(timeout);
+            if (startServerThread.isAlive()) {
+                // here print thread dump
+                pid = ProcessIdUtils.getProcessIdOfNotFullyStartedContainer(container);
+                ContainerUtils.printThreadDump(pid,
+                        new File(container.getServerHome(), "startup-thread-dump.txt"));
+
+                // throw new RuntimeException("Start of the server " + container.getName() + " was not successful. Check thread dump in server home directory.");
+            }
+            startServerThread.join();
+            pid = ProcessIdUtils.getProcessId(container);
+        } catch (InterruptedException e) {
+            // ignore
+        } catch (Exception ex) {
+            log.error("Error during start.", ex);
+        }
     }
 
     @Override
@@ -237,7 +264,7 @@ public class ContainerEAP7 implements Container {
                             || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
-                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt") );
+                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt"));
                             // kill server because shutdown hangs and fail test
                             try {
                                 log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
@@ -335,7 +362,7 @@ public class ContainerEAP7 implements Container {
                     //ignore
                 }
             }
-            
+
             consecutiveUnavailableTimes++;
 
             try {
@@ -477,7 +504,7 @@ public class ContainerEAP7 implements Container {
         };
 
         startServerThread.start();
-        
+
         try {
             startServerThread.join(timeout);
             if (startServerThread.isAlive()) {

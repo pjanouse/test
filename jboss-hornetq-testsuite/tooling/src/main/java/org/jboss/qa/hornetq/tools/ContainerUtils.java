@@ -80,7 +80,12 @@ public class ContainerUtils {
                 log.warn("We cannot print thread dump on Windows machines. Printing thread dump for process: " + pid + " is canceled.");
             } else if (System.getProperty("java.vm.name").contains("Java HotSpot") || System.getProperty("java.vm.name").contains("OpenJDK")) {
                 Process printThreadDump = null;
-                printThreadDump = Runtime.getRuntime().exec("jstack -l " + pid);
+                String[] cmd = {
+                        "/bin/sh",
+                        "-c",
+                        "jstack -l " + pid
+                };
+                printThreadDump = Runtime.getRuntime().exec(cmd);
 
                 BufferedReader input = new BufferedReader(new InputStreamReader(printThreadDump.getInputStream()));
                 String line = null;

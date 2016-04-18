@@ -6,7 +6,7 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainNode;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,6 +36,31 @@ public class ProcessIdUtils {
         } catch (Exception e) {
             throw new RuntimeException("Error while reading PID failed " + container.getName(), e);
         }
+    }
+
+    /**
+     * @return pid of the server
+     */
+    public static int getProcessIdOfNotFullyStartedContainer(Container container) throws Exception {
+        Process printThreadDump = null;
+        int pid = -1;
+
+        String[] cmd = {
+                "/bin/sh",
+                "-c",
+                "jps -l| grep " + container.getServerHome() + " |cut -f1 -d' '"
+        };
+        printThreadDump = Runtime.getRuntime().exec(cmd);
+
+        BufferedReader input = new BufferedReader(new InputStreamReader(printThreadDump.getInputStream()));
+        String line = null;
+
+        if ((line = input.readLine()) != null) {
+            pid = Integer.valueOf(line);
+        }
+        input.close();
+
+        return  pid;
     }
 
     public static int getProcessId(Process process) {
