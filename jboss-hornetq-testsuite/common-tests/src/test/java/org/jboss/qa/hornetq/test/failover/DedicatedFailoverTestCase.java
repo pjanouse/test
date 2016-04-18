@@ -190,7 +190,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();
