@@ -99,10 +99,10 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         Container serverWithLocalHandler = container(1);
         Container serverWithRemoteHandler = container(2);
         // set local grouping-handler on 1st node
-        addMessageGrouping(serverWithLocalHandler, name, "LOCAL", address, timeout);
+        addMessageGrouping(serverWithLocalHandler, name, "LOCAL", address, timeout, 1000, 30000);
 
         // set remote grouping-handler on 2nd node
-        addMessageGrouping(serverWithRemoteHandler, name, "REMOTE", address, timeout);
+        addMessageGrouping(serverWithRemoteHandler, name, "REMOTE", address, timeout, 500, 0);
 
         // first try just local
         testedContainer.start();
@@ -213,13 +213,13 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = 0;
+        long timeout = 5000;
 
         // set local grouping-handler on 1st node
-        addMessageGrouping(container(1), name, "LOCAL", address, timeout);
+        addMessageGrouping(container(1), name, "LOCAL", address, timeout, 1000, 30000);
 
         // set remote grouping-handler on 2nd node
-        addMessageGrouping(container(2), name, "REMOTE", address, timeout);
+        addMessageGrouping(container(2), name, "REMOTE", address, timeout, 500, 0);
 
         container(2).start();
         container(1).start();
@@ -281,10 +281,10 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         long timeout = 5000;
 
         // set local grouping-handler on 1st node
-        addMessageGrouping(container(1), name, "LOCAL", address, timeout);
+        addMessageGrouping(container(1), name, "LOCAL", address, timeout, 1000, 30000);
 
         // set remote grouping-handler on 2nd node
-        addMessageGrouping(container(2), name, "REMOTE", address, timeout);
+        addMessageGrouping(container(2), name, "REMOTE", address, timeout, 500, 0);
 
         container(2).start();
         container(1).start();
@@ -392,12 +392,12 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         long timeout = 5000;
 
         // set local grouping-handler on 1st node
-        addMessageGrouping(container(1), name, "LOCAL", address, timeout);
+        addMessageGrouping(container(1), name, "LOCAL", address, timeout, 1000, 30000);
 
         // set remote grouping-handler on others
-        addMessageGrouping(container(2), name, "REMOTE", address, timeout);
-        addMessageGrouping(container(3), name, "REMOTE", address, timeout);
-        addMessageGrouping(container(4), name, "REMOTE", address, timeout);
+        addMessageGrouping(container(2), name, "REMOTE", address, timeout, 500, 0);
+        addMessageGrouping(container(3), name, "REMOTE", address, timeout, 500, 0);
+        addMessageGrouping(container(4), name, "REMOTE", address, timeout, 500, 0);
 
         container(1).start();
         container(2).start();
@@ -835,15 +835,15 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = -1;
+        long timeout = 5000;
 
         // set local grouping-handler on 1st node
-        addMessageGrouping(container(1), name, "LOCAL", address, timeout);
+        addMessageGrouping(container(1), name, "LOCAL", address, timeout, 1000, 30000);
 
         // set remote grouping-handler on others
-        addMessageGrouping(container(2), name, "REMOTE", address, timeout);
-        addMessageGrouping(container(3), name, "REMOTE", address, timeout);
-        addMessageGrouping(container(4), name, "REMOTE", address, timeout);
+        addMessageGrouping(container(2), name, "REMOTE", address, timeout, 500, 0);
+        addMessageGrouping(container(3), name, "REMOTE", address, timeout, 500, 0);
+        addMessageGrouping(container(4), name, "REMOTE", address, timeout, 500, 0);
 
         container(1).start();
         container(2).start();
@@ -935,10 +935,10 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
     }
 
-    private void addMessageGrouping(Container container, String name, String type, String address, long timeout) {
+    private void addMessageGrouping(Container container, String name, String type, String address, long timeout, long groupTimeout, long reaperPeriod) {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.addMessageGrouping("default", name, type, address, timeout, 500, 750);
+        jmsAdminOperations.addMessageGrouping("default", name, type, address, timeout, groupTimeout, reaperPeriod);
         jmsAdminOperations.close();
         container.stop();
     }
