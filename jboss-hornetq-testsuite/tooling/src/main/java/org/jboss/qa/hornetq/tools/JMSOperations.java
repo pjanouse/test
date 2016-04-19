@@ -1768,11 +1768,15 @@ public interface JMSOperations {
     int getNumberOfNodesInCluster();
 
     /**
-     * Returns count of durable Subscriptions on Server
+     * Returns count of durable Subscriptions on Server for giver client
      * @param clientId
      * @return
      */
-    int getNumberOfDurableSubscriptionsOnTopic(String clientId);
+    int getNumberOfDurableSubscriptionsOnTopicForClient(String clientId);
+
+    int getNumberOfDurableSubscriptionsOnTopic(String topicName);
+
+    int getNumberOfNonDurableSubscriptionsOnTopic(String topicName);
 
     int getNumberOfTempQueues();
 

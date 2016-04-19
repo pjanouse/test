@@ -5706,7 +5706,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
+    public int getNumberOfDurableSubscriptionsOnTopicForClient(String clientId) {
         // /subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
         int counter = 0;
         ModelNode model = createModelNode();
@@ -5729,6 +5729,44 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
 
         return counter;
+    }
+
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopic(String topicName){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("jms-topic", topicName);
+        model.get("name").set("durable-subscription-count");
+
+        ModelNode result;
+
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asInt();
+    }
+
+    @Override
+    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("jms-topic", topicName);
+        model.get("name").set("non-durable-subscription-count");
+
+        ModelNode result;
+
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asInt();
     }
 
     @Override

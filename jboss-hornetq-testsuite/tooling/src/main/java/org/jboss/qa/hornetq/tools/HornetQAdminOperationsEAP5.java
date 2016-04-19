@@ -2426,7 +2426,19 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
+    public int getNumberOfDurableSubscriptionsOnTopicForClient(String clientId) {
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
+    }
+
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopic(String topicName){
+        logger.info("This operation is not supported: " + getMethodName());
+        return -1;
+    }
+
+    @Override
+    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName){
         logger.info("This operation is not supported: " + getMethodName());
         return -1;
     }

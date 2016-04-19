@@ -97,7 +97,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             Thread.sleep(70000);
 
             JMSOperations ops = container(1).getJmsOperations();
-            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
+            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopicForClient(CLIENT_NAME + "subscriber-2");
             ops.close();
 
             producer.join();
@@ -158,7 +158,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             Thread.sleep(15000);
 
             JMSOperations ops = container(1).getJmsOperations();
-            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
+            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopicForClient(CLIENT_NAME + "subscriber-2");
             ops.close();
 
             producer.join();
@@ -223,7 +223,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             Thread.sleep(70000);
 
             JMSOperations ops = container(1).getJmsOperations();
-            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopic(CLIENT_NAME + "subscriber-2");
+            int numberOfSubscribers = ops.getNumberOfDurableSubscriptionsOnTopicForClient(CLIENT_NAME + "subscriber-2");
             ops.close();
 
             producer.join();

@@ -961,7 +961,7 @@ public class ClusterTestCase extends ClusterTestBase {
         container(1).deploy(MDB_ON_TEMPTOPIC1);
 
         Assert.assertEquals("Number of subscriptions is not 0", 0,
-                jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopic("mySubscription"));
+                jmsAdminOperations.getNumberOfDurableSubscriptionsOnTopicForClient("mySubscription"));
         container(1).undeploy(MDB_ON_TEMPTOPIC1);
         container(1).stop();
     }
@@ -1012,7 +1012,7 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).undeploy(MDB_ON_TEMPTOPIC2);
         container(2).deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0,
-                jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+                jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopicForClient("subscriber1"));
         container(1).stop();
         container(2).stop();
     }
@@ -1065,7 +1065,7 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).undeploy(MDB_ON_TEMPTOPIC2);
         container(2).deploy(MDB_ON_TEMPTOPIC2);
         Assert.assertEquals("Number of subscriptions is not 0 on CLUSTER2", 0,
-                jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopic("subscriber1"));
+                jmsAdminOperations2.getNumberOfDurableSubscriptionsOnTopicForClient("subscriber1"));
         container(1).stop();
         container(2).stop();
     }

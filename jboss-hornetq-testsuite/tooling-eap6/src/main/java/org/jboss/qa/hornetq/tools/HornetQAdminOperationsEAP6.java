@@ -5185,7 +5185,45 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String clientId) {
+    public int getNumberOfDurableSubscriptionsOnTopic(String topicName){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("jms-topic", topicName);
+        model.get("name").set("durable-subscription-count");
+
+        ModelNode result;
+
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asInt();
+    }
+
+    @Override
+    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("jms-topic", topicName);
+        model.get("name").set("non-durable-subscription-count");
+
+        ModelNode result;
+
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get("result").asInt();
+    }
+
+    @Override
+    public int getNumberOfDurableSubscriptionsOnTopicForClient(String clientId) {
         ///subsystem=messaging/hornetq-server=default/cluster-connection=my-cluster:get-nodes
         int counter = 0;
         ModelNode model = createModelNode();
