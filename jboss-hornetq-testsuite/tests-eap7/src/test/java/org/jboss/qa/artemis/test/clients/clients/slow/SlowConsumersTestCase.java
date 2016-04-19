@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.measuring.ThreadMeasurement;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -93,9 +94,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 container(1), TOPIC_JNDI_NAME);
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME, 30000, 1);
-        slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
+        slowConsumer.setTimeout(100); // slow consumer reads only 10 message per second
 
         producer.start();
+        Thread.sleep(5000);
         fastConsumer.start();
         slowConsumer.start();
 
@@ -104,13 +106,17 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         //wait max 100sec, once slow is disconnected continue
         while (slowConsumer.getException() == null) {
             Thread.sleep(1000);
-            Assert.assertTrue("Slow consumer was not disconnected in 100sec timeout.", startTime + 100000 > System.currentTimeMillis());
+            if (startTime + 100000 < System.currentTimeMillis()) {
+                LOG.error("Slow consumer was not disconnected in 100sec timeout.");
+                break;
+            }
         }
 
         JMSOperations ops = container(1).getJmsOperations();
         int numberOfSubscribers = ops.getNumberOfNonDurableSubscriptionsOnTopic(TOPIC_NAME);
         ops.close();
         LOG.info("number of subscribers on InTopic :" + numberOfSubscribers);
+
 
         //if producer is still active, secend subscriber should still receive messages, otherwise its subscription is removed
         int numberOfSubscribersExpected = producer.getCount() < NUMBER_OF_MESSAGES ? 1 : 0;
@@ -133,6 +139,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 numberOfSubscribersExpected, numberOfSubscribers);
         assertNotNull("Slow client should have been disconnected by the server",
                 slowConsumer.getException());
+        assertFalse("Slow consumer should be finished", slowConsumer.isAlive());
+        assertFalse("Fast consumer should be finished", fastConsumer.isAlive());
+        assertFalse("Producer should be finished", producer.isAlive());
     }
 
     /**
@@ -176,10 +185,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME, 30000, 1);
         fastConsumer.setTimeout(10);
-        slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
+        slowConsumer.setTimeout(100); // slow consumer reads only one message per second
 
         fastConsumer.start();
         slowConsumer.start();
+        Thread.sleep(5000);
         producer1.start();
         producer2.start();
 
@@ -187,7 +197,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
         while (!hasConsumerSlowNotification(notificationListener)) {
             Thread.sleep(1000);
-            Assert.assertTrue("There should be at least one slow consumer JMX notification in 100sec timeout.", startTime + 100000 > System.currentTimeMillis());
+            if (startTime + 100000 < System.currentTimeMillis()) {
+                LOG.error("There should be at least one JMX SLOW CLIENT notification.");
+                break;
+            }
         }
 
         producer1.stopSending();
@@ -198,6 +211,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         fastConsumer.join();
         slowConsumer.setTimeout(0);
         slowConsumer.join();
+
+        JMSOperations ops = container(1).getJmsOperations();
+        int numberOfSubscribers = ops.getNumberOfNonDurableSubscriptionsOnTopic(TOPIC_NAME);
+        ops.close();
+        LOG.info("number of subscribers on InTopic :" + numberOfSubscribers);
 
         LOG.info("Verify fast consumers messages");
         FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
@@ -216,9 +234,14 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
         assertEquals("Fast consumer should receive all messages", producer1.getCount() + producer2.getCount(), fastConsumer.getCount());
         assertEquals("Slow consumer should receive all messages", producer1.getCount() + producer2.getCount(), slowConsumer.getCount());
-
+        assertTrue("There should be at least one JMX SLOW CLIENT notification", hasConsumerSlowNotification(notificationListener));
         assertNull("Slow client should not have been disconnected by the server",
                 slowConsumer.getException());
+
+        assertFalse("Slow consumer should be finished", slowConsumer.isAlive());
+        assertFalse("Fast consumer should be finished", fastConsumer.isAlive());
+        assertFalse("Producer1 should be finished", producer1.isAlive());
+        assertFalse("Producer2 consumer should be finished", producer2.isAlive());
     }
 
     /**
@@ -250,29 +273,43 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-1", "test-fast-subscriber");
         SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1),
                 TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-2", "test-slow-subscriber");
-        slowConsumer.setTimeout(1000); // slow consumer reads only one message per second
+        slowConsumer.setTimeout(100); // slow consumer reads only 10 message per second
         slowConsumer.setMaxRetries(1);
 
-        producer.start();
         fastConsumer.start();
         slowConsumer.start();
+        Thread.sleep(5000);
+        producer.start();
 
         long startTime = System.currentTimeMillis();
         //wait max 100sec, once slow is disconnected continue
         while (slowConsumer.getException() == null) {
             Thread.sleep(1000);
-            Assert.assertTrue("Slow consumer was not disconnected in 100sec timeout.", startTime + 100000 > System.currentTimeMillis());
+            if (startTime + 100000 < System.currentTimeMillis()) {
+                LOG.error("Slow consumer was not disconnected in 100sec timeout.");
+                break;
+            }
         }
 
         JMSOperations ops = container(1).getJmsOperations();
         int numberOfSlowSubscriberSubscriptions = ops.getNumberOfDurableSubscriptionsOnTopicForClient(CLIENT_NAME + "subscriber-2");
         int numberOfSubscriptionsOnTopic = ops.getNumberOfDurableSubscriptionsOnTopic(TOPIC_NAME);
         ops.close();
+        LOG.info("number of slow consumers subscriptions on InTopic :" + numberOfSlowSubscriberSubscriptions);
+        LOG.info("number of subscriptions on InTopic :" + numberOfSubscriptionsOnTopic);
 
         producer.stopSending();
         producer.join();
         fastConsumer.join();
         slowConsumer.join();
+
+        LOG.info("Verify fast consumers messages");
+        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        finalTestMessageVerifier1.addSendMessages(producer.getListOfSentMessages());
+        finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
+        finalTestMessageVerifier1.verifyMessages();
+
+        assertEquals("Fast consumer should receive all messages", producer.getCount(), fastConsumer.getCount());
 
         // subscriber was durable, subscription must survive disconnection
         assertEquals("The durable subscription of slow client should have been preserved after killing slow client",
@@ -281,6 +318,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 2, numberOfSubscriptionsOnTopic);
         assertNotNull("Slow client should have been disconnected by the server",
                 slowConsumer.getException());
+        assertFalse("Slow consumer should be finished", slowConsumer.isAlive());
+        assertFalse("Fast consumer should be finished", fastConsumer.isAlive());
+        assertFalse("Producer should be finished", producer.isAlive());
 
     }
 
@@ -314,7 +354,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         //        QUEUE_JNDI_NAME, 30000, 1);
         ReceiverAutoAck slowReceiver = new ReceiverAutoAck(container(1),
                 QUEUE_JNDI_NAME);
-        slowReceiver.setTimeout(1000); // slow consumer reads only one message per second
+        slowReceiver.setTimeout(100); // slow consumer reads only 10 message per second
         slowReceiver.setMaxRetries(1);
 
         LOG.info("Starting producer");
@@ -418,7 +458,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         fastConsumer.setTimeout(30);
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME, 30000, 1);
-        slowConsumer.setTimeout(1000); // slow consumer reads only 10 messages per second
+        slowConsumer.setTimeout(100); // slow consumer reads only 10 messages per second
 
         producer.start();
         fastConsumer.start();
