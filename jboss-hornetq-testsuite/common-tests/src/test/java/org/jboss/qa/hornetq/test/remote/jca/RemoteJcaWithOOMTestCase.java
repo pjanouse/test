@@ -188,7 +188,7 @@ public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
         // this is a workaround - arquillian sometimes fails to start server and calls Proccess.destroy()
         // this for some reason does not take effect and hangs in Process.waitFor() forever
         // so wrap this call and try to kill this server again and start
-        containerForOOM.start(180000);
+        containerForOOM.start();
 
         logger.info("Server with OOM was restarted: " + containerForOOM.getName());
 

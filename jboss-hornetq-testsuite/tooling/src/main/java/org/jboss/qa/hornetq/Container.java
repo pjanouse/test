@@ -89,5 +89,4 @@ public interface Container {
     ContainerDef getContainerDefinition();
     PrintJournal getPrintJournal();
 
-    void start(long timeout);
 }
