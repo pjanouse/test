@@ -4,11 +4,16 @@ import org.apache.log4j.Logger;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -17,10 +22,13 @@ import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import javax.jms.Message;
 import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -113,12 +121,18 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         fastConsumer.join();
         slowConsumer.join();
 
+        LOG.info("Verify fast consumers messages");
+        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        finalTestMessageVerifier1.addSendMessages(producer.getListOfSentMessages());
+        finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
+        finalTestMessageVerifier1.verifyMessages();
+
+        assertEquals("Fast consumer should receive all messages", producer.getCount(), fastConsumer.getCount());
 
         assertEquals("The non-durable subscription should have been removed after killing slow client",
                 numberOfSubscribersExpected, numberOfSubscribers);
         assertNotNull("Slow client should have been disconnected by the server",
                 slowConsumer.getException());
-
     }
 
     /**
@@ -157,7 +171,6 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         producer2.setMessageBuilder(new TextMessageBuilder(10));
         producer2.setTimeout(0);
 
-
         NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME);
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
@@ -186,11 +199,26 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         slowConsumer.setTimeout(0);
         slowConsumer.join();
 
-        assertNull("Slow client should not have been disconnected by the server",
-                slowConsumer.getException());
+        LOG.info("Verify fast consumers messages");
+        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        finalTestMessageVerifier1.addSendMessages(producer1.getListOfSentMessages());
+        finalTestMessageVerifier1.addSendMessages(producer2.getListOfSentMessages());
+        finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
+        finalTestMessageVerifier1.verifyMessages();
+
+        LOG.info("Verify slow consumers messages");
+        FinalTestMessageVerifier finalTestMessageVerifier2 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        finalTestMessageVerifier2.addSendMessages(producer1.getListOfSentMessages());
+        finalTestMessageVerifier2.addSendMessages(producer2.getListOfSentMessages());
+        finalTestMessageVerifier2.addReceivedMessages(slowConsumer.getListOfReceivedMessages());
+        finalTestMessageVerifier2.verifyMessages();
+
+
         assertEquals("Fast consumer should receive all messages", producer1.getCount() + producer2.getCount(), fastConsumer.getCount());
         assertEquals("Slow consumer should receive all messages", producer1.getCount() + producer2.getCount(), slowConsumer.getCount());
 
+        assertNull("Slow client should not have been disconnected by the server",
+                slowConsumer.getException());
     }
 
     /**
