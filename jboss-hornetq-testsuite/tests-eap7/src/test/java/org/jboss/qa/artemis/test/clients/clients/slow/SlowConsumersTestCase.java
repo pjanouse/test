@@ -4,10 +4,8 @@ import org.apache.log4j.Logger;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
@@ -18,18 +16,14 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.measuring.ThreadMeasurement;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import javax.jms.Message;
 import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -83,7 +77,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testSlowNonDurableConsumerKill() throws Exception {
-        prepareServerForKills();
+        prepareServerForKills(10);
 
         PublisherAutoAck producer = new PublisherAutoAck(container(1),
                 TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
@@ -93,8 +87,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME);
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                container(1), TOPIC_JNDI_NAME, 30000, 1);
-        slowConsumer.setTimeout(100); // slow consumer reads only 10 message per second
+                container(1), TOPIC_JNDI_NAME, 10000, 1);
+        slowConsumer.setTimeout(500); // slow consumer reads only 5 message per second
 
         fastConsumer.start();
         slowConsumer.start();
@@ -124,6 +118,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
         producer.stopSending();
         producer.join();
+        fastConsumer.setTimeout(0);
+        slowConsumer.setTimeout(0);
         fastConsumer.join();
         slowConsumer.join();
 
@@ -162,7 +158,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testSlowConsumerNotification() throws Exception {
-        prepareServerForNotifications();
+        prepareServerForNotifications(10);
         JMXConnector jmxConnector = null;
 
         JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
@@ -183,9 +179,9 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         NonDurableTopicSubscriber fastConsumer = new NonDurableTopicSubscriberAutoAck(
                 container(1), TOPIC_JNDI_NAME);
         NonDurableTopicSubscriber slowConsumer = new NonDurableTopicSubscriberAutoAck(
-                container(1), TOPIC_JNDI_NAME, 30000, 1);
+                container(1), TOPIC_JNDI_NAME, 10000, 1);
         fastConsumer.setTimeout(10);
-        slowConsumer.setTimeout(100); // slow consumer reads only one message per second
+        slowConsumer.setTimeout(500); // slow consumer reads only 2 message per second
 
         fastConsumer.start();
         slowConsumer.start();
@@ -208,8 +204,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         producer1.join();
         producer2.join();
         fastConsumer.setTimeout(0);
-        fastConsumer.join();
         slowConsumer.setTimeout(0);
+        fastConsumer.join();
         slowConsumer.join();
 
         JMSOperations ops = container(1).getJmsOperations();
@@ -262,7 +258,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testSlowDurableConsumerKill() throws Exception {
-        prepareServerForKills();
+        prepareServerForKills(10);
 
         PublisherAutoAck producer = new PublisherAutoAck(container(1),
                 TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
@@ -273,7 +269,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-1", "test-fast-subscriber");
         SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1),
                 TOPIC_JNDI_NAME, CLIENT_NAME + "subscriber-2", "test-slow-subscriber");
-        slowConsumer.setTimeout(100); // slow consumer reads only 10 message per second
+        slowConsumer.setTimeout(500); // slow consumer reads only 2 messages per second
         slowConsumer.setMaxRetries(1);
 
         fastConsumer.start();
@@ -300,6 +296,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
         producer.stopSending();
         producer.join();
+        fastConsumer.setTimeout(0);
+        slowConsumer.setTimeout(0);
         fastConsumer.join();
         slowConsumer.join();
 
@@ -519,7 +517,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     }
 
-    private void prepareServerForKills() throws Exception {
+    private void prepareServerForKills()throws Exception {
+        prepareServerForKills(20);
+    }
+
+    private void prepareServerForKills(int slowConsumerThreshold) throws Exception {
         container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
 
@@ -532,7 +534,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         // lower the paging threshold to force server into paging mode
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
-        ops.setSlowConsumerPolicy("#", 20, SlowConsumerPolicy.KILL, 1);
+        ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.KILL, 1);
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
@@ -541,7 +543,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         container(1).restart();
     }
 
-    private void prepareServerForNotifications() throws Exception {
+    private void prepareServerForNotifications(int slowConsumerThreshold) throws Exception {
         container(1).start();
         JMSOperations ops = container(1).getJmsOperations();
 
@@ -556,7 +558,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         // lower the paging threshold to force server into paging mode
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
-        ops.setSlowConsumerPolicy("#", 20, SlowConsumerPolicy.NOTIFY, 5);
+        ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.NOTIFY, 5);
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
