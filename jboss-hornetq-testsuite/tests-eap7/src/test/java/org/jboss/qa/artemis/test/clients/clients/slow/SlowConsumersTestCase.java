@@ -96,10 +96,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
                 container(1), TOPIC_JNDI_NAME, 30000, 1);
         slowConsumer.setTimeout(100); // slow consumer reads only 10 message per second
 
-        producer.start();
-        Thread.sleep(5000);
         fastConsumer.start();
         slowConsumer.start();
+        Thread.sleep(3000);
+        producer.start();
 
         long startTime = System.currentTimeMillis();
 
