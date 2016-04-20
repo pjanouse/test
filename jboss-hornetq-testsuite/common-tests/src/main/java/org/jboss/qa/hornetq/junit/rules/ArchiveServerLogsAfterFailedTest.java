@@ -6,6 +6,7 @@ import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.tools.ZipUtils;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -131,7 +132,7 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
 
                     log.info("Copying log directory " + serverLogDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
-                    FileUtils.copyDirectory(serverLogDirectory, whereToCopyServerLogDirectory);
+                    ZipUtils.zipDir(new File(whereToCopyServerLogDirectory, "logs.zip"), serverLogDirectory);
                     log.info("Copying data directory " + serverDataDirectory.getAbsolutePath()
                             + " to " + whereToCopyServerLogDirectory.getAbsolutePath());
                     FileUtils.copyDirectory(serverDataDirectory, whereToCopyServerLogDirectory);
