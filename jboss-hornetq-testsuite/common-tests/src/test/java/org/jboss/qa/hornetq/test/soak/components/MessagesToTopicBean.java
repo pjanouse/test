@@ -50,7 +50,7 @@ public class MessagesToTopicBean {
 
             topicProducer.send(msg);
 
-            if (counter.incrementAndGet() % 10 == 0) {
+            if (counter.incrementAndGet() % 100 == 0) {
                 LOG.info("MessagesToTopicBean - processed " + counter.get() + " messages, messageId: " + msg.getJMSMessageID());
             }
 

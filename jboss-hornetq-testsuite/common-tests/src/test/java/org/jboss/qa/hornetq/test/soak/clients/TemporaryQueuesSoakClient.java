@@ -234,8 +234,9 @@ public class TemporaryQueuesSoakClient extends Client {
             while (numberOfRetries < MAX_RETRIES) {
                 try {
                     producer.send(msg);
-                    LOG.info("SENT message with count " + this.counter
-                            + " with destination " + msg.getJMSReplyTo().toString());
+                    if (numberOfMessage % 100 == 0)
+                        LOG.info("SENT message with count " + this.counter
+                                + " with destination " + msg.getJMSReplyTo().toString());
                     return;
                 } catch (JMSException ex) {
                     LOG.info("SEND RETRY - Sent message with property count: " + this.counter

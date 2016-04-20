@@ -185,7 +185,7 @@ public class FilterSoakClient extends Client {
                     msg = this.messageBuilder.createMessage(new MessageCreator10(session), HornetqJMSImplementation.getInstance());
                     msg.setIntProperty("counter", ++this.counter);
                     msg.setIntProperty("filterProperty", this.counter % 2);
-                    ClientUtils.sendMessage(producer, msg);
+                    sendMessage(producer, msg, 30);
                     Thread.sleep(MSG_GAP);
                 }
                 return this.counter;
@@ -199,6 +199,56 @@ public class FilterSoakClient extends Client {
 
         public void stopSending() {
             this.stop = true;
+        }
+
+        private String sendMessage(final MessageProducer producer, final Message msg,
+                                          final int maxRetries) throws JMSException {
+
+            int numberOfRetries = 0;
+            Integer msgCounter;
+            try {
+                msgCounter = msg.getIntProperty("counter");
+            } catch (JMSException ex) {
+                msgCounter = null;
+            }
+
+            while (numberOfRetries < maxRetries) {
+                try {
+                    producer.send(msg);
+
+                    if (msgCounter == null) {
+                        LOG.info("SENT message with id " + msg.getJMSMessageID());
+                    } else {
+                        if(msgCounter % 100 == 0) {
+                            LOG.info("SENT message with counter " + msgCounter
+                                    + " and id " + msg.getJMSMessageID());
+                        }
+                    }
+
+                    if (msg.getStringProperty("_HQ_DUPL_ID") != null) {
+                        return msg.getStringProperty("_HQ_DUPL_ID");
+                    } else {
+                        return null;
+                    }
+                } catch (JMSException ex) {
+                    if (msgCounter == null) {
+                        LOG.info("SEND RETRY - Sent message with id " + msg.getJMSMessageID());
+                    } else {
+                        LOG.info("SEND RETRY - Sent message with counter " + msgCounter
+                                + " and id " + msg.getJMSMessageID());
+                    }
+                    numberOfRetries++;
+                }
+            }
+
+            // this is an error - here we should never be because max retrie expired
+            if (msgCounter == null) {
+                throw new JMSException("FAILURE - MaxRetry reached for message with id"
+                        + msg.getJMSMessageID());
+            } else {
+                throw new JMSException("FAILURE - MaxRetry reached for message counter " + msgCounter
+                        + " and id " + msg.getJMSMessageID());
+            }
         }
 
     }

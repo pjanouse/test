@@ -70,7 +70,7 @@ public class DurableSubscriptionClient extends Client {
             boolean needReconnect;
             do {
                 needReconnect = this.readMessages(session, topic);
-                LOG.info("needReconnect = " + needReconnect);
+                LOG.debug("needReconnect = " + needReconnect);
             } while (needReconnect);
         } catch (JMSException ex) {
             LOG.error("Error while running durable subscription consumer", ex);
@@ -117,7 +117,7 @@ public class DurableSubscriptionClient extends Client {
     private boolean readMessages(final Session session, final Topic topic) throws JMSException {
         int reconnectionCounter = 0;
 
-        LOG.info("readMessages called");
+        LOG.debug("readMessages called");
         TopicSubscriber consumer = null;
         try {
             consumer = session.createDurableSubscriber(topic, this.subscriptionName);
@@ -134,7 +134,7 @@ public class DurableSubscriptionClient extends Client {
                 msg.acknowledge();
             }
 
-            LOG.info("reconnectionCounter = " + reconnectionCounter);
+            LOG.debug("reconnectionCounter = " + reconnectionCounter);
             return reconnectionCounter == MESSAGES_READ_BEFORE_RECONNECT;
         } finally {
             if (consumer != null) {
