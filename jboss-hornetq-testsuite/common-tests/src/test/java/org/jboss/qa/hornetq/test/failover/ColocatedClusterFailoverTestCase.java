@@ -796,9 +796,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         String name = "my-grouping-handler";
         String address = "jms";
-        long timeout = 50000;
-        long groupTimeout = 500;
-        long reaperPeriod = 750;
+        long timeout = 5000;
+        long groupTimeoutLocal = 5000;
+        long groupTimeoutRemote = 2500;
+        long reaperPeriod = 30000;
         String liveServerName = "default";
         String backupServerName = "backup";
 
@@ -810,11 +811,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         JMSOperations jmsAdminOperationsC2 = container(2).getJmsOperations();
 
-        jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
-        jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC1.addMessageGrouping(liveServerName, name, "LOCAL", address, timeout, groupTimeoutLocal, reaperPeriod);
+        jmsAdminOperationsC1.addMessageGrouping(backupServerName, name, "REMOTE", address, timeout, groupTimeoutRemote, reaperPeriod);
 
-        jmsAdminOperationsC2.addMessageGrouping(liveServerName, name, "REMOTE", address, timeout, groupTimeout, reaperPeriod);
-        jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout, groupTimeout, reaperPeriod);
+        jmsAdminOperationsC2.addMessageGrouping(liveServerName, name, "REMOTE", address, timeout, groupTimeoutRemote, reaperPeriod);
+        jmsAdminOperationsC2.addMessageGrouping(backupServerName, name, "LOCAL", address, timeout, groupTimeoutLocal, reaperPeriod);
 
         jmsAdminOperationsC1.close();
 
