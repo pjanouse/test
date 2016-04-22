@@ -794,6 +794,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
                 String jgroupsStackName = "tcp";
                 LinkedHashMap<String, Properties> protocols = new LinkedHashMap<String, Properties>();
                 Properties tcpPingProperties = new Properties();
+                Properties gmsProperties = new Properties();
                 StringBuilder initialHosts = new StringBuilder();
                 for (Container c : remoteContainers) {
                     initialHosts.append(c.getHostname()).append("[").append(c.getJGroupsTcpPort()).append("]");
@@ -802,7 +803,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
                 initialHosts.deleteCharAt(initialHosts.lastIndexOf(","));
                 tcpPingProperties.put("initial_hosts", initialHosts.toString());
                 tcpPingProperties.put("port_range", "10");
-                tcpPingProperties.put("timeout", "3000");
+                gmsProperties.put("join_timeout", "3000");
                 tcpPingProperties.put("num_initial_members", String.valueOf(remoteContainers.length));
                 protocols.put("TCPPING", tcpPingProperties);
                 protocols.put("MERGE2", null);
@@ -812,7 +813,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
                 protocols.put("pbcast.NAKACK", null);
                 protocols.put("UNICAST2", null);
                 protocols.put("pbcast.STABLE", null);
-                protocols.put("pbcast.GMS", null);
+                protocols.put("pbcast.GMS", gmsProperties);
                 protocols.put("UFC", null);
                 protocols.put("MFC", null);
                 protocols.put("FRAG2", null);
