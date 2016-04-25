@@ -3200,6 +3200,46 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
+     * The number of times to set up an MDB endpoint
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    @Override
+    public void setSetupAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+
+        model.get("name").set("setup-attempts");
+        model.get("value").set(value);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    /**
+     * The number of attempts to connect initially with this factory
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    @Override
+    public void setInitialConnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+
+        model.get("name").set("initial-connect-attempts");
+        model.get("value").set(value);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    /**
      * How many times should client retry connection when connection is lost. This should be -1 if failover is required.
      *
      * @param connectionFactoryName nameOfConnectionFactory (not jndi name)

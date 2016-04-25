@@ -564,8 +564,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         JMSOperations ops = container(1).getJmsOperations();
         int topicSubscriptions = ops.getNumberOfDurableSubscriptionsOnTopic(TOPIC_NAME);
         ops.close();
-        LOG.info("subscriptions on InTopic :" + topicSubscriptions);
 
+        assertEquals("MDBs subscription should be removed", 0, topicSubscriptions);
         assertFalse("Producer should be finished", producer.isAlive());
         assertFalse("Consumer should be finished", receiver.isAlive());
 
@@ -592,6 +592,8 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.KILL, 1);
         ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, 0);
         ops.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 0);
+        ops.setSetupAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 0);
+        ops.setInitialConnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 1);
 
         ops.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
         ops.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);

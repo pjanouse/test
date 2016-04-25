@@ -1455,6 +1455,23 @@ public interface JMSOperations {
     void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value);
 
     /**
+     * The number of times to set up an MDB endpoint
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    void setSetupAttemptsForPooledConnectionFactory(String connectionFactoryName, int value);
+
+
+    /**
+     * The number of attempts to connect initially with this factory
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    void setInitialConnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value);
+
+    /**
      * How long (in ms) to wait after the last consumer is closed on a queue
      * before redistributing messages.
      *

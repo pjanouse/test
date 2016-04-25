@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jboss.util.NotImplementedException;
 import org.kohsuke.MetaInfServices;
 
 import javax.naming.NamingException;
@@ -2921,6 +2922,22 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("value").set(value);
         applyUpdateWithRetry(model, 50);
 
+    }
+
+    /**
+     * The number of times to set up an MDB endpoint
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value                 value
+     */
+    @Override
+    public void setSetupAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+        throw new NotImplementedException("not implemented yet");
+    }
+
+    @Override
+    public void setInitialConnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+        throw new NotImplementedException("not implemented yet");
     }
 
     /**

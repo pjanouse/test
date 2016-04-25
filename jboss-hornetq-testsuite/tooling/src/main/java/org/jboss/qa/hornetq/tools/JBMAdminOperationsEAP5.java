@@ -1434,6 +1434,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setSetupAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setInitialConnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setRedistributionDelay(long delay) {
         String configurationFile = getMysqlConfigurationFile();
         try {
