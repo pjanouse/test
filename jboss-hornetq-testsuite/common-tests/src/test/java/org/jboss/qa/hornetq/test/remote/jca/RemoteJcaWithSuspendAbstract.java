@@ -9,7 +9,6 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
@@ -26,8 +25,8 @@ import java.util.Map;
 /**
  * Created by mnovak on 12/14/15.
  */
-public abstract class RemoteJcaWithSuspendTestCase extends RemoteJcaLoadTestBase {
-    private static final Logger logger = Logger.getLogger(RemoteJcaWithHighCpuLoadTestCase.class);
+public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase {
+    private static final Logger logger = Logger.getLogger(RemoteJcaWithHighCpuLoadAbstract.class);
 
     @Test
     @CleanUpBeforeTest

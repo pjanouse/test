@@ -5,7 +5,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 /**
  * Created by mstyk on 4/6/16.
  */
-public class RemoteJcaWithSuspendTestCasePageMode extends RemoteJcaWithSuspendTestCase {
+public class RemoteJcaWithSuspendTestCasePageMode extends RemoteJcaWithSuspendAbstract {
 
     @Override
     protected  void setAddressSettings(JMSOperations jmsAdminOperations) {

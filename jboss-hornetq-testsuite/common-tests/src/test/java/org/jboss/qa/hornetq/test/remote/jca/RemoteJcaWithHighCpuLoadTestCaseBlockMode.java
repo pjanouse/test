@@ -2,12 +2,10 @@ package org.jboss.qa.hornetq.test.remote.jca;
 
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
-import javax.ejb.Remote;
-
 /**
  * Created by mstyk on 4/6/16.
  */
-public class RemoteJcaWithHighCpuLoadTestCaseBlockMode extends RemoteJcaWithHighCpuLoadTestCase {
+public class RemoteJcaWithHighCpuLoadTestCaseBlockMode extends RemoteJcaWithHighCpuLoadAbstract {
 
     @Override
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {

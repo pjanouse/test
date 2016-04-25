@@ -5,7 +5,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 /**
  * Created by mstyk on 4/6/16.
  */
-public class RemoteJcaWithOOMTestCaseBlockMode extends RemoteJcaWithOOMTestCase{
+public class RemoteJcaWithOOMTestCaseBlockMode extends RemoteJcaWithOOMAbstract {
 
     @Override
     protected  void setAddressSettings(JMSOperations jmsAdminOperations) {

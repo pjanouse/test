@@ -7,12 +7,9 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -27,9 +24,9 @@ import java.util.Map;
 /**
  * Created by mnovak on 1/4/16.
  */
-public abstract class RemoteJcaWithOOMTestCase extends RemoteJcaLoadTestBase {
+public abstract class RemoteJcaWithOOMAbstract extends RemoteJcaLoadTestBase {
 
-    private static final Logger logger = Logger.getLogger(RemoteJcaWithOOMTestCase.class);
+    private static final Logger logger = Logger.getLogger(RemoteJcaWithOOMAbstract.class);
 
     @Test
     @CleanUpBeforeTest
