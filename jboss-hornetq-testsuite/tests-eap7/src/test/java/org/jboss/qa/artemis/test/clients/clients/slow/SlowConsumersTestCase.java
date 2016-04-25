@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -535,6 +536,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
         ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.KILL, 1);
+        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7,0);
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
@@ -559,6 +561,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
         ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.NOTIFY, 5);
+        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7,0);
 
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
