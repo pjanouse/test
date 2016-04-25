@@ -6,10 +6,12 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
+import org.jboss.qa.hornetq.apps.mdb.LocalSlowMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -17,6 +19,8 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -25,6 +29,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -44,8 +49,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(SlowConsumersTestCase.class);
 
-    private static final String QUEUE_NAME = "InQueue";
-    private static final String QUEUE_JNDI_NAME = "jms/queue/" + QUEUE_NAME;
+    private static final String IN_QUEUE_NAME = "InQueue";
+    private static final String IN_QUEUE_JNDI_NAME = "jms/queue/" + IN_QUEUE_NAME;
+
+    private static final String OUT_QUEUE_NAME = "OutQueue";
+    private static final String OUT_QUEUE_JNDI_NAME = "jms/queue/" + OUT_QUEUE_NAME;
 
     private static final String TOPIC_NAME = "InTopic";
     private static final String TOPIC_JNDI_NAME = "jms/topic/" + TOPIC_NAME;
@@ -345,14 +353,14 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         prepareServerForKills();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1),
-                QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
+                IN_QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new TextMessageBuilder(10));
         producer.setTimeout(0);
 
         //ReceiverAutoAck fastReceiver = new ReceiverAutoAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME),
-        //        QUEUE_JNDI_NAME, 30000, 1);
+        //        IN_QUEUE_JNDI_NAME, 30000, 1);
         ReceiverAutoAck slowReceiver = new ReceiverAutoAck(container(1),
-                QUEUE_JNDI_NAME);
+                IN_QUEUE_JNDI_NAME);
         slowReceiver.setTimeout(100); // slow consumer reads only 10 message per second
         slowReceiver.setMaxRetries(1);
 
@@ -518,7 +526,53 @@ public class SlowConsumersTestCase extends HornetQTestCase {
 
     }
 
-    private void prepareServerForKills()throws Exception {
+    /**
+     * @tpTestDetails Single server with deployed topic is started. Messages are
+     * published to topic on server.There is one slow MDB deployed. Send messages to topic and deploy MDB.
+     * MDB should be disconnected by KILL policy
+     * @tpProcedure <ul>
+     * <li>Start server with single topic deployed.</li>
+     * <li>Deploy slow MDB</li>
+     * <li>Check MDB is disconnected</li>
+     * </ul>
+     * @tpPassCrit MDB doesn`t have subscription on topic
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testSlowMDBKill() throws Exception {
+
+        prepareServerForKills(10);
+
+        JavaArchive deployment = createDeploymentMdbSlow();
+        container(1).deploy(deployment);
+
+        PublisherAutoAck producer = new PublisherAutoAck(container(1),
+                TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, CLIENT_NAME + "producer");
+        producer.setMessageBuilder(new TextMessageBuilder(1));
+        producer.setTimeout(0);
+        producer.start();
+
+        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), OUT_QUEUE_JNDI_NAME);
+        receiver.start();
+        receiver.join();
+
+        producer.stopSending();
+        producer.join();
+
+        JMSOperations ops = container(1).getJmsOperations();
+        int topicSubscriptions = ops.getNumberOfDurableSubscriptionsOnTopic(TOPIC_NAME);
+        ops.close();
+        LOG.info("subscriptions on InTopic :" + topicSubscriptions);
+
+        assertFalse("Producer should be finished", producer.isAlive());
+        assertFalse("Consumer should be finished", receiver.isAlive());
+
+        container(1).undeploy(deployment);
+    }
+    
+    private void prepareServerForKills() throws Exception {
         prepareServerForKills(20);
     }
 
@@ -536,9 +590,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
         ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.KILL, 1);
-        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7,0);
+        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, 0);
+        ops.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, 0);
 
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
+        ops.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
+        ops.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
@@ -561,9 +617,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         ops.removeAddressSettings("#");
         ops.addAddressSettings("#", "PAGE", 10 * 1024, 1000, 1000, 1024);
         ops.setSlowConsumerPolicy("#", slowConsumerThreshold, SlowConsumerPolicy.NOTIFY, 5);
-        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7,0);
+        ops.setReconnectAttemptsForConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, 0);
 
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
+        ops.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
+        ops.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);
         ops.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         ops.close();
 
@@ -578,5 +635,21 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             }
         }
         return false;
+    }
+
+    public JavaArchive createDeploymentMdbSlow() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbSlow.jar");
+        mdbJar.addClass(LocalSlowMdbFromTopic.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        LOG.info(mdbJar.toString(true));
+        // File target = new File("/tmp/mdbOnQueue1.jar");
+        // if (target.exists()) {
+        // target.delete();
+        // }
+        // mdbJar.as(ZipExporter.class).exportTo(target, true);
+        return mdbJar;
     }
 }
