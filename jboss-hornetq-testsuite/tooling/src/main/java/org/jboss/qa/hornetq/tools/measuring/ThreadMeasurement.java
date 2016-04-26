@@ -15,7 +15,7 @@ public class ThreadMeasurement implements Measurable {
     private int threadCount = 0;
     private int peakThreadCount = 0;
 
-    public ThreadMeasurement(MBeanServerConnection connection) throws Exception{
+    public ThreadMeasurement(MBeanServerConnection connection) throws Exception {
         if (connection == null) {
             throw new IllegalArgumentException("mBeanServerConnection provived to class ThreadMeasurement was null");
         }

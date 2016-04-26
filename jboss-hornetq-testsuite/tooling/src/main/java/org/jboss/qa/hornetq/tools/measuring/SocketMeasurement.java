@@ -1,10 +1,5 @@
 package org.jboss.qa.hornetq.tools.measuring;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.openmbean.CompositeDataSupport;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
@@ -21,9 +16,6 @@ public class SocketMeasurement implements Measurable {
     private int openSockets = 0;
 
     public SocketMeasurement(int processId) {
-        if (System.getProperty("os.name").toString().toLowerCase().contains("win")) {
-            throw new NotImplementedException();
-        }
         this.processId = processId;
         command = new String[]{"/bin/sh", "-c", " lsof -p " + processId + " | grep TCP | wc -l"};
     }

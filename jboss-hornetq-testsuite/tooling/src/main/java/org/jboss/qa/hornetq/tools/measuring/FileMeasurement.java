@@ -1,14 +1,9 @@
 package org.jboss.qa.hornetq.tools.measuring;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Created by mstyk on 4/13/16.
@@ -21,7 +16,7 @@ public class FileMeasurement implements Measurable {
 
     public FileMeasurement(MBeanServerConnection connection) {
         if (connection == null) {
-            throw new IllegalArgumentException("mBeanServerConnection provived to class FileMeasurement was null");
+            throw new IllegalArgumentException("mBeanServerConnection provided to class FileMeasurement was null");
         }
         this.connection = connection;
     }

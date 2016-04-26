@@ -5,9 +5,7 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.test.soak.clients.DurableSubscriptionClient;
@@ -17,25 +15,21 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.soak.modules.*;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.MemoryMeasuring;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.measuring.Measure;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -126,10 +120,22 @@ public class NewSoakTestCase extends HornetQTestCase {
         container(2).deploy(container2Deployment);
 
         // Start memory measuring of servers
-        Measure jmsServerMeasurement = new Measure(container(1), "jms-server");
+        Measure jmsServerMeasurement = new Measure.Builder()
+                .host(container(1).getHostname())
+                .port(container(1).getPort())
+                .protocol("service:jmx:remote+http")
+                .processId(container(1).getProcessId())
+                .outFileNamingPattern("jms-server")
+                .build();
         jmsServerMeasurement.start();
 
-        Measure mdbServerMeasurement = new Measure(container(2), "mdb-server");
+        Measure mdbServerMeasurement = new Measure.Builder()
+                .host(container(2).getHostname())
+                .port(container(2).getPort())
+                .protocol("service:jmx:remote+http")
+                .processId(container(2).getProcessId())
+                .outFileNamingPattern("mdb-server")
+                .build();
         mdbServerMeasurement.start();
 
         final long testDuration = getTestDuration();

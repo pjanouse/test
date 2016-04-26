@@ -27,7 +27,7 @@ public class MemoryMeasurement implements Measurable {
     public List<String> measure() {
         heapSize = getHeapSize();
         nonHeapSize = getNonHeapSize();
-        return Arrays.asList(String.valueOf(heapSize/ 1000 / 1000), String.valueOf(nonHeapSize/ 1000 / 1000));
+        return Arrays.asList(String.valueOf(heapSize / 1000 / 1000), String.valueOf(nonHeapSize / 1000 / 1000));
     }
 
     @Override
@@ -39,11 +39,6 @@ public class MemoryMeasurement implements Measurable {
         CompositeDataSupport heap = getMemory("HeapMemoryUsage");
         return heap == null ? 0L : (Long) heap.get("used");
     }
-
-//    private Long getMaxHeapSize() {
-//        CompositeDataSupport heap = getMemory("HeapMemoryUsage");
-//        return heap == null ? 0L : (Long) heap.get("max");
-//    }
 
     private Long getNonHeapSize() {
         CompositeDataSupport heap = getMemory("NonHeapMemoryUsage");

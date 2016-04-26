@@ -1,9 +1,5 @@
 package org.jboss.qa.hornetq.tools.measuring;
 
-import org.jboss.qa.hornetq.*;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.CSVDataSeriesReader;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -15,10 +11,7 @@ import org.jfree.data.Range;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.openmbean.CompositeDataSupport;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -29,16 +22,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 
 /**
- * Class designed to measure EAP server resources during cli tests. Heap-size, Non-heap-size, Thread-count and
- * Peak-thread-count attributes are monitored.
+ * Class designed to measure EAP server resources during soak tests.
  *
  * @author Petr Kremensky pkremens@redhat.com on 4/29/15.
  * @author Martin Styk mstyk@redhat.com on 12/04/16.
@@ -46,7 +36,6 @@ import org.apache.log4j.Logger;
 public class Measure extends Thread {
 
     protected static Logger LOGGER = Logger.getLogger(Measure.class.getName());
-    private static final int DEFAULT_CHECK_PERIOD = 60 * 1000;
 
     private final MBeanServerConnection connection;
     private final JMXConnector jmxConnector;
@@ -60,75 +49,40 @@ public class Measure extends Thread {
     private PrintWriter writer;
     private File csvFile;
 
+    private int processId;
+    private String url;
+
     private List<Measurable> measurableList = new ArrayList<Measurable>(5);
 
-    public Measure(Container container, String outFileNamingPattern) throws Exception {
-
-        this("service:jmx:remote+http://" + container.getHostname() + ":" + container.getPort(),container.getProcessId(),outFileNamingPattern);
-    }
-
-
     /**
-     * Creates measurement thread
+     * Creates measurement thread from builder
      *
-     * @param protocol             "service:jmx:remoting-jmx:// for EAP6, "service:jmx:remote+http:// for EAP7
-     * @param host                 host to connect
-     * @param port                 port to connect
-     * @param processID            PID of monitored process
-     * @param outFileNamingPattern pattern of name file to write output
      * @throws Exception
      */
-    public Measure(String protocol, String host, int port, int processID, String outFileNamingPattern) throws Exception {
-        this(System.getProperty("jmx.service.url", protocol + "//" + host + ":" + port), processID, outFileNamingPattern);
-    }
-
-
-    /**
-     * Creates measurement thread
-     *
-     * @param protocol             "service:jmx:remoting-jmx:// for EAP6, "service:jmx:remote+http:// for EAP7
-     * @param host                 host to connect
-     * @param port                 port to connect
-     * @param processID            PID of monitored process
-     * @param outFileNamingPattern pattern of name file to write output
-     * @throws Exception
-     */
-    public Measure(String protocol, String host, int port, int processID, String outFileNamingPattern, int checkPeriod) throws Exception {
-        this(System.getProperty("jmx.service.url", protocol + "//" + host + ":" + port), processID, outFileNamingPattern);
-    }
-
-
-    public Measure(String urlString, int processID, String outFileNamingPattern) throws Exception {
-        this(urlString, processID, outFileNamingPattern, DEFAULT_CHECK_PERIOD);
-    }
-
-    /**
-     * @param urlString
-     * @param processID            PID of monitored process
-     * @param outFileNamingPattern file to write output
-     * @throws Exception
-     */
-    public Measure(String urlString, int processID, String outFileNamingPattern, int checkPeriod) throws Exception {
-        if (urlString == null || urlString.isEmpty()) {
-            throw new IllegalArgumentException("urlString is " + urlString);
-        }
-        if (outFileNamingPattern == null || outFileNamingPattern.isEmpty()) {
-            throw new IllegalArgumentException("outFileNamingPattern is " + outFileNamingPattern);
+    protected Measure(Builder builder) throws Exception {
+        if (builder == null) {
+            throw new IllegalArgumentException("builder is null");
         }
 
-        this.intervalBetweenMeasurements = checkPeriod;
-        this.outFileNamingPattern = outFileNamingPattern;
+        this.url = builder.jmxUrl == null ?
+                builder.protocol + "://" + builder.host + ":" + builder.port : builder.jmxUrl;
+        this.processId = builder.processId;
+        this.intervalBetweenMeasurements = builder.measurePeriod;
+        this.outFileNamingPattern = builder.outFileNamingPattern;
         this.csvFile = new File(outFileNamingPattern + ".csv");
-        JMXServiceURL serviceURL = new JMXServiceURL(urlString);
+
+        JMXServiceURL serviceURL = new JMXServiceURL(this.url);
         jmxConnector = JMXConnectorFactory.connect(serviceURL, null);
         connection = jmxConnector.getMBeanServerConnection();
 
         measurableList.add(new CpuMeasurement(connection));
         measurableList.add(new ThreadMeasurement(connection));
         measurableList.add(new MemoryMeasurement(connection));
-        measurableList.add(new SocketMeasurement(processID));
-        measurableList.add(new FileMeasurement(connection));
 
+        if (!System.getProperty("os.name").toString().toLowerCase().contains("win")) {
+            measurableList.add(new SocketMeasurement(processId));
+            measurableList.add(new FileMeasurement(connection));
+        }
     }
 
     public void run() {
@@ -170,37 +124,6 @@ public class Measure extends Thread {
 
     public void stopMeasuring() {
         stop = true;
-    }
-
-
-    /**
-     * Get the latest measured values.
-     *
-     * @return Report of measured values.
-     */
-    public String getReport(String... reports) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        sb.append("*******************************************************************").append("\n");
-        sb.append("Current Time:      ").append(Calendar.getInstance().getTime()).append("\n");
-        sb.append("Uptime:            ").append(getUptime()).append("\n");
-
-        for (String rep : reports) {
-            sb.append(rep);
-        }
-
-        sb.append("*******************************************************************");
-        return sb.toString();
-    }
-
-
-    private String getUptime() {
-        long millis = System.currentTimeMillis() - startTime;
-        return String.format("%d hr, %d min, %d sec",
-                TimeUnit.MILLISECONDS.toHours(millis),
-                TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
-                TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)
-                ));
     }
 
     private void writeHeader() {
@@ -263,7 +186,7 @@ public class Measure extends Thread {
 
         if (csvFile.getName().endsWith(".csv")) {
 
-            CSVDataSeriesReader csvDataSeriesReader = new CSVDataSeriesReader(',');
+            CsvParser csvDataSeriesReader = new CsvParser();
 
             List<XYSeries> data = csvDataSeriesReader.readDataset(new FileReader(csvFile), columns);
 
@@ -337,5 +260,93 @@ public class Measure extends Thread {
         }
     }
 
+
+    public static final class Builder {
+
+        private String protocol;
+        private String host;
+        private int port = -1;
+        private String jmxUrl;
+        private int processId = -1;
+        private String outFileNamingPattern = "server";
+        private int measurePeriod = 1000;
+
+        public Builder() {
+        }
+
+        /**
+         * Defines the protocol to connect to jmx
+         */
+        public Builder protocol(String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        /**
+         * Defines the host name to connect
+         */
+        public Builder host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        /**
+         * Defines the port of host name to connect
+         */
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * Defines the URL for JMX to connect
+         * by default "service:jmx:remoting-jmx for EAP6,
+         * by default "service:jmx:remote+http for EAP7
+         */
+        public Builder jmxUrl(String jmxUrl) {
+            this.jmxUrl = jmxUrl;
+            return this;
+        }
+
+        /**
+         * Defines PID of java process to observe
+         */
+        public Builder processId(int processId) {
+            this.processId = processId;
+            return this;
+        }
+
+        /**
+         * Defines file naming pattern of output files
+         * eg pattern "jms-server" will generate files jms-server.csv and jms-server-*.png
+         */
+        public Builder outFileNamingPattern(String outFileNamingPattern) {
+            this.outFileNamingPattern = outFileNamingPattern;
+            return this;
+        }
+
+        /**
+         * Defines file naming pattern of output files
+         * eg pattern "jms-server" will generate files jms-server.csv and jms-server-*.png
+         */
+        public Builder measurePeriod(int measurePeriod) {
+            this.measurePeriod = measurePeriod;
+            return this;
+        }
+
+        public Measure build() throws Exception {
+            check();
+            return new Measure(this);
+        }
+
+        private void check() {
+            if (jmxUrl == null && (host == null || port == -1 || protocol == null)) {
+                throw new IllegalArgumentException("At least one way to connect to JMX must be specified");
+            }
+            if (processId == -1) {
+                throw new IllegalArgumentException("processId must be specified");
+            }
+        }
+    }
 
 }
