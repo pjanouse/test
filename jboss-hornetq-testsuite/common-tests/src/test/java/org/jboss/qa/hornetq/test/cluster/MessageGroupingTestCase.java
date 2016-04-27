@@ -290,7 +290,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).start();
         Thread.sleep(5000);
         FinalTestMessageVerifier verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 30000, 100, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 120000, 100, 10);
         receiver.setMessageVerifier(verifier);
         receiver.start();
 
