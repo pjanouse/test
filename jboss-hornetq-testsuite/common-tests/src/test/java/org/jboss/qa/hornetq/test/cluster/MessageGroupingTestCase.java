@@ -434,6 +434,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             sendMessages.add(mapOfPropertiesOfTheMessage);
         }
         verifier.addSendMessages(sendMessages);
+        connection.close();
 
         // start producers and consumers
         List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>(); // create 500 groups
