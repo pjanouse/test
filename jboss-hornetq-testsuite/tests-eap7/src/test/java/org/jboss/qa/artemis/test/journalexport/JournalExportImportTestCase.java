@@ -1,8 +1,14 @@
 package org.jboss.qa.artemis.test.journalexport;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -10,9 +16,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
@@ -36,7 +40,6 @@ import static org.jboss.qa.hornetq.HornetQTestCase.getArquillianDescriptor;
 import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
 
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 
 /**
  * Set of journal export/import tests.
@@ -55,6 +58,8 @@ import org.junit.Ignore;
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class JournalExportImportTestCase extends HornetQTestCase {
+
+    private static final Logger logger = Logger.getLogger(JournalExportImportTestCase.class);
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
@@ -247,6 +252,76 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertNull("Tested property should be null", received.getStringProperty("test_property"));
         assertTrue("Test message should be received as proper message type", received instanceof TextMessage);
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportLargeMessagesUsingAdminOperation() throws Exception {
+
+        prepareServer(container(1));
+
+        container(1).start();
+
+        Context ctx = null;
+        Connection conn = null;
+        Session session = null;
+
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 20);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        container(1).stop();
+
+        Map<String, String> containerProperties = null;
+        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
+            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
+                if (containerDef.getContainerName().equalsIgnoreCase(container(1).getName())) {
+                    containerProperties = containerDef.getContainerProperties();
+                }
+            }
+        }
+
+        containerProperties.put("adminOnly", "true");
+
+        //start in admin-only mode
+        container(1).start(containerProperties);
+        JMSOperations ops = container(1).getJmsOperations();
+        String exportedJournalFile = ops.exportJournal();
+        ops.close();
+        container(1).stop();
+
+        // delete the journal file before we import it again
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"bindings"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"journal"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"paging"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"largemessages"));
+
+        containerProperties.replace("adminOnly", "false");
+        //start in normal mode
+        container(1).start(containerProperties);
+        ops = container(1).getJmsOperations();
+
+        ops.importJournal(exportedJournalFile);
+        ops.close();
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), TEST_QUEUE_NAME, 5000, 10, 10);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Number of sent messages: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
+
+        Assert.assertTrue("No message was received.", receiver1.getCount() > 0);
+        Assert.assertEquals("There is different number of sent and received messages. Received: "
+                + receiver1.getListOfReceivedMessages().size() + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()
+                + ".", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
     }
 
     private void prepareServer(final Container container) {
