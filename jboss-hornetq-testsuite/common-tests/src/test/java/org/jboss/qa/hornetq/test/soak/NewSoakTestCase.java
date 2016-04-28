@@ -119,23 +119,26 @@ public class NewSoakTestCase extends HornetQTestCase {
 
         container(1).deploy(container1Deployment);
         container(2).deploy(container2Deployment);
-
+        
         // Start memory measuring of servers
+        String protocol = ContainerUtils.isEAP6(container(1)) ? "service:jmx:remoting-jmx" :"service:jmx:remote+http";
         Measure jmsServerMeasurement = new Measure.Builder()
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
-                .protocol("service:jmx:remote+http")
+                .protocol(protocol)
                 .processId(container(1).getProcessId())
                 .outFileNamingPattern("jms-server")
+                .measurePeriod(60 * 1000 * 2)
                 .build();
         jmsServerMeasurement.start();
 
         Measure mdbServerMeasurement = new Measure.Builder()
                 .host(container(2).getHostname())
                 .port(container(2).getPort())
-                .protocol("service:jmx:remote+http")
+                .protocol(protocol)
                 .processId(container(2).getProcessId())
                 .outFileNamingPattern("mdb-server")
+                .measurePeriod(60 * 1000 * 2)
                 .build();
         mdbServerMeasurement.start();
 

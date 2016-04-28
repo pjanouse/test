@@ -326,11 +326,11 @@ public class Measure extends Thread {
         }
 
         /**
-         * Defines file naming pattern of output files
+         * Defines measure period in ms
          * eg pattern "jms-server" will generate files jms-server.csv and jms-server-*.png
          */
-        public Builder measurePeriod(int measurePeriod) {
-            this.measurePeriod = measurePeriod;
+        public Builder measurePeriod(int measurePeriodmillis) {
+            this.measurePeriod = measurePeriodmillis;
             return this;
         }
 
