@@ -22,6 +22,8 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 
+import java.io.File;
+
 import static org.junit.Assert.*;
 
 /**
@@ -60,6 +62,11 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     public void preActionPrepareServers() throws Exception {
         container(1).stop();
         container(1).start();
+        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
+        jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
+        jmsAdminOperations.setJournalType("NIO");
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
+        jmsAdminOperations.close();
     }
 
     /**
@@ -1214,12 +1221,6 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     		boolean ruleBeforeReceive,
     		boolean rollbackOnly)
     {
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminOperations.setJournalType("NIO");
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
-        jmsAdminOperations.close();
-
         SimpleJMSClient client = new SimpleJMSClient(container(1), 1, ackMode, transacted);
         if (!ruleBeforeReceive) {
             client.setRollbackOnly(rollbackOnly);
