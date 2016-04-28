@@ -67,6 +67,8 @@ public class PrintJournalImplEAP7 implements PrintJournal {
     @Override
     public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
 
+        boolean isPagingAvailable = true;
+
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();
         }
@@ -83,8 +85,9 @@ public class PrintJournalImplEAP7 implements PrintJournal {
             throw new IllegalStateException("Parameter messagingjournalDirectory is null/empty.");
         }
 
-        if (messagingpagingDirectory == null || "".equals(messagingpagingDirectory)) {
-            throw new IllegalStateException("Parameter messagingpagingDirectory is null/empty.");
+        if (messagingpagingDirectory == null || "".equals(messagingpagingDirectory) || !new File(messagingpagingDirectory).exists()) {
+            log.warn("Paging directory not available. It may be OK, in case the paging on server is deactivated");
+            isPagingAvailable = false;
         }
 
         if (outputFile == null || "".equalsIgnoreCase(outputFile)) {
@@ -106,8 +109,10 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         javaProcessBuilder.addArgument(messagingbindingsDirectory);
         javaProcessBuilder.addArgument("--journal");
         javaProcessBuilder.addArgument(messagingjournalDirectory);
-        javaProcessBuilder.addArgument("--paging");
-        javaProcessBuilder.addArgument(messagingpagingDirectory);
+        if (isPagingAvailable) {
+            javaProcessBuilder.addArgument("--paging");
+            javaProcessBuilder.addArgument(messagingpagingDirectory);
+        }
         javaProcessBuilder.addArgument("--configuration");
         javaProcessBuilder.addArgument(confXML.getAbsolutePath());
 

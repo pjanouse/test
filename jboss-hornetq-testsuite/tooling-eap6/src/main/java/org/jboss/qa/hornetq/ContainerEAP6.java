@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
+import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtilsImplEAP6;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.kohsuke.MetaInfServices;
@@ -356,18 +357,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public synchronized JournalExportImportUtils getExportImportUtil() {
-        if (journalExportImportUtils == null) {
-            ServiceLoader serviceLoader = ServiceLoader.load(JournalExportImportUtils.class);
-
-            @SuppressWarnings("unchecked")
-            Iterator<JournalExportImportUtils> iterator = serviceLoader.iterator();
-            if (!iterator.hasNext()) {
-                throw new RuntimeException("No implementation found for JournalExportImportUtils.");
-            }
-            journalExportImportUtils = iterator.next();
-        }
-
-        return journalExportImportUtils;
+        return new JournalExportImportUtilsImplEAP6(this);
     }
 
     @Override

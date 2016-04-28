@@ -31,11 +31,15 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
 
 
     private String pathToJournal = null;
+    private Container container;
+
+    public JournalExportImportUtilsImplEAP6(Container container){
+        this.container = container;
+    }
 
     /**
      * Export HornetQ journal from the given container to the given file.
      *
-     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      *
@@ -43,7 +47,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean exportJournal(Container container, final String exportedFileName)
+    public boolean exportJournal(final String exportedFileName)
             throws IOException, InterruptedException {
 
         if (pathToJournal == null || pathToJournal.equals("")) {
@@ -58,7 +62,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
 
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
-        processBuilder.addClasspathEntry(journalToolClassPath(container));
+        processBuilder.addClasspathEntry(journalToolClassPath());
 
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
@@ -113,7 +117,6 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
     /**
      * Import HornetQ journal from the given container to the given file.
      *
-     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      *
@@ -121,7 +124,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
      * @throws InterruptedException
      */
     @Override
-    public boolean importJournal(Container container, final String exportedFileName)
+    public boolean importJournal(final String exportedFileName)
             throws IOException, InterruptedException {
 
         LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
@@ -129,7 +132,7 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
         JavaProcessBuilder processBuilder = new JavaProcessBuilder();
         processBuilder.setWorkingDirectory(new File(".").getAbsolutePath());
         //processBuilder.mergeErrorStreamWithOutput(false);
-        processBuilder.addClasspathEntry(journalToolClassPath(container));
+        processBuilder.addClasspathEntry(journalToolClassPath());
 
         EapVersion eapVersion = EapVersion.fromEapVersionFile(container.getServerHome());
         if (eapVersion.compareToString("6.0.1") <= 0) {
@@ -168,16 +171,16 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
     }
 
 
-    private static String journalToolClassPath(Container container) throws IOException {
-        String classpath = getModuleJarsClasspath(container, HORNETQ_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(container, NETTY_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(container, LOGGING_MODULE_PATH);
+    private String journalToolClassPath() throws IOException {
+        String classpath = getModuleJarsClasspath(HORNETQ_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(NETTY_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(LOGGING_MODULE_PATH);
         LOG.info("Setting up classpath for the export tool: " + classpath);
         return classpath;
     }
 
 
-    private static String getModuleJarsClasspath(Container container, final String modulePath) throws IOException {
+    private String getModuleJarsClasspath(final String modulePath) throws IOException {
         return ServerPathUtils.getModuleDirectory(container, modulePath).getAbsolutePath() + File.separator + "*";
     }
 

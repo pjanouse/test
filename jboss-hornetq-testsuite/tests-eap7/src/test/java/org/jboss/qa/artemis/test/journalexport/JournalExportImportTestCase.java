@@ -130,12 +130,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        journalExportImportUtils.exportJournal(container(1), EXPORTED_JOURNAL_FILE_NAME_PATTERN);
+        journalExportImportUtils.exportJournal( EXPORTED_JOURNAL_FILE_NAME_PATTERN);
 
         // delete the journal file before we import it again
         FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
 
-        journalExportImportUtils.importJournal(container(1), EXPORTED_JOURNAL_FILE_NAME_PATTERN);
+        journalExportImportUtils.importJournal(EXPORTED_JOURNAL_FILE_NAME_PATTERN);
         container(1).start();
         Message received;
         try {

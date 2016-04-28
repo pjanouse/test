@@ -23,18 +23,22 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
     private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", Matcher.quoteReplacement(File.separator));
 
     private String pathToJournal = null;
+    private Container container;
+
+    public JournalExportImportUtilsImplEAP7(Container container) {
+        this.container = container;
+    }
 
     /**
      * Export ActiveMQ journal from the given container to the given file.
      *
-     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      * @throws IOException
      * @throws InterruptedException
      */
     @Override
-    public boolean exportJournal(Container container, final String exportedFileName) throws Exception {
+    public boolean exportJournal(final String exportedFileName) throws Exception {
 
         LOG.info("Exporting journal from container " + container.getName() + " to file " + exportedFileName);
 
@@ -74,14 +78,13 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
     /**
      * Import ActiveMQ journal from the given container to the given file.
      *
-     * @param container Container where the journal is exported from.
      * @param exportedFileName Output file name with the exported journal.
      * @return True if the export succeeded.
      * @throws IOException
      * @throws InterruptedException
      */
     @Override
-    public boolean importJournal(Container container, final String exportedFileName) throws IOException, InterruptedException, Exception {
+    public boolean importJournal(final String exportedFileName) throws IOException, InterruptedException, Exception {
 
         if (pathToJournal == null || pathToJournal.equals("")) {
             pathToJournal = getJournalDirectory(container.getServerHome(), "standalone");
@@ -117,7 +120,7 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
 
         LOG.info("Importing journal from file " + exportedFileName + " to container " + container.getName());
         DecodeJournal.importJournal(journalDirectory.getAbsolutePath(), "activemq-data", "amq", 2, 102400, new StringReader(journalString));
-        
+
         return true;
     }
 
@@ -126,15 +129,15 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
         this.pathToJournal = path;
     }
 
-    private static String journalToolClassPath(Container container) throws IOException {
-        String classpath = getModuleJarsClasspath(container, ACTIVEMQ_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(container, NETTY_MODULE_PATH) + File.pathSeparator
-                + getModuleJarsClasspath(container, LOGGING_MODULE_PATH);
+    private  String journalToolClassPath() throws IOException {
+        String classpath = getModuleJarsClasspath(ACTIVEMQ_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(NETTY_MODULE_PATH) + File.pathSeparator
+                + getModuleJarsClasspath(LOGGING_MODULE_PATH);
         LOG.info("Setting up classpath for the export tool: " + classpath);
         return classpath;
     }
 
-    private static String getModuleJarsClasspath(Container container, final String modulePath) throws IOException {
+    private  String getModuleJarsClasspath(final String modulePath) throws IOException {
         return ServerPathUtils.getModuleDirectory(container, modulePath).getAbsolutePath() + File.separator + "*";
     }
 
