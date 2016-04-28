@@ -42,13 +42,13 @@ public class PrintJournalImplEAP7 implements PrintJournal {
 
         StringBuilder messagingBindingsDirectoryBuilder = new StringBuilder(jbossHome);
         messagingBindingsDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
-                .append(File.separator).append("bindings");
+                .append(File.separator).append("activemq").append(File.separator).append("bindings");
         StringBuilder messagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
         messagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
-                .append(File.separator).append("journal");
+                .append(File.separator).append("activemq").append(File.separator).append("journal");
         StringBuilder pagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
         pagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
-                .append(File.separator).append("paging");
+                .append(File.separator).append("activemq").append(File.separator).append("paging");
 
 
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
