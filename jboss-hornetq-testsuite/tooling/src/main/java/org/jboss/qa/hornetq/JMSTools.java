@@ -146,6 +146,40 @@ public final class JMSTools {
     }
 
     /**
+     * Returns total number of messages added to queue on given nodes
+     *
+     * @param queueName  queue name
+     * @param containers container list
+     * @return total number of messages in queue on given nodes
+     */
+    public long getAddedMessagesCount(String queueName, org.jboss.qa.hornetq.Container... containers) {
+        long sum = 0;
+        for (org.jboss.qa.hornetq.Container container : containers) {
+            JMSOperations jmsOperations = container.getJmsOperations();
+            long count = -1;
+            int numberOfTries = 0;
+            int maxNumberOfTries = 10;
+            while (count == -1 && numberOfTries < maxNumberOfTries) {
+                try {
+                    numberOfTries++;
+                    count = jmsOperations.getMessagesAdded(queueName);
+                    break;
+                } catch (Exception ex) {
+                    if (numberOfTries > maxNumberOfTries - 1)  {
+                        throw new RuntimeException("getAddedMessagesCount() failed for queue:" + queueName
+                                + " and container: " + container.getName() + ". Number of tries: " + numberOfTries, ex);
+                    }
+                }
+            }
+            log.info("Number of messages added on node : " + container.getName() + " is: " + count);
+            sum += count;
+            jmsOperations.close();
+        }
+        log.info("Sum of messages added on nodes is: " + sum);
+        return sum;
+    }
+
+    /**
      * Determine if the given string is a valid IPv4 or IPv6 address.
      *
      * @param ipAddress A string that is to be examined to verify whether or not

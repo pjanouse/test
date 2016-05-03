@@ -1428,6 +1428,14 @@ public interface JMSOperations {
      */
     void setPersistenceEnabled(String serverName, boolean persistenceEnabled);
 
+    void setClusterConnections(String name, String address, String discoveryGroupRef,
+                               Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops,
+                               long retryInterval, boolean useDuplicateDetection, String connectorName);
+
+    void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef,
+                               Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops,
+                               long retryInterval, boolean useDuplicateDetection, String connectorName);
+
     /**
      * Sets reconnect attempts on cluster connection.
      *
@@ -1913,4 +1921,6 @@ public interface JMSOperations {
     void setAutoDeleteJMSQueue(boolean autoDeleteJmsQueue);
 
     long getCountOfMessagesOnRuntimeQueue(String coreQueueName);
+
+    long getMessagesAdded(String coreQueueName);
 }

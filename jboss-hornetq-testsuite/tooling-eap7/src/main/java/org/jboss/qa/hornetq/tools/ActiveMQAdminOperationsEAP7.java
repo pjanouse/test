@@ -26,7 +26,7 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
 
 /**
  * Basic administration operations for JMS subsystem
- * <p>
+ * <p/>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -786,6 +786,26 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public long getMessagesAdded(String coreQueueName) {
+        // /subsystem=messaging/server=default/jms-queue=InQueue:read-attribute(name=messages-added)
+        final ModelNode messagesAdded = createModelNode();
+        messagesAdded.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        messagesAdded.get(ClientConstants.OP_ADDR)
+                .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", coreQueueName);
+        messagesAdded.get("name").set("messages-added");
+        ModelNode modelNode;
+        try {
+            modelNode = this.applyUpdate(messagesAdded);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");
@@ -1214,7 +1234,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     * <p>
+     * <p/>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
      * populated with path composed of prefix entries (in the order they were added).
      *
@@ -1675,7 +1695,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Export ActiveMQ Artemis journal.
-     * <p>
+     * <p/>
      * server needs to be in admin-only mode
      *
      * @return path to file with exported journal
@@ -2550,6 +2570,53 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef,
                                       boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy = null;
+        if (forwardWhenNoConsumers) {
+            messageLoadBalancingPolicy = Constants.MESSAGE_LOAD_BALANCING_POLICY.STRICT;
+        } else {
+            messageLoadBalancingPolicy = Constants.MESSAGE_LOAD_BALANCING_POLICY.ON_DEMAND;
+        }
+
+        setClusterConnections(serverName, name, address, discoveryGroupRef, messageLoadBalancingPolicy, maxHops, retryInterval,
+                useDuplicateDetection, connectorName);
+    }
+
+    /**
+     * Sets cluster configuration.
+     *
+     * @param name                       Name of the cluster group - like "failover-cluster"
+     * @param address                    Name of address this cluster connection applies to.
+     * @param discoveryGroupRef          Name of discovery group used by this bridge.
+     * @param messageLoadBalancingPolicy Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops                    Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval              Period (in ms) between successive retries.
+     * @param useDuplicateDetection      Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName              Name of connector to use for live connection.
+     */
+    @Override
+    public void setClusterConnections(String name, String address, String discoveryGroupRef,
+                                      Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops,
+                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        setClusterConnections(NAME_OF_MESSAGING_DEFAULT_SERVER, name, address, discoveryGroupRef, messageLoadBalancingPolicy, maxHops, retryInterval,
+                useDuplicateDetection, connectorName);
+    }
+    /**
+     * Sets cluster configuration.
+     *
+     * @param serverName                 Set name of hornetq server.
+     * @param name                       Name of the cluster group - like "failover-cluster"
+     * @param address                    Name of address this cluster connection applies to.
+     * @param discoveryGroupRef          Name of discovery group used by this bridge.
+     * @param messageLoadBalancingPolicy Should messages be load balanced if there are no matching consumers on target?
+     * @param maxHops                    Maximum number of hops cluster topology is propagated. Default is 1.
+     * @param retryInterval              Period (in ms) between successive retries.
+     * @param useDuplicateDetection      Should duplicate detection headers be inserted in forwarded messages?
+     * @param connectorName              Name of connector to use for live connection.
+     */
+    @Override
+    public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef,
+                                      Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops,
+                                      long retryInterval, boolean useDuplicateDetection, String connectorName) {
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.ADD);
@@ -2559,7 +2626,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         model.get("cluster-connection-address").set(address);
         model.get("discovery-group").set(discoveryGroupRef);
-        model.get("forward-when-no-consumers").set(forwardWhenNoConsumers);
+        model.get("message-load-balancing-type").set(messageLoadBalancingPolicy.toString());
         model.get("max-hops").set(maxHops);
         model.get("retry-interval").set(retryInterval);
         model.get("use-duplicate-detection").set(useDuplicateDetection);
@@ -2721,7 +2788,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p>
+     * <p/>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -3782,9 +3849,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -3818,9 +3885,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -5462,7 +5529,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p>
+     * <p/>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server
@@ -5772,7 +5839,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String topicName){
+    public int getNumberOfDurableSubscriptionsOnTopic(String topicName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -5791,7 +5858,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName){
+    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -6295,7 +6362,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName,  "shared-store-colocated", "master", failoverOnServerShutdown);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "shared-store-colocated", "master", failoverOnServerShutdown);
         setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "shared-store-colocated", "slave", failoverOnServerShutdown);
     }
 
@@ -6346,8 +6413,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated","master", true);
-        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated","slave",true);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated", "master", true);
+        setFailoverOnServerShutdownOnColocatedHAPolicy(serverName, "replication-colocated", "slave", true);
         model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);

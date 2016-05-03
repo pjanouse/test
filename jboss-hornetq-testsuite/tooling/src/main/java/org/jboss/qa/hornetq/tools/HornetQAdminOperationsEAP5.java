@@ -1530,6 +1530,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setClusterConnections(String name, String address, String discoveryGroupRef, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setReconnectAttemptsForClusterConnection(String clusterGroupName, int attempts) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2726,6 +2736,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public long getCountOfMessagesOnRuntimeQueue(String coreQueueName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public long getMessagesAdded(String coreQueueName) {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 

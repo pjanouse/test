@@ -1119,6 +1119,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setClusterConnections(String name, String address, String discoveryGroupRef, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef, Constants.MESSAGE_LOAD_BALANCING_POLICY messageLoadBalancingPolicy, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Sets id-cache-size attribute in servers configuration.
      *
@@ -5073,6 +5083,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public long getMessagesAdded(String coreQueueName) {
+        // /subsystem=messaging/server=default/jms-queue=InQueue:read-attribute(name=messages-added)
+        final ModelNode messagesAdded = createModelNode();
+        messagesAdded.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        messagesAdded.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", coreQueueName);
+        messagesAdded.get("name").set("messages-added");
+
+        ModelNode modelNode;
+        try {
+            modelNode = this.applyUpdate(messagesAdded);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    @Override
     public void setJournalMinCompactFiles(int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
@@ -5630,7 +5660,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             jmsAdminOperations.connect();
 //            System.out.println(jmsAdminOperations.getNumberOfConsumersOnQueue("InQueue"));
 //            System.out.println(jmsAdminOperations.listPreparedTransactionAsJson());
-            System.out.println(jmsAdminOperations.getCountOfMessagesOnQueue("InQueue"));
+            System.out.println(jmsAdminOperations.getMessagesAdded("InQueue"));
 //            jmsAdminOperations.removeJGroupsStack("tcp");
             /*
             batch
