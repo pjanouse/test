@@ -21,7 +21,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.measuring.Measure;
+import org.jboss.qa.resourcemonitor.ResourceMonitor;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -121,8 +121,8 @@ public class NewSoakTestCase extends HornetQTestCase {
         container(2).deploy(container2Deployment);
         
         // Start memory measuring of servers
-        String protocol = ContainerUtils.isEAP6(container(1)) ? "service:jmx:remoting-jmx" :"service:jmx:remote+http";
-        Measure jmsServerMeasurement = new Measure.Builder()
+        String protocol = ContainerUtils.isEAP6(container(1)) ? ResourceMonitor.Builder.JMX_URL_EAP6 : ResourceMonitor.Builder.JMX_URL_EAP7;
+        ResourceMonitor jmsServerMeasurement = new ResourceMonitor.Builder()
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(protocol)
@@ -132,7 +132,7 @@ public class NewSoakTestCase extends HornetQTestCase {
                 .build();
         jmsServerMeasurement.start();
 
-        Measure mdbServerMeasurement = new Measure.Builder()
+        ResourceMonitor mdbServerMeasurement = new ResourceMonitor.Builder()
                 .host(container(2).getHostname())
                 .port(container(2).getPort())
                 .protocol(protocol)
