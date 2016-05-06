@@ -348,7 +348,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         container(1).deploy(MDB_ON_TOPIC);
         container(2).deploy(MDB_ON_TOPIC);
         container(3).deploy(MDB_ON_TOPIC);
-        Thread.sleep(5000);
+        Thread.sleep(20000);
         container(1).undeploy(MDB_ON_TOPIC);
         container(2).undeploy(MDB_ON_TOPIC);
         container(3).undeploy(MDB_ON_TOPIC);
