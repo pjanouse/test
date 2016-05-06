@@ -50,7 +50,7 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
     protected static int PAGE_SIZE_BYTES_DEFAULT = 1024 * 1024 * 2;
 
     protected static int NORMAL_MESSAGE_SIZE_BYTES = 1;
-    protected static int LARGE_MESSAGE_SIZE_BYTES = 150 * 1024;
+    protected static int LARGE_MESSAGE_SIZE_BYTES = 150;
 
     protected static int LARGE_MESSAGE_TEST_MESSAGES = 15000;
     protected static int NORMAL_MESSAGE_TEST_MESSAGES = 50000;
