@@ -70,7 +70,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         }
         messageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setCommitAfter(100);
+        producer1.setCommitAfter(10);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
         producer1.start();
@@ -243,7 +243,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setCommitAfter(100);
+        producer1.setCommitAfter(10);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
         producer1.start();
@@ -376,7 +376,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         messageBuilder.setAddDuplicatedHeader(false);
         messageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setCommitAfter(100);
+        producer1.setCommitAfter(10);
         producer1.setTimeout(0);
         producer1.setMessageVerifier(messageVerifier);
         producer1.start();
