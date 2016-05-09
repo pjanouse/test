@@ -193,7 +193,8 @@ public class ContainerEAP6 implements Container {
         // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
         // replace 9091 for byteman port
 
-        Map<String, String> containerProperties = getOriginalContainerProperties();
+        Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
+
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
         containerProperties.put("adminOnly", "false");
@@ -220,7 +221,7 @@ public class ContainerEAP6 implements Container {
 
     @Override
     public void startAdminOnly() {
-        Map<String, String> containerProperties = getOriginalContainerProperties();
+        Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
         containerProperties.put("adminOnly", "true");
         start(containerProperties);
     }
@@ -312,13 +313,8 @@ public class ContainerEAP6 implements Container {
         log.info("Killing server: " + getName());
         try {
 
-            long pid = ProcessIdUtils.getProcessId(this);
+            ProcessIdUtils.killProcess(pid);
 
-            if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
-                Runtime.getRuntime().exec("taskkill /f /pid " + pid);
-            } else { // on all other platforms use kill -9
-                Runtime.getRuntime().exec("kill -9 " + pid);
-            }
         } catch (Exception ex) {
             log.warn("Container " + getName() + " could not be killed. Set debug for logging to see exception stack trace.");
             log.debug(ex);
