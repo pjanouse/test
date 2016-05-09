@@ -52,7 +52,7 @@
         <xalan.version>2.7.0</xalan.version>
         <httpclient.version>4.1.3</httpclient.version>
         <surefire-version>2.19.1</surefire-version>
-        <qa.resource.monitor.version>0.0.1</qa.resource.monitor.version>
+        <qa.resource.monitor.version>0.0.2-SNAPSHOT</qa.resource.monitor.version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
         <MYTESTIP_1>127.0.0.1</MYTESTIP_1>
 
