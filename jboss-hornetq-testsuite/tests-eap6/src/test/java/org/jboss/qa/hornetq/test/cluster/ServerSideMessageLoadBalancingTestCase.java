@@ -337,6 +337,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testMdbOnTopicOriginalSemantics() throws Exception {
 
 
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -347,13 +348,10 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         container(1).deploy(MDB_ON_TOPIC);
         container(2).deploy(MDB_ON_TOPIC);
-        container(3).deploy(MDB_ON_TOPIC);
-        Thread.sleep(20000);
         container(1).undeploy(MDB_ON_TOPIC);
         container(2).undeploy(MDB_ON_TOPIC);
-        container(3).undeploy(MDB_ON_TOPIC);
 
-        Thread.sleep(10000);
+        Thread.sleep(3000);
 
         PublisherTransAck publisher2 = new PublisherTransAck(container(2), inTopicJndiName, numberOfMesasages, "publisher-id");
         publisher2.setCommitAfter(3);
@@ -363,22 +361,22 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         publisher2.join();
 
         container(1).deploy(MDB_ON_TOPIC);
+
+        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(outQueueName, 1, 10000, container(1));
+
         container(2).deploy(MDB_ON_TOPIC);
-        container(3).deploy(MDB_ON_TOPIC);
 
-        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages / 4, 60000, container(1));
-        boolean messageLoadBalancedToNode2 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages / 4, 60000, container(2));
-        boolean messageLoadBalancedToNode3 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages / 4, 60000, container(3));
+        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages, 60000, container(2));
 
-        long numberOfMessagesOnNode1 = new JMSTools().countMessages(outQueueName, container(1));
-        long numberOfMessagesOnNode2 = new JMSTools().countMessages(outQueueName, container(2));
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(outQueueName, container(3));
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), outQueueJndiName);
+        receiver2.setMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeOut(10000);
+        receiver2.setTimeout(0);
+        receiver2.start();
+        receiver2.join();
 
-        Assert.assertTrue("No messages are on node 1.", messageLoadBalancedToNode1);
-        Assert.assertTrue("No messages are on node 2.", messageLoadBalancedToNode2);
-        Assert.assertTrue("No messages are on node 3.", messageLoadBalancedToNode3);
-        Assert.assertEquals("Sum of messsages is not correct.", numberOfMesasages,
-                numberOfMessagesOnNode1 + numberOfMessagesOnNode2 + numberOfMessagesOnNode3);
+        Assert.assertTrue("No messages should be on node 1.", messageLoadBalancedToNode1);
+        Assert.assertFalse("All messages should be in outQueue on node-2.", allMessagesOnNode2);
 
         stopServers();
 
