@@ -19,8 +19,10 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+
 import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -29,7 +31,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 
 import static org.junit.Assert.*;
 

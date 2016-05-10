@@ -632,6 +632,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setLoadbalancingPolicyOnPooledConnectionFactory(String connectionFactoryName, String loadbalancingClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Sets permission privileges to a given role.
      *

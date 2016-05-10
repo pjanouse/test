@@ -930,6 +930,32 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
+     * Sets loadbalancing policy on pooled connection factory
+     *
+     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param loadbalancingClassName fully qualified class name
+     */
+    @Override
+    public void setLoadbalancingPolicyOnPooledConnectionFactory(String connectionFactoryName, String loadbalancingClassName) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("connection-load-balancing-policy-class-name");
+        model.get("value").set(loadbalancingClassName);
+
+        System.out.println(model.toString());
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
      * Sets connector on pooled connection factory transaction=xa, entries={{java:jmsXA3}}, connector={["netty"]}, ha=true)
      *
      * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"

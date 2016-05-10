@@ -2212,6 +2212,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setLoadbalancingPolicyOnPooledConnectionFactory(String connectionFactoryName, String loadbalancingClassName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }

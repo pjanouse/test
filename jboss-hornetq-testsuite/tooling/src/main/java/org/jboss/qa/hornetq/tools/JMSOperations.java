@@ -1778,6 +1778,8 @@ public interface JMSOperations {
     void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha,
                                                         int reconnectAttempts, String connectorClassName);
 
+    void setLoadbalancingPolicyOnPooledConnectionFactory(String connectionFactoryName, String loadbalancingClassName);
+
     void setPooledConnectionFactoryToDiscovery(String pooledConnectionFactoryName, String discoveryGroupName);
 
     void setJndiNameForPooledConnectionFactory(String pooledConnectionFactoryName, String jndiName);
