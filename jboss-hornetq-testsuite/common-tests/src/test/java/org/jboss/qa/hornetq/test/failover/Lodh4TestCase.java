@@ -301,6 +301,7 @@ public class Lodh4TestCase extends HornetQTestCase {
      *              <li>start producer which sends messages to InQueue to container 1 and
      *                  consumer which reads messages from OutQueue from container 4</li>
      *              <li>shutdown server 2</li>
+     *              <li>start server 2</li>
      *              </ul>
      * @tpPassCrit receiver will receive all messages which where sent with no duplicates
      * @throws Exception
@@ -340,6 +341,8 @@ public class Lodh4TestCase extends HornetQTestCase {
         Thread.sleep(10000);
 
         container(2).stop();
+        Thread.sleep(10000);
+        container(2).start();
 
         clientsA1.stopClients();
 
@@ -618,7 +621,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.addRemoteSocketBinding("messaging-bridge", targetServer.getHostname(), targetServer.getHornetqPort());
-        jmsAdminOperations.createHttpConnector("bridge-connector", "messaging-bridge", null);
+        jmsAdminOperations.createRemoteConnector("bridge-connector", "messaging-bridge", null);
         jmsAdminOperations.setIdCacheSize(500000);
         jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
         for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS_BRIDGES; queueNumber++) {
