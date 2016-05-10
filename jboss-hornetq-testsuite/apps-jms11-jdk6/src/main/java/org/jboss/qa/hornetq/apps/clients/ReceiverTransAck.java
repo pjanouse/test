@@ -6,9 +6,10 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
-import javax.jms.Queue;
 import javax.naming.Context;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.
@@ -16,6 +17,8 @@ import java.util.*;
  * @author mnovak
  */
 public class ReceiverTransAck extends Client {
+
+    private String selector;
 
     private static final Logger logger = Logger.getLogger(ReceiverTransAck.class);
 
@@ -164,7 +167,7 @@ public class ReceiverTransAck extends Client {
 
             session = conn.createSession(true, Session.SESSION_TRANSACTED);
 
-            MessageConsumer receiver = session.createConsumer(queue);
+            MessageConsumer receiver = selector == null ? session.createConsumer(queue) : session.createConsumer(queue, selector);
 
             Message message = null;
 
@@ -402,6 +405,11 @@ public class ReceiverTransAck extends Client {
     public void setPort(int port) {
         this.port = port;
     }
+
+    /**
+     * @param selector selector in format
+     */
+    public void setSelector(String selector) { this.selector = selector; }
 
     /**
      * @return the queueNameJndi

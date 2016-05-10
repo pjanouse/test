@@ -8,26 +8,11 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.ProducerResp;
-import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
-import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
-import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
-import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
-import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
+import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTempQueue;
-import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
-import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopicToTopic;
-import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigQueue;
-import org.jboss.qa.hornetq.apps.mdb.MdbAllHornetQActivationConfigTopic;
+import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -43,17 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MapMessage;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.QueueSession;
-import javax.jms.Session;
-import javax.jms.TemporaryQueue;
-import javax.jms.TextMessage;
+import javax.jms.*;
 import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
@@ -101,7 +76,6 @@ public class ClusterTestCase extends ClusterTestBase {
     private final JavaArchive MDB_ON_QUEUE1_TEMP_QUEUE = createDeploymentMdbOnQueue1Temp();
 
     private final JavaArchive MDB_ON_TOPIC_WITH_DIFFERENT_SUBSCRIPTION = createDeploymentMdbOnTopicWithSub1();
-
 
 
     /**
@@ -1770,6 +1744,182 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).stop();
 
     }
+
+    /**
+     * @tpTestDetails Start 4 servers in cluster with deployed destinations and
+     * configured redistribution delay to 0 and load balancing policy ON_DEMAND.
+     * Send messages with property color set to GREEN or RED to node-1(ratio of
+     * colors is 1:1). When all messages are send to node-1, create consumers
+     * with selectors on color attribute. Attach red consumer to node2, green
+     * consumer to node3 and blue consumer to node4. Blue consumer shouldn`t get
+     * any message and no message should be routed to node4. Check that message
+     * redistribution respects selectors and only messages matches consumers
+     * selector are redistributed to node with appropriate consumer.
+     * @tpProcedure <ul>
+     * <li>start 4 servers in cluster</li>
+     * <li>configure load balancing and redistribution delay</li>
+     * <li>crate producer on node-1 which starts sending with color property</li>
+     * <li>wait for producer finish</li>
+     * <li>create 3 receivers. Red receiver on node2 receives red messages,
+     * green receiver on node3 receives green messages, blue receiver on node4
+     * should not receive any message</li>
+     * <li>wait for clients to finish</li>
+     * <li>check that messages are redistributed with respect of selectors (red
+     * messages are send only to node with red consumer)</li>
+     * <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Messages are redistributed only on servers with matching
+     * consumers
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testRedistributionWithSelectors() throws Exception {
+
+        String testQueueJndi = queueJndiNamePrefix + "0";
+        String testQueue = queueNamePrefix + "0";
+
+        int numberOfMessages = 1000;
+
+        prepareServers();
+        setRedistributionDelay(0, container(1), container(2), container(3),container(4));
+
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
+
+        ProducerTransAck producer = new ProducerTransAck(container(1), testQueueJndi, numberOfMessages);
+        producer.setMessageBuilder(new ClientMixMessageBuilder(1, 150));
+        producer.setCommitAfter(10);
+        producer.start();
+        producer.join();
+
+        JMSTools jmsTools = new JMSTools();
+        Assert.assertEquals("All messages should be on node 1, but some of them are missing", numberOfMessages, jmsTools.countMessages(testQueue, container(1)));
+        Assert.assertEquals("All messages should be on node 1, but some messages are on server 2", 0, jmsTools.countMessages(testQueue, container(2)));
+        Assert.assertEquals("All messages should be on node 1, but some messages are on server 3", 0, jmsTools.countMessages(testQueue, container(3)));
+
+        ReceiverTransAck redReceiver = new ReceiverTransAck(container(2), testQueueJndi);
+        redReceiver.setSelector("color = 'RED'");
+        redReceiver.start();
+
+        ReceiverTransAck greenReceiver = new ReceiverTransAck(container(3), testQueueJndi);
+        greenReceiver.setSelector("color = 'GREEN'");
+        greenReceiver.start();
+
+        //we dont send blue msgs
+        ReceiverTransAck blueReceiver = new ReceiverTransAck(container(4), testQueueJndi);
+        blueReceiver.setSelector("color = 'BLUE'");
+        blueReceiver.start();
+
+        redReceiver.join();
+        blueReceiver.join();
+        greenReceiver.join();
+
+
+        Assert.assertEquals("Red consumer should receive all red msgs", numberOfMessages / 2, redReceiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Green consumer should receive all green msgs", numberOfMessages / 2, greenReceiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Blue consumer should not receive msgs", 0, blueReceiver.getListOfReceivedMessages().size());
+
+        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, jmsTools.countMessages(testQueue, container(1)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(testQueue, container(2)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(testQueue, container(3)));
+        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, jmsTools.getAddedMessagesCount(testQueue, container(4)));
+
+
+        stopAllServers();
+
+    }
+
+    /**
+     * @tpTestDetails Start 4 servers in cluster with deployed destinations and
+     * configured redistribution delay to -1 and load balancing policy ON_DEMAND.
+     * create consumers with selectors on color attributeAttach red consumer to
+     * node2, green consumer to node3 and blue consumer to node4. Blue consumer
+     * shouldn`t get any message and no message should be routed to node4.
+     * Send messages with property color set to GREEN or RED to node-1(ratio of
+     * colors is 1:1). Check that serverside load balancing  respects selectors
+     * and only messages matching consumers selector are redistributed to node
+     * with appropriate consumer.
+     * @tpProcedure <ul>
+     * <li>start 4 servers in cluster</li>
+     * <li>configure load balancing and redistribution delay</li>
+     * <li>create 3 receivers. Red receiver on node2 receives red messages,
+     * green receiver on node3 receives green messages, blue receiver on node4
+     * should not receive any message</li>
+     * <li>create producer on node-1 which starts sending with color property</li>
+     * <li>wait for clients to finish</li>
+     * <li>check that messages are load balanced with respect of selectors (red
+     * messages are send only to node with red consumer)</li>
+     * <li>Stop servers</li>
+     * </ul>
+     * @tpPassCrit Messages are loadbalanced only on servers with matching
+     * consumers
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testLoadBalancingWithSelectors() throws Exception {
+
+        String testQueueJndi = queueJndiNamePrefix + "0";
+        String testQueue = queueNamePrefix + "0";
+
+        int numberOfMessages = 1000;
+
+        prepareServers();
+        setRedistributionDelay(-1, container(1), container(2), container(3), container(4));
+
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
+
+        ReceiverTransAck redReceiver = new ReceiverTransAck(container(2), testQueueJndi);
+        redReceiver.setSelector("color = 'RED'");
+        redReceiver.start();
+
+        ReceiverTransAck greenReceiver = new ReceiverTransAck(container(3), testQueueJndi);
+        greenReceiver.setSelector("color = 'GREEN'");
+        greenReceiver.start();
+
+        //we dont send blue msgs
+        ReceiverTransAck blueReceiver = new ReceiverTransAck(container(4), testQueueJndi);
+        blueReceiver.setSelector("color = 'BLUE'");
+        blueReceiver.start();
+
+        ProducerTransAck producer = new ProducerTransAck(container(1), testQueueJndi, numberOfMessages);
+        producer.setMessageBuilder(new ClientMixMessageBuilder(1, 150));
+        producer.setCommitAfter(10);
+        producer.start();
+        producer.join();
+
+        redReceiver.join();
+        blueReceiver.join();
+        greenReceiver.join();
+
+        Assert.assertEquals("Red consumer should receive all red msgs", numberOfMessages / 2, redReceiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Green consumer should receive all green msgs", numberOfMessages / 2, greenReceiver.getListOfReceivedMessages().size());
+        Assert.assertEquals("Blue consumer should not receive msgs", 0, blueReceiver.getListOfReceivedMessages().size());
+
+        JMSTools jmsTools = new JMSTools();
+        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, jmsTools.countMessages(testQueue, container(1)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(testQueue, container(2)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(testQueue, container(3)));
+        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, jmsTools.getAddedMessagesCount(testQueue, container(4)));
+
+
+        stopAllServers();
+
+    }
+
+
 
     private void createDivert(Container container, String divertName, String divertAddress, String forwardingAddress,
                               boolean isExclusive, String filter, String routingName, String transformerClassName) {
