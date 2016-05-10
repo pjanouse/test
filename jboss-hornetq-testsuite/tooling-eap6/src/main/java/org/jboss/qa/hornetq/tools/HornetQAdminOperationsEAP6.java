@@ -3335,6 +3335,12 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
+                            long redistributionDelay, long pageSizeBytes, boolean lastValueQueue) {
+        throw new NotImplementedException("not implemented for eap6 so far");
+    }
+
     /**
      * Adds external context.
      */

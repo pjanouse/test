@@ -3515,6 +3515,41 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     /**
+     * Adds address settings
+     *
+     * @param address             address specification
+     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes        The max bytes size
+     * @param redeliveryDelay     Defines how long to wait before attempting redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last consumer is closed on a queue before redistributing any
+     *                            messages
+     * @param pageSizeBytes       The paging size
+     * @param lastValueQueue      true for last value queue
+     */
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes,
+                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes, boolean lastValueQueue) {
+        ModelNode setAddressAttributes = createModelNode();
+        setAddressAttributes.get(ClientConstants.OP).set("add");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+        setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
+        setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
+        setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
+        setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
+        setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        setAddressAttributes.get("max-delivery-attempts").set(200);
+        setAddressAttributes.get("last-value-queue").set(lastValueQueue);
+
+        try {
+            this.applyUpdate(setAddressAttributes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
      * @param address     address specification
