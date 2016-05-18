@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author mstyk@redhat.com
@@ -56,7 +57,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
      * <li>Send large messages to queue</li>
      * <li>Check open file descriptors difference</li>
      * </ul>
-     * @tpPassCrit Not more than 1percent of open file descriptors gain during test.
+     * @tpPassCrit Not more than 2% of open file descriptors gain during test.
      */
     @Test
     @RunAsClient
@@ -92,7 +93,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         Integer first = values.get(0);
 
         for (Integer value : values) {
-            assertTrue("More than 1% file descriptor gain when large messages are processed by server", value.doubleValue() < first.doubleValue() * 1.01);
+            assertTrue("More than 2% file descriptor gain when large messages are processed by server", value.doubleValue() < first.doubleValue() * 1.02);
         }
 
     }
@@ -159,7 +160,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         Integer first = values.get(0);
 
         for (Integer value : values) {
-            assertTrue("More than 1% file descriptor gain when large messages are processed by server", value.doubleValue() < first.doubleValue() * 1.01);
+            assertTrue("More than 2% file descriptor gain when large messages are processed by server", value.doubleValue() < first.doubleValue() * 1.02);
         }
 
     }
@@ -178,7 +179,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         CSVReader reader = new CSVReader(new FileReader("server.csv"));
         List<String[]> myEntries = reader.readAll();
         if (myEntries.size() < 2 || myEntries.get(0).length != 2) {
-            Assert.fail("Incorrect csv");
+            fail("Incorrect csv");
         }
 
         for (int i = 1; i < myEntries.size(); i++) {
