@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.resourcemonitor.FileMeasurement;
 import org.jboss.qa.resourcemonitor.ResourceMonitor;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -64,6 +65,9 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void openFileDescriptorsOnQueueTest() throws Exception {
+
+        //ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
+        Assume.assumeTrue("Test currently runs only on Linux", System.getProperty("os.name").contains("Linux"));
 
         container(1).start();
         prepareServer(container(1));
@@ -114,6 +118,9 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void openFileDescriptorsOnTopicTest() throws Exception {
+
+        //ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
+        Assume.assumeTrue("Test currently runs only on Linux", System.getProperty("os.name").contains("Linux"));
 
         container(1).start();
         prepareServer(container(1));
