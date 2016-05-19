@@ -2118,6 +2118,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue, Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader, String sourceUser, String sourcePassword, String targetUser, String targetPassword) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setFactoryType(String serverName, String connectionFactoryName, String factoryType) {
         logger.info("This operation is not supported: " + getMethodName());
     }

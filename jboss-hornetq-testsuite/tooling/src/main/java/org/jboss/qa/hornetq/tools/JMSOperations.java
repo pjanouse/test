@@ -1310,7 +1310,7 @@ public interface JMSOperations {
      * @param journalType can be "NIO" or "AIO"
      */
     void setJournalType(String serverName, String journalType);
-    
+
     /**
      * Operation for importing messaging journal
      *
@@ -1734,6 +1734,11 @@ public interface JMSOperations {
     void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue, Map<String, String> sourceContext,
                          String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService,
                          long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader);
+
+    void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue, Map<String, String> sourceContext,
+                         String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService,
+                         long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader, String sourceUser,
+                         String sourcePassword, String targetUser, String targetPassword);
 
     void setFactoryType(String serverName, String connectionFactoryName, String factoryType);
 

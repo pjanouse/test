@@ -2,7 +2,6 @@
 package org.jboss.qa.hornetq.tools;
 
 import org.apache.log4j.Logger;
-
 import org.hornetq.utils.json.JSONArray;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -14,7 +13,10 @@ import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.threads.JBossThreadFactory;
+import org.jboss.util.NotImplementedException;
+import org.kohsuke.MetaInfServices;
 
+import javax.naming.NamingException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +25,6 @@ import java.security.AccessController;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.jboss.util.NotImplementedException;
-import org.kohsuke.MetaInfServices;
-
-import javax.naming.NamingException;
 
 
 /**
@@ -3774,6 +3771,18 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             , String qualityOfService, long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime
             , boolean addMessageIDInHeader) {
 
+        createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination
+                , sourceContext, targetConnectionFactory, targetDestination, targetContext
+                , qualityOfService, failureRetryInterval, maxRetries, maxBatchSize, maxBatchTime
+                , addMessageIDInHeader, null, null, null, null);
+
+    }
+
+    @Override
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination, Map<String, String> sourceContext,
+                         String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService,
+                         long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader, String sourceUser,
+                         String sourcePassword, String targetUser, String targetPassword){
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -3800,6 +3809,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
 //        model.get("module").set("org.hornetq");
+
+        if (sourceUser != null) model.get("source-user").set(sourceUser);
+        if (sourcePassword != null) model.get("source-password").set(sourcePassword);
+        if (targetUser != null) model.get("target-user").set(targetUser);
+        if (targetPassword != null) model.get("target-password").set(targetPassword);
 
         try {
             this.applyUpdate(model);

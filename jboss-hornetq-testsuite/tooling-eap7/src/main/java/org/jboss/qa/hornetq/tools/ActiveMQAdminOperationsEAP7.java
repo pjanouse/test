@@ -4215,6 +4215,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
                                 Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination,
                                 Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries,
                                 long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader) {
+        createJMSBridge(bridgeName, sourceConnectionFactory, sourceDestination, sourceContext, targetConnectionFactory, targetDestination, targetContext, qualityOfService, failureRetryInterval,
+                maxRetries, maxBatchSize, maxBatchTime, addMessageIDInHeader, null, null, null, null);
+    }
+
+    @Override
+    public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceDestination, Map<String, String> sourceContext,
+                                String targetConnectionFactory, String targetDestination, Map<String, String> targetContext, String qualityOfService,
+                                long failureRetryInterval, int maxRetries, long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader, String sourceUser,
+                                String sourcePassword, String targetUser, String targetPassword) {
+
 
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
@@ -4242,6 +4252,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("max-batch-size").set(maxBatchSize);
         model.get("max-batch-time").set(maxBatchTime);
         model.get("module").set("org.apache.activemq.artemis");
+
+        if (sourceUser != null) model.get("source-user").set(sourceUser);
+        if (sourcePassword != null) model.get("source-password").set(sourcePassword);
+        if (targetUser != null) model.get("target-user").set(targetUser);
+        if (targetPassword != null) model.get("target-password").set(targetPassword);
 
         logger.info(model);
         try {
