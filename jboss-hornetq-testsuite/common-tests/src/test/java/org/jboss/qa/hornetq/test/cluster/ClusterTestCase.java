@@ -140,7 +140,7 @@ public class ClusterTestCase extends ClusterTestBase {
      * @tpTestDetails Start two server in HornetQ cluster with redistributionDelay -1
      * and deploy queue and topic to each. Queue and topic are load-balanced.
      * Start producer which sends messages to queue on first server. Start publisher
-     * which sends messages to topic on second server. Start consumer which reads messages
+     * which sends messages to topic on second server. After they finish, start consumer which reads messages
      * from queue on second server. Start subscriber, which reads messages from
      * topic on first server. Verify that consumers did not receive any message.
      * @tpProcedure <ul>
@@ -150,9 +150,7 @@ public class ClusterTestCase extends ClusterTestBase {
      * <li>publisher starts to send messages to topic on node-2</li>
      * <li>consumer reads messages from queue on node-2</li>
      * <li>subscriber reads messages from topic on node-1</li>
-     * <li>start consumer on node-2 which reads messages from queue</li>
-     * <li>wait for producer and receiver to finish and for consumer and
-     * subscriber to finish</li>
+     * <li>wait for receiver and subscriber to finish
      * <li>verify messages count</li>
      * </ul>
      * @tpPassCrit receiver and subscriber receives no message
@@ -173,17 +171,21 @@ public class ClusterTestCase extends ClusterTestBase {
         container(1).start();
 
         Client queueProducer = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
-        Client topicProducer = new PublisherTransAck(container(2), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER, "producer");
+        Client topicProducer = new PublisherTransAck(container(1), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER, "producer");
         Client queueConsumer = new ReceiverTransAck(container(2), queueJndiNamePrefix + "0");
-        SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), topicJndiNamePrefix + "0", 60000, 100, 10, "subs", "name");
+        SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(2), topicJndiNamePrefix + "0", 6000, 100, 10, "subs", "name");
         topicSubscriber.subscribe();
+        topicSubscriber.close();
 
         queueProducer.start();
         topicProducer.start();
-        queueConsumer.start();
-        topicSubscriber.start();
+
         queueProducer.join();
         topicProducer.join();
+
+        queueConsumer.start();
+        topicSubscriber.start();
+
         queueConsumer.join();
         topicSubscriber.join();
 
