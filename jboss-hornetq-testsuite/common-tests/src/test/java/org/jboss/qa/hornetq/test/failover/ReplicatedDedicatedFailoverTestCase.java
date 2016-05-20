@@ -1013,6 +1013,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
                     + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
                     container(2).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
+            container(1).kill();
 
 
             if (!receiver1.isAlive()) {
