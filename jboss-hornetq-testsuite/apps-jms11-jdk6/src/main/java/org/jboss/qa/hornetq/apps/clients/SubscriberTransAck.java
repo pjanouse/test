@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.naming.Context;
+import javax.naming.NamingException;
 import java.util.*;
 
 /**
@@ -28,7 +29,7 @@ public class SubscriberTransAck extends Client {
     private long receiveTimeOut;
     private int commitAfter;
     private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
+    private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
     private Exception exception = null;
@@ -40,7 +41,6 @@ public class SubscriberTransAck extends Client {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
-
 
 
     /**
@@ -75,7 +75,7 @@ public class SubscriberTransAck extends Client {
     /**
      * Creates a subscriber to topic with client acknowledge.
      *
-     * @param container container to connect to
+     * @param container      container to connect to
      * @param topicJndiName  jndi name of the topic
      * @param receiveTimeOut how long to wait to receive message
      * @param commitAfter    send ack after how many messages
@@ -99,7 +99,7 @@ public class SubscriberTransAck extends Client {
     /**
      * Creates a subscriber to topic with client acknowledge.
      *
-     * @param container     container
+     * @param container      container
      * @param hostname       hostname
      * @param port           jndi port
      * @param topicJndiName  jndi name of the topic
@@ -409,14 +409,14 @@ public class SubscriberTransAck extends Client {
     /**
      * @return the listOfReceivedMessages
      */
-    public List<Map<String,String>> getListOfReceivedMessages() {
+    public List<Map<String, String>> getListOfReceivedMessages() {
         return listOfReceivedMessages;
     }
 
     /**
      * @param listOfReceivedMessages the listOfReceivedMessages to set
      */
-    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
+    public void setListOfReceivedMessages(List<Map<String, String>> listOfReceivedMessages) {
         this.listOfReceivedMessages = listOfReceivedMessages;
     }
 
@@ -473,6 +473,15 @@ public class SubscriberTransAck extends Client {
 
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
+        }
+    }
+
+    public void close() throws Exception {
+        if (context != null) {
+            context.close();
+        }
+        if (conn != null) {
+            conn.close();
         }
     }
 
