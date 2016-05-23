@@ -1896,6 +1896,11 @@ public class ClusterTestCase extends ClusterTestBase {
         blueReceiver.setSelector("color = 'BLUE'");
         blueReceiver.start();
 
+        //give consumers time to connect and register on queue
+        //once we start sending messages, all consumers must be
+        //able to receive, redistribution is turned off.
+        Thread.sleep(10*1000);
+
         ProducerTransAck producer = new ProducerTransAck(container(1), testQueueJndi, numberOfMessages);
         producer.setMessageBuilder(new ClientMixMessageBuilder(1, 150));
         producer.setCommitAfter(10);
@@ -1920,7 +1925,6 @@ public class ClusterTestCase extends ClusterTestBase {
         stopAllServers();
 
     }
-
 
 
     private void createDivert(Container container, String divertName, String divertAddress, String forwardingAddress,
