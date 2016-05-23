@@ -173,7 +173,7 @@
 
                     </systemPropertyVariables>
                     <argLine>${hornetq.surefire.jvm.options}</argLine>
-
+                    <failIfNoTests>false</failIfNoTests>
                 </configuration>
             </plugin>
             <plugin> <!-- copy security extension for eap 6 to target dir - used in SslAuthenticationTestCase -->
