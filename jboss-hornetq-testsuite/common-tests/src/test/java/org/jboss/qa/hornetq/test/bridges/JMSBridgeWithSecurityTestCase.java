@@ -245,7 +245,6 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setFactoryType(inVmConnectionFactory, "XA_GENERIC");
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
-//        jmsAdminOperations.disableSecurity();
         jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
@@ -303,13 +302,13 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
 
         try {
-            UsersSettings.forEapServer(sourceDestination)
+            UsersSettings.forEapServer(container(1))
                     .withUser("guest", null, "guest")
                     .withUser("user", "user", "users")
                     .withUser("admin", "adminadmin", "admin")
                     .withUser("bridge", "bridge", "bridge")
                     .create();
-            UsersSettings.forEapServer(targetDestination)
+            UsersSettings.forEapServer(container(2))
                     .withUser("guest", null, "guest")
                     .withUser("user", "user", "users")
                     .withUser("admin", "adminadmin", "admin")
@@ -397,13 +396,13 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
 
         try {
-            UsersSettings.forEapServer(System.getProperty("JBOSS_HOME_1"))
+            UsersSettings.forEapServer(container(1))
                     .withUser("guest", null, "guest")
                     .withUser("user", "user", "users")
                     .withUser("admin", "adminadmin", "admin")
                     .withUser("bridge", "bridge", "bridge")
                     .create();
-            UsersSettings.forEapServer(System.getProperty("JBOSS_HOME_2"))
+            UsersSettings.forEapServer(container(2))
                     .withUser("guest", null, "guest")
                     .withUser("user", "user", "users")
                     .withUser("admin", "adminadmin", "admin")

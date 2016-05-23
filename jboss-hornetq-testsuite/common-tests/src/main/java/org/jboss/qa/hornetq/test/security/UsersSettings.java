@@ -1,17 +1,13 @@
 package org.jboss.qa.hornetq.test.security;
 
 
+import org.jboss.crypto.CryptoUtil;
+import org.jboss.qa.hornetq.Container;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import org.jboss.crypto.CryptoUtil;
+import java.util.*;
 
 
 /**
@@ -29,11 +25,18 @@ public class UsersSettings {
         return new Builder(System.getProperty("JBOSS_HOME_1"));
     }
 
-
+    /**
+     * @param jbossHome path to home directory of server, usually System.getProperty("JBOSS_HOME_X")
+     * @deprecated use cleaner version with Container, UsersSettings.forEapServer(final Container container);
+     */
+    @Deprecated
     public static Builder forEapServer(final String jbossHome) {
         return new Builder(jbossHome);
     }
 
+    public static Builder forEapServer(final Container container) {
+        return new Builder(container.getServerHome());
+    }
 
     public static class Builder {
 
