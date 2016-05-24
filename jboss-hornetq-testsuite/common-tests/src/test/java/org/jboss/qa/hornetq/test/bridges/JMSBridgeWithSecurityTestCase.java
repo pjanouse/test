@@ -174,12 +174,12 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
                 inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(messageBuilder);
         producer.setTimeout(0);
-        producer.setMessageVerifier(messageVerifier);
+        producer.addMessageVerifier(messageVerifier);
         producer.start();
 
         ReceiverClientAck receiver = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
-        receiver.setMessageVerifier(messageVerifier);
+        receiver.addMessageVerifier(messageVerifier);
         receiver.start();
         receiver.join();
         producer.join();

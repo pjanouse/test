@@ -2,31 +2,19 @@ package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
-
 import javax.jms.*;
 import javax.naming.Context;
-import java.util.*;
 
 /**
  * Simple subscriber with client acknowledge session. ABLE to failover.
  *
  * @author mnovak
  */
-public class SubscriberClientAck extends Client {
+public class SubscriberClientAck extends Receiver11 {
 
     private static final Logger logger = Logger.getLogger(SubscriberClientAck.class);
-    private int maxRetries;
-    private String hostname;
-    private int port;
-    private String topicNameJndi;
-    private long receiveTimeOut;
+
     private int ackAfter;
-    private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
-    private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
-    private Exception exception = null;
     private String subscriberName;
     private String clientId;
     private Context context;
@@ -35,38 +23,6 @@ public class SubscriberClientAck extends Client {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
-    private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
-
-    /**
-     * Creates a subscriber to topic with client acknowledge.
-     *
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param topicNameJndi  jndi name of the topic
-     * @param subscriberName name of the subscriber
-     */
-    @Deprecated
-    public SubscriberClientAck(String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
-
-        this(hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
-
-    }
-
-    /**
-     * Creates a subscriber to topic with client acknowledge.
-     *
-     * @param container     container
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param topicNameJndi  jndi name of the topic
-     * @param subscriberName name of the subscriber
-     */
-    @Deprecated
-    public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
-
-        this(container, hostname, port, topicNameJndi, 60000, 10, 30, clientId, subscriberName);
-
-    }
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -81,50 +37,10 @@ public class SubscriberClientAck extends Client {
 
     }
 
-    /**
-     * @deprecated do not use this constructor - as it uses EAP6_CONTAINER by default
-     *
-     * Creates a subscriber to topic with client acknowledge.
-     *
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param topicNameJndi  jndi name of the topic
-     * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
-     * @param maxRetries     how many times to retry receive before giving up
-     * @param subscriberName name of the subscriber
-     */
-    @Deprecated
-    public SubscriberClientAck(String hostname, int port, String topicNameJndi, long receiveTimeOut,
-                               int ackAfter, int maxRetries, String clientId, String subscriberName) {
-        this(EAP6_CONTAINER, hostname, port, topicNameJndi, receiveTimeOut, ackAfter, maxRetries, clientId, subscriberName);
-    }
-
-    /**
-     * Creates a subscriber to topic with client acknowledge.
-     *
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param topicNameJndi  jndi name of the topic
-     * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
-     * @param maxRetries     how many times to retry receive before giving up
-     * @param subscriberName name of the subscriber
-     */
-    @Deprecated
-    public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, long receiveTimeOut,
-                               int ackAfter, int maxRetries, String clientId, String subscriberName) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.topicNameJndi = topicNameJndi;
-        this.receiveTimeOut = receiveTimeOut;
-        this.ackAfter = ackAfter;
-        this.maxRetries = maxRetries;
+    public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
+        super(container, hostname, port, topicNameJndi, 30000, 1000);
         this.clientId = clientId;
         this.subscriberName = subscriberName;
-
-        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     /**
@@ -139,17 +55,10 @@ public class SubscriberClientAck extends Client {
      */
     public SubscriberClientAck(Container container, String topicNameJndi, long receiveTimeOut,
                                int ackAfter, int maxRetries, String clientId, String subscriberName) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.topicNameJndi = topicNameJndi;
-        this.receiveTimeOut = receiveTimeOut;
+        super(container, topicNameJndi, receiveTimeOut, maxRetries);
         this.ackAfter = ackAfter;
-        this.maxRetries = maxRetries;
         this.clientId = clientId;
         this.subscriberName = subscriberName;
-
-        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     @Override
@@ -178,15 +87,15 @@ public class SubscriberClientAck extends Client {
 
                 Thread.sleep(getTimeout());
 
-                listOfReceivedMessagesToBeAcked.add(message);
+                listOfReceivedMessagesToBeCommited.add(message);
 
                 counter++;
 
                 if (counter % ackAfter == 0) { // try to ack message
                     acknowledgeMessage(message);
-                    listOfReceivedMessagesToBeAcked.clear();
+                    listOfReceivedMessagesToBeCommited.clear();
                 } else { // i don't want to ack now
-                    logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getTopicNameJndi()
+                    logger.debug("Subscriber: " + subscriberName + " for node: " + getHostname() + " and topic: " + getDestinationNameJndi()
                             + ". Received message - count: "
                             + counter + ", messageId:" + message.getJMSMessageID());
                 }
@@ -199,12 +108,10 @@ public class SubscriberClientAck extends Client {
 
             counter = counter + listOfReceivedInDoubtMessages.size();
 
-            logger.info("Subscriber for node: " + hostname + " and queue: " + topicNameJndi
+            logger.info("Subscriber for node: " + hostname + " and queue: " + destinationNameJndi
                     + ". Subscriber received NULL - number of received messages: " + counter);
 
-            if (messageVerifier != null) {
-                messageVerifier.addReceivedMessages(listOfReceivedMessages);
-            }
+            addReceivedMessages(listOfReceivedMessages);
 
         } catch (JMSException ex) {
             logger.error("JMSException was thrown during receiving messages:", ex);
@@ -232,220 +139,33 @@ public class SubscriberClientAck extends Client {
     }
 
     /**
-     * Try to acknowledge a message.
-     *
-     * @param message message to be acknowledged
-     * @throws javax.jms.JMSException
+     * I don't want to have synchronization between publishers and subscribers.
      */
-    public boolean acknowledgeMessage(Message message) throws Exception {
-
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-        boolean isAckSuccessful = true;
+    public void subscribe() {
 
         try {
 
-            checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts();
+            context = getContext(hostname, port);
 
-            message.acknowledge();
+            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + ", message-counter: " + message.getStringProperty("counter")
-                    + ", messageId:" + message.getJMSMessageID() + " ACKNOWLEDGED");
+            conn = cf.createConnection();
 
-            addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
+            conn.setClientID(clientId);
 
-            logListOfAddedMessages(listOfReceivedMessagesToBeAcked);
+            conn.start();
 
-        } catch (TransactionRolledBackException ex) {
-            logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + ", messageId:" + message.getJMSMessageID()
-                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
-            // all unacknowledge messges will be received again
-            counter = counter - listOfReceivedMessagesToBeAcked.size();
-            isAckSuccessful = false;
+            topic = (Topic) context.lookup(getDestinationNameJndi());
 
-        } catch (JMSException ex) {
+            session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
 
-            logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + ", messageId:" + message.getJMSMessageID()
-                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
+            subscriber = session.createDurableSubscriber(topic, subscriberName);
 
-            listOfReceivedInDoubtMessages.addAll(listOfReceivedMessagesToBeAcked);
-            counter = counter - listOfReceivedMessagesToBeAcked.size();
-            isAckSuccessful = false;
+        } catch (Exception e) {
 
-        } finally {
-            listOfReceivedMessagesToBeAcked.clear();
+            logger.error("Exception thrown during subsribing.", e);
+            exception = e;
         }
-        return isAckSuccessful;
-    }
-
-    private void checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts() throws JMSException {
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
-        // clone list of inDoubtMessages
-        List<Message> listCloneOfInDoubtMessages = new ArrayList<Message>();
-        for (Message m : listOfReceivedInDoubtMessages) {
-            listCloneOfInDoubtMessages.add(m);
-        }
-
-        // if duplicate received then remove from the list of in doubt messages
-        String inDoubtMessageDupId = null;
-        String receivedMessageDupId = null;
-        for (Message inDoubtMessage : listCloneOfInDoubtMessages) {
-            inDoubtMessageDupId = inDoubtMessage.getStringProperty(duplicatedHeader);
-            for (Message receivedMessage : listOfReceivedMessagesToBeAcked) {
-                if (((receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader)) != null) &&
-                        receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
-                    logger.info("Duplicated in doubt message was received. Removing message with dup id: " + inDoubtMessageDupId
-                            + " and messageId: " + inDoubtMessage.getJMSMessageID() + " from list of in doubt messages");
-                    listOfReceivedInDoubtMessages.remove(inDoubtMessage);
-                }
-            }
-        }
-    }
-
-    private void logListOfAddedMessages(List<Message> listOfReceivedMessagesToBeCommited) throws JMSException {
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Message m : listOfReceivedMessagesToBeCommited) {
-            stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
-        }
-        logger.info("New messages added to list of received messages: \n" + stringBuilder.toString());
-    }
-
-    /**
-     * Tries to receive message from server in specified timeout. If server crashes
-     * then it retries for maxRetries. If even then fails to receive which means that
-     * subscriber.subscriber(timeout) throw JMSException maxRetries's times then throw Exception above.
-     *
-     * @param subscriber subscriber message subscriber
-     * @return message or null
-     * @throws Exception when maxRetries was reached
-     */
-    public Message receiveMessage(TopicSubscriber subscriber) throws Exception {
-
-        Message msg = null;
-        int numberOfRetries = 0;
-
-        // receive message with retry
-        while (numberOfRetries < maxRetries) {
-
-            try {
-
-                msg = subscriber.receive(receiveTimeOut);
-                if (msg != null) {
-                    msg = cleanMessage(msg);
-                }
-                return msg;
-
-            } catch (JMSException ex) {
-                numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1)
-                        + "ex: " + ex.getMessage());
-            }
-        }
-
-        throw new Exception("FAILURE - MaxRetry reached for subscriber Subscriber: " + subscriberName + " for node: " + hostname);
-    }
-
-    /**
-     * @return the maxRetries
-     */
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    /**
-     * @param maxRetries the maxRetries to set
-     */
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public FinalTestMessageVerifier getMessageVerifier() {
-        return messageVerifier;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
-    public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
-    }
-
-    /**
-     * @return the listOfReceivedMessages
-     */
-    public List<Map<String,String>> getListOfReceivedMessages() {
-        return listOfReceivedMessages;
-    }
-
-    /**
-     * @param listOfReceivedMessages the listOfReceivedMessages to set
-     */
-    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
-        this.listOfReceivedMessages = listOfReceivedMessages;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
-    /**
-     * @return the topicNameJndi
-     */
-    public String getTopicNameJndi() {
-        return topicNameJndi;
-    }
-
-    /**
-     * @param topicNameJndi the topicNameJndi to set
-     */
-    public void setTopicNameJndi(String topicNameJndi) {
-        this.topicNameJndi = topicNameJndi;
     }
 
     /**
@@ -476,54 +196,6 @@ public class SubscriberClientAck extends Client {
         } catch (JMSException e) {
             logger.error("Error during close.", e);
         }
-    }
-
-    /**
-     * I don't want to have synchronization between publishers and subscribers.
-     */
-    public void subscribe() {
-
-        try {
-
-            context = getContext(hostname, port);
-
-            cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
-
-            conn = cf.createConnection();
-
-            conn.setClientID(clientId);
-
-            conn.start();
-
-            topic = (Topic) context.lookup(getTopicNameJndi());
-
-            session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-
-            subscriber = session.createDurableSubscriber(topic, subscriberName);
-
-        } catch (Exception e) {
-
-            logger.error("Exception thrown during subsribing.", e);
-            exception = e;
-        }
-    }
-
-    public int getCount() {
-        return counter;
-    }
-
-    public static void main(String[] args) throws InterruptedException, Exception {
-
-        SubscriberClientAck client =
-                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "localhost", getJNDIPort(), "jms/topic/testTopic", "mnovakClientId",
-                        "mnovakSubscriberName");
-        client.receiveTimeOut = 60000;
-//        SubscriberClientAck client =
-//                new SubscriberClientAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.2", 4447, "jms/topic/InTopic", "mnovakClientId",
-//                        "mnovakSubscriberName");
-        client.subscribe();
-        client.start();
-        client.join();
     }
 
 }

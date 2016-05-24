@@ -170,7 +170,7 @@ public class BasicStompTestCase extends HornetQTestCase {
             }
 
             // Receive messages via JMS API
-            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container(1).getHostname(), container(1).getJNDIPort(), QUEUE_JNDI);
+            ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container(1), QUEUE_JNDI);
             receiverAutoAck.run();
             assertEquals(MESSAGES, receiverAutoAck.getCount());
         } catch (Exception e) {

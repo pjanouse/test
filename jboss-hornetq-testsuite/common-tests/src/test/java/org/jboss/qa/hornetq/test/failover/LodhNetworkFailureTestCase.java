@@ -136,7 +136,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         MessageBuilder messageBuilder = new InfoMessageBuilder(100);
         messageBuilder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.setTimeout(0);
         producer1.setCommitAfter(1000);
         producer1.start();
@@ -163,7 +163,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 3000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
         receiver1.join();

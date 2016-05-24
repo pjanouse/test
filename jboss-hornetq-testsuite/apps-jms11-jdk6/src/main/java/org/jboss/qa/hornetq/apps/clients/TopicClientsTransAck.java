@@ -109,14 +109,14 @@ public class TopicClientsTransAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
 
-                subscriber = new SubscriberTransAck(containerType, getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberTransAck(container,
                         getDestionationJndiNamePrefix() + destinationNumber, 30000, 30, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 
                 verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container));
 
-                subscriber.setMessageVerifier(verifier);
+                subscriber.addMessageVerifier(verifier);
 
                 subscriber.setCommitAfter(receivedMessagesAckAfter);
 
@@ -131,7 +131,7 @@ public class TopicClientsTransAck implements Clients {
 
             for (int publisherNumber = 0; publisherNumber < getNumberOfPublishersPerTopic(); publisherNumber++) {
 
-                p = new PublisherTransAck(containerType, getHostnameForPublishers(), getJndiPort(),
+                p = new PublisherTransAck(container,
                         getDestionationJndiNamePrefix() + destinationNumber, getMessages(),
                         "publisherClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + publisherNumber);
 
@@ -213,7 +213,7 @@ public class TopicClientsTransAck implements Clients {
         for (PublisherTransAck publisher : getPublishers()) {
             if (publisher.getException() != null) {
                 isOk = false;
-                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getTopicNameJndi()
+                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getDestinationNameJndi()
                         + " got exception: " + publisher.getException().getMessage());
             }
         }
@@ -221,21 +221,16 @@ public class TopicClientsTransAck implements Clients {
         for (SubscriberTransAck subscriber : getSubscribers()) {
             if (subscriber.getException() != null) {
                 isOk = false;
-                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getTopicNameJndi()
+                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getDestinationNameJndi()
                         + " got exception: " + subscriber.getException().getMessage());
             }
         }
 
         // check message verifiers
         for (SubscriberTransAck subscriber : getSubscribers()) {
-            logger.info("################################################################");
-            logger.info("Subscriber on topic: " + subscriber.getTopicNameJndi()
-                    + " with name: " + subscriber.getSubscriberName() + " -- Number of received messages: " + subscriber.getMessageVerifier().getReceivedMessages().size()
-                    + " Number of sent messages: " + subscriber.getMessageVerifier().getSentMessages().size());
-            if (!subscriber.getMessageVerifier().verifyMessages()) {
+            if (!subscriber.verifyMessages()) {
                 isOk = false;
             }
-            logger.info("################################################################");
         }
 
         // check exceptions

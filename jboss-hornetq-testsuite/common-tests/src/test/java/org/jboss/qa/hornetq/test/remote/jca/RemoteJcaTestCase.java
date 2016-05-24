@@ -889,7 +889,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 30000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -948,7 +948,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producer1.setTimeout(0);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -971,7 +971,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -1067,7 +1067,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producer1.setTimeout(0);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -1093,7 +1093,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3), 0, true);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 10000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -1623,7 +1623,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         ReceiverTransAck receiverClientAck = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 5);
         receiverClientAck.start();
         receiverClientAck.join();
-        logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getQueueNameJndi());
+        logger.info("Receiver got: " + receiverClientAck.getCount() + " messages from queue: " + receiverClientAck.getDestinationNameJndi());
         Assert.assertEquals("Number of sent and received messages should be equal.", 2 * numberOfMessages, receiverClientAck.getCount());
 
         container(2).undeploy(mdb1);

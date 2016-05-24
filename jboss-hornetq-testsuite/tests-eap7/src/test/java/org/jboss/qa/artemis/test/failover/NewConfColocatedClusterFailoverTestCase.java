@@ -298,7 +298,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
         FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -356,7 +356,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsOperations.close();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 5000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -586,11 +586,11 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         }
 
-        producerRedG1.setMessageVerifier(messageVerifier);
+        producerRedG1.addMessageVerifier(messageVerifier);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueue, 20000, 10, 10);
 
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         Thread.sleep(15000);
         receiver1.start();
         logger.info("@@@@@@@@@@@@@@@ RECEIVERS RUNNING @@@@@@@@@@@");

@@ -869,7 +869,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        prod1.setMessageVerifier(messageVerifier);
+        prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
         prod1.setCommitAfter(10);
@@ -887,7 +887,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 20000, 1, 100);
         receiver.setTimeout(0);
-        receiver.setMessageVerifier(messageVerifier);
+        receiver.addMessageVerifier(messageVerifier);
         receiver.start();
 
         prod1.stopSending();
@@ -992,7 +992,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(100);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -1000,7 +1000,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 5, 10);
         receiver1.setTimeout(5);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
 
         long startTime = System.currentTimeMillis();
@@ -1217,7 +1217,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        prod1.setMessageVerifier(messageVerifier);
+        prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
         prod1.setCommitAfter(10);
@@ -1225,7 +1225,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ReceiverTransAck receiver = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 120000, 10, 100);
         receiver.setTimeout(0);
-        receiver.setMessageVerifier(messageVerifier);
+        receiver.addMessageVerifier(messageVerifier);
         receiver.start();
 
         ClientUtils.waitForReceiverUntil(receiver, 200, 120000);
@@ -1240,7 +1240,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         ClientUtils.waitForReceiverUntil(receiver, 400, 120000);
         prod1.stopSending();
         prod1.join();
-        receiver.setReceiveTimeOut(5000);
+        receiver.setReceiveTimeout(5000);
         receiver.join();
 
         boolean isOK = messageVerifier.verifyMessages();

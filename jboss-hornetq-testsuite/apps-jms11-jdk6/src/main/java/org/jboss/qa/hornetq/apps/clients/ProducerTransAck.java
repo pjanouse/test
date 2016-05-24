@@ -15,40 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ProducerTransAck extends Client {
+public class ProducerTransAck extends Producer11 {
 
     private static final Logger logger = Logger.getLogger(ProducerTransAck.class);
-    private static int maxRetries = 50;
-
-    MessageProducer producer;
-
-    private List<Map<String, String>> listOfSentMessages = new ArrayList<Map<String, String>>();
-    private List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
-
-    private String hostname;
-    private int port;
-    private int messages;
-    private String queueNameJndi;
-    private boolean stop = false;
-    private Exception exception = null;
 
     private int commitAfter = 10;
-
-    private FinalTestMessageVerifier messageVerifier;
-    private MessageBuilder messageBuilder = new TextMessageBuilder(10);
-
-    /**
-     * @deprecated use ProducerTransAck(Container container, String queueNameJndi, int messages)
-     *
-     * @param hostname      hostname
-     * @param port          port
-     * @param messages      number of messages to send
-     * @param queueNameJndi set jndi name of the queue to send messages
-     */
-    @Deprecated
-    public ProducerTransAck(String hostname, int port, String queueNameJndi, int messages) {
-        this(EAP6_CONTAINER, hostname, port, queueNameJndi, messages);
-    }
 
     /**
      * @param container      container instance
@@ -56,28 +27,7 @@ public class ProducerTransAck extends Client {
      * @param queueNameJndi  set jndi name of the queue to send messages
      */
     public ProducerTransAck(Container container, String queueNameJndi, int messages) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.messages = messages;
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    /**
-     * @param container     EAP container
-     * @param hostname      hostname
-     * @param port          port
-     * @param messages      number of messages to send
-     * @param queueNameJndi set jndi name of the queue to send messages
-     *
-     */
-    @Deprecated
-    public ProducerTransAck(String container, String hostname, int port, String queueNameJndi, int messages) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.messages = messages;
-        this.queueNameJndi = queueNameJndi;
+        super(container, queueNameJndi, messages);
     }
 
     public void run() {
@@ -94,24 +44,24 @@ public class ProducerTransAck extends Client {
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            Queue queue = (Queue) context.lookup(queueNameJndi);
+            Queue queue = (Queue) context.lookup(destinationNameJndi);
 
             con = cf.createConnection();
 
             session = con.createSession(true, Session.SESSION_TRANSACTED);
 
-            producer = session.createProducer(queue);
+            MessageProducer producer = session.createProducer(queue);
 
             Message msg = null;
 
             String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
 
-            while (counter < MESSAGES_COUNT && !stop) {
+            while (!stopSending.get() && counter < MESSAGES_COUNT) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 msg.setIntProperty("count", counter);
 
-                sendMessage(msg);
+                sendMessage(producer, msg);
 
                 listOfMessagesToBeCommited.add(msg);
 
@@ -119,7 +69,7 @@ public class ProducerTransAck extends Client {
 
                 if (counter % commitAfter == 0) {
 
-                    commitSession(session);
+                    commitSession(session, producer);
                     StringBuilder stringBuilder = new StringBuilder();
                     for (Message m : listOfMessagesToBeCommited) {
                         stringBuilder.append(m.getJMSMessageID());
@@ -137,7 +87,7 @@ public class ProducerTransAck extends Client {
                 }
             }
 
-            commitSession(session);
+            commitSession(session, producer);
 
             StringBuilder stringBuilder = new StringBuilder();
             for (Message m : listOfMessagesToBeCommited) {
@@ -148,21 +98,13 @@ public class ProducerTransAck extends Client {
                 m = cleanMessage(m);
                 addMessage(listOfSentMessages, m);
             }
-//                    StringBuilder stringBuilder2 = new StringBuilder();
-//                    for (Map<String,String> m : listOfSentMessages) {
-//                        stringBuilder2.append("messageId: " + m.get("messageId") + "dupId: " + m.get("_HQ_DUPL_ID") + "##");
-//                    }
-//                    logger.debug("List of sent messages: " + stringBuilder2.toString());
-//                    listOfSentMessages.addAll(listOfMessagesToBeCommited);
             logger.info("COMMIT - session was commited. Last message with property counter: " + counter
                     + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
             listOfMessagesToBeCommited.clear();
 
             producer.close();
 
-            if (messageVerifier != null) {
-                messageVerifier.addSendMessages(listOfSentMessages);
-            }
+            addSendMessages(listOfSentMessages);
 
         } catch (Exception e) {
 
@@ -195,137 +137,11 @@ public class ProducerTransAck extends Client {
         }
     }
 
-    private void sendMessage(Message msg) throws Exception {
-        int numberOfRetries = 0;
-
-        while (numberOfRetries <= maxRetries) {
-            try {
-                if (numberOfRetries > 0) {
-                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
-                }
-                numberOfRetries++;
-                producer.send(msg);
-                logger.debug("Sent message with property counter: " + counter + ", messageId:" + msg.getJMSMessageID()
-                        + " dupId: " + msg.getStringProperty(jmsImplementation.getDuplicatedHeader()));
-                counter++;
-                return;
-
-            } catch (JMSException ex) {
-                logger.error("Failed to send message - counter: " + counter, ex);
-            }
-        }
-        //in case of maxRetries reached
-        throw new Exception("Number of retries (" + numberOfRetries + ") is greater than limit (" + maxRetries + ").");
-    }
-
-    private void commitSession(Session session) throws Exception {
-        int numberOfRetries = 0;
-        while (true) {
-            try {
-
-                // try commit
-                session.commit();
-
-                // if successful -> return
-                return;
-
-            } catch (TransactionRolledBackException ex) {
-                // if transaction rollback exception -> send messages again and commit
-                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
-
-                // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 2) {
-                    throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
-                            + " Client will terminate.", ex);
-                }
-
-                counter -= listOfMessagesToBeCommited.size();
-
-                for (Message m : listOfMessagesToBeCommited) {
-                    sendMessage(m);
-                }
-
-                numberOfRetries++;
-
-            } catch (JMSException ex) {
-                // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
-                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
-
-                // don't repeat this more than once - it's exception because of duplicates
-                if (numberOfRetries > 0 && ex.getCause().getMessage().contains("Duplicate message detected")) {
-                    return;
-                }
-
-                counter -= listOfMessagesToBeCommited.size();
-
-                for (Message m : listOfMessagesToBeCommited) {
-                    sendMessage(m);
-                }
-                numberOfRetries++;
-            }
-        }
-    }
-
-
-    public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
-    }
-
-    public void setMessageBuilder(MessageBuilder messageBuilder) {
-        this.messageBuilder = messageBuilder;
+    public int getCommitAfter() {
+        return commitAfter;
     }
 
     public void setCommitAfter(int commitAfter) {
         this.commitAfter = commitAfter;
-    }
-
-    public List<Map<String, String>> getListOfSentMessages() {
-        logger.debug("listOfSentMessages" + listOfSentMessages.size());
-        return listOfSentMessages;
-    }
-
-    public void stopSending() {
-        this.stop = true;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    @Override
-    public int getCount() {
-        return counter;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-
-        ProducerTransAck producer = new ProducerTransAck(Constants.CONTAINER_TYPE.EAP7_CONTAINER.toString(), "127.0.0.1", 8080, "jms/queue/testQueue0", 20);
-        MessageBuilder builder = new TextMessageBuilder(14);
-        producer.setMessageBuilder(builder);
-        producer.setTimeout(0);
-        producer.setCommitAfter(10);
-        producer.start();
-        producer.join();
-        System.out.println("Number of sent messages: " + producer.getListOfSentMessages().size());
-
     }
 }

@@ -361,7 +361,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
-        p.setMessageVerifier(messageVerifier);
+        p.addMessageVerifier(messageVerifier);
         p.setCommitAfter(100);
         p.setTimeout(0);
         p.start();
@@ -449,7 +449,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
-        p.setMessageVerifier(messageVerifier);
+        p.addMessageVerifier(messageVerifier);
         p.setCommitAfter(100);
         p.setTimeout(0);
         p.start();
@@ -552,7 +552,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         p.setMessageBuilder(messageBuilder);
-        p.setMessageVerifier(messageVerifier);
+        p.addMessageVerifier(messageVerifier);
         p.setCommitAfter(100);
         p.setTimeout(0);
         p.start();

@@ -2,32 +2,18 @@ package org.jboss.qa.hornetq.apps.clients20;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.clients.Client;
 
-import javax.jms.*;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSConsumer;
+import javax.jms.JMSContext;
+import javax.jms.JMSRuntimeException;
+import javax.jms.Message;
+import javax.jms.Queue;
 import javax.naming.Context;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-/**
- * Created by eduda on 4.8.2015.
- */
-public class ReceiverAutoAck extends Client {
+public class ReceiverAutoAck extends Receiver20 {
 
     private static final Logger logger = Logger.getLogger(ReceiverAutoAck.class);
-    private int maxRetries;
-    private String hostname;
-    private int port;
-    private String queueNameJndi = "jms/queue/testQueue1";
-    private long receiveTimeOut;
-    private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String,String>> listOfReceivedMessages = new ArrayList<Map<String,String>>();
-    private Exception exception = null;
-    private boolean securityEnabled = false;
-    private String userName;
-    private String password;
 
     /**
      * Creates a receiver to queue with auto acknowledge.
@@ -51,14 +37,7 @@ public class ReceiverAutoAck extends Client {
      */
     public ReceiverAutoAck(Container container, String queueJndiName, long receiveTimeOut,
                            int maxRetries) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.queueNameJndi = queueJndiName;
-        this.receiveTimeOut = receiveTimeOut;
-        this.maxRetries = maxRetries;
-
-        setTimeout(0); // set receive timeout to 0 to read with max speed
+        super(container, queueJndiName, receiveTimeOut, maxRetries);
     }
 
     @Override
@@ -76,7 +55,7 @@ public class ReceiverAutoAck extends Client {
 
             try (JMSContext jmsContext = cf.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
                 jmsContext.start();;
-                queue = (Queue) context.lookup(queueNameJndi);
+                queue = (Queue) context.lookup(destinationNameJndi);
                 JMSConsumer receiver = jmsContext.createConsumer(queue);
                 Message message = null;
 
@@ -87,17 +66,15 @@ public class ReceiverAutoAck extends Client {
 
                     counter++;
 
-                    logger.debug("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
+                    logger.debug("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
                             + ". Received message - count: "
                             + counter + ", messageId:" + message.getJMSMessageID());
                 }
 
-                logger.info("Receiver for node: " + getHostname() + " and queue: " + queueNameJndi
+                logger.info("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
                         + ". Received NULL - number of received messages: " + counter);
 
-                if (messageVerifier != null) {
-                    messageVerifier.addReceivedMessages(listOfReceivedMessages);
-                }
+                addReceivedMessages(listOfReceivedMessages);
             }
 
 
@@ -119,199 +96,4 @@ public class ReceiverAutoAck extends Client {
             }
         }
     }
-
-
-    /**
-     * Tries to receive message from server in specified timeout. If server crashes
-     * then it retries for maxRetries. If even then fails to receive which means that
-     * consumer.receiver(timeout) throw JMSException maxRetries's times then throw Exception above.
-     *
-     * @param consumer consumer message consumer
-     * @return message or null
-     * @throws Exception when maxRetries was reached
-     */
-    public Message receiveMessage(JMSConsumer consumer) throws Exception {
-
-        Message msg = null;
-        int numberOfRetries = 0;
-
-        // receive message with retry
-        while (numberOfRetries < maxRetries) {
-
-            try {
-
-                msg = consumer.receive(receiveTimeOut);
-                return msg;
-
-            } catch (JMSRuntimeException ex) {
-                numberOfRetries++;
-                logger.error("RETRY receive for host: " + getHostname() + ", Trying to receive message with count: " + (counter + 1));
-            }
-        }
-
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + getHostname());
-    }
-
-    /**
-     * @return the maxRetries
-     */
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    /**
-     * @param maxRetries the maxRetries to set
-     */
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the queueNameJndi
-     */
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    /**
-     * @param queueNameJndi the queueNameJndi to set
-     */
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public FinalTestMessageVerifier getMessageVerifier() {
-        return messageVerifier;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
-    public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
-    }
-
-    /**
-     * @return the listOfReceivedMessages
-     */
-    public List<Map<String,String>> getListOfReceivedMessages() {
-        return listOfReceivedMessages;
-    }
-
-    /**
-     * @param listOfReceivedMessages the listOfReceivedMessages to set
-     */
-    public void setListOfReceivedMessages(List<Map<String,String>> listOfReceivedMessages) {
-        this.listOfReceivedMessages = listOfReceivedMessages;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
-    /**
-     * Returns connection.
-     *
-     * @param cf
-     * @return
-     * @throws javax.jms.JMSException
-     */
-    private Connection getConnection(ConnectionFactory cf) throws JMSException {
-
-        // if there is username and password and security enabled then use it
-        if (isSecurityEnabled() && getUserName() != null && !"".equals(userName) && getPassword() != null) {
-            return cf.createConnection(getUserName(), getPassword());
-
-        }
-        // else it's guest user or security disabled
-        return cf.createConnection();
-    }
-
-    /**
-     * @return the securityEnabled
-     */
-    public boolean isSecurityEnabled() {
-        return securityEnabled;
-    }
-
-    /**
-     * @param securityEnabled the securityEnabled to set
-     */
-    public void setSecurityEnabled(boolean securityEnabled) {
-        this.securityEnabled = securityEnabled;
-    }
-
-    /**
-     * @return the userName
-     */
-    public String getUserName() {
-        return userName;
-    }
-
-    /**
-     * @param userName the userName to set
-     */
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
-     * @return the password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public int getCount() {
-        return counter;
-    }
-
 }

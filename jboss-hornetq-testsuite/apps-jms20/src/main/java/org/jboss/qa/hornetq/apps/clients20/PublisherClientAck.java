@@ -15,23 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by eduda on 4.8.2015.
- */
-public class PublisherClientAck extends Client {
+public class PublisherClientAck extends Producer20 {
 
     private static final Logger logger = Logger.getLogger(PublisherClientAck.class);
-    private int maxRetries = 30;
-    private String hostname = "localhost";
-    private int port = 4447;
-    private String topicNameJndi;
-    private int messages = 1000;
-    private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
-    private List<FinalTestMessageVerifier> messageVerifiers;
-    private Exception exception = null;
+
     private String clientId;
-    private boolean stop = false;
 
     /**
      * @param container      container instance
@@ -39,11 +27,7 @@ public class PublisherClientAck extends Client {
      * @param topicNameJndi  set jndi name of the topic to send messages
      */
     public PublisherClientAck(Container container, String topicNameJndi, int messages, String clientId) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.messages = messages;
-        this.topicNameJndi = topicNameJndi;
+        super(container, topicNameJndi, messages);
         this.clientId = clientId;
     }
 
@@ -60,18 +44,20 @@ public class PublisherClientAck extends Client {
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            Topic topic = (Topic) context.lookup(getTopicNameJndi());
+            Topic topic = (Topic) context.lookup(getDestinationNameJndi());
 
             try (JMSContext jmsContext = cf.createContext(JMSContext.CLIENT_ACKNOWLEDGE)) {
                 jmsContext.setClientID(clientId);
                 JMSProducer publisher = jmsContext.createProducer();
                 Message msg = null;
 
-                while (counter < messages && !stop) {
+                while (!stopSending.get() && counter < messages) {
 
                     msg = messageBuilder.createMessage(new MessageCreator20(jmsContext), jmsImplementation);
                     // send message in while cycle
                     sendMessage(publisher, topic, msg);
+                    msg = cleanMessage(msg);
+                    addMessage(listOfSentMessages, msg);
 
                     Thread.sleep(getTimeout());
 
@@ -80,12 +66,7 @@ public class PublisherClientAck extends Client {
 
                 }
 
-                if (messageVerifiers != null) {
-                    for (FinalTestMessageVerifier finalTestMessageVerifier : messageVerifiers) {
-                        finalTestMessageVerifier.addSendMessages(listOfSentMessages);
-                    }
-
-                }
+                addSendMessages(listOfSentMessages);
             }
 
         } catch (Exception e) {
@@ -102,157 +83,11 @@ public class PublisherClientAck extends Client {
         }
     }
 
-    /**
-     * Send message to server. Try send message and if succeed than return. If
-     * send fails and exception is thrown it tries send again until max retry is
-     * reached. Then throws new Exception.
-     *
-     * @param publisher
-     * @param msg
-     */
-    private void sendMessage(JMSProducer publisher, Destination destination, Message msg) throws Exception {
-        int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-            try {
-                if (numberOfRetries > 0) {
-                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
-                }
-                numberOfRetries++;
-                publisher.send(destination, msg);
-                msg = cleanMessage(msg);
-                addMessage(listOfSentMessages, msg);
-                counter++;
-                return;
-
-            } catch (JMSRuntimeException ex) {
-                logger.error("Failed to send message - counter: " + counter, ex);
-            } catch (JMSException ex) {
-                logger.error("Failed to clean message - counter: " + counter, ex);
-            }
-        }
-        // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + hostname
-                + ". Sent message with property count: " + counter
-                + ", messageId:" + msg.getJMSMessageID());
+    public String getClientId() {
+        return clientId;
     }
 
-    /**
-     * Stop producer
-     */
-    public void stopSending() {
-        this.stop = true;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the messages
-     */
-    public int getMessages() {
-        return messages;
-    }
-
-    /**
-     * @param messages the messages to set
-     */
-    public void setMessages(int messages) {
-        this.messages = messages;
-    }
-
-    /**
-     * @return the listOfSentMessages
-     */
-    public List<Map<String,String>> getListOfSentMessages() {
-        return listOfSentMessages;
-    }
-
-    /**
-     * @param listOfSentMessages the listOfSentMessages to set
-     */
-    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
-        this.listOfSentMessages = listOfSentMessages;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public List<FinalTestMessageVerifier> getMessageVerifiers() {
-        return messageVerifiers;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
-    public void setMessageVerifiers(List<FinalTestMessageVerifier> messageVerifier) {
-        this.messageVerifiers = messageVerifier;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
-    /**
-     * @return the topicNameJndi
-     */
-    public String getTopicNameJndi() {
-        return topicNameJndi;
-    }
-
-    @Override
-    public int getCount() {
-        return counter;
-    }
-
-    /**
-     * @param topicNameJndi the topicNameJndi to set
-     */
-    public void setTopicNameJndi(String topicNameJndi) {
-        this.topicNameJndi = topicNameJndi;
-    }
-
-    public MessageBuilder getMessageBuilder() {
-        return messageBuilder;
-    }
-
-    public void setMessageBuilder(MessageBuilder messageBuilder) {
-        this.messageBuilder = messageBuilder;
-    }
-
 }

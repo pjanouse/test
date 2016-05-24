@@ -321,7 +321,7 @@ public class JcaTestCase extends HornetQTestCase {
         }
         messageBuilder.setJndiProperties(jndiProperties);
         producer1.setMessageBuilder(messageBuilder);
-        producer1.setMessageVerifier(mdbMessageVerifier);
+        producer1.addMessageVerifier(mdbMessageVerifier);
         producer1.setTimeout(0);
         producer1.setCommitAfter(100);
         logger.info("Start producer.");
@@ -364,7 +364,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 20000, 100, 10);
-        receiver1.setMessageVerifier(mdbMessageVerifier);
+        receiver1.addMessageVerifier(mdbMessageVerifier);
         receiver1.setTimeout(0);
         receiver1.setAckAfter(100);
         receiver1.start();

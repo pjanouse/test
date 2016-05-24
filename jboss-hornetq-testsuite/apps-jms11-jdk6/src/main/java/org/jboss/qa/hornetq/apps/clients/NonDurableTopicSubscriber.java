@@ -10,13 +10,6 @@ import javax.jms.Session;
 
 abstract public class NonDurableTopicSubscriber extends AbstractTopicSubscriber {
 
-    @Deprecated
-    protected NonDurableTopicSubscriber(String containerType, String hostname, int port,
-            String destinationJndiName, long receiveTimeout, int maxRetries) {
-
-        super(containerType, hostname, port, destinationJndiName, receiveTimeout, maxRetries);
-    }
-
     protected NonDurableTopicSubscriber(Container container,
                                         String destinationJndiName, long receiveTimeout, int maxRetries) {
 

@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -615,7 +616,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     }
 
 
-    private List<String> sendMessages(final MessageBuilder builder) throws Exception {
+    private List<Map<String, String>> sendMessages(final MessageBuilder builder) throws Exception {
         SoakProducerClientAck producer = new SoakProducerClientAck(container(1), IN_QUEUE,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);

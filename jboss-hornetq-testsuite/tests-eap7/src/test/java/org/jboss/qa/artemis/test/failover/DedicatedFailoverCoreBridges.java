@@ -96,7 +96,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         messageBuilder.setAddDuplicatedHeader(true);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         // give it some time for backup to alive
@@ -109,7 +109,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 120000, container(1));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
@@ -144,7 +144,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         messageBuilder.setAddDuplicatedHeader(true);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1));
@@ -184,7 +184,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
         ReceiverClientAck receiver1;
         receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 30000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 

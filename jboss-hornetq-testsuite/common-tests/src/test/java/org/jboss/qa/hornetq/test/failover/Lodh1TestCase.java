@@ -299,7 +299,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
         logger.info("Start producer.");
         producerToInQueue1.start();
@@ -324,7 +324,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 5000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -452,7 +452,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
         logger.info("Start producer.");
         producerToInQueue1.start();
@@ -467,7 +467,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 

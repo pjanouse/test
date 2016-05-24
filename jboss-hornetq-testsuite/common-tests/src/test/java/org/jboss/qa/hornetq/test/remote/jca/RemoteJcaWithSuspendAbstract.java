@@ -124,7 +124,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
         new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
@@ -148,7 +148,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -275,7 +275,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
         new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
@@ -297,7 +297,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();

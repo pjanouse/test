@@ -646,7 +646,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
         FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
         producer1.start();
@@ -676,7 +676,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
 
         receiver1.start();
         receiver1.join();

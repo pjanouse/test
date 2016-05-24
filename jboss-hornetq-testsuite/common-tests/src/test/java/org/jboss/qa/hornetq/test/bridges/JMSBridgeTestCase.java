@@ -231,7 +231,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
                 inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
@@ -253,7 +253,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
@@ -292,7 +292,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
                 inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
@@ -308,7 +308,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
@@ -339,12 +339,12 @@ public class JMSBridgeTestCase extends HornetQTestCase {
                 inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(messageBuilder);
         producer.setTimeout(0);
-        producer.setMessageVerifier(messageVerifier);
+        producer.addMessageVerifier(messageVerifier);
         producer.start();
 
         ReceiverClientAck receiver = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
-        receiver.setMessageVerifier(messageVerifier);
+        receiver.addMessageVerifier(messageVerifier);
         receiver.start();
         receiver.join();
         producer.join();

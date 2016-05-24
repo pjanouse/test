@@ -122,7 +122,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(testedContainer));
             groupMessageVerifiers.add(groupMessageVerifier);
             ReceiverTransAck receiver = new ReceiverTransAck(testedContainer, inQueueJndiNameForMdb, 10000, 100, 10);
-            receiver.setMessageVerifier(groupMessageVerifier);
+            receiver.addMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
         }
@@ -291,7 +291,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         Thread.sleep(5000);
         FinalTestMessageVerifier verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 120000, 100, 10);
-        receiver.setMessageVerifier(verifier);
+        receiver.addMessageVerifier(verifier);
         receiver.start();
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb,
@@ -456,11 +456,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             ProducerTransAck producerToInQueue1 = new ProducerTransAck(serverToConnect, inQueueJndiNameForMdb, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, group));
             producerToInQueue1.setCommitAfter(10);
-            producerToInQueue1.setMessageVerifier(verifier);
+            producerToInQueue1.addMessageVerifier(verifier);
             producerToInQueue1.start();
             producers.add(producerToInQueue1);
             ReceiverTransAck receiver = new ReceiverTransAck(serverToConnect, inQueueJndiNameForMdb, 40000, 100, 10);
-            receiver.setMessageVerifier(verifier);
+            receiver.addMessageVerifier(verifier);
             receiver.start();
             receivers.add(receiver);
         }
@@ -862,7 +862,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(serverWithConsumer));
             groupMessageVerifiers.add(groupMessageVerifier);
             ReceiverTransAck receiver = new ReceiverTransAck(serverWithConsumer, inQueueJndiNameForMdb, 40000, 100, 10);
-            receiver.setMessageVerifier(groupMessageVerifier);
+            receiver.addMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
         }

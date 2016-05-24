@@ -180,7 +180,7 @@ public class JmsBridgeAttributesTestCase extends CliTestBase {
         prod.start();
         prod.join();
         ReceiverTransAck r = new ReceiverTransAck(targetServer, outQueueJndiName);
-        r.setReceiveTimeOut(1000);
+        r.setReceiveTimeout(1000);
         r.start();
         r.join();
 

@@ -218,7 +218,7 @@ public class ClusterTestCase extends ClusterTestBase {
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.setTimeout(0);
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
@@ -239,7 +239,7 @@ public class ClusterTestCase extends ClusterTestBase {
         // B1 consumer
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 30000, 100, 10);
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -274,7 +274,7 @@ public class ClusterTestCase extends ClusterTestBase {
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb, numberOfMessages);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.setTimeout(0);
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
@@ -298,7 +298,7 @@ public class ClusterTestCase extends ClusterTestBase {
         // B1 consumer
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), inQueueJndiNameForMdb, 20000, 100, 10);
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
 
 
         receiver1.start();
@@ -407,7 +407,7 @@ public class ClusterTestCase extends ClusterTestBase {
         // receive messages
         ReceiverTransAck queueConsumer1 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0");
         queueConsumer1.setTimeout(0);
-        queueConsumer1.setReceiveTimeOut(10000);
+        queueConsumer1.setReceiveTimeout(10000);
         queueConsumer1.setCommitAfter(10);
         queueConsumer1.start();
         queueConsumer1.join();
@@ -418,7 +418,7 @@ public class ClusterTestCase extends ClusterTestBase {
             // receive messages
             ReceiverTransAck queueConsumer2 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0");
             queueConsumer2.setTimeout(0);
-            queueConsumer2.setReceiveTimeOut(10000);
+            queueConsumer2.setReceiveTimeout(10000);
             queueConsumer2.setCommitAfter(10);
             queueConsumer2.start();
             queueConsumer2.join();
@@ -476,7 +476,7 @@ public class ClusterTestCase extends ClusterTestBase {
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -502,7 +502,7 @@ public class ClusterTestCase extends ClusterTestBase {
         Thread.sleep(10000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 30000, 1000, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
         // printQueueStatus(CONTAINER1_NAME_NAME, inQueueName);
         // printQueueStatus(CONTAINER2_NAME, inQueueName);

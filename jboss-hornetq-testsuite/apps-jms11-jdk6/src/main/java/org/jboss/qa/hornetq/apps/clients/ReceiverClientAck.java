@@ -14,35 +14,11 @@ import java.util.*;
  *
  * @author mnovak
  */
-public class ReceiverClientAck extends Client {
+public class ReceiverClientAck extends Receiver11 {
 
     private static final Logger logger = Logger.getLogger(ReceiverClientAck.class);
-    private int maxRetries;
-    private String hostname;
-    private int port;
-    private String queueNameJndi = "jms/queue/testQueue0";
-    private long receiveTimeOut;
-    private int ackAfter;
-    private FinalTestMessageVerifier messageVerifier;
-    private List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
-    private List<Message> listOfReceivedMessagesToBeAcked = new ArrayList<Message>();
-    private Exception exception = null;
-    private List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
 
-
-    /**
-     * @param hostname      hostname
-     * @param port          jndi port
-     * @param queueJndiName jndi name of the queue
-     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
-     * Creates a receiver to queue with client acknowledge.
-     */
-    @Deprecated
-    public ReceiverClientAck(String hostname, int port, String queueJndiName) {
-
-        this(EAP6_CONTAINER, hostname, port, queueJndiName, 60000, 10, 30);
-
-    }
+    protected int ackAfter;
 
     /**
      * Creates a receiver to queue with auto acknowledge.
@@ -66,70 +42,8 @@ public class ReceiverClientAck extends Client {
      * @param maxRetries     how many times to retry receive before giving up
      */
     public ReceiverClientAck(Container container, String queueJndiName, long receiveTimeOut, int ackAfter, int maxRetries) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.queueNameJndi = queueJndiName;
-        this.receiveTimeOut = receiveTimeOut;
+        super(container, queueJndiName, receiveTimeOut, maxRetries);
         this.ackAfter = ackAfter;
-        this.maxRetries = maxRetries;
-        setTimeout(0); // set receive timeout to 0 to read with max speed
-    }
-
-    /**
-     * Creates a receiver to queue with client acknowledge.
-     *
-     * @param container     container
-     * @param hostname      hostname
-     * @param port          jndi port
-     * @param queueJndiName jndi name of the queue
-     */
-    @Deprecated
-    public ReceiverClientAck(String container, String hostname, int port, String queueJndiName) {
-
-        this(container, hostname, port, queueJndiName, 60000, 10, 30);
-
-    }
-
-    /**
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param queueJndiName  jndi name of the queue
-     * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
-     * @param maxRetries     how many times to retry receive before giving up
-     * @deprecated this constructor uses EAP6_CONTAINER directly, not wanted
-     * Creates a receiver to queue with client acknowledge.
-     */
-    @Deprecated
-    public ReceiverClientAck(String hostname, int port, String queueJndiName, long receiveTimeOut,
-                             int ackAfter, int maxRetries) {
-        this(EAP6_CONTAINER, hostname, port, queueJndiName, receiveTimeOut, ackAfter, maxRetries);
-    }
-
-    /**
-     * Creates a receiver to queue with client acknowledge.
-     *
-     * @param container      container
-     * @param hostname       hostname
-     * @param port           jndi port
-     * @param queueJndiName  jndi name of the queue
-     * @param receiveTimeOut how long to wait to receive message
-     * @param ackAfter       send ack after how many messages
-     * @param maxRetries     how many times to retry receive before giving up
-     */
-    @Deprecated
-    public ReceiverClientAck(String container, String hostname, int port, String queueJndiName, long receiveTimeOut,
-                             int ackAfter, int maxRetries) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.queueNameJndi = queueJndiName;
-        this.receiveTimeOut = receiveTimeOut;
-        this.ackAfter = ackAfter;
-        this.maxRetries = maxRetries;
-
-        setTimeout(0); // set receive timeout to 0 to read with max speed
     }
 
     @Override
@@ -147,11 +61,11 @@ public class ReceiverClientAck extends Client {
 
             cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            conn = cf.createConnection();
+            conn = getConnection(cf);
 
             conn.start();
 
-            queue = (Queue) context.lookup(queueNameJndi);
+            queue = (Queue) context.lookup(destinationNameJndi);
 
             session = conn.createSession(false, QueueSession.CLIENT_ACKNOWLEDGE);
 
@@ -178,11 +92,11 @@ public class ReceiverClientAck extends Client {
 
                 Thread.sleep(getTimeout());
 
-                listOfReceivedMessagesToBeAcked.add(message);
+                listOfReceivedMessagesToBeCommited.add(message);
 
                 counter++;
 
-                logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+                logger.info("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
                         + ". Received message - count: "
                         + counter + ", message-counter: " + message.getStringProperty("counter")
                         + ", messageId:" + message.getJMSMessageID()
@@ -201,12 +115,10 @@ public class ReceiverClientAck extends Client {
 
             counter = counter + listOfReceivedInDoubtMessages.size();
 
-            logger.info("Receiver for node: " + hostname + " and queue: " + queueNameJndi
+            logger.info("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
                     + ". Received NULL - number of received messages: " + counter);
 
-            if (messageVerifier != null) {
-                messageVerifier.addReceivedMessages(listOfReceivedMessages);
-            }
+            addReceivedMessages(listOfReceivedMessages);
 
         } catch (Exception ex) {
             logger.error("Exception was thrown during receiving messages:", ex);
@@ -231,223 +143,6 @@ public class ReceiverClientAck extends Client {
         }
     }
 
-    private void checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts() throws JMSException {
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
-        // clone list of inDoubtMessages
-        List<Message> listCloneOfInDoubtMessages = new ArrayList<Message>();
-        for (Message m : listOfReceivedInDoubtMessages) {
-            listCloneOfInDoubtMessages.add(m);
-        }
-
-        // if duplicate received then remove from the list of in doubt messages
-        String inDoubtMessageDupId = null;
-        String receivedMessageDupId = null;
-        for (Message inDoubtMessage : listCloneOfInDoubtMessages) {
-            inDoubtMessageDupId = inDoubtMessage.getStringProperty(duplicatedHeader);
-            for (Message receivedMessage : listOfReceivedMessagesToBeAcked) {
-                if (((receivedMessageDupId = receivedMessage.getStringProperty(duplicatedHeader)) != null) &&
-                        receivedMessageDupId.equalsIgnoreCase(inDoubtMessageDupId)) {
-                    logger.info("Duplicated in doubt message was received. Removing message with dup id: " + inDoubtMessageDupId
-                            + " and messageId: " + inDoubtMessage.getJMSMessageID() + " from list of in doubt messages");
-                    listOfReceivedInDoubtMessages.remove(inDoubtMessage);
-                }
-            }
-        }
-    }
-
-    /**
-     * Try to acknowledge a message.
-     *
-     * @param message message to be acknowledged
-     * @throws javax.jms.JMSException
-     */
-    public boolean acknowledgeMessage(Message message) throws Exception {
-
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-        boolean isAckSuccessful = true;
-
-        try {
-
-            checkIfInDoubtMessagesReceivedAgainAndRemoveThemFromTheListOfInDoubts();
-
-            message.acknowledge();
-
-            logger.info("Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + ", message-counter: " + message.getStringProperty("counter")
-                    + ", messageId:" + message.getJMSMessageID() + " ACKNOWLEDGED");
-
-            addMessages(listOfReceivedMessages, listOfReceivedMessagesToBeAcked);
-
-            logListOfAddedMessages(listOfReceivedMessagesToBeAcked);
-
-        } catch (TransactionRolledBackException ex) {
-            logger.error("TransactionRolledBackException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - counter: "
-                    + counter + ", messageId:" + message.getJMSMessageID()
-                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
-            // all unacknowledge messges will be received again
-            counter = counter - listOfReceivedMessagesToBeAcked.size();
-            isAckSuccessful = false;
-
-        } catch (JMSException ex) {
-
-            logger.error("JMSException thrown during acknowledge. Receiver for node: " + hostname + ". Received message - count: "
-                    + counter + ", messageId:" + message.getJMSMessageID()
-                    + ((message.getStringProperty(duplicatedHeader) != null) ? ", " + duplicatedHeader + "=" + message.getStringProperty(duplicatedHeader) : ""), ex);
-
-            listOfReceivedInDoubtMessages.addAll(listOfReceivedMessagesToBeAcked);
-            counter = counter - listOfReceivedMessagesToBeAcked.size();
-            isAckSuccessful = false;
-
-        } finally {
-            listOfReceivedMessagesToBeAcked.clear();
-        }
-        return isAckSuccessful;
-    }
-
-    private void logListOfAddedMessages(List<Message> listOfReceivedMessagesToBeCommited) throws JMSException {
-        String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Message m : listOfReceivedMessagesToBeCommited) {
-            stringBuilder.append("messageId: ").append(m.getJMSMessageID()).append(" dupId: ").append(m.getStringProperty(duplicatedHeader) + ", \n");
-        }
-        logger.info("New messages added to list of received messages: \n" + stringBuilder.toString());
-    }
-
-    /**
-     * Tries to receive message from server in specified timeout. If server crashes
-     * then it retries for maxRetries. If even then fails to receive which means that
-     * consumer.receiver(timeout) throw JMSException maxRetries's times then throw Exception above.
-     *
-     * @param consumer consumer message consumer
-     * @return message or null
-     * @throws Exception when maxRetries was reached
-     */
-    public Message receiveMessage(MessageConsumer consumer) throws Exception {
-
-        Message msg;
-        int numberOfRetries = 0;
-
-        // receive message with retry
-        while (numberOfRetries < maxRetries) {
-
-            try {
-
-                msg = consumer.receive(receiveTimeOut);
-                if (msg != null) {
-                    msg = cleanMessage(msg);
-                }
-                return msg;
-
-            } catch (JMSException ex) {
-                numberOfRetries++;
-                logger.error("RETRY receive for host: " + hostname + ", Trying to receive message with count: " + (counter + 1), ex);
-            }
-        }
-
-        throw new Exception("FAILURE - MaxRetry reached for receiver for node: " + hostname);
-    }
-
-    /**
-     * @return the maxRetries
-     */
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    /**
-     * @param maxRetries the maxRetries to set
-     */
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the queueNameJndi
-     */
-    public String getQueueNameJndi() {
-        return queueNameJndi;
-    }
-
-    /**
-     * @param queueNameJndi the queueNameJndi to set
-     */
-    public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public FinalTestMessageVerifier getMessageVerifier() {
-        return messageVerifier;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
-    public void setMessageVerifier(FinalTestMessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
-    }
-
-    /**
-     * @return the listOfReceivedMessages
-     */
-    public List<Map<String, String>> getListOfReceivedMessages() {
-        return listOfReceivedMessages;
-    }
-
-    /**
-     * @param listOfReceivedMessages the listOfReceivedMessages to set
-     */
-    public void setListOfReceivedMessages(List<Map<String, String>> listOfReceivedMessages) {
-        this.listOfReceivedMessages = listOfReceivedMessages;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
-
     public int getAckAfter() {
         return ackAfter;
     }
@@ -455,19 +150,4 @@ public class ReceiverClientAck extends Client {
     public void setAckAfter(int ackAfter) {
         this.ackAfter = ackAfter;
     }
-
-    public int getCount() {
-        return counter;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-
-        ReceiverClientAck receiver = new ReceiverClientAck("127.0.0.1", 4447, "jms/queue/testQueue0", 10000, 3, 10000);
-        receiver.setTimeout(100);
-        receiver.setAckAfter(2);
-        receiver.start();
-
-        receiver.join();
-    }
-
 }

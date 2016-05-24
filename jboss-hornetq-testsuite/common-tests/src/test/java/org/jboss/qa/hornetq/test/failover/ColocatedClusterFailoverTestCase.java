@@ -282,7 +282,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
         FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -343,7 +343,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsOperations.close();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 5000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -457,7 +457,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -481,7 +481,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueue, 30000, 1000, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setAckAfter(100);
         printQueueStatus(container(1), inQueueName);
         printQueueStatus(container(2), inQueueName);
@@ -712,11 +712,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         }
 
-        producerRedG1.setMessageVerifier(messageVerifier);
+        producerRedG1.addMessageVerifier(messageVerifier);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueue, 20000, 10, 10);
 
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         Thread.sleep(15000);
         receiver1.start();
         logger.info("@@@@@@@@@@@@@@@ RECEIVERS RUNNING @@@@@@@@@@@");

@@ -94,7 +94,7 @@ public class QueueClientsAutoAck implements Clients {
 
                 p = new ProducerAutoAck(container, getQueueJndiNamePrefix() + destinationNumber, getMessages());
 
-                p.setMessageVerifier(queueTextMessageVerifier);
+                p.addMessageVerifier(queueTextMessageVerifier);
 
                 if (messageBuilder != null) {
                     p.setMessageBuilder(messageBuilder);
@@ -116,7 +116,7 @@ public class QueueClientsAutoAck implements Clients {
 
                 r = new ReceiverAutoAck(container, getQueueJndiNamePrefix() + destinationNumber);
 
-                r.setMessageVerifier(queueTextMessageVerifier);
+                r.addMessageVerifier(queueTextMessageVerifier);
 
                 if (isSecurityEnabled()) {
                     r.setSecurityEnabled(true);
@@ -192,7 +192,7 @@ public class QueueClientsAutoAck implements Clients {
         for (ProducerAutoAck producer : producers) {
             if (producer.getException() != null) {
                 isOk = false;
-                logger.error("Producer for host " + producer.getHostname() + " and queue " + producer.getQueueNameJndi() +
+                logger.error("Producer for host " + producer.getHostname() + " and queue " + producer.getDestinationNameJndi() +
                         " got exception: " + producer.getException().getMessage());
             }
         }
@@ -200,7 +200,7 @@ public class QueueClientsAutoAck implements Clients {
         for (ReceiverAutoAck receiver : receivers) {
             if (receiver.getException() != null) {
                 isOk = false;
-                logger.error("Receiver for host " + receiver.getHostname() + " and queue " + receiver.getQueueNameJndi() +
+                logger.error("Receiver for host " + receiver.getHostname() + " and queue " + receiver.getDestinationNameJndi() +
                         " got exception: " + receiver.getException().getMessage());
             }
         }

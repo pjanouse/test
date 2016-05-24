@@ -360,7 +360,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(500);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -391,7 +391,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 3000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -423,7 +423,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -465,7 +465,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 3000, 100, 10);
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -515,7 +515,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 200));
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -525,7 +525,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueueJndiName, 30000, 100, 10);
         receiver1.setTimeout(100);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
 
         int receivedCount = 0;

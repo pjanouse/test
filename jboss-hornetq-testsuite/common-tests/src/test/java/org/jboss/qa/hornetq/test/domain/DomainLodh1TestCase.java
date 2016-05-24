@@ -156,9 +156,9 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         container(1).start();
         logger.info("Node is up, commencing the test");
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
         logger.info("Start producer.");
         producerToInQueue1.start();
@@ -181,8 +181,8 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 1000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 1000, 100, 10);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 
@@ -213,9 +213,9 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(getCurrentContainerForTest(), container(1).getHostname(), container(1).getJNDIPort(), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
         logger.info("Start producer.");
         producerToInQueue1.start();
@@ -225,8 +225,8 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1).getHostname(), container(1).getJNDIPort(), outQueue, 300000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 300000, 100, 10);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 

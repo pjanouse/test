@@ -54,7 +54,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName,NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
@@ -63,7 +63,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),relativeJndiInQueueName,(4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
 
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -105,7 +105,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
                     producer1.getListOfSentMessages().size(),
                     receiver1.getListOfReceivedMessages().size() + receiver2.getListOfReceivedMessages().size());
         } else {
-            receiver1.setReceiveTimeOut(120000);
+            receiver1.setReceiveTimeout(120000);
             receiver1.join();
             log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
             log.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());

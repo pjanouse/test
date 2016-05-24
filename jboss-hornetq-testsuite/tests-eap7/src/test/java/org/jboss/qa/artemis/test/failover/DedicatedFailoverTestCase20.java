@@ -410,7 +410,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(100);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -418,7 +418,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 5, 10);
         receiver1.setTimeout(5);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
 
         long startTime = System.currentTimeMillis();
@@ -997,7 +997,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
 
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        p.setMessageVerifier(queueTextMessageVerifier);
+        p.addMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);
         p.setCommitAfter(2);
@@ -1068,9 +1068,9 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         } else {
             r = new ReceiverTransAck(container(2), queueJndiNamePrefix + 0);
         }
-        r.setMessageVerifier(queueTextMessageVerifier);
+        r.addMessageVerifier(queueTextMessageVerifier);
         r.setCommitAfter(100);
-        r.setReceiveTimeOut(5000);
+        r.setReceiveTimeout(5000);
         r.start();
         r.join(300000);
 

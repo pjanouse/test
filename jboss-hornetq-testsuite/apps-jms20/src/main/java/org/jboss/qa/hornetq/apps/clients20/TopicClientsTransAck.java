@@ -82,7 +82,7 @@ public class TopicClientsTransAck implements Clients {
 
                 verifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
 
-                subscriber.setMessageVerifier(verifier);
+                subscriber.addMessageVerifier(verifier);
 
                 subscriber.setCommitAfter(receivedMessagesAckAfter);
 
@@ -179,7 +179,7 @@ public class TopicClientsTransAck implements Clients {
         for (PublisherTransAck publisher : getPublishers()) {
             if (publisher.getException() != null) {
                 isOk = false;
-                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getTopicNameJndi()
+                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getDestinationNameJndi()
                         + " got exception: " + publisher.getException().getMessage());
             }
         }
@@ -187,21 +187,16 @@ public class TopicClientsTransAck implements Clients {
         for (SubscriberTransAck subscriber : getSubscribers()) {
             if (subscriber.getException() != null) {
                 isOk = false;
-                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getTopicNameJndi()
+                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getDestinationNameJndi()
                         + " got exception: " + subscriber.getException().getMessage());
             }
         }
 
         // check message verifiers
         for (SubscriberTransAck subscriber : getSubscribers()) {
-            logger.info("################################################################");
-            logger.info("Subscriber on topic: " + subscriber.getTopicNameJndi()
-                    + " with name: " + subscriber.getSubscriberName() + " -- Number of received messages: " + subscriber.getMessageVerifier().getReceivedMessages().size()
-                    + " Number of sent messages: " + subscriber.getMessageVerifier().getSentMessages().size());
-            if (!subscriber.getMessageVerifier().verifyMessages()) {
+            if (!subscriber.verifyMessages()) {
                 isOk = false;
             }
-            logger.info("################################################################");
         }
 
         // check exceptions

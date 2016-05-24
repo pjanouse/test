@@ -11,32 +11,6 @@ import javax.jms.Session;
 
 public class NonDurableTopicSubscriberAutoAck extends NonDurableTopicSubscriber {
 
-    @Deprecated
-    public NonDurableTopicSubscriberAutoAck(String hostname, int port, String topicJndiName) {
-        super(EAP6_CONTAINER, hostname, port, topicJndiName, TimeUnit.SECONDS.toMillis(30), 5);
-    }
-
-    @Deprecated
-    public NonDurableTopicSubscriberAutoAck(String containerType, String hostname, int port,
-            String topicJndiName) {
-
-        super(containerType, hostname, port, topicJndiName, TimeUnit.SECONDS.toMillis(30), 5);
-    }
-
-    @Deprecated
-    public NonDurableTopicSubscriberAutoAck(String hostname, int port, String topicJndiName,
-            long receiveTimeout, int maxRetries) {
-
-        super(EAP6_CONTAINER, hostname, port, topicJndiName, receiveTimeout, maxRetries);
-    }
-
-    @Deprecated
-    public NonDurableTopicSubscriberAutoAck(String containerType, String hostname, int port,
-            String topicJndiName, long receiveTimeout, int maxRetries) {
-
-        super(containerType, hostname, port, topicJndiName, receiveTimeout, maxRetries);
-    }
-
     public NonDurableTopicSubscriberAutoAck(Container container, String topicJndiName,
                                             long receiveTimeout, int maxRetries) {
 

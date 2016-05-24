@@ -410,7 +410,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        PublisherTransAck publisher = new PublisherTransAck(container(1).getHostname(), container(1).getJNDIPort(),
+        PublisherTransAck publisher = new PublisherTransAck(container(1),
                 topicJndiName + "0", 30, "publisher");
         publisher.setCommitAfter(10);
         publisher.setTimeout(0);

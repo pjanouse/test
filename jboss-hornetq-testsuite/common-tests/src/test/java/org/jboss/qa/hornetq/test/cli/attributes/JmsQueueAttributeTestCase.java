@@ -86,7 +86,7 @@ public class JmsQueueAttributeTestCase extends CliTestBase {
         cliClient.executeForSuccess(address + ":add(durable=true,entries=[\"java:/" + queueJndiName + "\", \"java:jboss/exported/" + queueJndiName + "\"])");
 
         // send some messages to it
-        ProducerClientAck producer = new ProducerClientAck(container(1).getContainerType().toString(),container(1).getHostname(), container(1).getJNDIPort(), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         producer.start();
         producer.join();

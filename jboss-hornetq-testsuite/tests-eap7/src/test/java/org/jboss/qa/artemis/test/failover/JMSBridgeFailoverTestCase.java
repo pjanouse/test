@@ -95,7 +95,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         messageBuilder.setAddDuplicatedHeader(true);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1));
@@ -148,7 +148,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
         }
         receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 130000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
 

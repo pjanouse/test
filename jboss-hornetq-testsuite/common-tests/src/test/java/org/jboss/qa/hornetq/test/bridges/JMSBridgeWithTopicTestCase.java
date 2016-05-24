@@ -41,7 +41,7 @@ public class JMSBridgeWithTopicTestCase extends JMSBridgeTestCase {
 
         SubscriberClientAck receiver = new SubscriberClientAck(outServer,
                 outTopicJndiName, 10000, 100, 10, "subID", "sub1");
-        receiver.setMessageVerifier(messageVerifier);
+        receiver.addMessageVerifier(messageVerifier);
         receiver.start();
         receiver.join();
         producer.join();

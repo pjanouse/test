@@ -35,10 +35,6 @@ public class FilterSoakClient extends Client {
 
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
 
-    private final Container container;
-
-    private final int port;
-
     private final int numberOfMessages;
 
     private ProducerThread producerThread;
@@ -52,9 +48,7 @@ public class FilterSoakClient extends Client {
     private List<String> receivedMessages = new ArrayList<String>();
 
     public FilterSoakClient(final Container container, final int numberOfMessages) {
-        super(container.getName());
-        this.container = container;
-        this.port = container.getJNDIPort();
+        super(container, null, 0, 1000);
         this.numberOfMessages = numberOfMessages;
     }
 

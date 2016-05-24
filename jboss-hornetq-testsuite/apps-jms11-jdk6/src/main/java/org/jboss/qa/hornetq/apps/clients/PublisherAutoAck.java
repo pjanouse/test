@@ -2,18 +2,17 @@ package org.jboss.qa.hornetq.apps.clients;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.Topic;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Publisher with client acknowledge session. Able to fail over.
@@ -22,31 +21,11 @@ import java.util.Map;
  *
  * @author mnovak@redhat.com
  */
-public class PublisherAutoAck extends Client {
+public class PublisherAutoAck extends Producer11 {
 
     private static final Logger logger = Logger.getLogger(PublisherAutoAck.class);
-    private int maxRetries = 30;
-    private String hostname = "localhost";
-    private int port = 4447;
-    private String topicNameJndi;
-    private int messages = 1000;
-    private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-    private List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
-    private List<FinalTestMessageVerifier> messageVerifiers;
-    private Exception exception = null;
-    private String clientId;
-    private boolean stop = false;
 
-    /**
-     * @param hostname       hostname
-     * @param port           port
-     * @param messages       number of messages to send
-     * @param topicNameJndi  set jndi name of the topic to send messages
-     */
-    @Deprecated
-    public PublisherAutoAck(String hostname, int port, String topicNameJndi, int messages, String clientId) {
-        this(EAP6_CONTAINER, hostname, port, topicNameJndi, messages, clientId);
-    }
+    private String clientId;
 
     /**
      * @param container      container instance
@@ -55,21 +34,13 @@ public class PublisherAutoAck extends Client {
      * @param clientId       clientID
      */
     public PublisherAutoAck(Container container, String topicNameJndi, int messages, String clientId) {
-       super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.messages = messages;
-        this.topicNameJndi = topicNameJndi;
+        super(container, topicNameJndi, messages);
         this.clientId = clientId;
     }
 
     @Deprecated
-    public PublisherAutoAck(String container, String hostname, int port, String topicNameJndi, int messages, String clientId) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.messages = messages;
-        this.topicNameJndi = topicNameJndi;
+    public PublisherAutoAck(String container, String hostname, int jndiPort, String topicNameJndi, int messages, String clientId) {
+        super(container, hostname, jndiPort, topicNameJndi, messages);
         this.clientId = clientId;
     }
 
@@ -90,7 +61,7 @@ public class PublisherAutoAck extends Client {
 
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
 
-            Topic topic = (Topic) context.lookup(getTopicNameJndi());
+            Topic topic = (Topic) context.lookup(getDestinationNameJndi());
 
             con = cf.createConnection();
 
@@ -102,11 +73,13 @@ public class PublisherAutoAck extends Client {
 
             Message msg = null;
 
-            while (counter < messages && !stop) {
+            while (!stopSending.get() && counter < messages) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
                 // send message in while cycle
                 sendMessage(publisher, msg);
+                msg = cleanMessage(msg);
+                addMessage(listOfSentMessages, msg);
 
                 Thread.sleep(getTimeout());
 
@@ -116,12 +89,7 @@ public class PublisherAutoAck extends Client {
 
             publisher.close();
 
-            if (messageVerifiers != null) {
-                for (FinalTestMessageVerifier finalTestMessageVerifier : messageVerifiers) {
-                    finalTestMessageVerifier.addSendMessages(listOfSentMessages);
-                }
-
-            }
+            addSendMessages(listOfSentMessages);
 
         } catch (Exception e) {
             exception = e;
@@ -148,163 +116,6 @@ public class PublisherAutoAck extends Client {
                 }
             }
         }
-    }
-
-    /**
-     * Send message to server. Try send message and if succeed than return. If
-     * send fails and exception is thrown it tries send again until max retry is
-     * reached. Then throws new Exception.
-     *
-     * @param publisher
-     * @param msg
-     */
-    private void sendMessage(MessageProducer publisher, Message msg) throws Exception {
-        int numberOfRetries = 0;
-
-        while (numberOfRetries < maxRetries) {
-            try {
-                if (numberOfRetries > 0) {
-                    logger.info("Retry sent - number of retries: (" + numberOfRetries + ") message: " + msg.getJMSMessageID() + ", counter: " + counter);
-                }
-                numberOfRetries++;
-                publisher.send(msg);
-                msg = cleanMessage(msg);
-                addMessage(listOfSentMessages, msg);
-                counter++;
-                return;
-
-            } catch (JMSException ex) {
-                logger.error("Failed to send message - counter: " + counter, ex);
-            }
-        }
-        // this is an error - here we should never be because max retrie expired
-        throw new Exception("FAILURE - MaxRetry reached for publisher for node: " + hostname
-                + ". Sent message with property count: " + counter
-                + ", messageId:" + msg.getJMSMessageID());
-    }
-
-    /**
-     * Stop producer
-     */
-    public void stopSending() {
-        this.stop = true;
-    }
-
-    /**
-     * @return the hostname
-     */
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * @return the messages
-     */
-    public int getMessages() {
-        return messages;
-    }
-
-    /**
-     * @param messages the messages to set
-     */
-    public void setMessages(int messages) {
-        this.messages = messages;
-    }
-
-    /**
-     * @return the listOfSentMessages
-     */
-    public List<Map<String,String>> getListOfSentMessages() {
-        return listOfSentMessages;
-    }
-
-    /**
-     * @param listOfSentMessages the listOfSentMessages to set
-     */
-    public void setListOfSentMessages(List<Map<String,String>> listOfSentMessages) {
-        this.listOfSentMessages = listOfSentMessages;
-    }
-
-    /**
-     * @return the messageVerifier
-     */
-    public List<FinalTestMessageVerifier> getMessageVerifiers() {
-        return messageVerifiers;
-    }
-
-    /**
-     * @param messageVerifier the messageVerifier to set
-     */
-    public void setMessageVerifiers(List<FinalTestMessageVerifier> messageVerifier) {
-        this.messageVerifiers = messageVerifier;
-    }
-
-    /**
-     * @return the exception
-     */
-    public Exception getException() {
-        return exception;
-    }
-
-    /**
-     * @param exception the exception to set
-     */
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
-    /**
-     * @return the topicNameJndi
-     */
-    public String getTopicNameJndi() {
-        return topicNameJndi;
-    }
-
-    /**
-     * @param topicNameJndi the topicNameJndi to set
-     */
-    public void setTopicNameJndi(String topicNameJndi) {
-        this.topicNameJndi = topicNameJndi;
-    }
-
-    @Override
-    public int getCount() {
-        return counter;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        PublisherAutoAck p = new PublisherAutoAck(HornetQTestCaseConstants.EAP6_CONTAINER, "192.168.1.1", 4447, "jms/topic/InTopic", 100, "mnovakClientIdPublisher");
-        p.start();
-        p.join();
-    }
-
-    public MessageBuilder getMessageBuilder() {
-        return messageBuilder;
-    }
-
-    public void setMessageBuilder(MessageBuilder messageBuilder) {
-        this.messageBuilder = messageBuilder;
     }
 }
 

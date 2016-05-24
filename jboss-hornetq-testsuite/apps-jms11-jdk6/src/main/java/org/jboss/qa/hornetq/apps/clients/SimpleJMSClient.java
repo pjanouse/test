@@ -23,12 +23,7 @@ public class SimpleJMSClient extends Client {
     // Logger
     private static final Logger log = Logger.getLogger(SimpleJMSClient.class);
 
-    private String connectionFactoryName = "jms/RemoteConnectionFactory";
-    private String hostname;
-    private int port;
-
     private MessageBuilder messageBuilder;
-    private MessageVerifier messageVerifier;
 
     private int messages;
     private int sentMessages;
@@ -49,57 +44,6 @@ public class SimpleJMSClient extends Client {
     /**
      * Constructor
      *
-     * @param hostname           target host
-     * @param port               target port
-     * @param messages           count of messages to be send
-     * @param ackMode            acknowledge mode
-     * @param transactionSession is session transacted
-     */
-    @Deprecated
-    public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession) {
-        this(hostname, port, messages, ackMode, transactionSession, new ByteMessageBuilder());
-    }
-
-    /**
-     * Constructor
-     *
-     * @param hostname           target host
-     * @param port               target port
-     * @param messages           count of messages to be send
-     * @param ackMode            acknowledge mode
-     * @param transactionSession is session transacted
-     * @param messageBuilder     messages builder used for building messages
-     */
-    @Deprecated
-    public SimpleJMSClient(String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
-        this(EAP6_CONTAINER, hostname, port, messages, ackMode, transactionSession, messageBuilder);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param container         container
-     * @param hostname           target host
-     * @param port               target port
-     * @param messages           count of messages to be send
-     * @param ackMode            acknowledge mode
-     * @param transactionSession is session transacted
-     * @param messageBuilder     messages builder used for building messages
-     */
-    @Deprecated
-    public SimpleJMSClient(String container, String hostname, int port, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
-        this.messages = messages;
-        this.ackMode = ackMode;
-        this.transactionSession = transactionSession;
-        this.messageBuilder = messageBuilder;
-    }
-
-    /**
-     * Constructor
-     *
      * @param container         container
      * @param messages           count of messages to be send
      * @param ackMode            acknowledge mode
@@ -107,9 +51,7 @@ public class SimpleJMSClient extends Client {
      * @param messageBuilder     messages builder used for building messages
      */
     public SimpleJMSClient(Container container, int messages, int ackMode, boolean transactionSession, MessageBuilder messageBuilder) {
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
+        super(container, null, 0, 10);
         this.messages = messages;
         this.ackMode = ackMode;
         this.transactionSession = transactionSession;
@@ -158,7 +100,7 @@ public class SimpleJMSClient extends Client {
         }
         try {
             context = getContext(hostname, port);
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
             Queue queue = (Queue) context.lookup(queueJNDIName);
             connection = cf.createConnection();
             if (this.transactionSession) {
@@ -218,7 +160,7 @@ public class SimpleJMSClient extends Client {
         Session session = null;
         try {
             context = getContext(hostname, port);
-            ConnectionFactory cf = (ConnectionFactory) context.lookup(this.connectionFactoryName);
+            ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
             Queue queue = (Queue) context.lookup(queueJNDIName);
             connection = cf.createConnection();
             if (this.transactionSession) {
@@ -232,9 +174,6 @@ public class SimpleJMSClient extends Client {
             MessageConsumer consumer = session.createConsumer(queue);
             int counter = 0;
             while ((message = consumer.receive(this.receiveTimeout)) != null) {
-                if (this.messageVerifier != null) {
-                    this.messageVerifier.verifyMessage(message);
-                }
                 if (this.ackMode == Session.CLIENT_ACKNOWLEDGE) {
                     message.acknowledge();
                 }
@@ -309,14 +248,6 @@ public class SimpleJMSClient extends Client {
         }
     }
 
-    public String getConnectionFactoryName() {
-        return connectionFactoryName;
-    }
-
-    public void setConnectionFactoryName(String connectionFactoryName) {
-        this.connectionFactoryName = connectionFactoryName;
-    }
-
     public String getHostname() {
         return hostname;
     }
@@ -339,14 +270,6 @@ public class SimpleJMSClient extends Client {
 
     public void setMessageBuilder(MessageBuilder messageBuilder) {
         this.messageBuilder = messageBuilder;
-    }
-
-    public MessageVerifier getMessageVerifier() {
-        return messageVerifier;
-    }
-
-    public void setMessageVerifier(MessageVerifier messageVerifier) {
-        this.messageVerifier = messageVerifier;
     }
 
     public int getMessages() {

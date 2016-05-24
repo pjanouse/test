@@ -21,17 +21,9 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 /**
  * Base class for topic consumers, both durable and non-durable
  */
-abstract class AbstractMessageConsumer extends Client {
+abstract class AbstractMessageConsumer extends Receiver {
 
     private static final Logger LOG = Logger.getLogger(AbstractMessageConsumer.class);
-
-    private final String hostname;
-    private final int port;
-
-    private final String destinationJndiName;
-
-    private final int maxRetries;
-    private final long receiveTimeout;
 
     protected FinalTestMessageVerifier verifier;
     protected List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
@@ -45,31 +37,10 @@ abstract class AbstractMessageConsumer extends Client {
 
     protected MessageConsumer consumer;
 
-    @Deprecated
-    protected AbstractMessageConsumer(String containerType, String hostname, int port,
-            String destinationJndiName, long receiveTimeout, int maxRetries) {
-
-        super(containerType);
-        this.hostname = hostname;
-        this.port = port;
-        this.destinationJndiName = destinationJndiName;
-        this.maxRetries = maxRetries;
-        this.receiveTimeout = receiveTimeout;
-
-        setTimeout(0); // set default receive timeout to 0 to read with max speed
-    }
-
     protected AbstractMessageConsumer(Container container,
                                       String destinationJndiName, long receiveTimeout, int maxRetries) {
 
-        super(container);
-        this.hostname = container.getHostname();
-        this.port = container.getJNDIPort();
-        this.destinationJndiName = destinationJndiName;
-        this.maxRetries = maxRetries;
-        this.receiveTimeout = receiveTimeout;
-
-        setTimeout(0); // set default receive timeout to 0 to read with max speed
+        super(container, destinationJndiName, receiveTimeout, maxRetries);
     }
 
     @Override
@@ -79,7 +50,7 @@ abstract class AbstractMessageConsumer extends Client {
             ConnectionFactory cf = (ConnectionFactory) context.lookup(getConnectionFactoryJndiName());
             connection = createConnection(cf);
 
-            destination = (Destination) context.lookup(destinationJndiName);
+            destination = (Destination) context.lookup(destinationNameJndi);
 
             session = createSession(connection);
             consumer = createConsumer(session);
@@ -149,64 +120,22 @@ abstract class AbstractMessageConsumer extends Client {
             msgId = "(unknown)";
         }
 
-        return "Consumer for node " + hostname + " and destination " + destinationJndiName
+        return "Consumer for node " + hostname + " and destination " + destinationNameJndi
                 + " received message - count " + count + ", messageId " + msgId;
     }
 
     protected String receivingFinishedLogEntry() {
-        return "Consumer for node " + hostname + " and destination " + destinationJndiName
+        return "Consumer for node " + hostname + " and destination " + destinationNameJndi
                 + " received NULL - number of received messages is " + count;
     }
 
     protected String retryLogEntry() {
-        return "RETRY receive for host " + hostname + " and destination " + destinationJndiName
+        return "RETRY receive for host " + hostname + " and destination " + destinationNameJndi
                 + ", trying to receive message with counter " + (count + 1);
     }
 
     protected String receiveFailureLogEntry() {
         return "FAILURE max retry reached for receiver for host " + hostname + " and destination"
-                + destinationJndiName;
+                + destinationNameJndi;
     }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
-    public String getDestinationJndiName() {
-        return destinationJndiName;
-    }
-
-    @Override
-    public int getCount() {
-        return count;
-    }
-
-    public Exception getException() {
-        return exception;
-    }
-
-    public FinalTestMessageVerifier getVerifier() {
-        return verifier;
-    }
-
-    public void setVerifier(FinalTestMessageVerifier verifier) {
-        this.verifier = verifier;
-    }
-
-    public List<Map<String, String>> getListOfReceivedMessages() {
-        return listOfReceivedMessages;
-    }
-
-    public void setListOfReceivedMessages(List<Map<String, String>> listOfReceivedMessages) {
-        this.listOfReceivedMessages = listOfReceivedMessages;
-    }
-
 }

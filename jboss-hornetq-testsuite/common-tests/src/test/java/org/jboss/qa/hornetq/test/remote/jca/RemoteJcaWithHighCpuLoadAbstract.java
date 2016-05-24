@@ -72,7 +72,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -101,7 +101,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1)));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
@@ -245,7 +245,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
         new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
@@ -284,7 +284,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -378,7 +378,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 
@@ -418,7 +418,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
 
         new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));

@@ -271,7 +271,7 @@ public class AppleFailoverTestCase extends HornetQTestCase {
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.setTimeout(0);
         producer1.setCommitAfter(1000);
         producer1.start();
@@ -302,7 +302,7 @@ public class AppleFailoverTestCase extends HornetQTestCase {
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 30000, 10, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
         receiver1.join();

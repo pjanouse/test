@@ -24,29 +24,6 @@ public class NonDurableTopicSubscriberTransAck extends NonDurableTopicSubscriber
     private List<Message> listOfReceivedMessagesToBeCommited = new ArrayList<Message>();
     private Set<Message> setOfReceivedMessagesWithPossibleDuplicatesForLaterDuplicateDetection = new HashSet<Message>();
 
-
-    @Deprecated
-    public NonDurableTopicSubscriberTransAck(String hostname, int port, String topicJndiName) {
-        super(EAP6_CONTAINER, hostname, port, topicJndiName, TimeUnit.SECONDS.toMillis(30), 5);
-        this.commitAfter = 10;
-    }
-
-    @Deprecated
-    public NonDurableTopicSubscriberTransAck(String containerType, String hostname, int port,
-            String topicJndiName) {
-
-        super(containerType, hostname, port, topicJndiName, TimeUnit.SECONDS.toMillis(30), 5);
-        this.commitAfter = 10;
-    }
-
-    @Deprecated
-    public NonDurableTopicSubscriberTransAck(String hostname, int port, String topicJndiName,
-            long receiveTimeout, int commitAfter, int maxRetries) {
-
-        super(EAP6_CONTAINER, hostname, port, topicJndiName, receiveTimeout, maxRetries);
-        this.commitAfter = commitAfter;
-    }
-
     public NonDurableTopicSubscriberTransAck(Container container, int port, String topicJndiName,
                                              long receiveTimeout, int commitAfter, int maxRetries) {
 

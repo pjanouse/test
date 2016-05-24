@@ -206,7 +206,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
 
@@ -230,7 +230,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        logger.info("########################################");
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), inQueue, 30000, 1000, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 
         receiver1.start();

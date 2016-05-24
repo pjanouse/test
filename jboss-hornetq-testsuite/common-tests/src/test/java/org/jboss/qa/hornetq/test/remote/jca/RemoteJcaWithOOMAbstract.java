@@ -161,7 +161,7 @@ public abstract class RemoteJcaWithOOMAbstract extends RemoteJcaLoadTestBase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.setCommitAfter(10);
         producer1.setTimeout(0);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         producer1.start();
         producer1.join();
 

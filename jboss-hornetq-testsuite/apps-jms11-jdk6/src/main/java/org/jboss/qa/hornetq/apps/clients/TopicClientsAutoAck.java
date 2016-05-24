@@ -107,7 +107,7 @@ public class TopicClientsAutoAck implements Clients {
 
                 verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container));
 
-                subscriber.setMessageVerifier(verifier);
+                subscriber.addMessageVerifier(verifier);
 
                 topicTextMessageVerifiers.add(verifier);
 
@@ -200,7 +200,7 @@ public class TopicClientsAutoAck implements Clients {
         for (PublisherAutoAck publisher : getPublishers()) {
             if (publisher.getException() != null) {
                 isOk = false;
-                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getTopicNameJndi()
+                logger.error("Publisher for host " + publisher.getHostname() + " and topic " + publisher.getDestinationNameJndi()
                         + " got exception: " + publisher.getException().getMessage());
             }
         }
@@ -208,21 +208,16 @@ public class TopicClientsAutoAck implements Clients {
         for (SubscriberAutoAck subscriber : getSubscribers()) {
             if (subscriber.getException() != null) {
                 isOk = false;
-                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getTopicNameJndi()
+                logger.error("Subscriber for host " + subscriber.getHostname() + " and topic " + subscriber.getDestinationNameJndi()
                         + " got exception: " + subscriber.getException().getMessage());
             }
         }
 
         // check message verifiers
         for (SubscriberAutoAck subscriber : getSubscribers()) {
-            logger.info("################################################################");
-            logger.info("Subscriber on topic: " + subscriber.getTopicNameJndi()
-                    + " with name: " + subscriber.getSubscriberName() + " -- Number of received messages: " + subscriber.getMessageVerifier().getReceivedMessages().size()
-                    + " Number of sent messages: " + subscriber.getMessageVerifier().getSentMessages().size());
-            if (!subscriber.getMessageVerifier().verifyMessages()) {
+                        if (!subscriber.verifyMessages()) {
                 isOk = false;
             }
-            logger.info("################################################################");
         }
 
         // check exceptions
@@ -431,21 +426,4 @@ public class TopicClientsAutoAck implements Clients {
         }
         return list;
     }
-
-    public static void main(String[] args) throws InterruptedException, Exception {
-
-        TopicClientsAutoAck clients =
-                new TopicClientsAutoAck("192.168.1.1", 4447, "jms/topic/testTopic", 2, 1, 2, 300);
-        clients.startClients();
-        while (!clients.isFinished()) {
-            Thread.sleep(1000);
-        }
-
-        clients.evaluateResults();
-
-    }
-
-
-
-
 }

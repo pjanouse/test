@@ -309,6 +309,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
             for (Client client : usedClients) {
                 log.info("" + client + " isAlive=" + client.isAlive());
                 if (client.isAlive()) {
+                    client.forcedStop();
                     allClientsAreStopped = false;
                 }
             }
@@ -321,8 +322,8 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
         for (Client client : usedClients) {
             log.info("" + client + " isAlive=" + client.isAlive());
             if (client.isAlive()) {
-                client.interrupt();
                 stopped = false;
+                break;
             }
         }
         if (!stopped) {
