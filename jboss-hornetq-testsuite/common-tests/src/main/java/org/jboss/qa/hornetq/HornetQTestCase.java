@@ -15,37 +15,22 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.JdbcUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.naming.Context;
-import javax.naming.NamingException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,7 +40,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.ServiceLoader;
-import java.util.StringTokenizer;
 
 /**
  * Parent class for all HornetQ test cases. Provides an abstraction of used container
@@ -125,6 +109,8 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
      * @deprecated use @Container deploy/undeploy methods instead
      */
     protected Deployer deployer;
+
+    protected List<Client> usedClients = new ArrayList<Client>();
 
     // this property is initialized during BeforeClass phase by ArquillianConfiguration extension
     private static ArquillianDescriptor arquillianDescriptor;
@@ -312,6 +298,36 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
     public void stopAllServers() {
         for (org.jboss.qa.hornetq.Container c : containerList()) {
             c.stop();
+        }
+    }
+
+    @After
+    public void stopAllClients() throws Exception {
+        long timeToWait = System.currentTimeMillis() + 30000;
+        while (timeToWait < System.currentTimeMillis()) {
+            boolean allClientsAreStopped = true;
+            for (Client client : usedClients) {
+                log.info("" + client + " isAlive=" + client.isAlive());
+                if (client.isAlive()) {
+                    allClientsAreStopped = false;
+                }
+            }
+            if (allClientsAreStopped) {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        boolean stopped = true;
+        for (Client client : usedClients) {
+            log.info("" + client + " isAlive=" + client.isAlive());
+            if (client.isAlive()) {
+                client.interrupt();
+                stopped = false;
+            }
+        }
+        if (!stopped) {
+            DebugTools.printThreadDump();
+            Assert.fail("Clients did not stopped in 30 seconds.");
         }
     }
 
@@ -854,6 +870,11 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
                 + ". Are there unfinished transactions?: " + unfinishedTransactions2);
         return unfinishedTransactions2;
 
+    }
+
+    protected Client addClient(Client client) {
+        usedClients.add(client);
+        return client;
     }
 
 }

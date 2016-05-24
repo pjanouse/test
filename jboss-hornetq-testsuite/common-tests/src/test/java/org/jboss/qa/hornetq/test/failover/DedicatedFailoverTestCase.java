@@ -399,6 +399,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         Thread.sleep(10000);
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
+        addClient(producerToInQueue1);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.setMessageVerifier(messageVerifier);
@@ -408,6 +409,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), testQueue0JndiName, 30000, 5, 10);
+        addClient(receiver1);
         receiver1.setTimeout(5);
         receiver1.setMessageVerifier(messageVerifier);
         receiver1.start();

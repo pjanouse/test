@@ -948,15 +948,25 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
+            @BMRule(name = "HornetQ: Increment counter after the backup is synced with live",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     condition = "!$0.isSynchronizing()",
+                    action = "incrementCounter(\"counter\")"),
+            @BMRule(name = "HornetQ: Kill server after the counter is 10",
+                    targetClass = "org.hornetq.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    condition = "readCounter(\"counter\") == 10",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Artemis: Kill server after the backup is synced with live",
+            @BMRule(name = "Artemis: Increment counter after the backup is synced with live",
                     targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
                     targetMethod = "appendCommitRecord",
                     condition = "!$0.isSynchronizing()",
+                    action = "incrementCounter(\"counter\")"),
+            @BMRule(name = "Artemis: Kill server after the counter is 10",
+                    targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
+                    targetMethod = "appendCommitRecord",
+                    condition = "readCounter(\"counter\") == 10",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
     })
     @Test
