@@ -63,7 +63,7 @@ public class TemporaryQueuesSoakClient extends Client {
     public TemporaryQueuesSoakClient(final Container container, final int jndiPort,
             final long numberOfMessages, final int numberOfResponseQueues) {
 
-        super(container, null, 0, 1000);
+        super(container, null, 1000);
         this.container = container;
         this.port = jndiPort;
         this.numberOfMessages = numberOfMessages;

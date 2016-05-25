@@ -38,7 +38,7 @@ public class SubscriberClientAck extends Receiver11 {
     }
 
     public SubscriberClientAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
-        super(container, hostname, port, topicNameJndi, 30000, 1000);
+        super(container, hostname, port, topicNameJndi, 1000);
         this.clientId = clientId;
         this.subscriberName = subscriberName;
     }

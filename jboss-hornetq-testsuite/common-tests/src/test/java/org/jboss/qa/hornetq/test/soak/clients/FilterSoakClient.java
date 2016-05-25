@@ -48,7 +48,7 @@ public class FilterSoakClient extends Client {
     private List<String> receivedMessages = new ArrayList<String>();
 
     public FilterSoakClient(final Container container, final int numberOfMessages) {
-        super(container, null, 0, 1000);
+        super(container, null, 1000);
         this.numberOfMessages = numberOfMessages;
     }
 

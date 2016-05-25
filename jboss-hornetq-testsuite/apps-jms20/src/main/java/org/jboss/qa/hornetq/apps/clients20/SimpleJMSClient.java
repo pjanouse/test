@@ -49,7 +49,7 @@ public class SimpleJMSClient extends Client {
      * @param messageBuilder     messages builder used for building messages
      */
     public SimpleJMSClient(Container container, int messages, int ackMode, MessageBuilder messageBuilder) {
-        super(container, null, 0, 10);
+        super(container, null, 10);
         this.messages = messages;
         this.ackMode = ackMode;
         this.messageBuilder = messageBuilder;

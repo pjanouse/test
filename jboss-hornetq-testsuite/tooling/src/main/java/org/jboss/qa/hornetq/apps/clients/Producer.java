@@ -19,13 +19,13 @@ public class Producer extends Client {
     protected List<Message> listOfMessagesToBeCommited = new ArrayList<Message>();
 
     public Producer(Container container, String destinationNameJndi, int messages, int maxRetries) {
-        super(container, destinationNameJndi, 0, maxRetries);
+        super(container, destinationNameJndi, maxRetries);
         this.messages = messages;
     }
 
     @Deprecated
     public Producer(String container, String hostname, int jndiPort, String destinationNameJndi, int messages) {
-        super(container, hostname, jndiPort, destinationNameJndi, 0, 1000);
+        super(container, hostname, jndiPort, destinationNameJndi, 1000);
         this.messages = messages;
     }
 

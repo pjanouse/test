@@ -16,8 +16,8 @@ public class Receiver11 extends Receiver {
     private static final Logger logger = Logger.getLogger(ReceiverTransAck.class);
 
     @Deprecated
-    public Receiver11(String container, String hostname, int jndiPort, String destinationNameJndi, long timeout, int maxRetries) {
-        super(container, hostname, jndiPort, destinationNameJndi, timeout, maxRetries);
+    public Receiver11(String container, String hostname, int jndiPort, String destinationNameJndi, int maxRetries) {
+        super(container, hostname, jndiPort, destinationNameJndi, maxRetries);
     }
 
     public Receiver11(Container container, String destinationNameJndi, long receiveTimeOut, int maxRetries) {

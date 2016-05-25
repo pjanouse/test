@@ -60,7 +60,7 @@ public class Client extends Thread implements HornetQTestCaseConstants {
      * @param currentContainerForTest currentContainerForTest - see @HornetQTestCaseConstants
      */
     @Deprecated
-    public Client(String currentContainerForTest, String hostname, int jndiPort, String destinationNameJndi, long timeout, int maxRetries) {
+    public Client(String currentContainerForTest, String hostname, int jndiPort, String destinationNameJndi, int maxRetries) {
 
         if (EAP5_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP5_CONTAINER;
@@ -81,11 +81,10 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         this.hostname = hostname;
         this.port = jndiPort;
         this.destinationNameJndi = destinationNameJndi;
-        this.timeout = timeout;
         this.maxRetries = maxRetries;
     }
 
-    public Client(Container container, String destinationNameJndi, long timeout,
+    public Client(Container container, String destinationNameJndi,
                   int maxRetries) {
         this.container = container;
         this.currentContainer = container.getContainerType().toString();
@@ -93,7 +92,6 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         this.hostname = container.getHostname();
         this.port = container.getJNDIPort();
         this.destinationNameJndi = destinationNameJndi;
-        this.timeout = timeout;
         this.maxRetries = maxRetries;
     }
     /**

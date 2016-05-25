@@ -22,14 +22,16 @@ public class Receiver extends Client {
     protected List<Message> listOfReceivedInDoubtMessages = new ArrayList<Message>();
 
     @Deprecated
-    public Receiver(String container, String hostname, int jndiPort, String destinationNameJndi, long timeout, int maxRetries) {
-        super(container, hostname, jndiPort, destinationNameJndi, timeout, maxRetries);
+    public Receiver(String container, String hostname, int jndiPort, String destinationNameJndi, int maxRetries) {
+        super(container, hostname, jndiPort, destinationNameJndi, maxRetries);
+        setTimeout(0);
     }
 
     public Receiver(Container container, String destinationNameJndi, long receiveTimeOut,
                     int maxRetries) {
-        super(container, destinationNameJndi, 0, maxRetries);
+        super(container, destinationNameJndi, maxRetries);
         this.receiveTimeout = receiveTimeOut;
+        setTimeout(0);
     }
 
     protected void logInDoubtMessages() throws JMSException {

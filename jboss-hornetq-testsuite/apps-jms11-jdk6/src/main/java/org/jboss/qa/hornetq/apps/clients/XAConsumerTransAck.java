@@ -95,7 +95,7 @@ public class XAConsumerTransAck extends Client {
      * @param backupServer       backup server for recovery manager
      */
     public XAConsumerTransAck(Container containerToConnect, String queueNameJndi, Container liveServer, Container backupServer) {
-        super(containerToConnect, queueNameJndi, 0, 10000);
+        super(containerToConnect, queueNameJndi, 10000);
         this.hostname = containerToConnect.getHostname();
         this.port = containerToConnect.getJNDIPort();
         this.queueNameJndi = queueNameJndi;

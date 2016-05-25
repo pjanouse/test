@@ -61,7 +61,7 @@ public class SubscriberAutoAck extends Receiver11 {
     @Deprecated
     public SubscriberAutoAck(String container, String hostname, int port, String topicNameJndi, String clientId, String subscriberName) {
 
-        super(container, hostname, port, topicNameJndi, 0, 30);
+        super(container, hostname, port, topicNameJndi, 30);
         this.clientId = clientId;
         this.subscriberName = subscriberName;
 
