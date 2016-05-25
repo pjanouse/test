@@ -65,19 +65,19 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
-        producer3.setMessageVerifier(messageVerifier);
+        producer3.addMessageVerifier(messageVerifier);
         producer3.start();
         producer3.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), inQueueJndiName);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setReceiveTimeOut(10000);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), inQueueJndiName);
-        receiver2.setMessageVerifier(messageVerifier);
-        receiver2.setReceiveTimeOut(10000);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
 
@@ -87,8 +87,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         long numberOfMessagesOnNode3 = new JMSTools().countMessages(inQueueName, container(3));
 
         ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), inQueueJndiName);
-        receiver3.setMessageVerifier(messageVerifier);
-        receiver3.setReceiveTimeOut(10000);
+        receiver3.addMessageVerifier(messageVerifier);
+        receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);
         receiver3.start();
         receiver3.join();
@@ -128,7 +128,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
-        producer3.setMessageVerifier(messageVerifier);
+        producer3.addMessageVerifier(messageVerifier);
         producer3.start();
         producer3.join();
 
@@ -137,8 +137,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(inQueueName, container(1));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), inQueueJndiName);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setReceiveTimeOut(10000);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -178,7 +178,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
-        producer3.setMessageVerifier(messageVerifier);
+        producer3.addMessageVerifier(messageVerifier);
         producer3.start();
         producer3.join();
 
@@ -187,8 +187,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         long numberOfMessagesOnNode1 = new JMSTools().countMessages(inQueueName, container(1));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), inQueueJndiName);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setReceiveTimeOut(10000);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -223,14 +223,14 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         startServers(true);
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), inQueueJndiName);
-        receiver2.setMessageVerifier(messageVerifier);
-        receiver2.setReceiveTimeOut(10000);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
 
         ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), inQueueJndiName);
-        receiver3.setMessageVerifier(messageVerifier);
-        receiver3.setReceiveTimeOut(10000);
+        receiver3.addMessageVerifier(messageVerifier);
+        receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);
         receiver3.start();
 
@@ -240,7 +240,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
-        producer3.setMessageVerifier(messageVerifier);
+        producer3.addMessageVerifier(messageVerifier);
         producer3.start();
 
         producer3.join();
@@ -313,8 +313,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         boolean allMessagesOnNode2 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages, 120000, container(2));
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), outQueueJndiName);
-        receiver2.setMessageVerifier(messageVerifier);
-        receiver2.setReceiveTimeOut(10000);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
         receiver2.join();
@@ -369,8 +369,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         boolean allMessagesOnNode2 = new JMSTools().waitForMessages(outQueueName, numberOfMesasages, 60000, container(2));
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), outQueueJndiName);
-        receiver2.setMessageVerifier(messageVerifier);
-        receiver2.setReceiveTimeOut(10000);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
         receiver2.join();
@@ -414,19 +414,19 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
-        producer3.setMessageVerifier(messageVerifier);
+        producer3.addMessageVerifier(messageVerifier);
         producer3.start();
         producer3.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), inQueueJndiName);
-        receiver1.setMessageVerifier(messageVerifier);
-        receiver1.setReceiveTimeOut(10000);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), inQueueJndiName);
-        receiver2.setMessageVerifier(messageVerifier);
-        receiver2.setReceiveTimeOut(10000);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
 
@@ -434,8 +434,8 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver2.join();
 
         ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), inQueueJndiName);
-        receiver3.setMessageVerifier(messageVerifier);
-        receiver3.setReceiveTimeOut(10000);
+        receiver3.addMessageVerifier(messageVerifier);
+        receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);
         receiver3.start();
         receiver3.join();

@@ -237,7 +237,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        producer1.setMessageVerifier(messageVerifier);
+        producer1.addMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
@@ -245,7 +245,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         // B1 consumer
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -258,7 +258,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         producer1.stopSending();
         producer1.join();
-        receiver1.setReceiveTimeOut(120000);
+        receiver1.setReceiveTimeout(120000);
         receiver1.join();
 
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
@@ -318,12 +318,12 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
-        producer1.setMessageVerifier(groupMessageVerifier);
+        producer1.addMessageVerifier(groupMessageVerifier);
 
         // B1 consumer
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),  relativeJndiInQueueName, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
-        receiver1.setMessageVerifier(groupMessageVerifier);
+        receiver1.addMessageVerifier(groupMessageVerifier);
 
         log.info("Start producer and receiver.");
         producer1.start();
@@ -339,7 +339,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         producer1.stopSending();
         producer1.join();
-        receiver1.setReceiveTimeOut(10000);
+        receiver1.setReceiveTimeout(10000);
         receiver1.join();
 
         log.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
@@ -376,7 +376,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
                     1, getNumberOfNodesInCluster(container(2)));
 
             ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), relativeJndiInQueueName, 10000, 10, 10);
-            receiver2.setMessageVerifier(groupMessageVerifier);
+            receiver2.addMessageVerifier(groupMessageVerifier);
             receiver2.start();
             receiver2.join();
             // check send and received messages

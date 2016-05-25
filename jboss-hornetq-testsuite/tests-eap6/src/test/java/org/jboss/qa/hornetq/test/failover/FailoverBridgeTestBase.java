@@ -74,7 +74,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         // verify that some messages got to outqueue on container3
@@ -100,7 +100,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(3), outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
@@ -160,14 +160,14 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         ProducerClientAck producerToInQueue1 = new ProducerClientAck(container(3), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         // give it some time for backup to alive
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 120000);
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 10000, 100, 10);
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
@@ -211,7 +211,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
         messageBuilder.setAddDuplicatedHeader(false);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
-        producerToInQueue1.setMessageVerifier(messageVerifier);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
         // verify that some messages got to outqueue on container1
@@ -274,7 +274,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
             receiver1 = new ReceiverClientAck(container(2), outQueueJndiName, 30000, 100, 10);
         }
 
-        receiver1.setMessageVerifier(messageVerifier);
+        receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();

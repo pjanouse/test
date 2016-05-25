@@ -58,7 +58,7 @@ public class SecurityClient extends Client {
      * @param password      password
      */
     public SecurityClient(Container container, String queueNameJndi, int messages, String username, String password) {
-        super(container);
+        super(container, queueNameJndi, 1000);
         this.hostname = container.getHostname();
         this.port = container.getJNDIPort();
         this.messages = messages;
@@ -89,9 +89,7 @@ public class SecurityClient extends Client {
      */
     @Deprecated
     public SecurityClient(String container, String hostname, int port, String queueNameJndi, int messages, String username, String password) {
-        super(container);
-        this.hostname = hostname;
-        this.port = port;
+        super(container, hostname, port, queueNameJndi, 1000);
         this.messages = messages;
         this.queueNameJndi = queueNameJndi;
         this.username = username;
