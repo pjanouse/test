@@ -108,7 +108,7 @@ public class TopicClientsClientAck implements Clients {
 
             for (int subscriberNumber = 0; subscriberNumber < getNumberOfsubscribersPerTopic(); subscriberNumber++) {
 
-                subscriber = new SubscriberClientAck(containerType, getHostnameForSubscribers(), getJndiPort(),
+                subscriber = new SubscriberClientAck(container,
                         getDestionationJndiNamePrefix() + destinationNumber,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
