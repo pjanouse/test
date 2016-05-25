@@ -55,7 +55,8 @@ public class Constants {
         OUT_OF_MEMORY_HEAP_SIZE,
         OUT_OF_MEMORY_UNABLE_TO_OPEN_NEW_NATIE_THREAD,
         GC_PAUSE,
-        CPU_OVERLOAD
+        CPU_OVERLOAD,
+        SOCKET_EXHAUSTION
     }
 
     public enum CONTAINER_TYPE {
