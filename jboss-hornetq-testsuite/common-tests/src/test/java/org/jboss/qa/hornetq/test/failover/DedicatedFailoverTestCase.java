@@ -176,8 +176,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
-                container(2).getHostname(), container(2).getHornetqPort(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -190,7 +189,6 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000);
             CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
@@ -311,9 +309,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             }
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-            Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
-                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
-                    container(2).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
 
             for (Client c : clients.getConsumers()) {
                 Assert.assertTrue("Consumer crashed so crashing the test - this happens when client detects duplicates " +
@@ -334,7 +330,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
 
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
@@ -657,7 +653,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();
@@ -686,35 +682,15 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         // add send messages to sendDivertedMessageVerifier
         for (Client c : clients.getProducers()) {
-
-            if (c instanceof ProducerTransAck) {
-                sendDivertedMessageVerifier.addSendMessages(((ProducerTransAck) c).getListOfSentMessages());
-            }
-            if (c instanceof PublisherTransAck) {
-                sendDivertedMessageVerifier.addSendMessages(((PublisherTransAck) c).getListOfSentMessages());
-            }
+            sendDivertedMessageVerifier.addSendMessages(((Producer) c).getListOfSentMessages());
         }
 
         // count messages in test queue + add those messages to message verifier for receivedDivertedMessageVerifier
         int sum = 0;
 
         for (Client c : clients.getConsumers()) {
-
-            if (c instanceof ReceiverTransAck) {
-
-                sum += ((ReceiverTransAck) c).getListOfReceivedMessages().size();
-
-                receivedDivertedMessageVerifier.addSendMessages(((ReceiverTransAck) c).getListOfReceivedMessages());
-
-            }
-
-            if (c instanceof SubscriberTransAck) {
-
-                sum += ((SubscriberTransAck) c).getListOfReceivedMessages().size();
-
-                receivedDivertedMessageVerifier.addSendMessages(((SubscriberTransAck) c).getListOfReceivedMessages());
-
-            }
+            sum += ((Receiver) c).getListOfReceivedMessages().size();
+            receivedDivertedMessageVerifier.addSendMessages(((Receiver) c).getListOfReceivedMessages());
         }
 
         // check number of messages in diverted queue
@@ -2104,8 +2080,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         }
 
         logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-        Assert.assertTrue("Backup did not start after failover - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(
-                container(2).getHostname(), container(2).getHornetqPort(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
         waitForClientsToFailover();
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 600, 300000);
 
@@ -2119,7 +2094,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Live started again ");
             logger.warn("########################################");
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
             waitForClientsToFailover();

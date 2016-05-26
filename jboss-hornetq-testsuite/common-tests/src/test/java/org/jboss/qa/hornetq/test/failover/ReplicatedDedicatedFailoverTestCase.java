@@ -1088,13 +1088,13 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
-                    condition = "!$0.isSynchronizing()",
-                    action = "System.out.println(\"Byteman - Killing server!!!\");"),
+                    condition = "!$0.isSynchronizing() && flag(\"synced\")",
+                    action = "System.out.println(\"Byteman - Synchronization with backup is done.\");(new java.io.File(\"target/synced\")).createNewFile();"),
             @BMRule(name = "Artemis: Kill server after the backup is synced with live",
                     targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
-                    condition = "!$0.isSynchronizing() && readCounter(\"counter\")==0",
-                    action = "System.out.println(\"Byteman - Synchronization with backup is done.\");(new java.io.File(\"target/synced\")).createNewFile(); incrementCounter(\"counter\");")
+                    condition = "!$0.isSynchronizing() && flag(\"synced\")",
+                    action = "System.out.println(\"Byteman - Synchronization with backup is done.\");(new java.io.File(\"target/synced\")).createNewFile();")
     })
     public void testMultipleFailover(int acknowledge, boolean topic, boolean shutdown) throws Exception {
 
@@ -1137,13 +1137,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
                 logger.warn("########################################");
                 RuleInstaller.installRule(this.getClass(), container(1));
                 Assert.assertTrue("Live was not synced with backup in 2 minues", waitUntilFileExists("target/synced", 120000));
+                System.out.println("@@@@@ CONTAINER IS STOPPING @@@@");
                 container(1).stop();
             }
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-            Assert.assertTrue("Backup did not start after failover - failover failed -  - number of failovers: "
-                    + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
-                    container(2).getHornetqPort(), 300000));
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
 
             for (Client c : clients.getConsumers()) {
                 Assert.assertTrue("Consumer crashed so crashing the test - this happens when client detects duplicates " +
@@ -1164,7 +1163,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
 
             // check that backup is really down
             CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
@@ -1633,7 +1632,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         } else {
             return false;
         }
-
     }
 
 }
