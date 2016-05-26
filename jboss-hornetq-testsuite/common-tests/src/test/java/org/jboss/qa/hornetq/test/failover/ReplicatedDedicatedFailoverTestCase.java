@@ -1012,6 +1012,64 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     }
 
     /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopLiveAndBackupStartBackupAndLive() throws Exception {
+
+        prepareSimpleDedicatedTopology();
+
+        container(1).start();
+        container(2).start();
+        Thread.sleep(5000);
+
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.addMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 60000, 10, 100);
+        receiver.setTimeout(0);
+        receiver.addMessageVerifier(messageVerifier);
+        receiver.start();
+
+        ClientUtils.waitForReceiverUntil(receiver, 320, 300000);
+
+        container(2).stop();
+
+        Thread.sleep(60000);
+
+        container(1).stop();
+
+        Thread.sleep(10000);
+
+        container(1).start();
+
+        container(2).start();
+
+
+        ClientUtils.waitForReceiverUntil(receiver, 2000, 300000);
+
+        prod1.stopSending();
+        prod1.join();
+        receiver.join();
+
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", messageVerifier.verifyMessages());
+
+        container(1).stop();
+
+        container(2).stop();
+
+    }
+
+    /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
      *
