@@ -6,6 +6,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -36,7 +37,9 @@ import javax.jms.Session;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -896,6 +899,72 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         boolean isOK = messageVerifier.verifyMessages();
         Assert.assertTrue("There were detected losses or duplicates. Check logs for more details.", isOK);
+
+        container(1).stop();
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails This test scenario tests if Live does not contain duplicate messages after that backup is shutdown after synchronization.
+     * @tpProcedure <ul>
+     * <li>Configure 2 nodes in replicated dedicated topology</li>
+     * <li>Start live (node-1) and backup (node-2) and start sending messages</li>
+     * <li>Start producer</li>
+     * <li>Shut down node-2</li>
+     * <li>Stop producer</li>
+     * <li>Check if there are some duplicates on Live</li>
+     * </ul>
+     * @tpPassCrit Live does not contain any duplicate messages
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testDuplicatesAreDetectedWhenBackupIsCrashedAfterSynchronization() throws Exception {
+
+        int numberOfMessages = 20000;
+
+        prepareSimpleDedicatedTopology();
+
+        container(2).start();
+        container(1).start();
+
+        // TODO once https://issues.jboss.org/browse/JBEAP-4136 is resolved then replace thread sleep by proper check
+        Thread.sleep(10000);
+
+        logger.info("Start producer to send: " + numberOfMessages + " messages.");
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.addMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        new JMSTools().waitForMessages(queueNamePrefix + "0", 300, 120000, container(1));
+
+        logger.info("Crash backup server - KILL");
+        container(2).fail(Constants.FAILURE_TYPE.KILL);
+        logger.info("Backup server crashed by - KILL");
+
+        waitForClientToFailover(prod1, 120000);
+
+        prod1.stopSending();
+        prod1.join();
+
+        Set<String> duplicates = new HashSet<String>();
+        boolean duplicationsDetected = false;
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+        for (Map<String, String> message: jmsOperations.listMessages(queueNamePrefix + "0")) {
+            if (!duplicates.add(message.get(jmsImplementation.getDuplicatedHeader()))) {
+                logger.error("Duplication detected: " + message);
+                duplicationsDetected = true;
+            }
+        }
+        Assert.assertFalse("Duplications detected", duplicationsDetected);
 
         container(1).stop();
     }
