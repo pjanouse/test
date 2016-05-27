@@ -609,7 +609,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         addDivert(container(1), divertedQueue, isExclusive, topic);
         container(1).stop();
 
-        container(2).start(); // keep in mind that backup will not open port 5445
+        container(2).startAdminOnly(); // keep in mind that backup will not open port 5445
         addDivert(container(2), divertedQueue, isExclusive, topic);
         container(2).stop();
 

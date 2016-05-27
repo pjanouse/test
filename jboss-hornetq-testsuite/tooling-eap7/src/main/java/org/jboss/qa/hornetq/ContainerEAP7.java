@@ -225,6 +225,14 @@ public class ContainerEAP7 implements Container {
     public void startAdminOnly() {
         Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
         containerProperties.put("adminOnly", "true");
+
+        String javaVmArguments = containerProperties.get("javaVmArguments");
+        javaVmArguments = javaVmArguments.concat(" -Djboss.socket.binding.port-offset=" + getPortOffset());
+        javaVmArguments = javaVmArguments.concat(" -Djboss.messaging.group.address=" + MCAST_ADDRESS);
+        javaVmArguments = javaVmArguments.concat(" -Djboss.default.multicast.address=" + MCAST_ADDRESS);
+        javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
+        containerProperties.put("javaVmArguments", javaVmArguments);
+
         start(containerProperties);
     }
 
