@@ -19,6 +19,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -256,6 +257,78 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).stop();
 
     }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopStartCluster() throws Exception {
+
+        int numberOfMessages = 100000;
+        prepareServers();
+
+        container(1).start();
+        container(2).start();
+
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.addMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        ProducerTransAck prod2 = new ProducerTransAck(container(2), queueJndiNamePrefix + "0", numberOfMessages);
+        prod2.addMessageVerifier(messageVerifier);
+        prod2.setMessageBuilder(messageBuilder);
+        prod2.setTimeout(0);
+        prod2.setCommitAfter(5);
+        prod2.start();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver1.setTimeout(0);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver2.setTimeout(0);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.start();
+
+        ClientUtils.waitForReceiverUntil(receiver1, 300, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 300, 300000);
+
+        // stop nodes
+        container(1).stop();
+        container(2).stop();
+        // this is IMPORTANT
+        Thread.sleep(60000);
+        // start nodes
+        container(1).start();
+        container(2).start();
+
+        receiver1.setReceiveTimeout(5000);
+        receiver2.setReceiveTimeout(5000);
+        ClientUtils.waitForReceiverUntil(receiver1, 500, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 500, 300000);
+
+        prod1.stopSending();
+        prod2.stopSending();
+        prod1.join();
+        prod2.join();
+        receiver1.join();
+        receiver2.join();
+
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", messageVerifier.verifyMessages());
+
+        container(1).stop();
+
+        container(2).stop();
+
+    }
+
 
     @Test
     @RunAsClient
