@@ -1521,12 +1521,12 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @throws Exception
      */
     @BMRules({
-            @BMRule(name = "Kill server after the backup is synced with live",
+            @BMRule(name = "HornetQ: Kill server after the backup is synced with live",
                     targetClass = "org.hornetq.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
                     condition = "!$0.isSynchronizing()",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();"),
-            @BMRule(name = "Kill server after the backup is synced with live",
+            @BMRule(name = "Artemis: Kill server after the backup is synced with live",
                     targetClass = "org.apache.activemq.artemis.core.replication.ReplicationManager",
                     targetMethod = "appendUpdateRecord",
                     condition = "!$0.isSynchronizing()",
