@@ -1117,7 +1117,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Backups stopped!!!");
         logger.info("#########################################");
         // this is IMPORTANT for lives to realize that backup are dead
-//        Thread.sleep(60000);
+        Thread.sleep(60000);
         // stop lives
         logger.info("#########################################");
         logger.info("Stopping lives!!!");
