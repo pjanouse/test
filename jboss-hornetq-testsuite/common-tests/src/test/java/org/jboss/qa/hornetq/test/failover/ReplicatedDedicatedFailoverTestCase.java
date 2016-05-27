@@ -716,6 +716,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         long producerStartTime = System.currentTimeMillis();
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
+        addClient(prod1);
 
         prod1.setMessageBuilder(new TextMessageBuilder(1024 * 1024)); // 1MB
 
@@ -735,7 +736,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer and consumer.");
         // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 300);
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiNamePrefix + "0", 3000);
+        addClient(producer);
 
         MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
 
@@ -748,6 +750,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         producer.start();
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), queueJndiNamePrefix + "0", 30000, 1, 100);
+        addClient(receiver);
 
         receiver.setTimeout(100);
 
@@ -774,8 +777,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         long timeout = 60000;
         // wait for 1 min for producers and consumers to receive more messages
         long startTime = System.currentTimeMillis();
-
-        Thread.sleep(10000);
 
         int startValueProducer = producer.getListOfSentMessages().size();
 
@@ -804,7 +805,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         // ok, stop org.jboss.qa.hornetq.apps.clients.
         producer.stopSending();
 
-        receiver.interrupt();
+        receiver.forcedStop();
 
         producer.join();
 
