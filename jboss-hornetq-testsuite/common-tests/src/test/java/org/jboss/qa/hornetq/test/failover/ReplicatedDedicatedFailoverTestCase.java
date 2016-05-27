@@ -61,6 +61,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();
+        container(3).stop();
+        container(4).stop();
     }
 
     /**
@@ -1026,7 +1028,6 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container(2).start();
         Thread.sleep(5000);
 
-
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
@@ -1043,17 +1044,10 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         ClientUtils.waitForReceiverUntil(receiver, 320, 300000);
 
         container(2).stop();
-
-        Thread.sleep(60000);
-
         container(1).stop();
-
         Thread.sleep(10000);
-
         container(1).start();
-
         container(2).start();
-
 
         ClientUtils.waitForReceiverUntil(receiver, 2000, 300000);
 
@@ -1064,8 +1058,88 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", messageVerifier.verifyMessages());
 
         container(1).stop();
+        container(2).stop();
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopLiveAndBackupStartBackupAndLiveInCluster() throws Exception {
+
+        prepareReplicatedDedicatedTopologyInCluster();
+
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
+        Thread.sleep(5000);
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.addMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        ProducerTransAck prod2 = new ProducerTransAck(container(3), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
+        prod2.addMessageVerifier(messageVerifier);
+        prod2.setMessageBuilder(messageBuilder);
+        prod2.setTimeout(0);
+        prod2.setCommitAfter(5);
+        prod2.start();
+
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver1.setTimeout(0);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(3), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver2.setTimeout(0);
+        receiver2.addMessageVerifier(messageVerifier);
+        receiver2.start();
+
+        ClientUtils.waitForReceiverUntil(receiver1, 300, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 300, 300000);
+
+        // stop backups
+        container(2).stop();
+        container(4).stop();
+        // this is IMPORTANT for lives to realize that backup are dead
+        Thread.sleep(60000);
+        // stop lives
+        container(1).stop();
+        container(3).stop();
+        // start lives
+        container(1).start();
+        container(3).start();
+        // start backups
+        container(2).start();
+        container(4).start();
+
+        receiver1.setReceiveTimeout(5000);
+        receiver2.setReceiveTimeout(5000);
+        ClientUtils.waitForReceiverUntil(receiver1, 1000, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 1000, 300000);
+
+        prod1.stopSending();
+        prod2.stopSending();
+        prod1.join();
+        prod2.join();
+        receiver1.join();
+        receiver2.join();
+
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", messageVerifier.verifyMessages());
 
         container(2).stop();
+        container(4).stop();
+        container(1).stop();
+        container(3).stop();
 
     }
 
@@ -1760,6 +1834,21 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         } else {
             return false;
         }
+    }
+
+    private void prepareReplicatedDedicatedTopologyInCluster() {
+        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP6(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareBackupServerEAP6(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        } else {
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP7(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareBackupServerEAP7(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        }
+
     }
 
 }
