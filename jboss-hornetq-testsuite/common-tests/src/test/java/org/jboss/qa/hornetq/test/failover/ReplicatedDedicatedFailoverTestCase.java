@@ -1104,28 +1104,53 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.start();
 
-        ClientUtils.waitForReceiverUntil(receiver1, 300, 300000);
-        ClientUtils.waitForReceiverUntil(receiver2, 300, 300000);
+        ClientUtils.waitForReceiverUntil(receiver1, 100, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 100, 300000);
 
         // stop backups
+        logger.info("#########################################");
+        logger.info("Stopping backups!!!");
+        logger.info("#########################################");
         container(2).stop();
         container(4).stop();
+        logger.info("#########################################");
+        logger.info("Backups stopped!!!");
+        logger.info("#########################################");
         // this is IMPORTANT for lives to realize that backup are dead
-        Thread.sleep(60000);
+//        Thread.sleep(60000);
         // stop lives
+        logger.info("#########################################");
+        logger.info("Stopping lives!!!");
+        logger.info("#########################################");
         container(1).stop();
         container(3).stop();
+        logger.info("#########################################");
+        logger.info("Lives stopped!!!");
+        logger.info("#########################################");
         // start lives
+        logger.info("#########################################");
+        logger.info("Starting lives!!!");
+        logger.info("#########################################");
         container(1).start();
         container(3).start();
+        logger.info("#########################################");
+        logger.info("Lives started!!!");
+        logger.info("#########################################");
         // start backups
+        logger.info("#########################################");
+        logger.info("Starting backups!!!");
+        logger.info("#########################################");
         container(2).start();
         container(4).start();
+        logger.info("#########################################");
+        logger.info("Backups started!!!");
+        logger.info("#########################################");
 
+        Thread.sleep(60000); // just wait a little more time how futher processing will continue
         receiver1.setReceiveTimeout(5000);
         receiver2.setReceiveTimeout(5000);
-        ClientUtils.waitForReceiverUntil(receiver1, 1000, 300000);
-        ClientUtils.waitForReceiverUntil(receiver2, 1000, 300000);
+        ClientUtils.waitForReceiverUntil(receiver1, 500, 300000);
+        ClientUtils.waitForReceiverUntil(receiver2, 500, 300000);
 
         prod1.stopSending();
         prod2.stopSending();
