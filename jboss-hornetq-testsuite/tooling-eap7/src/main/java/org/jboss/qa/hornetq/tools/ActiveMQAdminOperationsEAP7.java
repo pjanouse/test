@@ -8,6 +8,7 @@ import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.standalone.ServerDeploymentHelper;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.dmr.Property;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -803,6 +804,37 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
 
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    @Override
+    public List<Map<String, String>> listMessages(String coreQueueName) {
+        // /subsystem=messaging/server=default/jms-queue=InQueue:list-messages
+        final ModelNode messagesAdded = createModelNode();
+        messagesAdded.get(ClientConstants.OP).set("list-messages");
+        messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        messagesAdded.get(ClientConstants.OP_ADDR)
+                .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", coreQueueName);
+        ModelNode modelNode;
+        try {
+            modelNode = this.applyUpdate(messagesAdded);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+        if (modelNode != null) {
+            ModelNode res = modelNode.get("result");
+            for (ModelNode msg : res.asList()) {
+                Map<String, String> message = new HashMap<String, String>();
+                for (Property property : msg.asPropertyList()) {
+                    message.put(property.getName(), property.getValue().toString());
+                }
+                result.add(message);
+            }
+        }
+
+        return result;
     }
 
     @Override

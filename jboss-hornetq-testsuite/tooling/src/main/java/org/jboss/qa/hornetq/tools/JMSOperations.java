@@ -1932,4 +1932,6 @@ public interface JMSOperations {
     long getCountOfMessagesOnRuntimeQueue(String coreQueueName);
 
     long getMessagesAdded(String coreQueueName);
+
+    List<Map<String, String>> listMessages(String coreQueueName);
 }
