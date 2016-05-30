@@ -129,6 +129,7 @@ public class NewSoakTestCase extends HornetQTestCase {
                 .processId(container(1).getProcessId())
                 .outFileNamingPattern("jms-server")
                 .measurePeriod(60 * 1000 * 2)
+                .generateCharts()
                 .build();
         jmsServerMeasurement.start();
 
@@ -139,6 +140,7 @@ public class NewSoakTestCase extends HornetQTestCase {
                 .processId(container(2).getProcessId())
                 .outFileNamingPattern("mdb-server")
                 .measurePeriod(60 * 1000 * 2)
+                .generateCharts()
                 .build();
         mdbServerMeasurement.start();
 
