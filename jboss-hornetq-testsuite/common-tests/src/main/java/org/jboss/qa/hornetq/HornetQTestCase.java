@@ -330,6 +330,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
             DebugTools.printThreadDump();
             Assert.fail("Clients did not stopped in 30 seconds.");
         }
+        usedClients.clear();
     }
 
     /**
