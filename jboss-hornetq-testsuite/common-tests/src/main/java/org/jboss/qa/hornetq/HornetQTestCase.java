@@ -304,7 +304,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
     @After
     public void stopAllClients() throws Exception {
         long timeToWait = System.currentTimeMillis() + 30000;
-        while (timeToWait < System.currentTimeMillis()) {
+        while (System.currentTimeMillis() < timeToWait) {
             boolean allClientsAreStopped = true;
             for (Client client : usedClients) {
                 log.info("" + client + " isAlive=" + client.isAlive());
