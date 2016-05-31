@@ -5725,22 +5725,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model = new ModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
         model.get("name").set("server-state");
-
-        try {
-
-            long startTime = System.currentTimeMillis();
-            Thread.sleep(1000);
-            logger.warn(this.applyUpdate(model).get("result"));
-            while (!this.applyUpdate(model).get("result").toString().equalsIgnoreCase("running")) {
+        long startTime = System.currentTimeMillis();
+        while (true) {
+            try {
                 Thread.sleep(1000);
-                if (System.currentTimeMillis() - startTime > timeout) {
+                if (this.applyUpdate(model).get("result").toString().toLowerCase().contains("running")) {
+                    logger.warn("we should be running now: "+this.applyUpdate(model).get("result").toString());
                     break;
+                }else{
+                    logger.warn("not ready now: "+this.applyUpdate(model).get("result").toString());
+                }
+            }catch (Exception e){
+                logger.warn("server still booting");
+            }finally {
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    throw new RuntimeException("wait for boot timeouted");
                 }
             }
-            logger.warn("we should be running now: " + this.applyUpdate(model).get("result"));
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 

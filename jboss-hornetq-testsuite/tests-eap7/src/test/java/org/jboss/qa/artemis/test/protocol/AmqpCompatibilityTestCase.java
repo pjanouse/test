@@ -79,12 +79,6 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
             // Step 7. receive the simple message
             Message m = rec.receive(5000);
             assertNotNull("Receiver didn't received any message", m);
-            System.out.println("##############################################################");
-            for(Section sec : m.getPayload()){
-
-                System.out.println(sec.toString());
-            }
-            System.out.println("##############################################################");
             assertTrue("Payload of received message doesn't match ", m.getPayload().get(3).toString().contains(payload));
 
             // Step 8. acknowledge the message
@@ -135,7 +129,7 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
             // Step 7. receive the simple message
             Message m = rec.receive(5000);
             assertNotNull("Receiver didn't received any message", m);
-            assertTrue("Payload of received message doesn't match ", m.getPayload().toString().contains(payload));
+            assertTrue("Payload of received message doesn't match ", m.getPayload().get(3).toString().contains(payload));
 
             // Step 8. acknowledge the message
             rec.acknowledge(m);
