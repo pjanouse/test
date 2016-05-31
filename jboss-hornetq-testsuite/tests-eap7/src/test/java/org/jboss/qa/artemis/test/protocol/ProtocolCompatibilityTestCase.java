@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.mdb.RemoteMdbFromQueueToQueue;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -23,6 +24,7 @@ import java.util.Map;
 public abstract class ProtocolCompatibilityTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ProtocolCompatibilityTestCase.class);
+    String jndiPooledConnectionFactory="java:/JmsXA java:jboss/DefaultJMSConnectionFactory java:/jms/CF";
 
     final String IN_QUEUE_NAME = "InQueue";
     final String IN_QUEUE_ADDRESS = "jms.queue." + IN_QUEUE_NAME;
@@ -35,7 +37,7 @@ public abstract class ProtocolCompatibilityTestCase extends HornetQTestCase {
     final String CF_NAME="activemq-ra";
     final String CONNECTOR_NAME = "myremote-connector";
     final String ACCEPTOR_NAME = "myremote-acceptor";
-    final int REMOTE_PORT_BROKER = 62616;
+    final int REMOTE_PORT_BROKER = 61616;
     final int REMOTE_PORT_EAP = 63616;
     final String BROKER_REMOTE_ADDRESS = "localhost";
 
@@ -64,14 +66,16 @@ public abstract class ProtocolCompatibilityTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteConnector("remote-broker-connector", "remote-broker-binding", null);
         Map<String,String>params = new HashMap<String, String>();
         params.put("java.naming.factory.initial", "org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory");
-        params.put("java.naming.provider.url", "tcp://127.0.0.1:62616");
+        params.put("java.naming.provider.url", "tcp://127.0.0.1:61616");
+        params.put("queue.queues/OutQueue","OutQueue");
         jmsAdminOperations.addExternalContext("java:global/remoteContext", "javax.naming.InitialContext", "org.apache.activemq.artemis", "external-context",params );
         container(1).stop();
         container(1).start();
         jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createPooledConnectionFactory("CF", "java:/jms/CF", "remote-broker-connector");
-        jmsAdminOperations.setDefaultResourceAdapter("CF");
 
+        jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, "remote-broker-connector");
+        jmsAdminOperations.setHaForPooledConnectionFactory("activemq-ra",false);
+        jmsAdminOperations.setJndiNameForPooledConnectionFactory("activemq-ra",jndiPooledConnectionFactory);
         container(1).stop();
     }
 

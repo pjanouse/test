@@ -40,7 +40,7 @@ public class StompCompatibilityTestCase extends ProtocolCompatibilityTestCase  {
         container(1).stop();
     }
 
-    @Ignore
+
     @Test
     @RunAsClient
     @CleanUpBeforeTest

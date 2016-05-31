@@ -3,6 +3,7 @@ package org.jboss.qa.artemis.test.protocol;
 
 import org.apache.log4j.Logger;
 import org.apache.qpid.amqp_1_0.client.ConnectionErrorException;
+import org.apache.qpid.amqp_1_0.type.Section;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -19,6 +20,8 @@ import org.apache.qpid.amqp_1_0.client.Sender;
 import org.apache.qpid.amqp_1_0.client.Session;
 import org.apache.qpid.amqp_1_0.type.UnsignedInteger;
 import org.junit.runner.RunWith;
+
+import javax.jms.TextMessage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -39,7 +42,7 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
         container(1).stop();
     }
 
-    @Ignore
+
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -63,6 +66,7 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
             Sender sender = session.createSender(IN_QUEUE_ADDRESS);
 
             // Step 4. send a simple message
+
             Message messageToSend = new Message(payload);
             sender.send(messageToSend);
 
@@ -75,7 +79,13 @@ public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {
             // Step 7. receive the simple message
             Message m = rec.receive(5000);
             assertNotNull("Receiver didn't received any message", m);
-            assertTrue("Payload of received message doesn't match ", m.getPayload().contains(payload));
+            System.out.println("##############################################################");
+            for(Section sec : m.getPayload()){
+
+                System.out.println(sec.toString());
+            }
+            System.out.println("##############################################################");
+            assertTrue("Payload of received message doesn't match ", m.getPayload().get(3).toString().contains(payload));
 
             // Step 8. acknowledge the message
             rec.acknowledge(m);

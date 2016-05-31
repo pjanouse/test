@@ -28,12 +28,13 @@ import javax.naming.Context;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/InQueue"),
                 @ActivationConfigProperty(propertyName="userName", propertyValue="user"),
                 @ActivationConfigProperty(propertyName="password", propertyValue="user")
         })
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
+
 public class RemoteMdbFromQueueToQueue implements MessageListener{
 
     private static final Logger log = Logger.getLogger(RemoteMdbFromQueueToQueue.class.getName());
@@ -45,6 +46,7 @@ public class RemoteMdbFromQueueToQueue implements MessageListener{
     @Resource(lookup = "java:global/remoteContext")
     private Context context1;
 
+
     @Override
     public void onMessage(Message message) {
         Connection connection =null;
@@ -53,7 +55,7 @@ public class RemoteMdbFromQueueToQueue implements MessageListener{
             connection = cf.createConnection();
             Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
             System.out.println("MESSAGE RECEIVED");
-            Queue queue = (Queue) context1.lookup("OutQueue");
+            Queue queue = (Queue) context1.lookup("queues/OutQueue");
             MessageProducer sender = session.createProducer(queue);
             sender.send(message);
         }catch(Exception e){
