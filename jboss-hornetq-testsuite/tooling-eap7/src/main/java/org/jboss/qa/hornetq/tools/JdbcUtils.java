@@ -104,6 +104,8 @@ public final class JdbcUtils {
                 }
                 break;
             case 7 :
+                // only the driver for 7.0.0 is available for EAP7 as of now
+                micro = 0;
                 break;
             default:
                 throw new IllegalArgumentException("Given container is not EAP5, EAP6 or EAP7! It says its major version is "
