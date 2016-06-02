@@ -1455,6 +1455,7 @@ public class ClusterTestCase extends ClusterTestBase {
         ProducerResp responsiveProducer = new ProducerResp(container(1), inQueueJndiNameForMdb, 1, 300);
         responsiveProducer.setMessageBuilder(new TextMessageBuilder(110 * 1024));
         responsiveProducer.start();
+        responsiveProducer.setTimeout(600);
         responsiveProducer.join();
 
         Assert.assertEquals("Number of received messages don't match", 0, responsiveProducer.getRecievedCount());

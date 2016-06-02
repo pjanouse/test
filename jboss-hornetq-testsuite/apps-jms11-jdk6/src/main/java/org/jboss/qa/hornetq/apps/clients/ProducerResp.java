@@ -32,6 +32,7 @@ public class ProducerResp extends Producer11 {
     private boolean largeMessage = false;
     private boolean skipReceive = false;
     private String largeString="";
+     private int receiveCount=0;
 
     /**
      * @param container     EAP container
@@ -113,7 +114,7 @@ public class ProducerResp extends Producer11 {
 
             if(skipReceive==false) {
                 while ((response = receiver.receive(10000)) != null) {
-                    counter++;
+                   countRecievedIncrement();
                     Thread.sleep(getTimeout() + 200);
                 }
             }
@@ -140,11 +141,11 @@ public class ProducerResp extends Producer11 {
     }
 
     public synchronized void countRecievedIncrement() {
-        counter++;
+        receiveCount++;
     }
 
     public synchronized int getRecievedCount() {
-        return counter;
+        return receiveCount;
     }
 
     /**
