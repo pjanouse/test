@@ -714,7 +714,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         producerRedG1.addMessageVerifier(messageVerifier);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueue, 20000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), inQueue, 60000, 10, 10);
 
         receiver1.addMessageVerifier(messageVerifier);
         Thread.sleep(15000);
