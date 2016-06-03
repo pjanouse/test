@@ -181,10 +181,10 @@ public class ClientUtils {
                     }
                     log.error(stacks);
                     for (Client c : clients.getConsumers()) {
-                        c.interrupt();
+                        c.forcedStop();
                     }
                     for (Client c : clients.getProducers()) {
-                        c.interrupt();
+                        c.forcedStop();
                     }
                     Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all. Print all stacktraces:" + stacks);
                 }
