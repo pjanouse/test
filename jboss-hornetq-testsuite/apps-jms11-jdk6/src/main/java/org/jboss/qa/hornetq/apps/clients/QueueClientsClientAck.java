@@ -132,7 +132,7 @@ public class QueueClientsClientAck implements Clients {
 
             for (int producerNumber = 0; producerNumber < getNumberOfProducersPerQueueu(); producerNumber++) {
 
-                p = new ProducerClientAck(container, queueJndiNamePrefixProducers + destinationNumber, getMessages());
+                p = new ProducerClientAck(containerForProducers, queueJndiNamePrefixProducers + destinationNumber, getMessages());
 
                 p.addMessageVerifier(queueTextMessageVerifier);
 
@@ -146,7 +146,7 @@ public class QueueClientsClientAck implements Clients {
 
             for (int receiverNumber = 0; receiverNumber < getNumberOfConsumersPerQueueu(); receiverNumber++) {
 
-                r = new ReceiverClientAck(container, queueJndiNamePrefixConsumers + destinationNumber);
+                r = new ReceiverClientAck(containerForConsumers, queueJndiNamePrefixConsumers + destinationNumber);
 
                 r.addMessageVerifier(queueTextMessageVerifier);
 
