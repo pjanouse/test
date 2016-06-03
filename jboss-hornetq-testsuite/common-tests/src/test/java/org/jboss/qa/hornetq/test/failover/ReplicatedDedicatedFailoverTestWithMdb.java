@@ -2,10 +2,22 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.TransactionUtils;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.Archive;
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -34,6 +46,111 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
     String clusterConnectionName = "my-cluster";
     String replicationGroupName = "replication-group-name-1";
 
+    /**
+     * @throws Exception
+     */
+    @RunAsClient
+    @Test
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testStopLivesBackupStartLivesBackup() throws Exception {
+
+        int numberOfMessages = 3000;
+        Archive mdb = mdbWithNORebalancing;
+
+        prepareRemoteJcaTopology();
+        if (container(4).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
+            prepareLiveServerEAP6(container(4), "anotherPair");
+        } else {
+            prepareLiveServerEAP7(container(4), "anotherPair");
+        }
+
+        // start live-backup servers
+        container(1).start();
+        container(2).start();
+        container(4).start();
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+//        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(100);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+
+        container(3).start();
+
+        logger.info("Deploying MDB to mdb server.");
+//        // start mdb server
+        container(3).deploy(mdb);
+
+        Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
+                new JMSTools().waitForMessages(outQueueName, numberOfMessages / 20, 300000, container(1), container(4)));
+        logger.info("#######################################");
+        logger.info("Stopping backup");
+        logger.info("#######################################");
+        container(2).stop();
+        logger.info("#######################################");
+        logger.info("Backup stopped.");
+        logger.info("#######################################");
+        Thread.sleep(60000);
+        logger.info("#######################################");
+        logger.info("Stopping lives");
+        logger.info("#######################################");
+        container(1).stop();
+        container(4).stop();
+        logger.info("#######################################");
+        logger.info("Lives stopped.");
+        logger.info("#######################################");
+        Thread.sleep(20000);
+        logger.info("#######################################");
+        logger.info("Start lives");
+        logger.info("#######################################");
+        container(1).start();
+        container(4).start();
+        logger.info("#######################################");
+        logger.info("Lives started.");
+        logger.info("#######################################");
+        logger.info("Start backup");
+        logger.info("#######################################");
+        container(2).start();
+        logger.info("#######################################");
+        logger.info("Backup started");
+        logger.info("#######################################");
+
+        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 600000, container(1), container(4));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(4));
+
+        printThreadDumpsOfAllServers();
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 3000, 100, 10);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        container(3).undeploy(mdb);
+
+        container(3).stop();
+        container(2).stop();
+        container(1).stop();
+        container(4).stop();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+    }
+
+    private void printThreadDumpsOfAllServers() throws IOException {
+        ContainerUtils.printThreadDump(container(1));
+        ContainerUtils.printThreadDump(container(2));
+        ContainerUtils.printThreadDump(container(3));
+        ContainerUtils.printThreadDump(container(4));
+    }
 
     /**
      * Prepare two servers in simple dedecated topology.
@@ -61,6 +178,10 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
      * @param container Test container - defined in arquillian.xml
      */
     protected void prepareLiveServerEAP6(Container container) {
+        prepareLiveServerEAP6(container, "firstPair");
+    }
+
+    protected void prepareLiveServerEAP6(Container container, String backupGroupName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -81,7 +202,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(false);
         jmsAdminOperations.setJournalType("ASYNCIO");
-        jmsAdminOperations.setBackupGroupName("firstPair");
+        jmsAdminOperations.setBackupGroupName(backupGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
         jmsAdminOperations.setBackup(false);
 
@@ -231,9 +352,13 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
     /**
      * Prepares live server for dedicated topology.
      *
-     * @param container        The container - defined in arquillian.xml
+     * @param container The container - defined in arquillian.xml
      */
     protected void prepareLiveServerEAP7(Container container) {
+        prepareLiveServerEAP7(container, replicationGroupName);
+    }
+
+    protected void prepareLiveServerEAP7(Container container, String backupGroupName) {
 
         String connectionFactoryName = "RemoteConnectionFactory";
 

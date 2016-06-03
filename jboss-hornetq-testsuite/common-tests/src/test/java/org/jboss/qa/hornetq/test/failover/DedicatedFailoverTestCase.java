@@ -1869,6 +1869,10 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             default:
                 break;
         }
+
+        // todo remote once you're done with testing
+        jmsAdminOperations.setClusterConnectionCallTimeout(clusterConnectionName, 15000);
+
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);

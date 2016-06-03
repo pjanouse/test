@@ -1168,6 +1168,85 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     }
 
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testReplicationWithLargeJournal() throws Exception {
+
+        prepareReplicatedDedicatedTopologyInCluster();
+
+        container(1).start();
+        container(2).start();
+
+        Thread.sleep(5000);
+
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
+        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        prod1.addMessageVerifier(messageVerifier);
+        prod1.setMessageBuilder(messageBuilder);
+        prod1.setTimeout(0);
+        prod1.setCommitAfter(10);
+        prod1.start();
+
+        // wait 5 minutes to generate large journal
+        Thread.sleep(180000);
+
+        // start receiver
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), queueJndiNamePrefix + "0", 120000, 10, 100);
+        receiver1.setTimeout(0);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+        ClientUtils.waitForReceiverUntil(receiver1, 50, 120000);
+
+        logger.info("#########################################");
+        logger.info("Kill live server !!!");
+        logger.info("#########################################");
+        container(1).kill();
+        logger.info("#########################################");
+        logger.info("Live server Killed !!!");
+        logger.info("#########################################");
+
+        waitForClientToFailover(receiver1, 300000);
+        ClientUtils.waitForReceiverUntil(receiver1, 150, 120000);
+        // slow down receiver so failback takes a lot of time
+        receiver1.setReceiveTimeout(100);
+        prod1.setTimeout(1000);
+
+        logger.info("#########################################");
+        logger.info("Starting live server so failback occur!!!");
+        logger.info("#########################################");
+        container(1).start();
+        logger.info("#########################################");
+        logger.info("Live server started - but not synced - no failback!!!");
+        logger.info("#########################################");
+        // start backups
+        logger.info("#########################################");
+        logger.info("Live started and failback happened!!!");
+        logger.info("#########################################");
+
+        // chack that live is active
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 1200000);
+
+        receiver1.setReceiveTimeout(5000);
+        receiver1.setTimeout(0);
+        ClientUtils.waitForReceiverUntil(receiver1, 500, 300000);
+
+        prod1.stopSending();
+        prod1.join();
+        receiver1.join();
+
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", messageVerifier.verifyMessages());
+
+        container(2).stop();
+        container(1).stop();
+
+    }
+
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -1599,6 +1678,9 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
         jmsAdminOperations.setFailoverOnShutdown(connectionFactoryName, true);
 
+        // todo remote once you're done with testing
+        jmsAdminOperations.setClusterConnectionCallTimeout(clusterGroupName, 15000);
+
         jmsAdminOperations.setSecurityEnabled(true);
 
         // set security persmissions for roles admin,users - user is already there
@@ -1742,6 +1824,9 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        // todo remote once you're done with testing
+        jmsAdminOperations.setClusterConnectionCallTimeout(clusterGroupName, 15000);
 
         jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
         jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);

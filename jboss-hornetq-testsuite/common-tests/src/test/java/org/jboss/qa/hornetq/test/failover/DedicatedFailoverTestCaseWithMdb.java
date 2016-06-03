@@ -60,7 +60,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
-    private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
+    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 2000;
 
     // Queue to send messages in 
     String inQueueName = "InQueue";
@@ -73,8 +73,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
     FinalTestMessageVerifier messageVerifier = null;
 
-    private final Archive mdbWithRebalancing = getDeployment1();
-    private final Archive mdbWithNORebalancing = getDeployment2();
+    protected final Archive mdbWithRebalancing = getDeployment1();
+    protected final Archive mdbWithNORebalancing = getDeployment2();
 
 
     public Archive getDeployment1() {
@@ -573,7 +573,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @return returns true if numberOfMessages is in queue in the given timeout. Otherwise false.
      * @throws Exception
      */
-    private boolean waitForMessagesOnOneNode(Container container, String queueName, int numberOfMessages, long timeout) throws Exception {
+    protected boolean waitForMessagesOnOneNode(Container container, String queueName, int numberOfMessages, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         JMSOperations jmsOperations = container.getJmsOperations();
         while (numberOfMessages > (jmsOperations.getCountOfMessagesOnQueue(queueName))) {
