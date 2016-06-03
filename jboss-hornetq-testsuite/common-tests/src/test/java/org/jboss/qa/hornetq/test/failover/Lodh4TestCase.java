@@ -265,8 +265,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(container(4).getHostname());
-        clientsA1.setPortForConsumers(container(4).getJNDIPort());
+        clientsA1.setContainerForConsumers(container(4));
         clientsA1.setMessageBuilder(new ByteMessageBuilder(30));
         clientsA1.startClients();
 
@@ -332,8 +331,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(container(4).getHostname());
-        clientsA1.setPortForConsumers(container(4).getJNDIPort());
+        clientsA1.setContainerForConsumers(container(4));
         clientsA1.setMessageBuilder(new ByteMessageBuilder(30));
         clientsA1.startClients();
 
@@ -405,8 +403,7 @@ public class Lodh4TestCase extends HornetQTestCase {
 
         clientsA1.setQueueJndiNamePrefixProducers(relativeJndiInQueueName);
         clientsA1.setQueueJndiNamePrefixConsumers(relativeJndiOutQueueName);
-        clientsA1.setHostnameForConsumers(container(4).getHostname());
-        clientsA1.setPortForConsumers(container(4).getJNDIPort());
+        clientsA1.setContainerForConsumers(container(4));
         clientsA1.setMessageBuilder(messageBuilder);
         clientsA1.startClients();
 

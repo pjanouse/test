@@ -22,9 +22,9 @@ public class QueueClientsClientAck implements Clients {
 
     private static final Logger logger = Logger.getLogger(QueueClientsClientAck.class);
 
-    private String hostnameForProducers;
+    private Container containerForProducers;
 
-    private String hostnameForConsumers;
+    private Container containerForConsumers;
 
     private int portForConsumers;
 
@@ -69,8 +69,8 @@ public class QueueClientsClientAck implements Clients {
 
         this.container = container;
         this.containerType = container.getContainerType().toString();
-        this.hostnameForConsumers = container.getHostname();
-        this.hostnameForProducers = container.getHostname();
+        this.containerForConsumers = container;
+        this.containerForProducers = container;
         this.jndiPort = container.getJNDIPort();
         this.portForConsumers = jndiPort;
         this.queueJndiNamePrefix = queueJndiNamePrefix;
@@ -100,8 +100,8 @@ public class QueueClientsClientAck implements Clients {
     public QueueClientsClientAck(String containerType, String hostname, int jndiPort, String queueJndiNamePrefix, int numberOfQueues,
                                  int numberOfProducersPerQueueu, int numberOfConsumersPerQueueu, int numberOfMessages) {
         this.containerType = containerType;
-        this.hostnameForConsumers = hostname;
-        this.hostnameForProducers = hostname;
+//        this.containerForConsumers = hostname;
+//        this.containerForProducers = hostname;
         this.jndiPort = jndiPort;
         this.portForConsumers = jndiPort;
         this.queueJndiNamePrefix = queueJndiNamePrefix;
@@ -207,8 +207,8 @@ public class QueueClientsClientAck implements Clients {
 
         logger.info("################################################################");
         logger.info("Evaluate results for queue org.jboss.qa.hornetq.apps.clients with client acknowledge:");
-        logger.info("hostname for producers:" + hostnameForProducers);
-        logger.info("hostname for receivers:" + hostnameForConsumers);
+        logger.info("hostname for producers:" + containerForProducers);
+        logger.info("hostname for receivers:" + containerForConsumers);
         logger.info("queueJndiPrefixForProducers:" + queueJndiNamePrefixProducers);
         logger.info("queueJndiPrefixForConsumers:" + queueJndiNamePrefixConsumers);
         logger.info("number of queues:" + numberOfQueues);
@@ -348,31 +348,31 @@ public class QueueClientsClientAck implements Clients {
     }
 
     /**
-     * @return the hostnameForProducers
+     * @return the containerForProducers
      */
-    public String getHostnameForProducers() {
-        return hostnameForProducers;
+    public Container getContainerForProducers() {
+        return containerForProducers;
     }
 
     /**
-     * @param hostnameForProducers the hostnameForProducers to set
+     * @param containerForProducers the containerForProducers to set
      */
-    public void setHostnameForProducers(String hostnameForProducers) {
-        this.hostnameForProducers = hostnameForProducers;
+    public void setContainerForProducers(Container containerForProducers) {
+        this.containerForProducers = containerForProducers;
     }
 
     /**
-     * @return the hostnameForConsumers
+     * @return the containerForConsumers
      */
-    public String getHostnameForConsumers() {
-        return hostnameForConsumers;
+    public Container getContainerForConsumers() {
+        return containerForConsumers;
     }
 
     /**
-     * @param hostnameForConsumers the hostnameForConsumers to set
+     * @param containerForConsumers the containerForConsumers to set
      */
-    public void setHostnameForConsumers(String hostnameForConsumers) {
-        this.hostnameForConsumers = hostnameForConsumers;
+    public void setContainerForConsumers(Container containerForConsumers) {
+        this.containerForConsumers = containerForConsumers;
     }
 
     public static void main(String[] args) throws InterruptedException, Exception {
