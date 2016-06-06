@@ -1,6 +1,6 @@
 #!/bin/bash
 
-env
+WORKSPACE=$PWD
 
 FILES=$(mktemp)
 
