@@ -5,6 +5,7 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import javax.naming.Context;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -423,8 +425,12 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
         String targetConnectionFactory = "jms/RemoteConnectionFactory";
 
         Map<String, String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
-        targetContext.put("java.naming.provider.url", "remote://" + outServer.getHostname() + ":" + outServer.getJNDIPort());
+        targetContext.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
+        if(JMSTools.isIpv6Address(outServer.getHostname())){
+            targetContext.put(Context.PROVIDER_URL, String.format("%s[%s]:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, outServer.getHostname(), outServer.getJNDIPort()));
+        }else{
+            targetContext.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP6, outServer.getHostname(), outServer.getJNDIPort()));
+        }
 
         if (qualityOfService == null || "".equals(qualityOfService.toString())) {
             qualityOfService = Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE;
@@ -473,8 +479,12 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
         String targetConnectionFactory = "jms/RemoteConnectionFactory";
 
         Map<String, String> targetContext = new HashMap<String, String>();
-        targetContext.put("java.naming.factory.initial", Constants.INITIAL_CONTEXT_FACTORY_EAP7);
-        targetContext.put("java.naming.provider.url", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7 + outServer.getHostname() + ":" + outServer.getJNDIPort());
+        targetContext.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
+        if(JMSTools.isIpv6Address(outServer.getHostname())){
+            targetContext.put(Context.PROVIDER_URL, String.format("%s[%s]:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, outServer.getHostname(), outServer.getJNDIPort()));
+        }else{
+            targetContext.put(Context.PROVIDER_URL, String.format("%s%s:%s", Constants.PROVIDER_URL_PROTOCOL_PREFIX_EAP7, outServer.getHostname(), outServer.getJNDIPort()));
+        }
 
         if (qualityOfService == null || "".equals(qualityOfService.toString())) {
             qualityOfService = Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE;
