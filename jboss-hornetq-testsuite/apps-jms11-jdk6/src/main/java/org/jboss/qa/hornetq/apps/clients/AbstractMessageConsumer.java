@@ -26,8 +26,6 @@ abstract class AbstractMessageConsumer extends Receiver {
     private static final Logger LOG = Logger.getLogger(AbstractMessageConsumer.class);
 
     protected FinalTestMessageVerifier verifier;
-    protected List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();
-    protected int count = 0;
     protected Exception exception;
 
     protected Context context;
@@ -59,7 +57,7 @@ abstract class AbstractMessageConsumer extends Receiver {
             while ((msg = receiveMessage(consumer)) != null) {
                 Thread.sleep(getTimeout());
                 addMessage(listOfReceivedMessages, msg);
-                count++;
+                counter++;
 
                 LOG.debug(receiveLogEntry(msg));
             }
@@ -121,17 +119,17 @@ abstract class AbstractMessageConsumer extends Receiver {
         }
 
         return "Consumer for node " + hostname + " and destination " + destinationNameJndi
-                + " received message - count " + count + ", messageId " + msgId;
+                + " received message - count " + counter + ", messageId " + msgId;
     }
 
     protected String receivingFinishedLogEntry() {
         return "Consumer for node " + hostname + " and destination " + destinationNameJndi
-                + " received NULL - number of received messages is " + count;
+                + " received NULL - number of received messages is " + counter;
     }
 
     protected String retryLogEntry() {
         return "RETRY receive for host " + hostname + " and destination " + destinationNameJndi
-                + ", trying to receive message with counter " + (count + 1);
+                + ", trying to receive message with counter " + (counter + 1);
     }
 
     protected String receiveFailureLogEntry() {
