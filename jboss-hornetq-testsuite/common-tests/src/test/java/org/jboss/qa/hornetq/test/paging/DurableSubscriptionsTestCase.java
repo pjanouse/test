@@ -218,6 +218,9 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
             for (HighLoadConsumerWithSemaphores consumer : consumers) {
                 consumer.join();
             }
+
+            ContainerUtils.printThreadDump(container(1));
+
             if (producer.getSentMessages() != messagesCount) {
                 fail("Producer did not send defined count of messages");
             } else {
