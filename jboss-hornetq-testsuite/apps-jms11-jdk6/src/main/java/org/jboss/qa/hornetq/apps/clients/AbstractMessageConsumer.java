@@ -26,7 +26,6 @@ abstract class AbstractMessageConsumer extends Receiver {
     private static final Logger LOG = Logger.getLogger(AbstractMessageConsumer.class);
 
     protected FinalTestMessageVerifier verifier;
-    protected Exception exception;
 
     protected Context context;
     protected Connection connection;
