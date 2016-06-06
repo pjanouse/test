@@ -33,9 +33,6 @@ import java.util.HashMap;
 public class SecurityClient extends Client {
 
     private static final Logger logger = Logger.getLogger(SecurityClient.class);
-    private String hostname = "localhost";
-    private int port = 4447;
-    private String queueNameJndi = "jms/queue/testQueue1";
     private int messages = 1000;
     private MessageBuilder messageBuilder = new TextMessageBuilder(1000);
     private Exception exception = null;
@@ -112,7 +109,7 @@ public class SecurityClient extends Client {
 
         con.start();
 
-        queue = (Queue) context.lookup(queueNameJndi);
+        queue = (Queue) context.lookup(destinationNameJndi);
 
         session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -150,7 +147,7 @@ public class SecurityClient extends Client {
                         " message group id: " + msg != null ? msg.getStringProperty("JMSXGroupID") : null);
             } else {
                 throw new Exception("Cannot receive " + numberOfMessagesToConsumeAndRollback + " messages. There are only " + numberOfConsumerMessageCounter + ". " +
-                        "Check the reason why there is not enough messages in queue: " + queueNameJndi);
+                        "Check the reason why there is not enough messages in queue: " + destinationNameJndi);
             }
             numberOfConsumerMessageCounter++;
         }
@@ -351,14 +348,14 @@ public class SecurityClient extends Client {
      * @return the queueNameJndi
      */
     public String getQueueNameJndi() {
-        return queueNameJndi;
+        return destinationNameJndi;
     }
 
     /**
      * @param queueNameJndi the queueNameJndi to set
      */
     public void setQueueNameJndi(String queueNameJndi) {
-        this.queueNameJndi = queueNameJndi;
+        this.destinationNameJndi = queueNameJndi;
     }
 
     /**
