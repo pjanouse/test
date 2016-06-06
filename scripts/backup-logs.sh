@@ -7,6 +7,6 @@ find $WORKSPACE -name "test-suite.log" >> $FILES
 
 
 cd $WORKSPACE
-cat $FILES | while read LINE; do realpath --relative-to="$WORKSPACE" $LINE; done | xargs zip -r $WORKSPACE/logs.zip
+cat $FILES | while read LINE; do realpath --relative-to="$WORKSPACE" $LINE; done | xargs zip -q -r $WORKSPACE/logs.zip
 
 rm -f $FILES
