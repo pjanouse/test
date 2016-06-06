@@ -1,5 +1,7 @@
 #!/bin/bash
 
+env
+
 FILES=$(mktemp)
 
 find $WORKSPACE -name "target" >> $FILES
