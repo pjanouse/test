@@ -129,17 +129,8 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     }
 
     protected Message cleanMessage(Message m) throws JMSException {
-
-        String dupId = m.getStringProperty(jmsImplementation.getDuplicatedHeader());
-        String inMessageId = m.getStringProperty("inMessageId");
-        String JMSXGroupID = m.getStringProperty("JMSXGroupID");
+        
         m.clearBody();
-        m.clearProperties();
-        m.setStringProperty(jmsImplementation.getDuplicatedHeader(), dupId);
-        m.setStringProperty("inMessageId", inMessageId);
-        if (JMSXGroupID != null) {
-            m.setStringProperty("JMSXGroupID", JMSXGroupID);
-        }
         return m;
     }
 
