@@ -211,6 +211,36 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void ipv6TestClients() throws Exception {
+
+        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+
+        container(2).start();
+
+        container(1).start();
+
+        // give some time for servers to find each other
+        Thread.sleep(10000);
+
+
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), topicJndiNamePrefix + "0", "id", "name");
+
+        subscriber.start();
+
+
+        PublisherAutoAck producerAutoAck = new PublisherAutoAck(container(1), topicJndiNamePrefix + "0", 20, "naem");
+        producerAutoAck.start();
+        producerAutoAck.join();
+        subscriber.join();
+
+
+        Assert.assertEquals(20,subscriber.getListOfReceivedMessages().size());
+    }
+
     /**
      * @tpTestDetails This scenario tests failover and failback of live server with deployed MDB after kill.
      * @tpProcedure <ul>

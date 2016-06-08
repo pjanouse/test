@@ -83,7 +83,7 @@ public class PublisherAutoAck extends Producer11 {
 
                 Thread.sleep(getTimeout());
 
-                logger.debug("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 
