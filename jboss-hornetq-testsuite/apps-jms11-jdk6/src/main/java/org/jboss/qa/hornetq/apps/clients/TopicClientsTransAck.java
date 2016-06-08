@@ -110,7 +110,7 @@ public class TopicClientsTransAck implements Clients {
             for (int subscriberNumber = 0; subscriberNumber < numberOfsubscribersPerTopic; subscriberNumber++) {
 
                 subscriber = new SubscriberTransAck(container,
-                        getDestionationJndiNamePrefix() + destinationNumber, 30000, 30, 20,
+                        getDestionationJndiNamePrefix() + destinationNumber, 60000, 30, 20,
                         "subscriberClientId-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber,
                         "subscriberName-" + getDestionationJndiNamePrefix() + destinationNumber + "-" + subscriberNumber);
 

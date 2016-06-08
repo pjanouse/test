@@ -154,7 +154,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         clients.setProducedMessagesCommitAfter(10);
 
-        clients.setReceivedMessagesAckCommitAfter(100);
+        clients.setReceivedMessagesAckCommitAfter(10);
 
         clients.startClients();
 
@@ -215,7 +215,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void ipv6TestClients() throws Exception {
+        public void ipv6TestClients() throws Exception {
 
         prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
 
