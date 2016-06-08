@@ -370,6 +370,9 @@ public class JcaTestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
+        new ContainerUtils().printThreadDump(container(1));
+        new ContainerUtils().printThreadDump(container(2));
+
         logger.info("Number of sent messages: " + producer1.getListOfSentMessages().size());
         logger.info("Number of received messages: " + receiver1.getListOfReceivedMessages().size());
 
