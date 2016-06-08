@@ -105,7 +105,7 @@ public class HighLoadProducerWithSemaphores extends HighLoadClientWithSemaphores
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
             MessageProducer producer = session.createProducer(topic);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-            producer.setTimeToLive(3600000);
+            producer.setTimeToLive(7200000);
             for (int i = 1; i <= this.messagesCount && !this.requestForStop; i++) {
                 if (i >= this.releaseSemaphoreAt && this.releaseSemaphore != null) {
                     this.releaseSemaphore.release();
