@@ -7,26 +7,44 @@ export JBOSS_HOME=$2
 export VERSION=`grep -ir -A 2 "artemis-pom" $1/pom.xml | grep version | sed s,.*\<version\>,,g |sed s,\<\/version\>,,g `
 echo "VERSION = $VERSION"
 
+function findJar() {
+  local MODULES_DIR=$JBOSS_HOME/modules/system/layers/base
+  local OVERLAYS_DIR=$MODULES_DIR/.overlays
+
+  if [ -f $OVERLAYS_DIR/.overlays ]; then
+    while read PATCH; do
+      local RESULT=$(find $OVERLAYS_DIR/$PATCH -name $1)
+      if [ ${RESULT}0 != 0 ]; then
+        break
+      fi
+    done < $OVERLAYS_DIR/.overlays
+    if [ ${RESULT}0 == 0 ]; then
+      local RESULT=$(find $MODULES_DIR -name $1)
+    fi
+  fi
+  echo $RESULT
+}
+
 #replace jars
-cp $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-cli-*.jar
-cp $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-hqclient-protocol-*.jar
-cp $ARTEMIS_HOME/artemis-native/target/artemis-native-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-native-*.jar
-cp $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-commons-*.jar
-cp $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-jms-client-*.jar
-cp $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-selector-*.jar
-cp $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-core-client-*.jar
-cp $ARTEMIS_HOME/artemis-jms-server/target/artemis-jms-server-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-jms-server-*.jar
-cp $ARTEMIS_HOME/artemis-server/target/artemis-server-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-server*.jar
-cp $ARTEMIS_HOME/artemis-dto/target/artemis-dto-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-dto-*.jar
-cp $ARTEMIS_HOME/artemis-journal/target/artemis-journal-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-journal-*.jar
+cp $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $(findJar artemis-cli-*.jar)
+cp $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $(findJar artemis-hqclient-protocol-*.jar)
+cp $ARTEMIS_HOME/artemis-native/target/artemis-native-$VERSION.jar $(findJar artemis-native-*.jar)
+cp $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar $(findJar artemis-commons-*.jar)
+cp $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar $(findJar artemis-jms-client-*.jar)
+cp $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar $(findJar artemis-selector-*.jar)
+cp $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar $(findJar artemis-core-client-*.jar)
+cp $ARTEMIS_HOME/artemis-jms-server/target/artemis-jms-server-$VERSION.jar $(findJar artemis-jms-server-*.jar)
+cp $ARTEMIS_HOME/artemis-server/target/artemis-server-$VERSION.jar $(findJar artemis-server-*.jar)
+cp $ARTEMIS_HOME/artemis-dto/target/artemis-dto-$VERSION.jar $(findJar artemis-dto-*.jar)
+cp $ARTEMIS_HOME/artemis-journal/target/artemis-journal-$VERSION.jar $(findJar artemis-journal-*.jar)
 
-cp $ARTEMIS_HOME/artemis-ra/target/artemis-ra-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/ra/main/artemis-ra-*.jar
-cp $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/ra/main/artemis-service-extensions-*.jar
+cp $ARTEMIS_HOME/artemis-ra/target/artemis-ra-$VERSION.jar $(findJar artemis-ra-*.jar)
+cp $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$VERSION.jar $(findJar artemis-service-extensions-*.jar)
 
-cp $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/protocol/hornetq/main/artemis-hornetq-protocol*.jar
+cp $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $(findJar artemis-hornetq-protocol-*.jar)
 
-cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-x86_64/libartemis-native-64.so
-cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-i686/libartemis-native-32.so
+cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $(findJar libartemis-native-64.so)
+cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $(findJar libartemis-native-32.so)
 
 
 
@@ -37,7 +55,7 @@ cd ./tmp
 unzip -qq $JBOSS_HOME/bin/client/jboss-client.jar
 rm -rf ./org/apache/activemq/artemis
 unzip -qq -o $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar -x \*META-INF\*
-unzip -qq -o $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar -x \*META-INF\* 
+unzip -qq -o $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar -x \*META-INF\*
 unzip -qq -o $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar -x \*META-INF\*
 unzip -qq -o $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar -x \*META-INF\*
 unzip -qq -o $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar -x \*META-INF\*
@@ -49,23 +67,21 @@ cp jboss-client.jar $JBOSS_HOME/bin/client/jboss-client.jar
 cd ..
 rm -rf tmp
 
-md5sum $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-cli-*.jar
-md5sum $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-hqclient-protocol-*.jar
-md5sum $ARTEMIS_HOME/artemis-native/target/artemis-native-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-native-*.jar
-md5sum $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-commons-*.jar
-md5sum $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-jms-client-*.jar
-md5sum $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-selector-*.jar
-md5sum $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-core-client-*.jar
-md5sum $ARTEMIS_HOME/artemis-jms-server/target/artemis-jms-server-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-jms-server-*.jar
-md5sum $ARTEMIS_HOME/artemis-server/target/artemis-server-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-server*.jar
-md5sum $ARTEMIS_HOME/artemis-dto/target/artemis-dto-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-dto-*.jar
-md5sum $ARTEMIS_HOME/artemis-journal/target/artemis-journal-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/artemis-journal-*.jar
+md5sum $ARTEMIS_HOME/artemis-cli/target/artemis-cli-$VERSION.jar $(findJar artemis-cli-*.jar)
+md5sum $ARTEMIS_HOME/artemis-protocols/artemis-hqclient-protocol/target/artemis-hqclient-protocol-$VERSION.jar $(findJar artemis-hqclient-protocol-*.jar)
+md5sum $ARTEMIS_HOME/artemis-native/target/artemis-native-$VERSION.jar $(findJar artemis-native-*.jar)
+md5sum $ARTEMIS_HOME/artemis-commons/target/artemis-commons-$VERSION.jar $(findJar artemis-commons-*.jar)
+md5sum $ARTEMIS_HOME/artemis-jms-client/target/artemis-jms-client-$VERSION.jar $(findJar artemis-jms-client-*.jar)
+md5sum $ARTEMIS_HOME/artemis-selector/target/artemis-selector-$VERSION.jar $(findJar artemis-selector-*.jar)
+md5sum $ARTEMIS_HOME/artemis-core-client/target/artemis-core-client-$VERSION.jar $(findJar artemis-core-client-*.jar)
+md5sum $ARTEMIS_HOME/artemis-jms-server/target/artemis-jms-server-$VERSION.jar $(findJar artemis-jms-server-*.jar)
+md5sum $ARTEMIS_HOME/artemis-server/target/artemis-server-$VERSION.jar $(findJar artemis-server-*.jar)
+md5sum $ARTEMIS_HOME/artemis-dto/target/artemis-dto-$VERSION.jar $(findJar artemis-dto-*.jar)
+md5sum $ARTEMIS_HOME/artemis-journal/target/artemis-journal-$VERSION.jar $(findJar artemis-journal-*.jar)
 
-md5sum $ARTEMIS_HOME/artemis-ra/target/artemis-ra-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/ra/main/artemis-ra-*.jar
-md5sum $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/ra/main/artemis-service-extensions-*.jar
+md5sum $ARTEMIS_HOME/artemis-ra/target/artemis-ra-$VERSION.jar $(findJar artemis-ra-*.jar)
+md5sum $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$VERSION.jar $(findJar artemis-service-extensions-*.jar)
 
-md5sum $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/protocol/hornetq/main/artemis-hornetq-protocol*.jar
-md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-x86_64/libartemis-native-64.so
-md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $JBOSS_HOME/modules/system/layers/base/org/apache/activemq/artemis/main/lib/linux-i686/libartemis-native-32.so
-
-
+md5sum $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $(findJar artemis-hornetq-protocol-*.jar)
+md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $(findJar libartemis-native-64.so)
+md5sum $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $(findJar libartemis-native-32.so)
