@@ -819,6 +819,21 @@ public interface JMSOperations {
     void setBindingsDirectory(String serverName, String path);
 
     /**
+     * The directory in which to store the persisted bindings.
+     *
+     * @param path set only path segment. The relative-to remains unchanged.
+     */
+    void setBindingsDirectoryPath(String path);
+
+    /**
+     * The directory in which to store the persisted bindings.
+     *
+     * @param serverName set name of messaging server
+     * @param path       set only path segment. The relative-to remains unchanged.
+     */
+    void setBindingsDirectoryPath(String serverName, String path);
+
+    /**
      * Whether or not messages are acknowledged synchronously.
      *
      * @param connectionFactoryName
@@ -1243,6 +1258,21 @@ public interface JMSOperations {
     void setJournalDirectory(String serverName, String path);
 
     /**
+     * The directory to store the journal files in.
+     *
+     * @param path set only path segment. The relative-to remains unchanged.
+     */
+    void setJournalDirectoryPath(String path);
+
+    /**
+     * The directory to store the journal files in.
+     *
+     * @param serverName set name of messaging server
+     * @param path       set only path segment. The relative-to remains unchanged.
+     */
+    void setJournalDirectoryPath(String serverName, String path);
+
+    /**
      * Sets size of the journal file.
      *
      * @param sizeInBytes size of the journal file in bytes
@@ -1344,6 +1374,21 @@ public interface JMSOperations {
     /**
      * The directory in which to store large messages.
      *
+     * @param path set only path segment. The relative-to remains unchanged.
+     */
+    void setLargeMessagesDirectoryPath(String path);
+
+    /**
+     * The directory in which to store large messages.
+     *
+     * @param serverName set name of messaging server
+     * @param path       set only path segment. The relative-to remains unchanged.
+     */
+    void setLargeMessagesDirectoryPath(String serverName, String path);
+
+    /**
+     * The directory in which to store large messages.
+     *
      * @param serverName set name of hornetq server
      * @param path       set absolute path
      */
@@ -1392,6 +1437,21 @@ public interface JMSOperations {
      * @param path       set absolute path
      */
     void setPagingDirectory(String serverName, String path);
+
+    /**
+     * The directory to store paged messages in.
+     *
+     * @param path set only path segment. The relative-to remains unchanged.
+     */
+    void setPagingDirectoryPath(String path);
+
+    /**
+     * The directory to store paged messages in.
+     *
+     * @param serverName set name of the server
+     * @param path       set only path segment. The relative-to remains unchanged.
+     */
+    void setPagingDirectoryPath(String serverName, String path);
 
     /**
      * Sets permission privileges to a given role.

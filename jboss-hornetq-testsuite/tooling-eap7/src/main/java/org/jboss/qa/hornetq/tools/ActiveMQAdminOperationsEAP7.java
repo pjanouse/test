@@ -1831,6 +1831,28 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setJournalDirectoryPath(String path) {
+        setJournalDirectoryPath(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
+    }
+
+    @Override
+    public void setJournalDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Export ActiveMQ Artemis journal.
      * <p>
@@ -1932,6 +1954,28 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setPagingDirectoryPath(String path) {
+        setPagingDirectoryPath(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
+    }
+
+    @Override
+    public void setPagingDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * The directory in which to store large messages.
      *
@@ -1940,6 +1984,29 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     @Override
     public void setLargeMessagesDirectory(String path) {
         setLargeMessagesDirectory(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
+    }
+
+    @Override
+    public void setLargeMessagesDirectoryPath(String path) {
+        setLargeMessagesDirectoryPath(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
+    }
+
+    @Override
+    public void setLargeMessagesDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -1994,6 +2061,29 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
         model.get("path").set(path + File.separator + "bindings");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setBindingsDirectoryPath(String path) {
+        setBindingsDirectoryPath(NAME_OF_MESSAGING_DEFAULT_SERVER, path);
+    }
+
+    @Override
+    public void setBindingsDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
 
         try {
             this.applyUpdate(model);
@@ -5344,7 +5434,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("active");
         ModelNode result;
         try {

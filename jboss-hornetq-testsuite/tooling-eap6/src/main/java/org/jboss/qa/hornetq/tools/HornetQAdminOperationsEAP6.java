@@ -1481,6 +1481,27 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setJournalDirectoryPath(String path) {
+        setJournalDirectoryPath("default", path);
+    }
+
+    @Override
+    public void setJournalDirectoryPath(String serverName, String path) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "journal-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public String exportJournal() {
         throw new UnsupportedOperationException("export journal not supported for eap6 operations");
     }
@@ -1524,6 +1545,27 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setPagingDirectoryPath(String path) {
+        setPagingDirectoryPath("backup", path);
+    }
+
+    @Override
+    public void setPagingDirectoryPath(String serverName, String path) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "paging-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * The directory in which to store large messages.
      *
@@ -1532,6 +1574,29 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void setLargeMessagesDirectory(String path) {
         setLargeMessagesDirectory("default", path);
+    }
+
+    @Override
+    public void setLargeMessagesDirectoryPath(String path) {
+        setLargeMessagesDirectoryPath("default", path);
+    }
+
+    @Override
+    public void setLargeMessagesDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -1586,6 +1651,29 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
         model.get("path").set(path + File.separator + "messagingbindings");
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setBindingsDirectoryPath(String path) {
+        setBindingsDirectoryPath("backup", path);
+    }
+
+    @Override
+    public void setBindingsDirectoryPath(String serverName, String path) {
+
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("path", "bindings-directory");
+        model.get("name").set("path");
+        model.get("value").set(path);
 
         try {
             this.applyUpdate(model);
@@ -4505,7 +4593,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("read-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("active");
         ModelNode result;
         try {

@@ -74,7 +74,7 @@ public class ProducerAutoAck extends Producer11 {
 
                 Thread.sleep(getTimeout());
 
-                logger.debug("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Producer for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
 
             }
 

@@ -114,12 +114,16 @@ public class CheckServerAvailableUtils {
     }
 
     public static void waitForBrokerToDeactivate(Container container, long timeout) throws Exception {
+        waitForBrokerToDeactivate(container, "default", timeout);
+    }
+
+    public static void waitForBrokerToDeactivate(Container container, String serverName, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < 3; i++) {
             try {
                 JMSOperations jmsOperations = container.getJmsOperations();
-                while (jmsOperations.isActive("default")) {
+                while (jmsOperations.isActive(serverName)) {
                     Thread.sleep(1000);
                     if (System.currentTimeMillis() - startTime > timeout) {
                         Assert.fail("Server " + container.getName() + " should be down. Timeout was " + timeout);
@@ -137,10 +141,14 @@ public class CheckServerAvailableUtils {
     }
 
     public static void waitForBrokerToActivate(Container container, long timeout) throws Exception {
+        waitForBrokerToActivate(container, "default", timeout);
+    }
+
+    public static void waitForBrokerToActivate(Container container, String serverName, long timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         log.info("Start waiting for broker in container: " + container.getName() + " - to activate");
         JMSOperations jmsOperations = container.getJmsOperations();
-        while (!jmsOperations.isActive("default")) {
+        while (!jmsOperations.isActive(serverName)) {
             log.info("Broker in container: " + container.getName() + " - is not active yet. Waiting time :" + (System.currentTimeMillis() - startTime) + " ms");
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > timeout) {

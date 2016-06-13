@@ -984,6 +984,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setBindingsDirectoryPath(String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setBindingsDirectoryPath(String serverName, String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setBlockOnAckForConnectionFactory(String connectionFactoryName, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1263,6 +1273,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalDirectoryPath(String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalDirectoryPath(String serverName, String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalFileSize(long sizeInBytes) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1335,6 +1355,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setLargeMessagesDirectoryPath(String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setLargeMessagesDirectoryPath(String serverName, String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setLargeMessagesDirectory(String serverName, String path) {
         setLargeMessagesDirectory(path);
     }
@@ -1370,6 +1400,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     @Override
     public void setPagingDirectory(String serverName, String path) {
         setPagingDirectory(path);
+    }
+
+    @Override
+    public void setPagingDirectoryPath(String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setPagingDirectoryPath(String serverName, String path) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
     @Override
