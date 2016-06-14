@@ -701,7 +701,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
