@@ -18,9 +18,9 @@ function findJar() {
         break
       fi
     done < $OVERLAYS_DIR/.overlays
-    if [ ${RESULT}0 == 0 ]; then
-      local RESULT=$(find $MODULES_DIR -name $1)
-    fi
+  fi
+  if [ ${RESULT}0 == 0 ]; then
+    local RESULT=$(find $MODULES_DIR -name $1)
   fi
   echo $RESULT
 }
