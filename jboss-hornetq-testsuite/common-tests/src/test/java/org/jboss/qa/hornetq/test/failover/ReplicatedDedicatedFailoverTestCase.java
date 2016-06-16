@@ -1967,15 +1967,15 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     private void prepareReplicatedDedicatedTopologyInCluster() {
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-1");
-            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-1");
-            prepareLiveServerEAP6(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-2");
-            prepareBackupServerEAP6(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-2");
+            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareLiveServerEAP6(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
+            prepareBackupServerEAP6(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
         } else {
-            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-1");
-            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-1");
-            prepareLiveServerEAP7(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-2");
-            prepareBackupServerEAP7(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR, "replication-group-name-2");
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareLiveServerEAP7(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
+            prepareBackupServerEAP7(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
         }
 
     }
