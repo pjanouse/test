@@ -59,6 +59,7 @@ public class Producer20 extends Producer {
 
     protected void commitJMSContext(JMSContext jmsContext, Destination destination, JMSProducer producer) throws Exception {
         int numberOfRetries = 0;
+        int numberOfRollbacks = 0;
         while (true) {
             try {
 
@@ -73,7 +74,7 @@ public class Producer20 extends Producer {
                 logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 2) {
+                if (numberOfRollbacks > 0) {
                     throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
                             + " Client will terminate.", ex);
                 }
@@ -84,11 +85,11 @@ public class Producer20 extends Producer {
                     sendMessage(producer, destination, m);
                 }
 
-                numberOfRetries++;
+                numberOfRollbacks++;
 
             } catch (JMSRuntimeException ex) {
                 // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
-                ex.printStackTrace();
+                logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once - it's exception because of duplicates
                 if (numberOfRetries > 0 && ex.getCause().getMessage().contains("Duplicate message detected")) {

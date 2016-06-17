@@ -61,6 +61,7 @@ public class Producer11 extends Producer {
 
     protected void commitSession(Session session, MessageProducer producer) throws Exception {
         int numberOfRetries = 0;
+        int numberOfRollbacks = 0;
         while (true) {
             try {
 
@@ -75,7 +76,7 @@ public class Producer11 extends Producer {
                 logger.error("Producer got exception for commit(). Producer counter: " + counter, ex);
 
                 // don't repeat this more than once, this can't happen
-                if (numberOfRetries > 2) {
+                if (numberOfRollbacks > 0) {
                     throw new Exception("Fatal error. TransactionRolledBackException was thrown more than once for one commit. Message counter: " + counter
                             + " Client will terminate.", ex);
                 }
@@ -86,7 +87,7 @@ public class Producer11 extends Producer {
                     sendMessage(producer, m);
                 }
 
-                numberOfRetries++;
+                numberOfRollbacks++;
 
             } catch (JMSException ex) {
                 // if jms exception -> send messages again and commit (in this case server will throw away possible duplicates because dup_id  is set so it's safe)
