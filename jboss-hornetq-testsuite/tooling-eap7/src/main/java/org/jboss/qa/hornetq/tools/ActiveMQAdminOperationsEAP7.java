@@ -659,11 +659,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setJournalMinFiles(int i) {
+    public void setJournalMinFiles(String serverName, int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("journal-min-files");
         model.get("value").set(i);
         try {
@@ -671,6 +671,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setJournalMinFiles(int i) {
+        setJournalMinFiles(NAME_OF_MESSAGING_DEFAULT_SERVER, i);
     }
 
     @Override

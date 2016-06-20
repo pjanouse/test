@@ -5038,11 +5038,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void setJournalMinFiles(int i) {
+    public void setJournalMinFiles(String serverName, int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
 
 
         model.get("name").set("journal-min-files");
@@ -5053,6 +5053,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setJournalMinFiles(int i) {
+        setJournalFileSize("default", i);
     }
 
     @Override

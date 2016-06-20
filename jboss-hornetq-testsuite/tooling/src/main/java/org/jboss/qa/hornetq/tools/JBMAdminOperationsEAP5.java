@@ -2497,6 +2497,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalMinFiles(String serverName, int i) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalMinFiles(int i) {
         logger.info("This operation is not supported: " + getMethodName());
     }
