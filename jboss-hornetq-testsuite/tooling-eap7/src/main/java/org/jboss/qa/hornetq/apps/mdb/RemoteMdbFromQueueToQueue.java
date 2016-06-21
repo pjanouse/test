@@ -28,7 +28,7 @@ import javax.naming.Context;
 @MessageDriven(name = "mdb",
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/InQueue"),
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "queues/InQueue"),
                 @ActivationConfigProperty(propertyName="userName", propertyValue="user"),
                 @ActivationConfigProperty(propertyName="password", propertyValue="user")
         })
