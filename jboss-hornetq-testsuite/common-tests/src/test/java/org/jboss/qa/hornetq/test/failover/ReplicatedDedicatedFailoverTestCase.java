@@ -54,7 +54,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
 
-    private String replicationGroupName = "replication-group-name-1";
+    private static final String replicationGroupName = "replication-group-name-1";
 
     @After
     @Before
@@ -1615,13 +1615,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         testFailoverNoPrepareInternal(acknowledge, failback, topic, shutdown);
     }
 
+    @Override
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+        prepareLiveServerEAP6(container, journalDirectory, journalType, connectorType, replicationGroupName);
+    }
+
     /**
      * Prepares live server for dedicated topology.
      *
      * @param container Test container - defined in arquillian.xml
      */
-    @Override
-    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    protected void prepareLiveServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType, String replicationGroupName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1657,7 +1661,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setSharedStore(false);
         jmsAdminOperations.setJournalType(journalType);
-        jmsAdminOperations.setBackupGroupName("firstPair");
+        jmsAdminOperations.setBackupGroupName(replicationGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
 
         jmsAdminOperations.setMaxSavedReplicatedJournals(60);
@@ -1731,6 +1735,11 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.stop();
     }
 
+    @Override
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+        prepareLiveServerEAP7(container, journalDirectory, journalType, connectorType, replicationGroupName);
+    }
+
     /**
      * Prepares live server for dedicated topology.
      *
@@ -1738,7 +1747,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @param journalType   ASYNCIO, NIO
      * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
      */
-    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    protected void prepareLiveServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType, String replicationGroupName) {
 
         container.start();
 
@@ -1765,12 +1774,17 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.stop();
     }
 
+    @Override
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+        prepareBackupServerEAP6(container, journalDirectory, journalType, connectorType, replicationGroupName);
+    }
+
     /**
      * Prepares backup server for dedicated topology.
      *
      * @param container Test container - defined in arquillian.xml
      */
-    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    protected void prepareBackupServerEAP6(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType, String replicationGroupName) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -1803,7 +1817,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
 
         jmsAdminOperations.setBackup(true);
-        jmsAdminOperations.setBackupGroupName("firstPair");
+        jmsAdminOperations.setBackupGroupName(replicationGroupName);
         jmsAdminOperations.setCheckForLiveServer(true);
         jmsAdminOperations.setClustered(true);
         jmsAdminOperations.setSharedStore(false);
@@ -1888,6 +1902,11 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container.stop();
     }
 
+    @Override
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+        prepareBackupServerEAP7(container, journalDirectory, journalType, connectorType, replicationGroupName);
+    }
+
     /**
      * Prepares backup server for dedicated topology.
      *
@@ -1895,7 +1914,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
      * @param journalType   ASYNCIO, NIO
      * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or HTTP connector
      */
-    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    protected void prepareBackupServerEAP7(Container container, String journalDirectory, String journalType, Constants.CONNECTOR_TYPE connectorType, String replicationGroupName) {
 
         container.start();
 
@@ -1948,15 +1967,15 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
     private void prepareReplicatedDedicatedTopologyInCluster() {
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareLiveServerEAP6(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareBackupServerEAP6(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP6(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareBackupServerEAP6(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareLiveServerEAP6(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
+            prepareBackupServerEAP6(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
         } else {
-            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareLiveServerEAP7(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
-            prepareBackupServerEAP7(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+            prepareLiveServerEAP7(container(1), JOURNAL_DIRECTORY_A, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareBackupServerEAP7(container(2), JOURNAL_DIRECTORY_B, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-1");
+            prepareLiveServerEAP7(container(3), JOURNAL_DIRECTORY_C, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
+            prepareBackupServerEAP7(container(4), JOURNAL_DIRECTORY_D, ASYNCIO_JOURNAL_TYPE, Constants.CONNECTOR_TYPE.NETTY_NIO, "replication-group-name-2");
         }
 
     }

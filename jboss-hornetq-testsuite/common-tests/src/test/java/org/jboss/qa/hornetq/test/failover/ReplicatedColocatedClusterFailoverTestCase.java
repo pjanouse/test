@@ -2,9 +2,9 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -13,15 +13,19 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
+import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.Session;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -39,6 +43,97 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
 
+    /**
+     * @tpTestDetails This test scenario tests whether the synchronization between Lives and Backups
+     * will be successfully performed even the journal-min-files will be 100.
+     * @tpProcedure <ul>
+     * <li>start two nodes in colocated cluster topology with journal-min-files=100</li>
+     * <li>start sending and receiving messages</li>
+     * <li>shutdown node-1</li>
+     * <li>start node-1</li>
+     * <li>stop sending messages</li>
+     * <li>wait until all messages are received</li>
+     * </ul>
+     * @tpPassCrit Replication is not stopped between Live and Backup (all checks whether brokers are active or inactive pass).
+     * All sent messages are properly delivered. There are no losses or duplicates.
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testSynchronizationWithBigJournalMinFiles() throws Exception {
+        prepareColocatedTopologyInCluster(Constants.CONNECTOR_TYPE.NETTY_NIO);
+
+        JMSOperations jmsOperations;
+
+        container(1).start();
+        jmsOperations = container(1).getJmsOperations();
+        jmsOperations.setJournalMinFiles(100);
+        jmsOperations.setJournalMinFiles("backup", 100);
+        container(1).stop();
+
+        container(2).start();
+        jmsOperations = container(2).getJmsOperations();
+        jmsOperations.setJournalMinFiles(100);
+        jmsOperations.setJournalMinFiles("backup", 100);
+        container(2).stop();
+
+        container(2).start();
+
+        container(1).start();
+
+        // give some time for servers to find each other
+        Thread.sleep(10000);
+
+        messageBuilder.setAddDuplicatedHeader(true);
+
+        clients = createClients(Session.SESSION_TRANSACTED, false, messageBuilder);
+
+        clients.setProducedMessagesCommitAfter(10);
+
+        clients.setReceivedMessagesAckCommitAfter(10);
+
+        clients.startClients();
+
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 120, 300000);
+
+        logger.info("########################################");
+        logger.info("shutdown - first server");
+        logger.info("########################################");
+        container(1).stop();
+
+        ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
+        Assert.assertTrue("Backup on second server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
+                container(2).getHornetqBackupPort(), 300000));
+
+        logger.info("########################################");
+        logger.info("failback - Start first server again ");
+        logger.info("########################################");
+        container(1).start();
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
+        Thread.sleep(20000); // give some time to org.jboss.qa.hornetq.apps.clients
+
+        logger.info("########################################");
+        logger.info("Stop org.jboss.qa.hornetq.apps.clients - this will stop producers");
+        logger.info("########################################");
+        clients.stopClients();
+
+        logger.info("########################################");
+        logger.info("Wait for end of all org.jboss.qa.hornetq.apps.clients.");
+        logger.info("########################################");
+        ClientUtils.waitForClientsToFinish(clients);
+        logger.info("########################################");
+        logger.info("All org.jboss.qa.hornetq.apps.clients ended/finished.");
+        logger.info("########################################");
+
+
+        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", clients.evaluateResults());
+
+        container(1).stop();
+
+        container(2).stop();
+    }
 
     @BMRules({
             @BMRule(name = "Kill server after the backup is synced with live",
