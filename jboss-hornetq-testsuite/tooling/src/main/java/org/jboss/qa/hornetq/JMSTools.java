@@ -112,6 +112,41 @@ public final class JMSTools {
     }
 
     /**
+     * Waits until number of added messages in queue in containers exceeeds given number
+     * of messages
+     *
+     * @see JMSTools#getAddedMessagesCount(String, Container...) 
+     *
+     * @param queueName        queue name
+     * @param numberOfMessages number of messages
+     * @param timeout          time out
+     * @param containers       container list
+     * @return returns true if there is numberOfMessages in queue, when timeout
+     * expires it returns false
+     * @throws Exception
+     */
+    public boolean waitForAddedMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
+
+        long startTime = System.currentTimeMillis();
+
+        long count = 0;
+        while ((count = getAddedMessagesCount(queueName, containers)) < numberOfMessages) {
+            List<String> containerNames = new ArrayList<String>(containers.length);
+            for (org.jboss.qa.hornetq.Container c : containers) {
+                containerNames.add(c.getName());
+            }
+
+            log.info("Total number of added messages in queue: " + queueName + " on node "
+                    + Arrays.toString(containerNames.toArray()) + " is " + count);
+            Thread.sleep(5000);
+            if (System.currentTimeMillis() - startTime > timeout) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns total number of messages in queue on given nodes
      *
      * @param queueName  queue name
