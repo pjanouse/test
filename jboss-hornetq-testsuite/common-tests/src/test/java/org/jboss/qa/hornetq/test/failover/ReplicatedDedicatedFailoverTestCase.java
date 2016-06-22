@@ -1214,7 +1214,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         waitForClientToFailover(receiver1, 300000);
         ClientUtils.waitForReceiverUntil(receiver1, 150, 120000);
         // slow down receiver so failback takes a lot of time
-        receiver1.setReceiveTimeout(100);
+        receiver1.setTimeout(100);
         prod1.setTimeout(1000);
 
         logger.info("#########################################");
