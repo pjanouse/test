@@ -115,7 +115,7 @@ public final class JMSTools {
      * Waits until number of added messages in queue in containers exceeeds given number
      * of messages
      *
-     * @see JMSTools#getAddedMessagesCount(String, Container...) 
+     * @see JMSTools#getAddedMessagesCount(String, Container...)
      *
      * @param queueName        queue name
      * @param numberOfMessages number of messages

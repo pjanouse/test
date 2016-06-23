@@ -9,10 +9,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.TransactionUtils;
+import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -152,11 +149,13 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         ContainerUtils.printThreadDump(container(4));
     }
 
+
     /**
      * Prepare two servers in simple dedecated topology.
      *
      * @throws Exception
      */
+
     public void prepareRemoteJcaTopology() throws Exception {
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareLiveServerEAP6(container(1));

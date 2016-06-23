@@ -71,6 +71,11 @@ public class SimpleSendEJBStatelessBean implements SimpleSendEJB {
             }
         }
     }
+    
+    @Override
+    public int sendCount(){
+        return -1;
+    }
 }
 
 

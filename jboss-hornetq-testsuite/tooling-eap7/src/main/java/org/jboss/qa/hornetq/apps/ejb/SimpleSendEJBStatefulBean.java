@@ -70,5 +70,11 @@ public class SimpleSendEJBStatefulBean implements SimpleSendEJB {
             this.sessionContext.setRollbackOnly();
         }
     }
+
+
+    @Override
+    public int sendCount(){
+        return -1;
+    }
 }
 

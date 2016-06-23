@@ -14,5 +14,7 @@ public interface SimpleSendEJB {
      *
      */
     void sendMessage();
+
+    int sendCount();
 }
 
