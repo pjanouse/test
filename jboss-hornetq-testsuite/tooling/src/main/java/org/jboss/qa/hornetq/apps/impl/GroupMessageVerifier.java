@@ -14,11 +14,11 @@ import java.util.*;
 /**
  * This class observers jms org.jboss.qa.hornetq.apps.clients and store their sent and received messages. This class takes all received and send messages
  * and trow away send messages which do not have the same JMSXGroupID as received messages. So we can find lost and dups messages.
- * <p/>
+ * <p>
  * It's expected that there will be used another way to verify that all messages with JMSXGroupID were received by consumers.
- * <p/>
+ * <p>
  * There should be one GroupMessageVerifier per consumer.
- * <p/>
+ * <p>
  *
  * @author mnovak@redhat.com
  */
@@ -78,14 +78,18 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
         }
 
         logger.info("##################### Check ordering - start ##########################################");
-        // check that ordering
-        checkOrdering();
+
+        if (!checkOrdering()) isOk = false;
+
         logger.info("##################### Check ordering - finish ##########################################");
 
         return isOk;
     }
 
-    private void checkOrdering() {
+    private boolean checkOrdering() {
+
+        boolean isOk = true;
+
         for (int index = 0; index < sentMessages.size(); index++) {
             Map<String, String> sentMessage = sentMessages.get(index);
             if (index < receivedMessages.size()) {
@@ -95,9 +99,11 @@ public class GroupMessageVerifier implements FinalTestMessageVerifier {
                         receivedMessage.get(jmsImplementation.getDuplicatedHeader()))) {
                     logger.info("Message received out of order - " + jmsImplementation.getDuplicatedHeader() +
                             ": " + receivedMessage.get(jmsImplementation.getDuplicatedHeader()));
+                    isOk = false;
                 }
             }
         }
+        return isOk;
     }
 
     /**
