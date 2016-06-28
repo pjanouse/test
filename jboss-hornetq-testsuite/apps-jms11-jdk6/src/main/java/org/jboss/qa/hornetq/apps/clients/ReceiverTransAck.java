@@ -78,6 +78,8 @@ public class ReceiverTransAck extends Receiver11 {
             boolean running = true;
             while (running) {
 
+                Thread.sleep(getTimeout());
+
                 message = receiveMessage(receiver);
 
                 // in case that commit of last message fails then receive the whole message window again and commit again
@@ -87,8 +89,6 @@ public class ReceiverTransAck extends Receiver11 {
                     }
                     continue;
                 }
-
-                Thread.sleep(getTimeout());
 
                 listOfReceivedMessagesToBeCommited.add(message);
 

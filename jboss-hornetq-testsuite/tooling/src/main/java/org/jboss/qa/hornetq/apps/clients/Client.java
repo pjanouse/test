@@ -15,21 +15,15 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- *
  * Parent client class.
- *
+ * <p>
  * Creates abstract layer for creating Context for EAP 5 and EAP 6 server.
  *
- * @author  mnovak@redhat.com
- *
+ * @author mnovak@redhat.com
  */
 public class Client extends Thread implements HornetQTestCaseConstants {
 
@@ -66,15 +60,15 @@ public class Client extends Thread implements HornetQTestCaseConstants {
             currentContainer = EAP5_CONTAINER;
             jmsImplementation = HornetqJMSImplementation.getInstance();
         } else if (EAP5_WITH_JBM_CONTAINER.equals(currentContainerForTest)) {
-            currentContainer =  EAP5_WITH_JBM_CONTAINER;
+            currentContainer = EAP5_WITH_JBM_CONTAINER;
             jmsImplementation = HornetqJMSImplementation.getInstance();
         } else if (EAP6_LEGACY_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_LEGACY_CONTAINER;
             jmsImplementation = HornetqJMSImplementation.getInstance();
-        }  else if (EAP6_CONTAINER.equals(currentContainerForTest)) {
+        } else if (EAP6_CONTAINER.equals(currentContainerForTest)) {
             currentContainer = EAP6_CONTAINER;
             jmsImplementation = HornetqJMSImplementation.getInstance();
-        }  else {
+        } else {
             currentContainer = EAP7_CONTAINER;
             jmsImplementation = ArtemisJMSImplementation.getInstance();
         }
@@ -94,11 +88,12 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         this.destinationNameJndi = destinationNameJndi;
         this.maxRetries = maxRetries;
     }
+
     /**
-     *  Returns jndi context.
+     * Returns jndi context.
      *
      * @param hostname hostname
-     * @param port port
+     * @param port     port
      * @return Context
      * @throws NamingException
      */
@@ -121,7 +116,8 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     protected String getConnectionFactoryJndiName() {
         if (currentContainer.equals(EAP5_CONTAINER) || currentContainer.equals(EAP5_WITH_JBM_CONTAINER)) {
             return CONNECTION_FACTORY_JNDI_EAP5;
-        } if (currentContainer.equals(EAP6_LEGACY_CONTAINER)) {
+        }
+        if (currentContainer.equals(EAP6_LEGACY_CONTAINER)) {
             return CONNECTION_FACTORY_JNDI_EAP6_FULL_NAME;
         } else {
             return CONNECTION_FACTORY_JNDI_EAP6;
@@ -129,35 +125,37 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     }
 
     protected Message cleanMessage(Message m) throws JMSException {
-        
+
         m.clearBody();
         return m;
     }
 
-    protected void addMessage(List<Map<String,String>> listOfReceivedMessages, Message message) throws JMSException {
-        Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String,String>();
+    protected void addMessage(List<Map<String, String>> listOfReceivedMessages, Message message) throws JMSException {
+        Map<String, String> mapOfPropertiesOfTheMessage = new HashMap<String, String>();
         mapOfPropertiesOfTheMessage.put("messageId", message.getJMSMessageID());
-        if (message.getStringProperty(jmsImplementation.getDuplicatedHeader()) != null)   {
+        if (message.getStringProperty(jmsImplementation.getDuplicatedHeader()) != null) {
             mapOfPropertiesOfTheMessage.put(jmsImplementation.getDuplicatedHeader(), message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
         }
         // this is for MDB test versification (MDB creates new message with inMessageId property)
-        if (message.getStringProperty("inMessageId") != null)   {
+        if (message.getStringProperty("inMessageId") != null) {
             mapOfPropertiesOfTheMessage.put("inMessageId", message.getStringProperty("inMessageId"));
         }
-        if (message.getStringProperty("JMSXGroupID") != null)   {
+        if (message.getStringProperty("JMSXGroupID") != null) {
             mapOfPropertiesOfTheMessage.put("JMSXGroupID", message.getStringProperty("JMSXGroupID"));
         }
+        mapOfPropertiesOfTheMessage.put("messagePriority", String.valueOf(message.getJMSPriority()));
+
         listOfReceivedMessages.add(mapOfPropertiesOfTheMessage);
     }
 
-    protected void addMessages(List<Map<String,String>> listOfReceivedMessages, List<Message> messages) throws JMSException {
-        for (Message m : messages)  {
+    protected void addMessages(List<Map<String, String>> listOfReceivedMessages, List<Message> messages) throws JMSException {
+        for (Message m : messages) {
             addMessage(listOfReceivedMessages, m);
         }
     }
 
-    protected void addSetOfMessages(List<Map<String,String>> listOfReceivedMessages, Set<Message> messages) throws JMSException {
-        for (Message m : messages)  {
+    protected void addSetOfMessages(List<Map<String, String>> listOfReceivedMessages, Set<Message> messages) throws JMSException {
+        for (Message m : messages) {
             addMessage(listOfReceivedMessages, m);
         }
     }

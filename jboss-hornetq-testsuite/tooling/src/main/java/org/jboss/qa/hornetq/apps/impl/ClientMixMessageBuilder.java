@@ -207,7 +207,8 @@ public class ClientMixMessageBuilder implements MessageBuilder {
         }
 
         if (isAddPriorityToMessage)  {
-            message.setJMSPriority(generatePriority());
+            int priority = generatePriority();
+            message.setJMSPriority(priority);
         }
         if (jndiProperties != null && jndiProperties.size() > 0)    {
             message = MessageUtils.setPropertiesToMessage(jndiProperties, message);
