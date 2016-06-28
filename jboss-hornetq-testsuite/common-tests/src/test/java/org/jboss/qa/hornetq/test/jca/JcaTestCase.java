@@ -10,11 +10,10 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -311,7 +310,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).start();
 
         // send messages to InQueue
-        FinalTestMessageVerifier mdbMessageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier mdbMessageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMesasges);
         TextMessageBuilder messageBuilder = new TextMessageBuilder();
         messageBuilder.setAddDuplicatedHeader(false);

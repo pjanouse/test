@@ -14,8 +14,8 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.InfoMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.MdbToDBAndRemoteInOutQueue;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -86,8 +86,6 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
 
     int defaultPortForMessagingSocketBinding = 5445;
 
-    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
-
     private Map<String, String> databaseProperties = null;
 
     /**
@@ -120,7 +118,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void testNetworkFailureWithRemoteJCA(Container inServer, Container outServer) throws Exception {
-
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prepareRemoteJcaTopology(inServer, outServer);
         container(1).start();
         container(3).start();

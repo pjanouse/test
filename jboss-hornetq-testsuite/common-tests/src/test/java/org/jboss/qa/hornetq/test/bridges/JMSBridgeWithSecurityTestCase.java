@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
@@ -54,7 +54,7 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
 
     private MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
-    private FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+    private FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
     // Queue to send messages in
     private String inQueueName = "InQueue";

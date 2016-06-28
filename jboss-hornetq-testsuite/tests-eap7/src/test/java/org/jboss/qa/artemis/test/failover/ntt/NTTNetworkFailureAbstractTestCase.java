@@ -24,9 +24,10 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.servlets.ServletConstants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -167,7 +168,7 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
         RuleInstaller.installRule(this.getClass(), container(1));
         httpclient.execute(producerRunPost);
         httpclient.execute(consumerRunPost);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int messagesCount = waitForAllMessages(15000, MAX_MESSAGES);
         String responseSent = (new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForMessages())));
         String responseReceived = (new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForConsumerForMessages())));
@@ -225,7 +226,7 @@ public abstract class NTTNetworkFailureAbstractTestCase extends HornetQTestCase 
         waitForAllMessages(15000, MAX_MESSAGES);
         String producerException = new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForExceptions()));
         String responseSent = (new BasicResponseHandler().handleResponse(httpclient.execute(createHttpPostForProducerForMessages())));
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         container(3).stop();
         messageVerifier.addSendMessages(deserializeResponse(responseSent));
         if(expectedMessagesOnServers >=0){

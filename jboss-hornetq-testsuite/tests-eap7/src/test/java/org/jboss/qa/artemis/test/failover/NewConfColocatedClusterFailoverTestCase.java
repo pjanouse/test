@@ -22,7 +22,7 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -297,7 +297,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();

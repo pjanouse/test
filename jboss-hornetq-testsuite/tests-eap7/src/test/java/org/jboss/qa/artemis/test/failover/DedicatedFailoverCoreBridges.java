@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -55,7 +55,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
     private String outQueueName = "OutQueue";
     private String outQueueJndiName = "jms/queue/" + outQueueName;
 
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
+    FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ArtemisJMSImplementation.getInstance());
 
     //    MessageBuilder messageBuilder = new TextMessageBuilder(10);
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);

@@ -19,9 +19,9 @@ import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatefulBean;
 import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJBStatelessBean;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.*;
@@ -856,7 +856,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(2).undeploy(lodhLikeMdbFromTopic);// change here
         container(2).stop();
 
-        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         PublisherTransAck producer1 = new PublisherTransAck(container(1), inTopicJndiName, numberOfMessages, "publisher");
         producer1.setTimeout(0);
         producer1.setMessageBuilder(messageBuilder);
@@ -943,7 +943,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producer1.setTimeout(0);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);
@@ -1062,7 +1062,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producer1.setTimeout(0);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 100);

@@ -21,7 +21,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.MdbListenningOnNonDurableTopic;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementProperties;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContainerWithReplacementPropertiesName;
@@ -79,8 +79,6 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-
-    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     @Deployment(managed = false, testable = false, name = MDB_ON_QUEUE_1)
     @TargetsContainer(SERVER_GROUP2)
@@ -560,7 +558,7 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
      * @throws Exception
      */
     public void testRemoteJcaInCluster(List<Container> failureSequence, boolean isShutdown, boolean isFiltered, Container inServer, Container outServer) throws Exception {
-
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         DomainOperations.forDefaultContainer()
                 .removeServer("server-1")
                 .removeServer("server-3")

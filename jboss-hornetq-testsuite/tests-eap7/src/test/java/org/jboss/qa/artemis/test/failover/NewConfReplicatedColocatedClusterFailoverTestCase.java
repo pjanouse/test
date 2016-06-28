@@ -7,7 +7,8 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -101,7 +102,7 @@ public class NewConfReplicatedColocatedClusterFailoverTestCase extends NewConfCo
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ArtemisJMSImplementation.getInstance());
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();

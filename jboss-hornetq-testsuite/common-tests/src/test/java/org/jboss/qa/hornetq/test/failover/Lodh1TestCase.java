@@ -14,13 +14,11 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.JMSMessageProperties;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
-import org.jboss.qa.hornetq.apps.mdb.MdbConnectionNotClosed;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -71,7 +69,6 @@ public class Lodh1TestCase extends HornetQTestCase {
     static String outQueue = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     public static String createEjbXml(String mdbName) {
 
@@ -291,7 +288,7 @@ public class Lodh1TestCase extends HornetQTestCase {
      * @throws Exception
      */
     public void testLodh(boolean shutdown) throws Exception {
-
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // we use only the first server
         prepareServer(container(1));
 
@@ -443,7 +440,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLodhWithoutKill() throws Exception {
-
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMessages = 100;
 
         // we use only the first server

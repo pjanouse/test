@@ -9,7 +9,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -233,7 +234,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER);

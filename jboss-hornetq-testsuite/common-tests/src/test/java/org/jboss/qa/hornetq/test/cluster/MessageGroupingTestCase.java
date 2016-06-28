@@ -8,7 +8,6 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -17,7 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueueWithSelectorAndSecurity;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.test.security.PermissionGroup;
@@ -289,7 +288,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(2).start();
         container(1).start();
         Thread.sleep(5000);
-        FinalTestMessageVerifier verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 120000, 100, 10);
         receiver.addMessageVerifier(verifier);
         receiver.start();
@@ -407,7 +406,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         List<String> groups = new ArrayList<String>();
 
         JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
-        FinalTestMessageVerifier verifier = new TextMessageVerifier(jmsImplementation);
+        FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(jmsImplementation);
         List<Map<String, String>> sendMessages = new ArrayList<Map<String, String>>();
 
         Context context = container(1).getContext();
@@ -855,7 +854,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         List<ReceiverTransAck> receivers = new ArrayList<ReceiverTransAck>();
         List<FinalTestMessageVerifier> groupMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         groupMessageVerifiers.add(messageVerifier);
 
         for (int i = 0; i < 2; i++) {

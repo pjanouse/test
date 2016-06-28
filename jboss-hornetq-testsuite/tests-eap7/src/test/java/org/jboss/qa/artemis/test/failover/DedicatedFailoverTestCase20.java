@@ -20,10 +20,9 @@ import org.jboss.qa.hornetq.apps.clients20.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsTransAck;
-import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -409,7 +408,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(100);
         producerToInQueue1.setTimeout(0);
@@ -687,9 +686,9 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         JMSTools.waitForClientsToFinish(clients);
 
         // message verifiers for diverted messages - compares send and diverted messages
-        FinalTestMessageVerifier sendDivertedMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier sendDivertedMessageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // compare received and diverted messages, to send  messages add messages from normal receiver, to received messages from diverted queue
-        FinalTestMessageVerifier receivedDivertedMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier receivedDivertedMessageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // add send messages to sendDivertedMessageVerifier
         for (Client c : clients.getProducers()) {
@@ -996,7 +995,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
         Thread.sleep(10000);
 
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + 0, NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier queueTextMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier queueTextMessageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         p.addMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
         p.setMessageBuilder(messageBuilder);

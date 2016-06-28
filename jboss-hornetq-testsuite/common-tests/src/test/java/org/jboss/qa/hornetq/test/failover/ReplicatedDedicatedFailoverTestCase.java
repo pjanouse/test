@@ -15,9 +15,8 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -32,7 +31,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.jms.Message;
 import javax.jms.Session;
 import java.io.File;
 import java.io.IOException;
@@ -874,7 +872,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
@@ -938,7 +936,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         prod1.setTimeout(0);
@@ -1029,7 +1027,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         Thread.sleep(5000);
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
@@ -1080,7 +1078,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         Thread.sleep(5000);
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
@@ -1186,7 +1184,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         Thread.sleep(5000);
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
@@ -1297,7 +1295,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), testQueue0JndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(100);
         producerToInQueue1.setTimeout(0);
@@ -1521,7 +1519,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);

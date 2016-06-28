@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -54,7 +54,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
     private String outQueueJndiName = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
+    FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ArtemisJMSImplementation.getInstance());
 
     String discoveryGroupName = "dg-group1";
     String clusterConnectionName = "my-cluster";

@@ -18,7 +18,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -57,7 +57,6 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
     static String outQueue = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
-    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     public static String createEjbXml(String mdbName) {
 
@@ -147,6 +146,8 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
      */
     public void testLodh(boolean shutdown) throws Exception {
         // no need to prepare domain, we're using "node-1" on "server-group-1"
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
+
         DomainOperations.forDefaultContainer().reloadDomain().close();
 
         // we use only the first server
@@ -205,6 +206,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testLodhWithoutKill() throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // no need to prepare domain, we're using "node-1" on "server-group-1"
         DomainOperations.forDefaultContainer().reloadDomain().close();
 

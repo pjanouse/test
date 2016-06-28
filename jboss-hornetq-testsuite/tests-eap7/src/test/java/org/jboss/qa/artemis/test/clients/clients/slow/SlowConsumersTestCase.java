@@ -9,7 +9,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.mdb.LocalSlowMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -135,7 +135,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         slowConsumer.join();
 
         LOG.info("Verify fast consumers messages");
-        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier finalTestMessageVerifier1 = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         finalTestMessageVerifier1.addSendMessages(producer.getListOfSentMessages());
         finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
         finalTestMessageVerifier1.verifyMessages();
@@ -225,14 +225,14 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         LOG.info("number of subscribers on InTopic :" + numberOfSubscribers);
 
         LOG.info("Verify fast consumers messages");
-        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier finalTestMessageVerifier1 = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         finalTestMessageVerifier1.addSendMessages(producer1.getListOfSentMessages());
         finalTestMessageVerifier1.addSendMessages(producer2.getListOfSentMessages());
         finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
         finalTestMessageVerifier1.verifyMessages();
 
         LOG.info("Verify slow consumers messages");
-        FinalTestMessageVerifier finalTestMessageVerifier2 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier finalTestMessageVerifier2 = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         finalTestMessageVerifier2.addSendMessages(producer1.getListOfSentMessages());
         finalTestMessageVerifier2.addSendMessages(producer2.getListOfSentMessages());
         finalTestMessageVerifier2.addReceivedMessages(slowConsumer.getListOfReceivedMessages());
@@ -313,7 +313,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         slowConsumer.join();
 
         LOG.info("Verify fast consumers messages");
-        FinalTestMessageVerifier finalTestMessageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier finalTestMessageVerifier1 = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         finalTestMessageVerifier1.addSendMessages(producer.getListOfSentMessages());
         finalTestMessageVerifier1.addReceivedMessages(fastConsumer.getListOfReceivedMessages());
         finalTestMessageVerifier1.verifyMessages();

@@ -12,11 +12,12 @@ import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients20.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients20.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients20.SimpleJMSClient;
-import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -695,7 +696,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.close();
 
         // Send messages into input node and read from output node
-        TextMessageVerifier messageVerifier = new TextMessageVerifier(ArtemisJMSImplementation.getInstance());
+        ConfigurableMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerClientAck producer = new ProducerClientAck(container(1),
                 TEST_QUEUE_IN_JNDI, 100000);
         producer.setMessageBuilder(messageBuilder);

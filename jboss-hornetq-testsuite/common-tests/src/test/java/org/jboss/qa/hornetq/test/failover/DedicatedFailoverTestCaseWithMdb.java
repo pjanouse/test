@@ -12,14 +12,12 @@ import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueNoRebalancing;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -117,7 +115,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     @Before
     public void before() {
-        messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
     }
 
     /**
@@ -514,7 +512,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 200));
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
         producerToInQueue1.setTimeout(0);

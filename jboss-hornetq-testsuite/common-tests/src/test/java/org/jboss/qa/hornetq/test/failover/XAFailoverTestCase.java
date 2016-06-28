@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.XAConsumerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -356,7 +356,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -444,7 +444,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -547,7 +547,7 @@ public class XAFailoverTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerTransAck p = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessagesToSend);
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);

@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -59,9 +59,11 @@ public class HugeMessageTestCase extends HornetQTestCase {
         prepareServer(container);
         container.start();
 
+        FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         MessageBuilder messageBuilder = new ByteMessageBuilder(messageSize);
         ProducerClientAck producer = new ProducerClientAck(container, inQueueJndiName, 1);
         producer.setMessageBuilder(messageBuilder);
+        producer.addMessageVerifier(verifier);
         producer.start();
         log.info("Waiting for message send");
         producer.join();
@@ -69,11 +71,11 @@ public class HugeMessageTestCase extends HornetQTestCase {
 
         ReceiverClientAck consumer = new ReceiverClientAck(container, inQueueJndiName);
         consumer.start();
+        consumer.addMessageVerifier(verifier);
         log.info("Waiting for message receive");
         consumer.join();
         log.info("Consumer finished");
 
-        FinalTestMessageVerifier verifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container));
         verifier.verifyMessages();
 
         Assert.assertEquals("Message should be sent", 1, producer.getCount());

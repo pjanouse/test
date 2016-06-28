@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -52,7 +52,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testNoLoadBalancingToNodesWithNoConsumerRedistributionDisabledCorrectSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -115,7 +115,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testLoadBalancingToNodesWithConsumerRedistributionEnabledCorrectSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = 0;
@@ -165,7 +165,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testLoadBalancingToNodesWithConsumerRedistributionEnabledOriginalSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = 0;
@@ -213,7 +213,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testNoLoadBalancingToNodeWithNoConsumerRedistributionDisabledCorrectSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -281,7 +281,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testMdbOnTopicCorrectSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -337,7 +337,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testMdbOnTopicOriginalSemantics() throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -401,7 +401,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testStrictLoadBalancing(boolean correctSemantics) throws Exception {
 
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = 0;

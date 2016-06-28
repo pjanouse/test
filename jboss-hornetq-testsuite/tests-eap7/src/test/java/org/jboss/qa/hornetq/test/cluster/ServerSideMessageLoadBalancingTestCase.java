@@ -12,7 +12,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -24,8 +24,6 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -54,7 +52,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testNoLoadBalancingToNodesWithNoConsumerRedistributionDisabled() throws Exception {
 
         
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -117,7 +115,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testLoadBalancingToNodesWithConsumerRedistributionEnabled() throws Exception {
 
         
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = 0;
@@ -167,7 +165,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testNoLoadBalancingToNodeWithNoConsumerRedistributionDisabled() throws Exception {
 
         
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -235,7 +233,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testMdbOnTopic() throws Exception {
 
         
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = -1;
@@ -292,7 +290,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
     public void testStrictLoadBalancing() throws Exception {
 
         
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMesasages = 200;
 
         long redistributionDelay = 0;

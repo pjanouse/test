@@ -10,9 +10,10 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.After;
 import org.junit.Assert;
@@ -56,7 +57,7 @@ public class FailoverBridgeTestBase extends HornetQTestCase {
     String messagingGroupSocketBindingNameForBridges = "messaging-group-bridges";
     String messagingGroupMulticastAddressForBridgeDiscovery = "234.46.21.68";
 
-    FinalTestMessageVerifier messageVerifier = new TextMessageVerifier();
+    FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
 
     public void testDeployBridgeLiveThenBackup(boolean shutdown) throws Exception {

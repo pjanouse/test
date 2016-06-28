@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -25,7 +25,6 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
@@ -83,8 +82,6 @@ public class Lodh2TestCase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-
-    FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     public Archive getDeployment1() {
         File propertyFile = new File(container(2).getServerHome() + File.separator + "mdb1.properties");
@@ -931,6 +928,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                     action = "System.out.println(\"org.hornetq.core.client.impl.LargeMessageControllerImpl.poppacket() - exit\")"),
     })
     public void testRemoteJcaInCluster(List<Container> failureSequence, FAILURE_TYPE failureType, boolean isFiltered, Container inServer, Container outServer) throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         prepareRemoteJcaTopology(inServer, outServer);
         // cluster A
@@ -1166,6 +1164,8 @@ public class Lodh2TestCase extends HornetQTestCase {
     }
 
     public void testPropertyBasedMdb(Archive mdbDeployemnt) throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
+
         Container inServer = container(1);
         Container outServer = container(1);
 

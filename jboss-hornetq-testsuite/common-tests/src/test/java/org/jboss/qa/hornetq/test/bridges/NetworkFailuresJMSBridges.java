@@ -7,7 +7,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -50,7 +50,7 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // A1 producer
         ProducerTransAck producer1 = new ProducerTransAck(container(1),relativeJndiInQueueName,NUMBER_OF_MESSAGES_PER_PRODUCER);

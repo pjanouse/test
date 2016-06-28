@@ -20,6 +20,7 @@ import org.jboss.qa.hornetq.apps.clients20.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsClientAck;
 import org.jboss.qa.hornetq.apps.clients20.TopicClientsTransAck;
 import org.jboss.qa.hornetq.apps.impl.*;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -284,7 +285,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
-        FinalTestMessageVerifier messageVerifier = new MdbMessageVerifier();
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -459,7 +460,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();

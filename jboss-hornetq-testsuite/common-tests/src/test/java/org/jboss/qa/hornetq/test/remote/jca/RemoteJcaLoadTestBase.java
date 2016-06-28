@@ -6,7 +6,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
-import org.jboss.qa.hornetq.apps.impl.MdbMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithoutDelays;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
@@ -66,8 +65,6 @@ public abstract class RemoteJcaLoadTestBase extends HornetQTestCase {
     // queue for receive messages out
     static String outQueueName = "OutQueue";
     static String outQueueJndiName = "jms/queue/" + outQueueName;
-
-    protected MdbMessageVerifier messageVerifier = new MdbMessageVerifier();
 
     String queueNamePrefix = "testQueue";
     String queueJndiNamePrefix = "jms/queue/testQueue";

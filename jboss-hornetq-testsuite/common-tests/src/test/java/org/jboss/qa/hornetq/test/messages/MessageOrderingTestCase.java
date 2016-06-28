@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -27,10 +27,9 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- *
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP-7.0.x-CP/view/EAP-70x-jobs/job/eap-70x-artemis-message-grouping/
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-message-grouping-tests/
- *
+ * <p>
  * Created by mstyk on 6/27/16.
  */
 @Category(FunctionalTests.class)
@@ -64,7 +63,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         prepareServer(container(1));
         container(1).start();
 
-        FinalTestMessageVerifier messageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getOrderingVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), inQueueJndiName, numberOfMessages);
         producer.setTimeout(0);
@@ -113,7 +112,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
 
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
-        FinalTestMessageVerifier messageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getOrderingVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), inQueueJndiName, numberOfMessages);
         producer.setMessageBuilder(messageBuilder);
@@ -193,7 +192,6 @@ public class MessageOrderingTestCase extends HornetQTestCase {
 
 
     /**
-     *
      * Reproduces https://issues.jboss.org/browse/JBEAP-5127
      *
      * @tpTestDetails 3 servers are started in cluster with message ordering. Configure server to force paging. Mix of large and normal messages are send to

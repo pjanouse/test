@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -214,7 +214,7 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).start();
         container(1).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // A1 producer
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -273,7 +273,7 @@ public class ClusterTestCase extends ClusterTestBase {
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
         ProducerTransAck prod1 = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", numberOfMessages);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
         prod1.setTimeout(0);
@@ -342,7 +342,7 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).start();
         container(1).start();
 
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // A1 producer
         MessageBuilder messageBuilder = new TextMessageBuilder(1);
         messageBuilder.setAddDuplicatedHeader(true);
@@ -548,7 +548,7 @@ public class ClusterTestCase extends ClusterTestBase {
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(128));
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
-        FinalTestMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
         producerToInQueue1.join();

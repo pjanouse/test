@@ -14,8 +14,10 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessageVerifier;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -43,7 +45,7 @@ import static org.junit.Assert.assertTrue;
  * Basic tests for transfer messages over core-bridge. Here is tested whether all messages
  * are delivered if one source/target server is killed/shutdowned or when there are network
  * problems.
- * <p/>
+ * <p>
  *
  * @author pslavice@redhat.com
  * @author mnovak@redhat.com
@@ -392,7 +394,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
 //        }
         long startTime = System.currentTimeMillis();
         while (jmsAdminContainer2.getCountOfMessagesOnQueue(TEST_QUEUE_OUT) != messages
-                && System.currentTimeMillis() - startTime < HornetQTestCaseConstants.DEFAULT_TEST_TIMEOUT/2) {
+                && System.currentTimeMillis() - startTime < HornetQTestCaseConstants.DEFAULT_TEST_TIMEOUT / 2) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -413,14 +415,14 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     /**
      * Implementation of the basic test scenario. Test network outage.
      *
-     * @param messageBuilder  instance of the message builder
+     * @param messageBuilder instance of the message builder
      */
     private void testNetworkProblems(MessageBuilder messageBuilder) throws Exception {
 
         final String TEST_QUEUE_IN = "dummyQueueIn";
         final String TEST_QUEUE_IN_JNDI = "jms/queue/dummyQueueIn";
         final String TEST_QUEUE_OUT = "dummyQueueOut";
-        final String TEST_QUEUE_OUT_JNDI= "jms/queue/dummyQueueOut";
+        final String TEST_QUEUE_OUT_JNDI = "jms/queue/dummyQueueOut";
 
         final int proxyPort = 56831;
 
@@ -470,7 +472,7 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         jmsAdminContainer1.close();
 
         // Send messages into input node and read from output node
-        TextMessageVerifier messageVerifier = new TextMessageVerifier();
+        ConfigurableMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         ProducerClientAck producer = new ProducerClientAck(container(1),
                 TEST_QUEUE_IN_JNDI, 100000);
         producer.setMessageBuilder(messageBuilder);

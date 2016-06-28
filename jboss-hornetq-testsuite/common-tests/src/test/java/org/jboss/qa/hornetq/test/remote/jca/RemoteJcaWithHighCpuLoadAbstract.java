@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.HighCPUUtils;
@@ -47,6 +49,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     }
 
     private void testLoad(Archive mdbToDeploy) throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
@@ -225,6 +228,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     }
 
     private void loadInCluster(Archive mdbToDeploy, Container containerUnderLoad, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_BIO);
@@ -349,6 +353,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     }
 
     private void loadInClusterWithRestart(Archive mdbToDeploy, boolean isLargeMessage) throws Exception {
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         final int numberOfMessages = isLargeMessage ? 15000 : 50000;
         final ClientMixedMessageTypeBuilder messageBuilder = isLargeMessage ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
