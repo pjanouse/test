@@ -7,7 +7,6 @@ import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-
 import org.junit.Assert;
 
 import javax.jms.Connection;
@@ -115,8 +114,6 @@ public final class JMSTools {
      * Waits until number of added messages in queue in containers exceeeds given number
      * of messages
      *
-     * @see JMSTools#getAddedMessagesCount(String, Container...)
-     *
      * @param queueName        queue name
      * @param numberOfMessages number of messages
      * @param timeout          time out
@@ -124,6 +121,7 @@ public final class JMSTools {
      * @return returns true if there is numberOfMessages in queue, when timeout
      * expires it returns false
      * @throws Exception
+     * @see JMSTools#getAddedMessagesCount(String, Container...)
      */
     public boolean waitForAddedMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
 
@@ -166,7 +164,7 @@ public final class JMSTools {
                     count = jmsOperations.getCountOfMessagesOnQueue(queueName);
                     break;
                 } catch (Exception ex) {
-                    if (numberOfTries > maxNumberOfTries - 1)  {
+                    if (numberOfTries > maxNumberOfTries - 1) {
                         throw new RuntimeException("getCountOfMessagesOnQueue() failed for queue:" + queueName
                                 + " and container: " + container.getName() + ". Number of tries: " + numberOfTries, ex);
                     }
@@ -200,7 +198,7 @@ public final class JMSTools {
                     count = jmsOperations.getMessagesAdded(queueName);
                     break;
                 } catch (Exception ex) {
-                    if (numberOfTries > maxNumberOfTries - 1)  {
+                    if (numberOfTries > maxNumberOfTries - 1) {
                         throw new RuntimeException("getAddedMessagesCount() failed for queue:" + queueName
                                 + " and container: " + container.getName() + ". Number of tries: " + numberOfTries, ex);
                     }
@@ -253,6 +251,10 @@ public final class JMSTools {
         System.out.println("isIpv6Address: " + isIpv6Address3 + ":" + isIpv6Address(isIpv6Address3));
         System.out.println("isIpv6Address: " + isIpv6Address4 + ":" + isIpv6Address(isIpv6Address4));
         System.out.println("isIpv6Address: " + isIpv6Address5 + ":" + isIpv6Address(isIpv6Address5));
+    }
+
+    public static Context getEAP7Context(Container container) throws NamingException {
+        return getEAP7Context(container.getHostname(), container.getJNDIPort(), Constants.JNDI_CONTEXT_TYPE.NORMAL_CONTEXT);
     }
 
     public static Context getEAP7Context(String hostname, int jndiPort) throws NamingException {
@@ -335,7 +337,7 @@ public final class JMSTools {
     /**
      * Method blocks until sum of messages received is equal or greater the
      * numberOfMessages, if timeout expires then Assert.fail
-     * <p/>
+     * <p>
      *
      * @param receivers        receivers
      * @param numberOfMessages numberOfMessages

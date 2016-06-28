@@ -7,7 +7,7 @@
         <container qualifier="node-1" default="true" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_1}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
+                <property name="javaVmArguments">-Xms${JBOSS_JVM_XMS_1} -Xmx${JBOSS_JVM_XMX_1} -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dorg.jboss.byteman.transform.all
                     -Dsun.rmi.dgc.server.gcInterval=3600000
@@ -34,7 +34,7 @@
         <container qualifier="node-2" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_2}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
+                <property name="javaVmArguments">-Xms${JBOSS_JVM_XMS_2} -Xmx${JBOSS_JVM_XMX_2} -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_2},port:9091
@@ -58,7 +58,7 @@
         <container qualifier="node-3" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_3}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
+                <property name="javaVmArguments">-Xms${JBOSS_JVM_XMS_3} -Xmx${JBOSS_JVM_XMX_3} -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_3},port:9091
@@ -82,7 +82,7 @@
         <container qualifier="node-4" default="false" mode="manual">
             <configuration>
                 <property name="jbossHome">${JBOSS_HOME_4}</property>
-                <property name="javaVmArguments">-Xms64m -Xmx788m -XX:MaxPermSize=256m
+                <property name="javaVmArguments">-Xms${JBOSS_JVM_XMS_4} -Xmx${JBOSS_JVM_XMX_4} -XX:MaxPermSize=256m
                     -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000
                     -Dsun.rmi.dgc.server.gcInterval=3600000
                     -javaagent:${BYTEMAN_JAR}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_4},port:9091

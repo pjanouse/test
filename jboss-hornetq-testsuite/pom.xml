@@ -55,6 +55,8 @@
         <qa.resource.monitor.version>0.0.2-SNAPSHOT</qa.resource.monitor.version>
         <titlesTemplate>${project.basedir}/chapters_naming</titlesTemplate>
         <MYTESTIP_1>127.0.0.1</MYTESTIP_1>
+        <JBOSS_JVM_XMX>788m</JBOSS_JVM_XMX>
+        <JBOSS_JVM_XMS>64m</JBOSS_JVM_XMS>
 
         <hornetq.surefire.jvm.xmx>2G</hornetq.surefire.jvm.xmx>
         <hornetq.surefire.jvm.xms>2G</hornetq.surefire.jvm.xms>
@@ -153,6 +155,16 @@
                         <MYTESTIP_2>127.0.0.1</MYTESTIP_2>
                         <MYTESTIP_3>127.0.0.1</MYTESTIP_3>
                         <MYTESTIP_4>127.0.0.1</MYTESTIP_4>
+
+                        <!--Server memory properties injected to arquilian-*.xml -->
+                        <JBOSS_JVM_XMX_1>${JBOSS_JVM_XMX}</JBOSS_JVM_XMX_1>
+                        <JBOSS_JVM_XMS_1>${JBOSS_JVM_XMS}</JBOSS_JVM_XMS_1>
+                        <JBOSS_JVM_XMX_2>${JBOSS_JVM_XMX}</JBOSS_JVM_XMX_2>
+                        <JBOSS_JVM_XMS_2>${JBOSS_JVM_XMS}</JBOSS_JVM_XMS_2>
+                        <JBOSS_JVM_XMX_3>${JBOSS_JVM_XMX}</JBOSS_JVM_XMX_3>
+                        <JBOSS_JVM_XMS_3>${JBOSS_JVM_XMS}</JBOSS_JVM_XMS_3>
+                        <JBOSS_JVM_XMX_4>${JBOSS_JVM_XMX}</JBOSS_JVM_XMX_4>
+                        <JBOSS_JVM_XMS_4>${JBOSS_JVM_XMS}</JBOSS_JVM_XMS_4>
                         <!-- TODO remove this as it's not needed anymore -->
                         <!--<MCAST_ADDR>${env.MCAST_ADDR}</MCAST_ADDR>-->
                         <JOURNAL_DIRECTORY_A>${env.JOURNAL_DIRECTORY_A}</JOURNAL_DIRECTORY_A>
