@@ -33,6 +33,7 @@ import java.util.Random;
  *
  * Created by mstyk on 6/27/16.
  */
+@Category(FunctionalTests.class)
 public class MessageOrderingTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(MessageOrderingTestCase.class);
