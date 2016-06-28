@@ -16,7 +16,9 @@ import java.util.*;
  * <p/>
  *
  * @author mnovak@redhat.com
+ * @deprecated Use ConfigurableMessgeVerifier#getBasicVerifier
  */
+@Deprecated
 public class TextMessageVerifier implements FinalTestMessageVerifier {
 
     private static final Logger logger = Logger.getLogger(TextMessageVerifier.class);

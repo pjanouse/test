@@ -11,6 +11,7 @@ import java.util.*;
  * <p/>
  *
  * @author mnovak@redhat.com
+ * @deprecated use MessageVerifierFactory#getMdbVerifier
  */
 public class MdbMessageVerifier implements FinalTestMessageVerifier {
 
