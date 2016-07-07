@@ -11,12 +11,16 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.soak.clients.DurableSubscriptionClient;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -34,6 +38,7 @@ import org.junit.Test;
 import javax.jms.Session;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -1378,6 +1383,53 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         container(2).stop();
 
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testDurableSubscriptionInCluster() throws Exception {
+        prepareReplicatedDedicatedTopologyInCluster();
+
+        container(1).start();
+        container(2).start();
+        container(3).start();
+        container(4).start();
+        // Give them some time to sync
+        Thread.sleep(10000);
+
+        TextMessageVerifier messageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        TextMessageVerifier messageVerifier2 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
+
+        SubscriberTransAck subscriber1 = new SubscriberTransAck(container(1), topicJndiNamePrefix + "0", 60000, 10, 10, "client-1", "subscriber-1");
+        SubscriberTransAck subscriber2 = new SubscriberTransAck(container(3), topicJndiNamePrefix + "0", 60000, 10, 10, "client-2", "subscriber-2");
+        PublisherTransAck publisher = new PublisherTransAck(container(1), topicJndiNamePrefix + "0", 1000, "publisher-1");
+
+        subscriber1.addMessageVerifier(messageVerifier1);
+        subscriber2.addMessageVerifier(messageVerifier2);
+        publisher.addMessageVerifier(messageVerifier1);
+        publisher.addMessageVerifier(messageVerifier2);
+
+        publisher.start();
+        subscriber1.start();
+        subscriber2.start();
+
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(Arrays.asList((Client) subscriber1, subscriber2), 100, 15000);
+
+        container(4).stop();
+        container(3).stop();
+
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(Arrays.asList((Client) subscriber1), 100, 15000);
+
+        container(3).start();
+        container(4).start();
+
+        boolean verifier1 = messageVerifier1.verifyMessages();
+        boolean verifier2 = messageVerifier2.verifyMessages();
+
+        Assert.assertTrue("There are failures detected by clients. More information in log - search for \"Lost\" or \"Duplicated\" messages", verifier1);
+        Assert.assertTrue("There are failures detected by clients. More information in log - search for \"Lost\" or \"Duplicated\" messages", verifier2);
     }
 
     /**
