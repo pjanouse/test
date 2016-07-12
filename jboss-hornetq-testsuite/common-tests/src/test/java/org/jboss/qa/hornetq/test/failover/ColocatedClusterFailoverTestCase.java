@@ -81,7 +81,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients = null;
 
-
+    enum ClusterConnectionType{
+        STATIC_CONNECTORS,
+        DISCOVERY_GROUPS
+    }
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
      * some messages to first Receive messages from the second one
@@ -1319,7 +1322,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
 
-    private String getJournalType() {
+    protected String getJournalType() {
 
         return journalType;
     }
