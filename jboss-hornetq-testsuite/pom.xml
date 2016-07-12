@@ -427,7 +427,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
@@ -561,7 +561,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>    <!-- this is necessary for tests with xa org.jboss.qa.hornetq.apps.clients -->
@@ -908,7 +908,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
@@ -1102,7 +1102,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
@@ -1403,7 +1403,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
@@ -1589,7 +1589,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.qa</groupId>
-                    <artifactId>qa-resource-monitor</artifactId>
+                    <artifactId>qa-resource-monitor-core</artifactId>
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
