@@ -972,6 +972,381 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
     }
 
+    //tcp jgroups stack prepare
+
+    /**
+     * Prepare two servers in colocated topology in cluster.
+     */
+    @Override
+    public void prepareColocatedTopologyInClusterTcpStack(Constants.CONNECTOR_TYPE connectorType) {
+
+        if (Constants.CONTAINER_TYPE.EAP7_CONTAINER.equals(container(1).getContainerType())) {
+            prepareLiveServerWithTcpStackEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_A, "group1", connectorType);
+            prepareBackupServerWithTcpStackEAP7(container(1), "ASYNCIO", JOURNAL_DIRECTORY_B, "group2");
+            prepareLiveServerWithTcpStackEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_C, "group2", connectorType);
+            prepareBackupServerWithTcpStackEAP7(container(2), "ASYNCIO", JOURNAL_DIRECTORY_D, "group1");
+        } else {
+            prepareLiveServerWithTcpStackEAP6(container(1), "firstPair", "firstPairJournalLive");
+            prepareColocatedBackupServerWithTcpStackEAP6(container(1), "backup", "secondPair", "secondPairJournalBackup");
+
+            prepareLiveServerWithTcpStackEAP6(container(2), "secondPair", "secondPairJournalLive");
+            prepareColocatedBackupServerWithTcpStackEAP6(container(2), "backup", "firstPair", "firstPairJournalBackup");
+        }
+
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container     The container - defined in arquillian.xml
+     * @param journalType   ASYNCIO, NIO
+     * @param groupName     name of group used for Live-Backup pair
+     * @param connectorType whether to use NIO in connectors for CF or old blocking IO, or http connector
+     */
+    public void prepareLiveServerWithTcpStackEAP7(Container container, String journalType, String journalDirectory, String groupName, Constants.CONNECTOR_TYPE connectorType) {
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setBindingsDirectory(journalDirectory);
+        jmsAdminOperations.setPagingDirectory(journalDirectory);
+        jmsAdminOperations.setJournalDirectory(journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectory);
+
+        setConnectorForClientEAP7(container, connectorType);
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setJournalType(journalType);
+        jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "tcp", "tcp", 2000, "netty");
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName,10000, "tcp", "tcp");
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, "netty");
+
+        jmsAdminOperations.removeAddressSettings("#");
+        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicyReplicationMaster("default", true, clusterConnectionName, groupName);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+
+        jmsAdminOperations.close();
+
+        container.stop();
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container   The container - defined in arquillian.xml
+     * @param journalType ASYNCIO, NIO
+     * @param groupName   name of group used for Live-Backup pair
+     */
+    public void prepareBackupServerWithTcpStackEAP7(Container container, String journalType, String journalDirectory, String groupName) {
+
+        final String backupServerName = "backup";
+
+        String discoveryGroupName = "dg-group-backup";
+        String broadCastGroupName = "bg-group-backup";
+        String connectorName = "netty-backup";
+        String acceptorName = "netty-backup";
+        String inVmConnectorName = "in-vm";
+        String socketBindingName = "messaging-backup";
+        int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
+        String pooledConnectionFactoryName = "activemq-ra";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+
+        jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectory);
+        jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectory);
+
+        jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, "tcp", "tcp", 1000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 1000, "tcp", "tcp");
+        jmsAdminOperations.setClusterConnections(backupServerName, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
+
+
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
+        jmsAdminOperations.setJournalType(backupServerName, journalType);
+        jmsAdminOperations.disableSecurity(backupServerName);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        jmsAdminOperations.addAddressSettings(backupServerName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addHAPolicyReplicationSlave(backupServerName, true, clusterConnectionName, 1000, groupName, -1, true, false, null, null, null, null);
+
+        // set ha also for hornetq-ra
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares live server for dedicated topology.
+     *
+     * @param container Test container - defined in arquillian.xml
+     */
+    public void prepareLiveServerWithTcpStackEAP6(Container container, String backupGroupName, String journalDirectoryPath) {
+
+        String discoveryGroupName = "dg-group1";
+        String broadCastGroupName = "bg-group1";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty";
+        String connectionFactoryName = "RemoteConnectionFactory";
+        String messagingGroupSocketBindingName = "messaging-group";
+        String pooledConnectionFactoryName = "hornetq-ra";
+        String remoteConnectorName = "netty-remote2";
+        String remoteConnectorNameBackup = "netty-remote-backup";
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.setClustered(true);
+
+        jmsAdminOperations.setFailoverOnShutdown(true);
+        jmsAdminOperations.setPersistenceEnabled(true);
+        jmsAdminOperations.setSharedStore(false);
+        jmsAdminOperations.setBackupGroupName(backupGroupName);
+        jmsAdminOperations.setCheckForLiveServer(true);
+        jmsAdminOperations.setJournalFileSize(10 * 1024 * 1024);
+        jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.setJournalType("ASYNCIO");
+
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
+
+        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
+        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "tcp", "tcp", 2000, connectorName);
+
+        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, "tcp", "tcp");
+
+        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
+        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
+        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
+        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
+        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
+        jmsAdminOperations.setFailoverOnShutdownOnPooledConnectionFactory(pooledConnectionFactoryName, true);
+
+        // pooled connection factory must support HA
+        jmsAdminOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
+        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+
+        jmsAdminOperations.setPagingDirectory(journalDirectoryPath);
+        jmsAdminOperations.setBindingsDirectory(journalDirectoryPath);
+        jmsAdminOperations.setJournalDirectory(journalDirectoryPath);
+        jmsAdminOperations.setLargeMessagesDirectory(journalDirectoryPath);
+
+        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+            jmsAdminOperations.createQueue(queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+        }
+
+        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+            jmsAdminOperations.createTopic(topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+        }
+
+        jmsAdminOperations.setClusterUserPassword("heslo");
+
+        jmsAdminOperations.removeAddressSettings("#");
+
+        setAddressSettings(jmsAdminOperations);
+
+        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
+        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
+        jmsAdminOperations.setNodeIdentifier(container.getName().hashCode());
+
+//        if (CONTAINER1_NAME_NAME.equalsIgnoreCase(containerName)) {
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER1_NAME_IP, 5445);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER1_NAME_IP, 5446);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+//        } else if (CONTAINER2_NAME.equalsIgnoreCase(containerName)) {
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote", CONTAINER2_IP, 5445);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
+//            jmsAdminOperations.addRemoteSocketBinding("messaging-remote-backup", CONTAINER2_IP, 5446);
+//            jmsAdminOperations.createRemoteConnector(remoteConnectorNameBackup, "messaging-remote-backup", null);
+//        }
+//
+//        List<String> connectorList = new ArrayList<String>();
+//        connectorList.add(remoteConnectorName);
+//        connectorList.add(remoteConnectorNameBackup);
+//        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorList);
+//
+////        jmsAdminOperations.setConnectorOnPooledConnectionFactory(pooledConnectionFactoryName, connectorName);
+//
+//        jmsAdminOperations.setHaForPooledConnectionFactory(pooledConnectionFactoryName, true);
+//        jmsAdminOperations.setBlockOnAckForPooledConnectionFactory(pooledConnectionFactoryName, true);
+//        jmsAdminOperations.setRetryIntervalForPooledConnectionFactory(pooledConnectionFactoryName, 1000L);
+//        jmsAdminOperations.setRetryIntervalMultiplierForPooledConnectionFactory(pooledConnectionFactoryName, 1.0);
+//        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, -1);
+
+        // enable debugging
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
+        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-users.properties");
+        try {
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        } catch (IOException e) {
+            logger.error("Error during copy.", e);
+        }
+
+        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-roles.properties");
+        try {
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+        } catch (IOException e) {
+            logger.error("Error during copy.", e);
+        }
+
+        jmsAdminOperations.close();
+        container.stop();
+    }
+
+    /**
+     * Prepares colocated backup. It creates new configuration of backup server.
+     *
+     * @param container        The arquilian container.
+     * @param backupServerName Name of the new HornetQ backup server.
+     */
+    public void prepareColocatedBackupServerWithTcpStackEAP6(Container container, String backupServerName, String backupGroupName
+            , String journalDirectoryPath) {
+
+        String discoveryGroupName = "dg-group-backup";
+        String broadCastGroupName = "bg-group-backup";
+        String clusterGroupName = "my-cluster";
+        String connectorName = "netty-backup";
+        String acceptorName = "netty-backup";
+        String inVmConnectorName = "in-vm";
+        String socketBindingName = "messaging-backup";
+        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
+
+        container.start();
+        JMSOperations jmsAdminOperations = container.getJmsOperations();
+
+        jmsAdminOperations.addMessagingSubsystem(backupServerName);
+        jmsAdminOperations.setClustered(backupServerName, true);
+        jmsAdminOperations.setBackupGroupName(backupGroupName, backupServerName);
+        jmsAdminOperations.setCheckForLiveServer(true, backupServerName);
+        jmsAdminOperations.setJournalFileSize(backupServerName, 10 * 1024 * 1024);
+        jmsAdminOperations.setFailoverOnShutdown(true, backupServerName);
+
+        jmsAdminOperations.setPersistenceEnabled(backupServerName, true);
+
+        jmsAdminOperations.setSecurityEnabled(backupServerName, false);
+        jmsAdminOperations.setClusterUserPassword(backupServerName, "heslo");
+        jmsAdminOperations.setBackup(backupServerName, true);
+        jmsAdminOperations.setSharedStore(backupServerName, false);
+
+        jmsAdminOperations.setAllowFailback(backupServerName, true);
+        jmsAdminOperations.setJournalType(backupServerName, "ASYNCIO");
+
+        jmsAdminOperations.setPagingDirectory(backupServerName, journalDirectoryPath);
+        jmsAdminOperations.setBindingsDirectory(backupServerName, journalDirectoryPath);
+        jmsAdminOperations.setJournalDirectory(backupServerName, journalDirectoryPath);
+        jmsAdminOperations.setLargeMessagesDirectory(backupServerName, journalDirectoryPath);
+
+        jmsAdminOperations.createSocketBinding(socketBindingName, socketBindingPort);
+        jmsAdminOperations.createRemoteConnector(backupServerName, connectorName, socketBindingName, null);
+        jmsAdminOperations.createInVmConnector(backupServerName, inVmConnectorName, 0, null);
+        jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
+
+        jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, "tcp", "tcp", 2000, connectorName);
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 10000, "tcp", "tcp");
+        jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+        jmsAdminOperations.removeAddressSettings(backupServerName, "#");
+        setAddressSettings(backupServerName, jmsAdminOperations);
+
+        jmsAdminOperations.addSecuritySetting(backupServerName, "#");
+        jmsAdminOperations.addRoleToSecuritySettings(backupServerName, "#", "guest");
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "consume", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "create-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "delete-non-durable-queue", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "manage", true);
+        jmsAdminOperations.setPermissionToRoleToSecuritySettings(backupServerName, "#", "guest", "send", true);
+
+        // enable debugging
+        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+
+//        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
+//            jmsAdminOperations.createQueue(backupServerName, queueNamePrefix + queueNumber, queueJndiNamePrefix + queueNumber, true);
+//        }
+//
+//        for (int topicNumber = 0; topicNumber < NUMBER_OF_DESTINATIONS; topicNumber++) {
+//            jmsAdminOperations.createTopic(backupServerName, topicNamePrefix + topicNumber, topicJndiNamePrefix + topicNumber);
+//        }
+//        jmsAdminOperations.createQueue(backupServerName, inQueueName, inQueue, true);
+//        jmsAdminOperations.createQueue(backupServerName, outQueueName, outQueue, true);
+
+        jmsAdminOperations.close();
+
+        File applicationUsersModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
+        File applicationUsersOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-users.properties");
+        try {
+            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
+        } catch (IOException e) {
+            logger.error("Error during copy.", e);
+        }
+
+        File applicationRolesModified = new File("src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
+        File applicationRolesOriginal = new File(container.getServerHome() + File.separator + "standalone" + File.separator
+                + "configuration" + File.separator + "application-roles.properties");
+        try {
+            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
+        } catch (IOException e) {
+            logger.error("Error during copy.", e);
+        }
+
+        container.stop();
+    }
+
 
     protected void setAddressSettings(JMSOperations jmsAdminOperations) {
         setAddressSettings("default", jmsAdminOperations);
