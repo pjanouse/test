@@ -4,40 +4,30 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
-import javax.naming.NamingException;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.jboss.arquillian.config.descriptor.api.ContainerDef;
-import org.jboss.arquillian.config.descriptor.api.GroupDef;
-import org.jboss.as.controller.client.ModelControllerClient;
-import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
-import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
-import static org.jboss.as.controller.client.helpers.ClientConstants.OUTCOME;
-import static org.jboss.as.controller.client.helpers.ClientConstants.RESULT;
-import static org.jboss.as.controller.client.helpers.ClientConstants.SUCCESS;
-import org.jboss.dmr.ModelNode;
-import static org.jboss.qa.hornetq.HornetQTestCase.getArquillianDescriptor;
-import org.jboss.qa.hornetq.tools.ActiveMQAdminOperationsEAP7;
 
 import static org.junit.Assert.*;
 
@@ -53,7 +43,6 @@ import static org.junit.Assert.*;
  * messages with various properties to ActiveMQ, let ActiveMQ to write them into
  * the journal, shut down the server, start it again and read the message and
  * validate its properties (and if the export/import worked in the first place).
- *
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
@@ -78,9 +67,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     /**
      * Exporting message with null value in its properties
      *
-     * @see
-     * <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
-     *
      * @tpTestDetails Start single server. Send text message with null property
      * to the destination on the server. Once sent, shut the server down. Export
      * journal and then import it to the clean server instance. Read the
@@ -96,8 +82,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
      * </ul>
      * @tpPassCrit All the test messages are successfully read and preserve all
      * their properties
-     * @tpInfo
-     * <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     * @tpInfo <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     * @see <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
      */
     @Test
     @RunAsClient
@@ -130,12 +116,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             msg.setStringProperty("test_property", null);
             producer.send(msg);
         } finally {
-            closeJmsConnection(ctx, conn, session);
+            JMSTools.cleanupResources(ctx, conn, session);
         }
 
         container(1).stop();
 
-        journalExportImportUtils.exportJournal( EXPORTED_JOURNAL_FILE_NAME_PATTERN);
+        journalExportImportUtils.exportJournal(EXPORTED_JOURNAL_FILE_NAME_PATTERN);
 
         // delete the journal file before we import it again
         FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
@@ -156,7 +142,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             received = consumer.receive(RECEIVE_TIMEOUT);
         } finally {
-            closeJmsConnection(ctx, conn, session);
+            JMSTools.cleanupResources(ctx, conn, session);
         }
 
         assertNotNull("Received message should not be null", received);
@@ -194,38 +180,25 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             msg.setStringProperty("test_property", null);
             producer.send(msg);
         } finally {
-            closeJmsConnection(ctx, conn, session);
+            JMSTools.cleanupResources(ctx, conn, session);
         }
 
         container(1).stop();
 
-        Map<String, String> containerProperties = null;
-        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(container(1).getName())) {
-                    containerProperties = containerDef.getContainerProperties();
-                }
-            }
-        }
-
-        containerProperties.put("adminOnly", "true");
-
         //start in admin-only mode
-        container(1).start(containerProperties);
+        container(1).startAdminOnly();
         JMSOperations ops = container(1).getJmsOperations();
         String exportedJournalFile = ops.exportJournal();
         ops.close();
         container(1).stop();
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"bindings"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"journal"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"paging"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"largemessages"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "bindings"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "journal"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "paging"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "largemessages"));
 
-        containerProperties.replace("adminOnly", "false");
-        //start in normal mode
-        container(1).start(containerProperties);
+        container(1).start();
         ops = container(1).getJmsOperations();
 
         ops.importJournal(exportedJournalFile);
@@ -245,7 +218,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             received = consumer.receive(RECEIVE_TIMEOUT);
         } finally {
-            closeJmsConnection(ctx, conn, session);
+            JMSTools.cleanupResources(ctx, conn, session);
         }
 
         assertNotNull("Received message should not be null", received);
@@ -259,14 +232,22 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportLargeMessagesUsingAdminOperation() throws Exception {
+        internalTestExportImportLargeMessagesUsingAdminOperation(false);
+    }
 
-        prepareServer(container(1));
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportCompressedLargeMessagesUsingAdminOperation() throws Exception {
+        internalTestExportImportLargeMessagesUsingAdminOperation(true);
+    }
+
+    private void internalTestExportImportLargeMessagesUsingAdminOperation(boolean compressMessages) throws Exception {
+
+        prepareServer(container(1), compressMessages);
 
         container(1).start();
-
-        Context ctx = null;
-        Connection conn = null;
-        Session session = null;
 
         MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
 
@@ -278,33 +259,20 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-        Map<String, String> containerProperties = null;
-        for (GroupDef groupDef : getArquillianDescriptor().getGroups()) {
-            for (ContainerDef containerDef : groupDef.getGroupContainers()) {
-                if (containerDef.getContainerName().equalsIgnoreCase(container(1).getName())) {
-                    containerProperties = containerDef.getContainerProperties();
-                }
-            }
-        }
+        container(1).startAdminOnly();
 
-        containerProperties.put("adminOnly", "true");
-
-        //start in admin-only mode
-        container(1).start(containerProperties);
         JMSOperations ops = container(1).getJmsOperations();
         String exportedJournalFile = ops.exportJournal();
         ops.close();
         container(1).stop();
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"bindings"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"journal"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"paging"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL,"largemessages"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "bindings"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "journal"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "paging"));
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "largemessages"));
 
-        containerProperties.replace("adminOnly", "false");
-        //start in normal mode
-        container(1).start(containerProperties);
+        container(1).start();
         ops = container(1).getJmsOperations();
 
         ops.importJournal(exportedJournalFile);
@@ -325,6 +293,10 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     }
 
     private void prepareServer(final Container container) {
+        prepareServer(container, false);
+    }
+
+    private void prepareServer(final Container container, boolean compressLargeMessages) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -340,6 +312,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.setLargeMessagesDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setBindingsDirectory(DIRECTORY_WITH_JOURNAL);
         ops.setPagingDirectory(DIRECTORY_WITH_JOURNAL);
+
         ops.removeBroadcastGroup(broadCastGroupName);
         ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
         ops.removeDiscoveryGroup(discoveryGroupName);
@@ -348,24 +321,19 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.disableSecurity();
         ops.removeClusteringGroup(clusterGroupName);
         ops.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
+
+        ops.setCompressionOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, compressLargeMessages);
+
         ops.close();
         container.stop();
     }
 
-    private void closeJmsConnection(final Context ctx, final Connection connection, final Session session)
-            throws JMSException, NamingException {
-
-        if (session != null) {
-            session.close();
-        }
-
-        if (connection != null) {
-            connection.stop();
-            connection.close();
-        }
-
-        if (ctx != null) {
-            ctx.close();
+    @After
+    public void deleteJournalFiles() {
+        try {
+            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+        } catch (Exception e) {
+            logger.error("Cannot delete journals directory. Hope it is ok and continue test, in case of failure this can be cause.", e);
         }
     }
 
