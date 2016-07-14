@@ -82,7 +82,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     //    MessageBuilder messageBuilder = new TextMessageBuilder(1024);
     Clients clients = null;
 
-    protected enum ConfigType{
+    protected enum ConfigType {
         DISCOVERY,
         STATIC_CONNECTORS,
         DISCOVERY_TCP
@@ -131,6 +131,10 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         testFail(acknowledge, failback, topic, shutdown, Constants.CONNECTOR_TYPE.NETTY_NIO);
     }
 
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
+        testFail(acknowledge, failback, topic, shutdown, connectorType, ConfigType.DISCOVERY);
+    }
+
     @BMRules({
             @BMRule(name = "Hornetq Kill server when a number of messages were received HQ",
                     targetClass = "org.hornetq.core.postoffice.impl.PostOfficeImpl",
@@ -140,22 +144,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.postoffice.impl.PostOfficeImpl",
                     targetMethod = "processRoute",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")})
-    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
-        testFailInternal(acknowledge, failback, topic, shutdown, connectorType);
-    }
-
-    protected void testFailInternal(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception{
-        testFailInternal(acknowledge, failback, topic, shutdown, connectorType, ConfigType.DISCOVERY);
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType, ConfigType configType) throws Exception {
+        testFailInternal(acknowledge, failback, topic, shutdown, connectorType, configType);
     }
 
     protected void testFailInternal(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType, ConfigType configType) throws Exception {
 
-        switch (configType){
-            case DISCOVERY: prepareColocatedTopologyInCluster(connectorType);
+        switch (configType) {
+            case DISCOVERY:
+                prepareColocatedTopologyInCluster(connectorType);
                 break;
-            case STATIC_CONNECTORS: prepareColocatedTopologyInClusterStaticConnectors(connectorType);
+            case STATIC_CONNECTORS:
+                prepareColocatedTopologyInClusterStaticConnectors(connectorType);
                 break;
-            case DISCOVERY_TCP: prepareColocatedTopologyInClusterTcpStack(connectorType);
+            case DISCOVERY_TCP:
+                prepareColocatedTopologyInClusterTcpStack(connectorType);
         }
 
 
@@ -1752,7 +1755,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueShutDownStaticConnectors() throws Exception {
 
-        testFailInternal(Session.CLIENT_ACKNOWLEDGE, false, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.STATIC_CONNECTORS);
+        testFail(Session.CLIENT_ACKNOWLEDGE, false, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.STATIC_CONNECTORS);
     }
 
     /**
@@ -1772,7 +1775,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverTransAckQueueStaticConnectors() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, false, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.STATIC_CONNECTORS);
+        testFail(Session.SESSION_TRANSACTED, false, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.STATIC_CONNECTORS);
     }
 
     /**
@@ -1793,7 +1796,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueStaticConnectors() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.STATIC_CONNECTORS);
+        testFail(Session.SESSION_TRANSACTED, true, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.STATIC_CONNECTORS);
     }
 
     /**
@@ -1814,7 +1817,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueStaticConnectorsShutDown() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.STATIC_CONNECTORS);
+        testFail(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.STATIC_CONNECTORS);
     }
 
     protected int livePort = 5445;
@@ -2213,7 +2216,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testFailoverClientAckQueueShutDownTcpStack() throws Exception {
 
-        testFailInternal(Session.CLIENT_ACKNOWLEDGE, false, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.DISCOVERY_TCP);
+        testFail(Session.CLIENT_ACKNOWLEDGE, false, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.DISCOVERY_TCP);
     }
 
     /**
@@ -2233,7 +2236,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailoverTransAckQueueTcpStack() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, false, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.DISCOVERY_TCP);
+        testFail(Session.SESSION_TRANSACTED, false, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.DISCOVERY_TCP);
     }
 
     /**
@@ -2254,7 +2257,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueTcpStack() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO,ConfigType.DISCOVERY_TCP);
+        testFail(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.DISCOVERY_TCP);
     }
 
     /**
@@ -2275,7 +2278,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testFailbackTransAckQueueTcpStackShutDown() throws Exception {
-        testFailInternal(Session.SESSION_TRANSACTED, true, false, false, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.DISCOVERY_TCP);
+        testFail(Session.SESSION_TRANSACTED, true, false, true, Constants.CONNECTOR_TYPE.NETTY_NIO, ConfigType.DISCOVERY_TCP);
     }
 
 
@@ -2363,7 +2366,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "tcp", "tcp", 2000, connectorName);
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName,10000, "tcp", "tcp");
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, "tcp", "tcp");
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
@@ -2443,7 +2446,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "tcp", "tcp", 2000, "netty");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName,10000, "tcp", "tcp");
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, "tcp", "tcp");
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, "netty");
@@ -2533,7 +2536,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param journalDirectoryPath Absolute or relative path to journal directory.
      */
     public void prepareColocatedBackupServerWithTcpStackEAP6(Container container,
-                                                 String backupServerName, String journalDirectoryPath) {
+                                                             String backupServerName, String journalDirectoryPath) {
         prepareColocatedBackupServerWithTcpStackEAP6(container, backupServerName, journalDirectoryPath, "ASYNCIO");
     }
 
@@ -2545,7 +2548,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
      * @param journalDirectoryPath Absolute or relative path to journal directory.
      */
     public void prepareColocatedBackupServerWithTcpStackEAP6(Container container,
-                                                 String backupServerName, String journalDirectoryPath, String journalType) {
+                                                             String backupServerName, String journalDirectoryPath, String journalType) {
 
         String discoveryGroupName = "dg-group-backup";
         String broadCastGroupName = "bg-group-backup";
@@ -2584,7 +2587,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         jmsAdminOperations.createRemoteAcceptor(backupServerName, acceptorName, socketBindingName, null);
 
         jmsAdminOperations.setBroadCastGroup(backupServerName, broadCastGroupName, "tcp", "tcp", 2000, connectorName);
-        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName,10000, "tcp", "tcp");
+        jmsAdminOperations.setDiscoveryGroup(backupServerName, discoveryGroupName, 10000, "tcp", "tcp");
         jmsAdminOperations.setClusterConnections(backupServerName, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
         jmsAdminOperations.setClusterUserPassword(backupServerName, CLUSTER_PASSWORD);
 

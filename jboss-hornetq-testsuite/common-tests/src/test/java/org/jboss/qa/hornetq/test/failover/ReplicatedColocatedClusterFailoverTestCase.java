@@ -147,8 +147,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
                     condition = "!$0.isSynchronizing()",
                     action = "System.out.println(\"Byteman - Killing server!!!\"); killJVM();")
     })
-    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType) throws Exception {
-        testFailInternal(acknowledge, failback, topic, shutdown, connectorType);
+    public void testFail(int acknowledge, boolean failback, boolean topic, boolean shutdown, Constants.CONNECTOR_TYPE connectorType, ConfigType configType) throws Exception {
+        testFailInternal(acknowledge, failback, topic, shutdown, connectorType, configType);
     }
 
     /**
@@ -1025,7 +1025,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "tcp", "tcp", 2000, "netty");
 
         jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName,10000, "tcp", "tcp");
+        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, "tcp", "tcp");
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, "netty");
