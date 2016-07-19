@@ -251,6 +251,8 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
      * <li>Check that only last message for every _AMQ_LVQ_NAME was received</li>
      * </ul>
      * @tpPassCrit Only last message is received for each _AMQ_LVQ_NAME property.
+     *
+     * @ignore https://issues.jboss.org/browse/JBEAP-5196
      */
     @Test
     @RunAsClient
@@ -275,6 +277,9 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
      * <li>Check that only last message for every _AMQ_LVQ_NAME was received</li>
      * </ul>
      * @tpPassCrit Only last message is received for each _AMQ_LVQ_NAME property.
+     *
+     *
+     * @ignore https://issues.jboss.org/browse/JBEAP-5196
      */
     @Test
     @RunAsClient

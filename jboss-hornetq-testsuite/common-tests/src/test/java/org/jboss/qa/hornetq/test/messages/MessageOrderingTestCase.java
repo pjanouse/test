@@ -41,7 +41,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     private String inQueueJndiName = "jms/queue/" + inQueue;
 
     /**
-     * @tpTestDetails Server is started. Configure server to force paging. Messages are send to queue and then received,
+     * @tpTestDetails Server is started. Messages are send to queue and then received,
      * Message ordering is checked.
      * @tpProcedure <ul>
      * <li>Start server</li>
@@ -55,7 +55,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void checkOrderingWithPaging() throws Exception {
+    public void checkOrdering() throws Exception {
 
         int numberOfMessages = 500;
         JMSTools jmsTools = new JMSTools();
@@ -88,7 +88,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Server is started. Configure server to force paging. Mix of large and normal messages are send to
+     * @tpTestDetails Server is started. Mix of large and normal messages are send to
      * queue and then received, Message ordering is checked.
      * @tpProcedure <ul>
      * <li>Start server</li>
@@ -102,7 +102,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void checkOrderingWithPagingLargeMessages() throws Exception {
+    public void checkOrderingLargeMessages() throws Exception {
 
         int numberOfMessages = 500;
         JMSTools jmsTools = new JMSTools();
@@ -138,7 +138,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     }
 
     /**
-     * @tpTestDetails Server is started. Configure server to force paging. Mix of large and normal messages are send to
+     * @tpTestDetails Server is started. Mix of large and normal messages are send to
      * queue,Messages are received by multiple consumers. It is checked, that every consumer receives message in ascending order.
      * @tpProcedure <ul>
      * <li>Start server</li>
@@ -155,7 +155,6 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     public void checkOrderingWithMultipleReceivers() throws Exception {
 
         int numberOfMessages = 500;
-        JMSTools jmsTools = new JMSTools();
 
         prepareServer(container(1));
         container(1).start();
@@ -194,7 +193,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     /**
      * Reproduces https://issues.jboss.org/browse/JBEAP-5127
      *
-     * @tpTestDetails 3 servers are started in cluster with message ordering. Configure server to force paging. Mix of large and normal messages are send to
+     * @tpTestDetails 3 servers are started in cluster with message ordering. Mix of large and normal messages are send to
      * queue on node1, Messages are received by consumers on node2 and node3. It is checked, that every consumer receives message in ascending order.
      * @tpProcedure <ul>
      * <li>Start servers in cluster with message grouping</li>
@@ -208,9 +207,9 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void checkOrderingWithPagingAndMultipleReceiversInCluster() throws Exception {
+    public void checkOrderingWithMultipleReceiversInCluster() throws Exception {
 
-        int numberOfMessages = 500;
+        int numberOfMessages = 300;
         JMSTools jmsTools = new JMSTools();
 
         prepareServer(container(1), container(2), container(3));
@@ -319,7 +318,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
                 jmsAdminOperations.disableSecurity();
 
                 jmsAdminOperations.removeAddressSettings("#");
-                jmsAdminOperations.addAddressSettings("#", "PAGE", 2048, 100, 0, 1024);
+                jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 150 * 1024 * 1024, 60000, 2000, 1024 * 1024 * 3, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
 
                 jmsAdminOperations.createQueue(inQueue, inQueueJndiName);
 

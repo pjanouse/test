@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -48,11 +49,14 @@ public class MessagePriorityTestCase extends HornetQTestCase {
      * <li>Check message priority order</li>
      * </ul>
      * @tpPassCrit All messages are successfully received according to priority.
+     *
+     * @ignore https://issues.jboss.org/browse/JBEAP-5196
      */
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore
     public void checkPriorityOrderingWithPaging() throws Exception {
         testPriorityOrder(true);
     }
