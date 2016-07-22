@@ -6,12 +6,22 @@ import javax.jms.Topic;
 import javax.naming.Context;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.Receiver;
+import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
@@ -19,21 +29,28 @@ import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated2;
+import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTopicAnnotated;
+import org.jboss.qa.hornetq.apps.servlets.ServletProducerInjectedJMSContext;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 /**
  *
@@ -362,6 +379,57 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * @tpTestDetails Test scenario when max-pool-size is lower than number of Java EE components which need it.
+     * Resources should be released after each request and not to be blocked during the whole lifecycle of component.
+     * @tpProcedure <ul>
+     * <li>Prepare server with two queues and max-pool-size=1</li>
+     * <li>Deploy application with one servlet which sends messages and one MDB which resend messages between queues.
+     *     Both Java Beans inject JMSContext which is taken from shared pool.</li>
+     * <li>Send 100 HTTP GET requests on servlet</li>
+     * <li>Receive 100 messages from target queue.</li>
+     * </ul>
+     * @tpPassCrit All messages were received.
+     */
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testInjectedJMSContextLowMaxPoolSize() throws Exception {
+        container(1).start();
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+        jmsOperations.createQueue("sourceQueue", "jms/queue/sourceQueue");
+        jmsOperations.createQueue("targetQueue", "jms/queue/targetQueue");
+        jmsOperations.setMaxPoolSizeOnPooledConnectionFactory("activemq-ra", 1);
+        jmsOperations.close();
+        container(1).restart();
+
+        container(1).deploy(createDeploymentWithInjectedJMSContext());
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(String.format("http://%s:%d/app/producer", container(1).getHostname(), container(1).getHttpPort()));
+
+        for (int i = 0; i < 100; i++) {
+            CloseableHttpResponse response = httpClient.execute(httpGet);
+            try {
+                System.out.println(response.getStatusLine());
+                HttpEntity entity = response.getEntity();
+                System.out.println(IOUtils.toString(entity.getContent()));
+                EntityUtils.consume(entity);
+            } finally {
+                response.close();
+            }
+        }
+
+        Receiver receiver = new ReceiverAutoAck(container(1), "jms/queue/targetQueue", 2000, 1);
+        receiver.start();
+        receiver.join();
+
+        container(1).stop();
+
+        Assert.assertEquals(100, receiver.getCount());
+    }
+
     private void basicSendAndReceiveQueue(JavaArchive... mdbDeployment) throws InterruptedException {
 
         prepareServer(container(1));
@@ -583,5 +651,18 @@ public class AnnotationsTestCase extends HornetQTestCase {
 //        mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
 
+    }
+
+    public Archive createDeploymentWithInjectedJMSContext() {
+        WebArchive deployment = ShrinkWrap.create(WebArchive.class, "app.war");
+        deployment.addClass(ServletProducerInjectedJMSContext.class);
+        deployment.addClass(LocalMdbFromQueueToQueue.class);
+
+        File beans = new File(this.getClass().getResource("/beans-discovery-all.xml").getPath());
+        deployment.add(new FileAsset(beans), "/WEB-INF/beans.xml");
+
+//        deployment.as(ZipExporter.class).exportTo(new File("/tmp/app.war"));
+
+        return deployment;
     }
 }
