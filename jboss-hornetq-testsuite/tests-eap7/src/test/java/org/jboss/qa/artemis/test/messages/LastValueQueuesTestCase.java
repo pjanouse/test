@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -258,6 +259,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void lastValueQueueTestWithPaging() throws Exception {
         internalLastValueQueueTestWithPaging(false);
     }
@@ -285,6 +287,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore
     public void lastValueQueueTestWithPagingLargeMessages() throws Exception {
         internalLastValueQueueTestWithPaging(true);
     }
