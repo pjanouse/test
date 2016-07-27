@@ -21,6 +21,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
@@ -789,6 +791,30 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
 
         return (modelNode != null) ? modelNode.get(ClientConstants.RESULT).asLong(0) : 0;
+    }
+
+    public Set<String> getRuntimeSFClusterQueueNames() {
+        final ModelNode queueNames = createModelNode();
+        queueNames.get(ClientConstants.OP).set("read-resource");
+        queueNames.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        queueNames.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+
+        ModelNode modelNode;
+        try {
+            modelNode = this.applyUpdate(queueNames);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        String resource = modelNode.get(ClientConstants.RESULT).asString();
+        Pattern r = Pattern.compile("\"(sf\\.\\S*)\"");
+        Matcher m = r.matcher(resource);
+        Set<String> names = new HashSet<String>();
+        while(m.find()){
+            names.add(m.group());
+            System.out.println(m.group());
+        }
+        return names;
     }
 
     @Override

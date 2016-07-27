@@ -1935,6 +1935,8 @@ public interface JMSOperations {
 
     long getCountOfMessagesOnRuntimeQueue(String coreQueueName);
 
+    Set<String> getRuntimeSFClusterQueueNames();
+
     long getMessagesAdded(String coreQueueName);
 
     List<Map<String, String>> listMessages(String coreQueueName);

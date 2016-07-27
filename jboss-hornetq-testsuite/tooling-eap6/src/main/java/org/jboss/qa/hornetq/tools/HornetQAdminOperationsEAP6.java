@@ -5114,6 +5114,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public Set<String> getRuntimeSFClusterQueueNames() {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public long getMessagesAdded(String coreQueueName) {
         // /subsystem=messaging/server=default/jms-queue=InQueue:read-attribute(name=messages-added)
         final ModelNode messagesAdded = createModelNode();
