@@ -66,6 +66,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.setJournalType("NIO");
         jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
+        jmsAdminOperations.reload();
         jmsAdminOperations.close();
     }
 
@@ -99,8 +100,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final int MESSAGES = 10;
 
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
         jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
+        jmsAdminOperations.reload();
 
         SimpleJMSClient client = new SimpleJMSClient(
                 container(1),
