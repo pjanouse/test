@@ -37,7 +37,7 @@
 
 
         <arquillian.version>1.1.1.Final</arquillian.version>
-        <artemis.version>1.1.0.wildfly-014</artemis.version>
+        <artemis.version>1.1.0.wildfly-018</artemis.version>
         <artemis.wildfly.integration>1.0.2</artemis.wildfly.integration>
         <version.shrinkwrap.resolvers>2.0.0</version.shrinkwrap.resolvers>
         <version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>
