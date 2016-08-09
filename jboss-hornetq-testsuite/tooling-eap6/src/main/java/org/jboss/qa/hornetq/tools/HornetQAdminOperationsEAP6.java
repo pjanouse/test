@@ -2915,6 +2915,46 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     }
 
+    @Override
+    public void setCallTimeoutForConnectionFactory(String connectionFactoryName, long callTimeout) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("call-timeout");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    @Override
+    public void setConnectionTTLForConnectionFactory(String connectionFactoryName, long callTimeout) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("connection-ttl");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    @Override
+    public void setClientFailureCheckPeriodForConnectionFactory(String connectionFactoryName, long callTimeout) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("client-failure-check-period");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
     /**
      * How many times should client retry connection when connection is lost.
      * This should be -1 if failover is required.

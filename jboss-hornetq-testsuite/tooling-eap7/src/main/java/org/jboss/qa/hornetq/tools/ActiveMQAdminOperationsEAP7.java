@@ -3355,6 +3355,48 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     }
 
+    @Override
+    public void setCallTimeoutForConnectionFactory(String connectionFactoryName, long callTimeout) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("call-timeout");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    @Override
+    public void setConnectionTTLForConnectionFactory(String connectionFactoryName, long callTimeout) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("connection-ttl");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
+    @Override
+    public void setClientFailureCheckPeriodForConnectionFactory(String connectionFactoryName, long callTimeout) {
+
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+
+        model.get("name").set("client-failure-check-period");
+        model.get("value").set(callTimeout);
+        applyUpdateWithRetry(model, 50);
+    }
+
     /**
      * The number of times to set up an MDB endpoint
      *

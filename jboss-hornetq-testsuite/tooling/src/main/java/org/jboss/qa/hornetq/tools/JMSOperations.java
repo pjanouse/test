@@ -1454,6 +1454,28 @@ public interface JMSOperations {
     void setReconnectAttemptsForConnectionFactory(String connectionFactoryName, int value);
 
     /**
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param callTimeout   value
+     */
+    void setCallTimeoutForConnectionFactory(String connectionFactoryName, long callTimeout);
+
+    /**
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value   value
+     */
+    void setConnectionTTLForConnectionFactory(String connectionFactoryName, long value);
+
+
+    /**
+     *
+     * @param connectionFactoryName nameOfConnectionFactory (not jndi name)
+     * @param value   value
+     */
+    void setClientFailureCheckPeriodForConnectionFactory(String connectionFactoryName, long value);
+
+    /**
      * How many times should client retry connection when connection is lost.
      * This should be -1 if failover is required.
      *

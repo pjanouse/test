@@ -1551,6 +1551,21 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setCallTimeoutForConnectionFactory(String connectionFactoryName, long callTimeout) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConnectionTTLForConnectionFactory(String connectionFactoryName, long value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClientFailureCheckPeriodForConnectionFactory(String connectionFactoryName, long value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setReconnectAttemptsForPooledConnectionFactory(String connectionFactoryName, int value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
