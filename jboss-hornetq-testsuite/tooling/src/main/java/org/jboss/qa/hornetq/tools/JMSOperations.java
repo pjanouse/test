@@ -603,6 +603,20 @@ public interface JMSOperations {
     void seRootLoggingLevel(String level);
 
     /**
+     * Disables actually defined FILE-TRACE logging handler
+     */
+    void disableTraceLoggingToFile();
+
+    /**
+     * Disables actually defined logging handler
+     *
+     * @param handlerName name of handler
+     *                    to disable trace logs use FILE-TRACE
+     *
+     */
+    void disableLoggingHandler(String handlerName);
+
+    /**
      * Removes defined bridge, method just logs exception it does not throws
      * exception
      *

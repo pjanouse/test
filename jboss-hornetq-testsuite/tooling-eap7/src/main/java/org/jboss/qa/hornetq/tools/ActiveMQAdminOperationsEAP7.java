@@ -4247,6 +4247,40 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+
+    /**
+     * Disables actually defined FILE-TRACE logging handler
+     */
+    @Override
+    public void disableTraceLoggingToFile() {
+        disableLoggingHandler("FILE-TRACE");
+    }
+
+    /**
+     * Disables actually defined logging handler
+     *
+     * @param handlerName name of handler
+     *                    to disable trace logs use FILE-TRACE
+     *
+     */
+    @Override
+    public void disableLoggingHandler(String handlerName) {
+
+        // /subsystem=logging/root-logger=ROOT:write-attribute(name=level, value=ERROR)
+        ModelNode model = createModelNode();
+        model = createModelNode();
+        model.get(ClientConstants.OP).set("remove-handler");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "logging");
+        model.get(ClientConstants.OP_ADDR).add("root-logger", "ROOT");
+        model.get("name").set(handlerName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Removes defined bridge, method just logs exception it does not throws exception
      *

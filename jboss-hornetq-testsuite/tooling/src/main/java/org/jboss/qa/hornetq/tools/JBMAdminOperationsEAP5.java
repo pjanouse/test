@@ -793,6 +793,17 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void disableTraceLoggingToFile() {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void disableLoggingHandler(String handlerName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+
+    @Override
     public void removeBridge(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }

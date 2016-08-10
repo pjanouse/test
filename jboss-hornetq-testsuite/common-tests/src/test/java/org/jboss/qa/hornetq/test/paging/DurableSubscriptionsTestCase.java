@@ -183,6 +183,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
         jmsAdminOperations.removeAddressSettings(ADDRESS);
         jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", maxSizeBytes, 1000, 1000, pageSizeBytes);
+        jmsAdminOperations.disableTraceLoggingToFile();
         jmsAdminOperations.reload();
 
         // Clients and semaphores
