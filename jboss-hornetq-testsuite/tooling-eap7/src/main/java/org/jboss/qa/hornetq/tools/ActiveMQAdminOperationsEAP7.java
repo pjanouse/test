@@ -5076,8 +5076,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
         model.get(ClientConstants.OP_ADDR).add("socket-binding", socketBindingName);
 
-        // socket-binding-group=standard-sockets/socket-binding=messaging-group:write-attribute(name=multicast-address,value=235.1.1.3)
-
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -5732,20 +5730,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get("category").add(category);
         model.get("level").set(level);
 
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Reloads server instance
-     */
-    @Override
-    public void reloadServer() {
-        ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("reload");
         try {
             this.applyUpdate(model);
         } catch (Exception e) {

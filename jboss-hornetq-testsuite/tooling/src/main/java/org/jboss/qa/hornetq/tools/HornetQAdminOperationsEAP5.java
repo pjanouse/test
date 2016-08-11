@@ -810,11 +810,6 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void reloadServer() {
-        logger.info("This operation is not supported: " + getMethodName());
-    }
-
-    @Override
     public void removeAddressSettings(String address) {
         String configurationFile = getHornetQConfigurationFile();
         try {

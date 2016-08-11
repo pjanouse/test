@@ -4846,20 +4846,6 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     /**
-     * Reloads server instance
-     */
-    @Override
-    public void reloadServer() {
-        ModelNode model = new ModelNode();
-        model.get(ClientConstants.OP).set("reload");
-        try {
-            this.applyUpdate(model);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
      * This method checks whether object is null or empty string - "".
      *
      * @param attribute object

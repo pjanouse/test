@@ -301,8 +301,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         logger.info("Reload source server - " + inServer);
         logger.info("#############################");
         JMSOperations jmsOperations = inServer.getJmsOperations();
-        jmsOperations.reloadServer();
-        Thread.sleep(5000);
+        jmsOperations.reload();
 
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer);
 

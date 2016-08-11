@@ -589,11 +589,6 @@ public interface JMSOperations {
     void reload();
 
     /**
-     * Reloads server instance
-     */
-    void reloadServer();
-
-    /**
      * Removes address settings
      *
      * @param address address specification
