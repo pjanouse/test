@@ -1976,4 +1976,8 @@ public interface JMSOperations {
     long getMessagesAdded(String coreQueueName);
 
     List<Map<String, String>> listMessages(String coreQueueName);
+
+    boolean isDeliveryActive(Archive mdb, String mdbName);
+
+    void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive);
 }

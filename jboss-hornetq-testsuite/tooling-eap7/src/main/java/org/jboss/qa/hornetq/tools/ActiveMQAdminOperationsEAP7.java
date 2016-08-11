@@ -29,7 +29,7 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
 
 /**
  * Basic administration operations for JMS subsystem
- * <p/>
+ * <p>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -869,6 +869,39 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public boolean isDeliveryActive(Archive mdb, String mdbName) {
+        // /deployment=mdb-1.0-SNAPSHOT.jar/subsystem=ejb3/message-driven-bean=LocalResendingMdbFromQueueToQueue:read-attribute(name=delivery-active)
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("deployment", mdb.getName());
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        model.get(ClientConstants.OP_ADDR).add("message-driven-bean", mdbName);
+        model.get("name").set("delivery-active");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Boolean.valueOf(result.get("result").asString());
+    }
+
+    @Override
+    public void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive) {
+        // /subsystem=ejb3/mdb-delivery-group=group2:add(active=true)
+        ModelNode addDeliveryGroup = createModelNode();
+        addDeliveryGroup.get(ClientConstants.OP).set("add");
+        addDeliveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        addDeliveryGroup.get(ClientConstants.OP_ADDR).add("mdb-delivery-group", deliveryGroup);
+        addDeliveryGroup.get("address-full-policy").set(isDeliveryGroupActive);
+        try {
+            this.applyUpdate(addDeliveryGroup);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");
@@ -963,7 +996,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     /**
      * Sets loadbalancing policy on pooled connection factory
      *
-     * @param connectionFactoryName name of the pooled connection factory like "hornetq-ra"
+     * @param connectionFactoryName  name of the pooled connection factory like "hornetq-ra"
      * @param loadbalancingClassName fully qualified class name
      */
     @Override
@@ -1323,7 +1356,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     * <p/>
+     * <p>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
      * populated with path composed of prefix entries (in the order they were added).
      *
@@ -1784,7 +1817,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Export ActiveMQ Artemis journal.
-     * <p/>
+     * <p>
      * server needs to be in admin-only mode
      *
      * @return path to file with exported journal
@@ -2689,6 +2722,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         setClusterConnections(NAME_OF_MESSAGING_DEFAULT_SERVER, name, address, discoveryGroupRef, messageLoadBalancingPolicy, maxHops, retryInterval,
                 useDuplicateDetection, connectorName);
     }
+
     /**
      * Sets cluster configuration.
      *
@@ -2877,7 +2911,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p/>
+     * <p>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -4015,9 +4049,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -4051,9 +4085,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -5744,7 +5778,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p/>
+     * <p>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server
@@ -5837,14 +5871,14 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
             try {
                 Thread.sleep(1000);
                 if (this.applyUpdate(model).get("result").toString().toLowerCase().contains("running")) {
-                    logger.warn("we should be running now: "+this.applyUpdate(model).get("result").toString());
+                    logger.warn("we should be running now: " + this.applyUpdate(model).get("result").toString());
                     break;
-                }else{
-                    logger.warn("not ready now: "+this.applyUpdate(model).get("result").toString());
+                } else {
+                    logger.warn("not ready now: " + this.applyUpdate(model).get("result").toString());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 logger.warn("server still booting");
-            }finally {
+            } finally {
                 if (System.currentTimeMillis() - startTime > timeout) {
                     throw new RuntimeException("wait for boot timeouted");
                 }
@@ -5934,15 +5968,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         server.undeploy(archiveName);
     }
 
-    /**
-     * Exception
-     */
-    private class JMSAdminOperationException extends Exception {
+/**
+ * Exception
+ */
+private class JMSAdminOperationException extends Exception {
 
-        public JMSAdminOperationException(final String msg) {
-            super(msg);
-        }
+    public JMSAdminOperationException(final String msg) {
+        super(msg);
     }
+}
 
     /**
      * Set whether environment property replacement is avaible or not.
@@ -6887,13 +6921,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
-    private static class PrefixEntry {
-        private final String key;
-        private final String value;
+private static class PrefixEntry {
+    private final String key;
+    private final String value;
 
-        private PrefixEntry(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
+    private PrefixEntry(String key, String value) {
+        this.key = key;
+        this.value = value;
     }
+}
 }

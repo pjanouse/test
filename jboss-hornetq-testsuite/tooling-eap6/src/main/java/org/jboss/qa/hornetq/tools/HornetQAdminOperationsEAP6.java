@@ -5242,6 +5242,29 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public boolean isDeliveryActive(Archive mdb, String mdbName) {
+        // /deployment=mdb-1.0-SNAPSHOT.jar/subsystem=ejb3/message-driven-bean=LocalResendingMdbFromQueueToQueue:read-attribute(name=delivery-active)
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("read-attribute");
+        model.get(ClientConstants.OP_ADDR).add("deployment", mdb.getName());
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        model.get(ClientConstants.OP_ADDR).add("message-driven-bean", mdbName);
+        model.get("name").set("delivery-active");
+        ModelNode result;
+        try {
+            result = this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Boolean.valueOf(result.get("result").asString());
+    }
+
+    @Override
+    public void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalMinCompactFiles(int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);

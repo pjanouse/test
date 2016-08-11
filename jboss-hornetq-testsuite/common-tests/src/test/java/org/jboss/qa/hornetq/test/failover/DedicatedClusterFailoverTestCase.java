@@ -65,7 +65,6 @@ public class DedicatedClusterFailoverTestCase extends HornetQTestCase {
     }
 
     /**
-
      * @param acknowledge acknowledge type
      * @param failback    whether to test failback
      * @param topic       whether to test with topics

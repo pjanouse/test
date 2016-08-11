@@ -49,6 +49,10 @@ public class Constants {
     public static final String TO_OUT_SERVER_CONNECTION_FACTORY_NAME = "ra-to-out-server";
     public static final String TO_OUT_SERVER_CONNECTION_FACTORY_JNDI_NAME = "java:/JmsXAOutServer";
 
+    // test constants
+    public static final String HA_SINGLETON_MDB_NAME = "HASingletonMdb.jar";
+    public static final String HA_SINGLETON_MDB_DELIVERY_GROUP_NAME = "group";
+
     public enum FAILURE_TYPE {
         KILL,
         SHUTDOWN,

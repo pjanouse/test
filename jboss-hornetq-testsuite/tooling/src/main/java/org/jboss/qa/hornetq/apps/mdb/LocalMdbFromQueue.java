@@ -2,7 +2,6 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.jboss.ejb3.annotation.Depends;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;

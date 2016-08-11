@@ -2805,6 +2805,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public boolean isDeliveryActive(Archive mdb, String mdbName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         logger.info("This operation is not supported: " + getMethodName());
     }
