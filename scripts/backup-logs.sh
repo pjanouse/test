@@ -1,13 +1,17 @@
 #!/bin/bash
 
-FILES=$(mktemp)
+LOGS=$(mktemp)
+REPORTS=$(mktemp)
 
 cd $WORKSPACE
 
-find . -name "target" >> $FILES
-find . -name "test-suite.log" >> $FILES
+find . -name "target" >> $LOGS
+find . -name "test-suite.log" >> $LOGS
 
+find . -name "*.xml" | grep "surefire-reports" >> $REPORTS
 
-cat $FILES | xargs zip -q -r logs.zip
+cat $LOGS | xargs zip -q -r logs.zip
+cat $REPORTS | xargs zip -q -r reports.zip
 
-rm -f $FILES
+rm -f $LOGS
+rm -f $REPORTS
