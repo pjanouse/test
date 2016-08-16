@@ -126,23 +126,19 @@ public class NewSoakTestCase extends HornetQTestCase {
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(protocol)
-                .processId(container(1).getProcessId())
                 .outFileNamingPattern("jms-server")
-                .measurePeriod(60 * 1000 * 2)
                 .generateCharts()
                 .build();
-        jmsServerMeasurement.start();
+        jmsServerMeasurement.startMeasuring();
 
         ResourceMonitor mdbServerMeasurement = new ResourceMonitor.Builder()
                 .host(container(2).getHostname())
                 .port(container(2).getPort())
                 .protocol(protocol)
-                .processId(container(2).getProcessId())
                 .outFileNamingPattern("mdb-server")
-                .measurePeriod(60 * 1000 * 2)
                 .generateCharts()
                 .build();
-        mdbServerMeasurement.start();
+        mdbServerMeasurement.startMeasuring();
 
         final long testDuration = getTestDuration();
 
@@ -194,8 +190,6 @@ public class NewSoakTestCase extends HornetQTestCase {
         // stop measuring
         jmsServerMeasurement.stopMeasuring();
         mdbServerMeasurement.stopMeasuring();
-        jmsServerMeasurement.join();
-        mdbServerMeasurement.join();
 
         // evaluate
         LOG.info("Soak test results:");

@@ -1,7 +1,6 @@
 package org.jboss.qa.artemis.test.messages;
 
 import com.opencsv.CSVReader;
-import junit.framework.Assert;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -73,16 +72,14 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         prepareServer(container(1));
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
-                .setMeasurables(FileMeasurement.class)
+                .setMeasurable(FileMeasurement.class, 5000)
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
-                .processId(container(1).getProcessId())
-                .measurePeriod(5000)
                 .outFileNamingPattern("server")
                 .keepCsv(true)
                 .build();
-        resourceMonitor.start();
+        resourceMonitor.startMeasuring();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
@@ -90,7 +87,6 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         producer.join();
 
         resourceMonitor.stopMeasuring();
-        resourceMonitor.join();
         container(1).stop();
 
         List<Integer> values = readValues();
@@ -126,16 +122,14 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         prepareServer(container(1));
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
-                .setMeasurables(FileMeasurement.class)
+                .setMeasurable(FileMeasurement.class, 5000)
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
-                .processId(container(1).getProcessId())
-                .measurePeriod(5000)
                 .outFileNamingPattern("server")
                 .keepCsv(true)
                 .build();
-        resourceMonitor.start();
+        resourceMonitor.startMeasuring();
 
         PublisherAutoAck producer = new PublisherAutoAck(container(1), TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, "client1");
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
@@ -160,7 +154,6 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         fastConsumer.join();
 
         resourceMonitor.stopMeasuring();
-        resourceMonitor.join();
         container(1).stop();
 
         List<Integer> values = readValues();

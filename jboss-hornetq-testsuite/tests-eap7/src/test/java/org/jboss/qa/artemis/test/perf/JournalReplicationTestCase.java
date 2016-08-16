@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.perf;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -13,9 +14,10 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.resourcemonitor.CpuLoadMeasurement;
+import org.jboss.qa.resourcemonitor.MemoryMeasurement;
 import org.jboss.qa.resourcemonitor.NetworkUsageMeasurement;
 import org.jboss.qa.resourcemonitor.ResourceMonitor;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,13 +34,13 @@ import java.util.Map;
 public class JournalReplicationTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JournalReplicationTestCase.class);
-    private static final String queueName= "testQueue";
+    private static final String queueName = "testQueue";
     private static final String queueJndiName = "jms/queue/testQueue";
     private static final String replicationGroupName = "g1";
     private static final String clusterConnectionName = "my-cluster";
     //private static final long SIZE = 21474836480l;
-    private static final long SIZE = 5368709120l/4;
-    long messageSize=1024;
+    private static final long SIZE = 5368709120l / 4;
+    long messageSize = 1024;
 
 
     @Test
@@ -49,7 +51,7 @@ public class JournalReplicationTestCase extends HornetQTestCase {
         String protocol = ContainerUtils.isEAP6(container(1)) ? ResourceMonitor.Builder.JMX_URL_EAP6 : ResourceMonitor.Builder.JMX_URL_EAP7;
         prepareDedicatedReplicatedTopology();
         container(1).start();
-        logger.info("Client started sending" + calculateNumberOfMessages(messageSize)+ " messages");
+        logger.info("Client started sending" + calculateNumberOfMessages(messageSize) + " messages");
         sendMessages();
         logger.info("Client finished, now backup will be started");
         container(2).start();
@@ -57,47 +59,39 @@ public class JournalReplicationTestCase extends HornetQTestCase {
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(protocol)
-                .processId(container(1).getProcessId())
                 .outFileNamingPattern("live-server")
-                .measurePeriod(10000)
                 .generateCharts()
+                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000, MemoryMeasurement.class, 10000)))
                 .build();
-        jmsServerMeasurement.start();
+        jmsServerMeasurement.startMeasuring();
 
         ResourceMonitor networkMeasurement = new ResourceMonitor.Builder()
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(protocol)
-                .processId(container(1).getProcessId())
                 .outFileNamingPattern("network-traffic")
-                .measurePeriod(1000)
-                .setMeasurables(NetworkUsageMeasurement.class)
+                .setMeasurable(NetworkUsageMeasurement.class, 1000)
                 .generateCharts()
                 .build();
-        networkMeasurement.start();
-
+        networkMeasurement.startMeasuring();
 
 
         ResourceMonitor backupMeasurement = new ResourceMonitor.Builder()
                 .host(container(2).getHostname())
                 .port(container(2).getPort())
                 .protocol(protocol)
-                .processId(container(2).getProcessId())
                 .outFileNamingPattern("backup-server")
-                .measurePeriod(10000)
                 .generateCharts()
+                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000, MemoryMeasurement.class, 10000)))
                 .build();
-        backupMeasurement.start();
+        backupMeasurement.startMeasuring();
 
 
         logger.info("Waiting for synchronization... timeout is 1 hour");
-        waitForSynchronization(container(2),3600000); //1 hour timeout
+        waitForSynchronization(container(2), 3600000); //1 hour timeout
         jmsServerMeasurement.stopMeasuring();
-        jmsServerMeasurement.join();
         networkMeasurement.stopMeasuring();
-        networkMeasurement.join();
         backupMeasurement.stopMeasuring();
-        backupMeasurement.join();
         container(1).stop();
         container(2).stop();
 
@@ -105,10 +99,10 @@ public class JournalReplicationTestCase extends HornetQTestCase {
     }
 
     private void sendMessages() throws InterruptedException {
-        List<ProducerTransAck> producers= new ArrayList<ProducerTransAck>();
+        List<ProducerTransAck> producers = new ArrayList<ProducerTransAck>();
 
-        int messagesPerProducer = (int)calculateNumberOfMessages(messageSize)/10;
-        for(int i=0 ; i<10; i++) {
+        int messagesPerProducer = (int) calculateNumberOfMessages(messageSize) / 10;
+        for (int i = 0; i < 10; i++) {
             ProducerTransAck producerTransAck = new ProducerTransAck(container(1), queueJndiName, messagesPerProducer);
             producerTransAck.setCommitAfter(1000);
             producerTransAck.setTimeout(0);
@@ -117,7 +111,7 @@ public class JournalReplicationTestCase extends HornetQTestCase {
             producers.add(producerTransAck);
         }
 
-        for(ProducerTransAck p: producers){
+        for (ProducerTransAck p : producers) {
             p.join();
         }
 
@@ -125,7 +119,7 @@ public class JournalReplicationTestCase extends HornetQTestCase {
     }
 
 
-    private void waitForSynchronization(Container container, long timeout)throws Exception{
+    private void waitForSynchronization(Container container, long timeout) throws Exception {
         StringBuilder pathToServerLogFile = new StringBuilder(container.getServerHome());
         pathToServerLogFile.append(File.separator).append("standalone").append(File.separator).append("log").append(File.separator).append("server.log");
 
@@ -134,25 +128,24 @@ public class JournalReplicationTestCase extends HornetQTestCase {
         File serverLog = new File(pathToServerLogFile.toString());
 
         String stringToFind = "synchronized with live-server";
-        boolean sync=false;
-        long start= System.currentTimeMillis();
-        while (!sync && (System.currentTimeMillis()-start<timeout)) {
-           sync = CheckFileContentUtils.checkThatFileContainsGivenString(serverLog, stringToFind);
+        boolean sync = false;
+        long start = System.currentTimeMillis();
+        while (!sync && (System.currentTimeMillis() - start < timeout)) {
+            sync = CheckFileContentUtils.checkThatFileContainsGivenString(serverLog, stringToFind);
             Thread.sleep(2000);
         }
-        logger.info("Synchronization finished after: "+(System.currentTimeMillis()-start-2000)/1000 +"s");
+        logger.info("Synchronization finished after: " + (System.currentTimeMillis() - start - 2000) / 1000 + "s");
     }
 
 
-    private void prepareDedicatedReplicatedTopology(){
+    private void prepareDedicatedReplicatedTopology() {
         prepareLiveServerEAP7(container(1), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
         prepareBackupServerEAP7(container(2), "ASYNCIO", Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
 
 
-
     }
 
-    protected void prepareLiveServerEAP7(Container container,  String journalType, Constants.CONNECTOR_TYPE connectorType) {
+    protected void prepareLiveServerEAP7(Container container, String journalType, Constants.CONNECTOR_TYPE connectorType) {
 
         container.start();
 
@@ -165,8 +158,8 @@ public class JournalReplicationTestCase extends HornetQTestCase {
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         jmsAdminOperations.addHAPolicyReplicationMaster(true, clusterConnectionName, replicationGroupName);
-        jmsAdminOperations.addLoggerCategory("org.apache.activemq","INFO");
-        jmsAdminOperations.createQueue(queueName,queueJndiName);
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq", "INFO");
+        jmsAdminOperations.createQueue(queueName, queueJndiName);
 
         jmsAdminOperations.close();
         container.stop();
@@ -185,10 +178,10 @@ public class JournalReplicationTestCase extends HornetQTestCase {
         jmsAdminOperations.disableSecurity();
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-        jmsAdminOperations.addLoggerCategory("org.apache.activemq","INFO");
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq", "INFO");
         jmsAdminOperations.addHAPolicyReplicationSlave(true, clusterConnectionName, 5000, replicationGroupName, 60, true, false, null, null, null, null);
 
-        jmsAdminOperations.createQueue(queueName,queueJndiName);
+        jmsAdminOperations.createQueue(queueName, queueJndiName);
 
         jmsAdminOperations.close();
 
@@ -274,8 +267,8 @@ public class JournalReplicationTestCase extends HornetQTestCase {
         jmsAdminOperations.close();
     }
 
-    private long calculateNumberOfMessages(long messageSize){
-        return SIZE/messageSize;
+    private long calculateNumberOfMessages(long messageSize) {
+        return SIZE / messageSize;
     }
 
 
