@@ -1817,6 +1817,8 @@ public interface JMSOperations {
 
     void setJournalMinCompactFiles(int i);
 
+    void setDeliveryGroupActive(String deliveryGroup, boolean isDeliveryGroupActive);
+
     void startJMSBridge(String jmsBridgeName);
 
     /**

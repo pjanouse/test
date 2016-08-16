@@ -893,7 +893,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         addDeliveryGroup.get(ClientConstants.OP).set("add");
         addDeliveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
         addDeliveryGroup.get(ClientConstants.OP_ADDR).add("mdb-delivery-group", deliveryGroup);
-        addDeliveryGroup.get("address-full-policy").set(isDeliveryGroupActive);
+        addDeliveryGroup.get("active").set(isDeliveryGroupActive);
+        try {
+            this.applyUpdate(addDeliveryGroup);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setDeliveryGroupActive(String deliveryGroup, boolean isDeliveryGroupActive) {
+        // /subsystem=ejb3/mdb-delivery-group=group2:add(active=true)
+        ModelNode addDeliveryGroup = createModelNode();
+        addDeliveryGroup.get(ClientConstants.OP).set("write-attribute");
+        addDeliveryGroup.get(ClientConstants.OP_ADDR).add("subsystem", "ejb3");
+        addDeliveryGroup.get(ClientConstants.OP_ADDR).add("mdb-delivery-group", deliveryGroup);
+        addDeliveryGroup.get("name").set("active");
+        addDeliveryGroup.get("value").set(isDeliveryGroupActive);
         try {
             this.applyUpdate(addDeliveryGroup);
         } catch (Exception e) {
@@ -6523,6 +6539,17 @@ private class JMSAdminOperationException extends Exception {
         }
     }
 
+    /**
+     * Configures Artemis as replication slave
+     * @param allowFailback whether failback is allowed
+     * @param clusterName name of cluster for master-slave pair
+     * @param failbackDelay time to wait before failback can occur
+     * @param groupName name of replication master-slave pair, bind slave with master
+     * @param maxSavedReplicatedJournalSize number of replicated journals=failbacks (default 2) before slave just stops
+     * @param restartBackup if backup should be restarted after failback
+     * @param scaleDown whether server should scale down for clean shutdown
+     * @param scaleDownClusterName name cluster connection to use for scaling down
+     */
     @Override
     public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName,
                                             int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
@@ -6533,6 +6560,18 @@ private class JMSAdminOperationException extends Exception {
                 scaleDownDiscoveryGroup, scaleDownGroupName);
     }
 
+    /**
+     * Configures Artemis as replication slave
+     * @param serverName name of Artemis server inside EAP 7 to configure ("default" is default)
+     * @param allowFailback whether failback is allowed
+     * @param clusterName name of cluster for master-slave pair
+     * @param failbackDelay time to wait before failback can occur
+     * @param groupName name of replication master-slave pair, bind slave with master
+     * @param maxSavedReplicatedJournalSize number of replicated journals=failbacks (default 2) before slave just stops
+     * @param restartBackup if backup should be restarted after failback
+     * @param scaleDown whether server should scale down for clean shutdown
+     * @param scaleDownClusterName name cluster connection to use for scaling down
+     */
     @Override
     public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
                                             String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown,

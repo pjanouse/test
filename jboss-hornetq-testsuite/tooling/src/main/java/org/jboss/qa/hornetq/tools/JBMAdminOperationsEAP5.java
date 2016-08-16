@@ -2253,6 +2253,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setDeliveryGroupActive(String deliveryGroup, boolean isDeliveryGroupActive) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
