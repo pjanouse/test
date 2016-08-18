@@ -26,15 +26,21 @@ import org.junit.runner.RunWith;
 
 import java.util.Random;
 
+
+/**
+ * @tpChapter INTEGRATION TESTING
+ * @tpSubChapter CLUSTERED HA SINGLETON MDB
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-bridges/
+ * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
+ */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ClusteredSingletonMDBTestCase.class);
 
-
     private final Archive HA_SINGLETON_MDB_ANNOTATED = getMdbWithAnnotations();
-    private final Archive HA_SINGLETON_MDB_DESCRIPTORS = getMdbWithDescriptors();
+    private final Archive HA_SINGLETON_MDB_DESCRIPTORS = getMdbWithDescriptors(); // TODO PREPARE SUCH MDB AND ADD TO TESTS
 
     // InQueue and OutQueue for mdb
     protected static String inQueueNameForMdb = "InQueue";
@@ -86,7 +92,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
      * @tpTestDetails Start two server in Artemis cluster with delivery group "group" active
      * and deploy queue InQueue and OutQueue.
      * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (by ejb descriptors configured
-     *  HA singleton) to both of the server
+     * HA singleton) to both of the server
      * with HA singleton enabled. Check that node 1 in singleton master and mdb active. Check that mdb on node is
      * not active. Stop node 1 and check mdb on node 2 is active.
      * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
@@ -146,7 +152,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     /**
      * @tpTestDetails Start two server in Artemis cluster with delivery group "group" active on 2nd server (false on 1st)
      * and deploy queue InQueue and OutQueue. Start node1 and then node2.
-     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB to both of the server
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (annotated) to both of the server
      * with HA singleton enabled. Check that node 1 in singleton master and mdb not active. Check that mdb on node 2 is
      * not active. Stop node 1 and check mdb on node 2 is active.
      * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
@@ -155,7 +161,28 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void oneNodeNotActiveClusterMDBSigletonTest() throws Exception {
+    public void oneNodeNotActiveClusterMDBSigletonAnnotatedTest() throws Exception {
+        oneNodeNotActiveClusterMDBSigletonTest(HA_SINGLETON_MDB_ANNOTATED);
+    }
+
+    /**
+     * @tpTestDetails Start two server in Artemis cluster with delivery group "group" active on 2nd server (false on 1st)
+     * and deploy queue InQueue and OutQueue. Start node1 and then node2.
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (descriptors ejb) to both of the server
+     * with HA singleton enabled. Check that node 1 in singleton master and mdb not active. Check that mdb on node 2 is
+     * not active. Stop node 1 and check mdb on node 2 is active.
+     * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void oneNodeNotActiveClusterMDBSigletonDescriptorTest() throws Exception {
+        oneNodeNotActiveClusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS);
+    }
+
+    public void oneNodeNotActiveClusterMDBSigletonTest(Archive mdb) throws Exception {
+
 
         prepareServer(container(1), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, false);
         prepareServer(container(2), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, true);
@@ -169,19 +196,19 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         queueProducer.start();
 
         // deploy MDB
-        container(1).deploy(HA_SINGLETON_MDB_ANNOTATED);
-        container(2).deploy(HA_SINGLETON_MDB_ANNOTATED);
+        container(1).deploy(mdb);
+        container(2).deploy(mdb);
 
         // check that mdb on node 1 is not active
         Assert.assertFalse("MDB on node 1 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(1)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
         // check that mdb on node 2 is NOT active
         Assert.assertFalse("MDB on node 2 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
-         Assert.assertTrue("Number of messages in OutQueue must be 0", new JMSTools().countMessages(outQueueNameForMdb,
-                 container(1), container(2)) == 0);
+        Assert.assertTrue("Number of messages in OutQueue must be 0", new JMSTools().countMessages(outQueueNameForMdb,
+                container(1), container(2)) == 0);
 
         // shutdown node 1 and check that mdb 2 is active
         container(1).stop();
@@ -190,7 +217,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
 
         // start node 1 and check that mdb 2 is active
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
         Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
                 container(2)) > 0);
@@ -199,7 +226,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         container(1).start();
 
         Assert.assertFalse("MDB on node 1 is delivery active but it must not. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(1)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
         Assert.assertTrue("Number of messages in OutQueue must higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
                 container(1), container(2)) > 0);
@@ -209,8 +236,8 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         queueProducer.join();
         queueConsumer.join();
 
-        container(1).undeploy(HA_SINGLETON_MDB_ANNOTATED);
-        container(2).undeploy(HA_SINGLETON_MDB_ANNOTATED);
+        container(1).undeploy(mdb);
+        container(2).undeploy(mdb);
         container(1).stop();
         container(2).stop();
 
@@ -222,7 +249,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     /**
      * @tpTestDetails Start two server in Artemis cluster with delivery group "group" not active
      * and deploy queue InQueue and OutQueue. Start node1 and then node2.
-     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB to both of the server
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (annotated) to both of the server
      * with HA singleton enabled. Check that node 1 in singleton master and mdb not active. Check that mdb on node 2 is
      * not active. Stop node 1 and check mdb on node 2 is not active. Activate mdb and delivery group on node2 and check
      * that mdb is processing messaging. Start node 1 and activate mdb delivery and group. Stop node 2. Check that mdb on node1
@@ -233,7 +260,29 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void allNodesNotActiveThenActivateClusterMDBSigletonTest() throws Exception {
+    public void allNodesNotActiveThenActivateClusterMDBSigletonAnnotatedTest() throws Exception {
+        allNodesNotActiveThenActivateClusterMDBSigletonTest(HA_SINGLETON_MDB_ANNOTATED);
+    }
+
+    /**
+     * @tpTestDetails Start two server in Artemis cluster with delivery group "group" not active
+     * and deploy queue InQueue and OutQueue. Start node1 and then node2.
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (descriptors) to both of the server
+     * with HA singleton enabled. Check that node 1 in singleton master and mdb not active. Check that mdb on node 2 is
+     * not active. Stop node 1 and check mdb on node 2 is not active. Activate mdb and delivery group on node2 and check
+     * that mdb is processing messaging. Start node 1 and activate mdb delivery and group. Stop node 2. Check that mdb on node1
+     * is processing messages.
+     * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void allNodesNotActiveThenActivateClusterMDBSigletonDescriptorsTest() throws Exception {
+        allNodesNotActiveThenActivateClusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS);
+    }
+
+    public void allNodesNotActiveThenActivateClusterMDBSigletonTest(Archive mdb) throws Exception {
 
         prepareServer(container(1), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, false);
         prepareServer(container(2), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, false);
@@ -247,16 +296,16 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         queueProducer.start();
 
         // deploy MDB
-        container(1).deploy(HA_SINGLETON_MDB_ANNOTATED);
-        container(2).deploy(HA_SINGLETON_MDB_ANNOTATED);
+        container(1).deploy(mdb);
+        container(2).deploy(mdb);
 
         // check that mdb on node 1 is not active
         Assert.assertFalse("MDB on node 1 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(1)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
         // check that mdb on node 2 is NOT active
         Assert.assertFalse("MDB on node 2 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
         Assert.assertTrue("Number of messages in OutQueue must be 0", new JMSTools().countMessages(outQueueNameForMdb,
                 container(1), container(2)) == 0);
@@ -268,16 +317,16 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
 
         // start node 1 and check that mdb 2 is active
         Assert.assertFalse("MDB on node 2 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
         // activate delivery group on node 2
         activateDeliveryGroup(container(2));
-        startDelivery(container(2), HA_SINGLETON_MDB_ANNOTATED);
+        startDelivery(container(2), mdb);
 
         Thread.sleep(2000);
 
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
         Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
                 container(2)) > 0);
@@ -286,10 +335,10 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         container(1).start();
 
         activateDeliveryGroup(container(1));
-        startDelivery(container(1), HA_SINGLETON_MDB_ANNOTATED);
+        startDelivery(container(1), mdb);
 
         Assert.assertFalse("MDB on node 1 is delivery active but it must not be. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(1)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
         queueConsumer.start();
         queueProducer.stopSending();
@@ -299,9 +348,9 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         container(2).stop();
 
         Assert.assertTrue("MDB on node 1 is not delivery active but it must not. This is a bug",
-                checkThatMdbIsActive(HA_SINGLETON_MDB_ANNOTATED, Constants.HA_SINGLETON_MDB_NAME, container(1)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
-        container(1).undeploy(HA_SINGLETON_MDB_ANNOTATED);
+        container(1).undeploy(mdb);
         container(1).stop();
 
         Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());

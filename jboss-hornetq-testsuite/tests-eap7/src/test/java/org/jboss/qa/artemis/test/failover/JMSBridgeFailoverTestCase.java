@@ -41,6 +41,7 @@ import static org.jboss.qa.hornetq.constants.Constants.*;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
  */
 @RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
 public class JMSBridgeFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);

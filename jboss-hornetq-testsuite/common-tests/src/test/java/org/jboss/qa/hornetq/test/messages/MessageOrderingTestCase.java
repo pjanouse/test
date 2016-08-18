@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -225,7 +226,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         container(2).start();
         container(3).start();
 
-        MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
+        MessageBuilder messageBuilder = new GroupMessageBuilder("myJMSXGroupID");
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), inQueueJndiName, numberOfMessages);
         producer.setMessageBuilder(messageBuilder);
