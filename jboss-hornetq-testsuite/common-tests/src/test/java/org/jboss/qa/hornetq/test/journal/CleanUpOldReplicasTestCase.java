@@ -144,6 +144,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    // https://bugzilla.redhat.com/show_bug.cgi?id=1369322
     public void testNoPagingLargeMessagesDirectories() throws Exception {
         testMaxReplicatedJournalSize(2, new TextMessageBuilder(20 * 1024), false, false);
     }
@@ -363,6 +364,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    // https://bugzilla.redhat.com/show_bug.cgi?id=1369322
     public void testColocatedMaxReplicatedJournalSize() throws Exception {
 
         int maxReplicatedJournalSize = 2;
