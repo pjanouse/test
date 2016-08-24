@@ -20,6 +20,7 @@
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=true
                     -Djboss.modules.policy-permissions=true
+                    -Dio.netty.noUnsafe=true
                 </property>      <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">300</property>
@@ -44,6 +45,7 @@
                     -Djboss.bind.address.private=${MYTESTIP_2}
                     -Djava.net.preferIPv4Stack=true
                     -Djboss.modules.policy-permissions=true -XX:+HeapDumpOnOutOfMemoryError
+                    -Dio.netty.noUnsafe=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">300</property>
@@ -67,6 +69,7 @@
                     -Djboss.bind.address.private=${MYTESTIP_3}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=true
+                    -Dio.netty.noUnsafe=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">300</property>
@@ -90,6 +93,7 @@
                     -Djboss.bind.address.private=${MYTESTIP_4}
                     -XX:+HeapDumpOnOutOfMemoryError
                     -Djava.net.preferIPv4Stack=true
+                    -Dio.netty.noUnsafe=true
                 </property>     <!--                    -Xrunjdwp:transport=dt_socket,address=127.0.0.1:8787,server=y,suspend=y-->
                 <property name="serverConfig">standalone-full-ha.xml</property>
                 <property name="startupTimeoutInSeconds">300</property>
