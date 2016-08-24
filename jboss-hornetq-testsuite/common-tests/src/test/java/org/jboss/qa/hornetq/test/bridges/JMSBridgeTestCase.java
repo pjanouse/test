@@ -324,6 +324,60 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         inServer.stop();
     }
 
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testKillOfServerWithJMSBridge() throws Exception {
+
+        Container inServer = container(1);
+        Container outServer = container(3);
+
+        prepareServers(inServer, outServer, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE);
+        outServer.start();
+        inServer.start();
+
+        Thread.sleep(10000);
+        logger.info("#############################");
+        logger.info("JMS bridge should be connected now. Check logs above that is really so!");
+        logger.info("#############################");
+
+        ProducerClientAck producerToInQueue1 = new ProducerClientAck(inServer,
+                inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
+
+        logger.info("#############################");
+        logger.info("Reload source server - " + inServer);
+        logger.info("#############################");
+        inServer.kill();
+        inServer.start();
+
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer);
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
+                outQueueJndiName, 10000, 100, 10);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+        producerToInQueue1.join();
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+
+        messageVerifier.verifyMessages();
+
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+        outServer.stop();
+        inServer.stop();
+    }
+
     /**
      * @throws Exception
      */

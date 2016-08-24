@@ -16,7 +16,6 @@ import org.junit.experimental.categories.Category;
 /**
  * Created by mnovak on 9/16/14.
  * <p>
- * Test remove Jndi operation.
  */
 @Category(FunctionalTests.class)
 public class CliReloadTest extends HornetQTestCase {
