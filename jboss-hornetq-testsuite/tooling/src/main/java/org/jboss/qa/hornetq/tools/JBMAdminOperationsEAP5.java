@@ -490,6 +490,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void removeHttpsListener(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addXADatasourceProperty(String poolName, String propertyName, String value) {
         logger.info("This operation is not supported: " + getMethodName());
     }

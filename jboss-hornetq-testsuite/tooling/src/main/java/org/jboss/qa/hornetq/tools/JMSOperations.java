@@ -304,6 +304,9 @@ public interface JMSOperations {
      */
     void addHttpsListener(String name, String securityRealm, String socketBinding, String verifyClient);
 
+    void removeHttpsListener(String name);
+
+
     /**
      * Add XA datasource property.
      *

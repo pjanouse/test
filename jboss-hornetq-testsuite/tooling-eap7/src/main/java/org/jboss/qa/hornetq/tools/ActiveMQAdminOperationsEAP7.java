@@ -5343,6 +5343,21 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         addHttpsListener(NAME_OF_UNDERTOW_DEFAULT_SERVER, name, securityRealm, socketBinding, verifyClient);
     }
 
+    @Override
+    public void removeHttpsListener(String name) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, NAME_OF_UNDERTOW_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("https-listener", name);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Set multicast address for socket binding
      *

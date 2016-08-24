@@ -4519,6 +4519,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void removeHttpsListener(String name) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Set multicast address for socket binding
      *

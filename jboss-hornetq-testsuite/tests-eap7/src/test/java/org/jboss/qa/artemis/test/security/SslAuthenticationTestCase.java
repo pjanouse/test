@@ -1324,6 +1324,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.addAuthenticationWithKeyStoreProvider(securityRealmName, "PKCS11", password);
         ops.removeHttpAcceptor("http-acceptor");
         ops.removeHttpAcceptor("http-acceptor-throughput");
+        ops.removeHttpsListener("https");
         ops.close();
         container.restart();
         ops = container.getJmsOperations();
@@ -1371,6 +1372,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         ops.addServerIdentityWithKeyStoreProvider(securityRealmName, "PKCS12", keyStorePath, password);
         ops.removeHttpAcceptor("http-acceptor");
         ops.removeHttpAcceptor("http-acceptor-throughput");
+        ops.removeHttpsListener("https");
         ops.close();
         container.restart();
         ops = container.getJmsOperations();
@@ -1690,7 +1692,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         } else {
             throw new IllegalArgumentException("At least one of setKeyStore or setTrustStore must be true");
         }
-
+        ops.removeHttpsListener("https");
         ops.close();
         container(1).restart();
         ops = container(1).getJmsOperations();
