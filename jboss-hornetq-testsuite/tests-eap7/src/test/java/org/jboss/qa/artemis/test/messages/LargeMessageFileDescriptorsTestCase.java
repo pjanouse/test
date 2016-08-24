@@ -76,7 +76,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
-                .outFileNamingPattern("server")
+                .outFileNamingPattern("target/server")
                 .keepCsv(true)
                 .build();
         resourceMonitor.startMeasuring();
@@ -126,7 +126,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .host(container(1).getHostname())
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
-                .outFileNamingPattern("server")
+                .outFileNamingPattern("target/server")
                 .keepCsv(true)
                 .build();
         resourceMonitor.startMeasuring();
@@ -168,7 +168,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     private void prepareServer(Container container) {
         JMSOperations jmsOperations = container.getJmsOperations();
         jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
+        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
         jmsOperations.removeAddressSettings("#");
         jmsOperations.addAddressSettings("#", "PAGE", 2 * 1024, 0, 0, 1 * 1024);
         jmsOperations.close();
@@ -176,7 +176,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
 
     private List<Integer> readValues() throws Exception {
         List<Integer> values = new ArrayList<Integer>();
-        CSVReader reader = new CSVReader(new FileReader("server.csv"));
+        CSVReader reader = new CSVReader(new FileReader("target/server_FileMeasurement.csv"));
         List<String[]> myEntries = reader.readAll();
         if (myEntries.size() < 2 || myEntries.get(0).length != 2) {
             fail("Incorrect csv");
