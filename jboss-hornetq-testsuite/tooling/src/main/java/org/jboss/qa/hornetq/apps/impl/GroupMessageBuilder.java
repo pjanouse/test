@@ -6,6 +6,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
+import javax.jms.TextMessage;
 import java.util.UUID;
 
 /**
@@ -19,14 +20,24 @@ public class GroupMessageBuilder implements MessageBuilder {
 
     boolean addDuplicatedHeader = true;
 
+    private long size = 0;
+
     public GroupMessageBuilder(String groupMessageId) {
         this.groupMessageId = groupMessageId;
     }
 
     @Override
     public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
-        Message m = messageCreator.createTextMessage("message");
+        TextMessage m = messageCreator.createTextMessage("message");
         m.setStringProperty("JMSXGroupID", groupMessageId);
+
+        if (size > 0)   {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < size/2; i++) {
+                builder.append("a");
+            }
+            m.setText(builder.toString());
+        }
 
         if (isAddDuplicatedHeader()) {
             m.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()));
@@ -45,5 +56,17 @@ public class GroupMessageBuilder implements MessageBuilder {
     @Override
     public boolean isAddDuplicatedHeader() {
         return addDuplicatedHeader;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * Set size of messages in bytes
+     * @param size
+     */
+    public void setSize(long size) {
+        this.size = size;
     }
 }

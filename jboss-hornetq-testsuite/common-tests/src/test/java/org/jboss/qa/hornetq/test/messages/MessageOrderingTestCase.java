@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
+import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
@@ -210,8 +211,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void checkOrderingWithMultipleReceiversInCluster() throws Exception {
 
-        int numberOfMessages = 300;
-        JMSTools jmsTools = new JMSTools();
+        int numberOfMessages = 500;
 
         prepareServer(container(1), container(2), container(3));
         // set local grouping-handler on 1st node
@@ -221,34 +221,57 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         // set remote grouping-handler on 3rd node
         addMessageGrouping(container(3), "my-grouping-handler", "REMOTE", "jms", 10000, 5000, 0);
 
-
         container(1).start();
         container(2).start();
         container(3).start();
 
-        MessageBuilder messageBuilder = new GroupMessageBuilder("myJMSXGroupID");
-
-        ProducerAutoAck producer = new ProducerAutoAck(container(1), inQueueJndiName, numberOfMessages);
-        producer.setMessageBuilder(messageBuilder);
-        producer.setTimeout(0);
-        producer.start();
-        producer.join();
-
+        int numberOfConnections = countNumberOfConnections(container(2), container(3));
         ReceiverAutoAck receiver2 = new ReceiverAutoAck(container(2), inQueueJndiName);
+        receiver2.setReceiveTimeout(10000);
+        receiver2.setTimeout(5000);
         ReceiverAutoAck receiver3 = new ReceiverAutoAck(container(3), inQueueJndiName);
+        receiver3.setReceiveTimeout(10000);
+        receiver3.setTimeout(5000);
 
         receiver2.start();
         receiver3.start();
 
+        long startTime = System.currentTimeMillis();
+        while (numberOfConnections + 2 >= countNumberOfConnections(container(2), container(3))) {
+            Thread.sleep(1000);
+            if (System.currentTimeMillis() - startTime > 30000) {
+                Assert.fail("Receivers did not connect to servers.");
+            }
+        }
+
+        GroupMessageBuilder messageBuilder = new GroupMessageBuilder("myJMSXGroupID");
+        messageBuilder.setSize(1024 * 50);
+        ProducerTransAck producer = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
+        producer.setMessageBuilder(messageBuilder);
+        producer.setTimeout(0);
+        producer.setCommitAfter(50);
+        producer.start();
+        producer.join();
+
+        receiver2.setTimeout(0);
         receiver2.join();
+        receiver3.setTimeout(0);
         receiver3.join();
 
         Assert.assertEquals("All messages should be received", numberOfMessages, receiver2.getCount() + receiver3.getCount());
-
         Assert.assertTrue("receiver2 should receive ordered messages", checkSingleClientOrder(producer.getListOfSentMessages(), receiver2.getListOfReceivedMessages()));
         Assert.assertTrue("receiver3 should receive ordered messages", checkSingleClientOrder(producer.getListOfSentMessages(), receiver3.getListOfReceivedMessages()));
 
         container(1).stop();
+    }
+
+    private int countNumberOfConnections(Container... containers) {
+        int sum = 0;
+        for (Container c : containers)  {
+            JMSOperations jmsOperations = c.getJmsOperations();
+            sum =+ jmsOperations.countConnections();
+        }
+        return sum;
     }
 
 
