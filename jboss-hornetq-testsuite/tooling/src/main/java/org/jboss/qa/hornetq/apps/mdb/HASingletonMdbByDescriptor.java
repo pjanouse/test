@@ -2,8 +2,6 @@ package org.jboss.qa.hornetq.apps.mdb;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.jboss.ejb3.annotation.ClusteredSingleton;
-import org.jboss.ejb3.annotation.DeliveryGroup;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.constants.Constants;
 
@@ -29,8 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-//@DeliveryGroup("group")
-//@ClusteredSingleton
 public class HASingletonMdbByDescriptor implements MessageListener {
 
     private static final long serialVersionUID = 2770941392406343837L;

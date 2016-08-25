@@ -10,6 +10,7 @@ import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.mdb.HASingletonMdb;
+import org.jboss.qa.hornetq.apps.mdb.HASingletonMdbByDescriptor;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -17,6 +18,8 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
@@ -24,14 +27,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.Random;
 
 
 /**
  * @tpChapter INTEGRATION TESTING
  * @tpSubChapter CLUSTERED HA SINGLETON MDB
- * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-ha-failover-bridges/
- * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19048/activemq-artemis-high-availability#testcases
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-cluster-tests/
+ * @tpTcmsLink TBD
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -63,12 +67,48 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     public Archive getMdbWithDescriptors() {
         JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, Constants.HA_SINGLETON_MDB_NAME);
-        mdbJar.addClasses(HASingletonMdb.class);
+        mdbJar.addClasses(HASingletonMdbByDescriptor.class);
         mdbJar.addClass(JMSImplementation.class);
         mdbJar.addClass(jmsImplementation.getClass());
         mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        mdbJar.addAsManifestResource(new StringAsset(createEjbXml(Constants.HA_SINGLETON_MDB_NAME)), "jboss-ejb3.xml");
         log.info(mdbJar.toString(true));
+        // Uncomment when you want to see what's in the servlet
+         File target = new File("/tmp/mdb.jar");
+         if (target.exists()) {
+         target.delete();
+         }
+         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
+    }
+
+    public static String createEjbXml(String mdbName) {
+
+        StringBuilder ejbXml = new StringBuilder();
+
+        ejbXml.append("<?xml version=\"1.1\" encoding=\"UTF-8\"?>\n");
+        ejbXml.append("<jboss:ejb-jar xmlns:jboss=\"http://www.jboss.com/xml/ns/javaee\"\n");
+        ejbXml.append("xmlns=\"http://java.sun.com/xml/ns/javaee\"\n");
+        ejbXml.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+        ejbXml.append("xmlns:c=\"urn:clustering:1.1\"\n");
+        ejbXml.append("xmlns:d=\"urn:delivery-active:1.1\"\n");
+        ejbXml.append("xsi:schemaLocation=\"http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3-2_0.xsd http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd\"\n");
+        ejbXml.append("version=\"3.1\"\n");
+        ejbXml.append("impl-version=\"2.0\">\n");
+        ejbXml.append("<assembly-descriptor>\n");
+        ejbXml.append("<c:clustering>\n");
+        ejbXml.append("<ejb-name>" + mdbName + "</ejb-name>\n");
+        ejbXml.append("<c:clustered-singleton>true</c:clustered-singleton>\n");
+        ejbXml.append("</c:clustering>\n");
+        ejbXml.append("<d:delivery>\n");
+        ejbXml.append("<ejb-name>" + mdbName + "</ejb-name>\n");
+        ejbXml.append("<d:group>" + Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME + "</d:group>\n");
+        ejbXml.append("<d:active>true</d:active>");
+        ejbXml.append("</d:delivery>\n");
+        ejbXml.append("</assembly-descriptor>\n");
+        ejbXml.append("</jboss:ejb-jar>\n");
+
+        return ejbXml.toString();
     }
 
     /**
