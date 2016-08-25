@@ -69,13 +69,13 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 
         container(1).start();
         jmsOperations = container(1).getJmsOperations();
-        jmsOperations.setJournalMinFiles(100);
+        jmsOperations.setJournalMinFiles(50);
         jmsOperations.setJournalMinFiles("backup", 100);
         container(1).stop();
 
         container(2).start();
         jmsOperations = container(2).getJmsOperations();
-        jmsOperations.setJournalMinFiles(100);
+        jmsOperations.setJournalMinFiles(50);
         jmsOperations.setJournalMinFiles("backup", 100);
         container(2).stop();
 
