@@ -1,15 +1,13 @@
 package org.jboss.qa.hornetq.test.cli;
 
-import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.management.cli.CliClient;
 import org.junit.Assert;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -99,10 +97,11 @@ public class CliTestBase extends HornetQTestCase {
             public void run() {
                 for (int i = 0; i < attempts; i++) {
                     try {
+                        log.info("Calling reload command");
                         result.set(cliClient.reload());
                         return;
                     } catch (Exception e) {
-                        log.warn(e);
+                        log.warn("Error during reload command", e);
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException e2) {
