@@ -189,8 +189,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        Random randomGenerator = new Random();
-        int journalToDelete = randomGenerator.nextInt(maxReplicatedJournalSize);
+        int journalToDelete = 0;
+
+        if (maxReplicatedJournalSize > 0) {
+            Random randomGenerator = new Random();
+            journalToDelete = randomGenerator.nextInt(maxReplicatedJournalSize);
+        }
         logger.info("JournalToDelete: " + journalToDelete);
 
         Thread.sleep(10000);
