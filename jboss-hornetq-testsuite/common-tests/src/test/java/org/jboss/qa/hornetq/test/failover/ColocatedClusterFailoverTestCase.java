@@ -15,6 +15,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -247,19 +248,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         // give some time for servers to find each other
         Thread.sleep(10000);
 
+        TextMessageVerifier textMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), topicJndiNamePrefix + "0", "id", "name");
+        subscriber.addMessageVerifier(textMessageVerifier);
 
         subscriber.start();
 
 
         PublisherAutoAck producerAutoAck = new PublisherAutoAck(container(1), topicJndiNamePrefix + "0", 20, "naem");
+        producerAutoAck.addMessageVerifier(textMessageVerifier);
         producerAutoAck.start();
         producerAutoAck.join();
         subscriber.join();
 
-
-        Assert.assertEquals(20, subscriber.getListOfReceivedMessages().size());
+        Assert.assertTrue(textMessageVerifier.verifyMessages());
     }
 
     /**
