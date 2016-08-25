@@ -603,8 +603,8 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         String journalType = getJournalType();
         prepareLiveServerStaticConnectorsEAP7(container(1), container(2), JOURNAL_DIRECTORY_A, journalType, connectorType, "group1");
         prepareBackupServerStaticConnectorsEAP7(container(1), container(2), JOURNAL_DIRECTORY_B, journalType, "group2");
-        prepareLiveServerStaticConnectorsEAP7(container(2), container(1), JOURNAL_DIRECTORY_B, journalType, connectorType, "group2");
-        prepareBackupServerStaticConnectorsEAP7(container(2), container(1), JOURNAL_DIRECTORY_A, journalType, "group1");
+        prepareLiveServerStaticConnectorsEAP7(container(2), container(1), JOURNAL_DIRECTORY_C, journalType, connectorType, "group2");
+        prepareBackupServerStaticConnectorsEAP7(container(2), container(1), JOURNAL_DIRECTORY_D, journalType, "group1");
     }
 
 
