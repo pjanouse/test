@@ -7,6 +7,7 @@ import javax.naming.Context;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
+import org.apache.activemq.artemis.utils.IPV6Util;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -407,7 +408,8 @@ public class AnnotationsTestCase extends HornetQTestCase {
         container(1).deploy(createDeploymentWithInjectedJMSContext());
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet(String.format("http://%s:%d/app/producer", container(1).getHostname(), container(1).getHttpPort()));
+
+        HttpGet httpGet = new HttpGet(String.format("http://%s:%d/app/producer", IPV6Util.encloseHost(container(1).getHostname()), container(1).getHttpPort()));
 
         for (int i = 0; i < 100; i++) {
             CloseableHttpResponse response = httpClient.execute(httpGet);
