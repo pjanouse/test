@@ -70,13 +70,16 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         container(1).start();
         jmsOperations = container(1).getJmsOperations();
         jmsOperations.setJournalMinFiles(50);
-        jmsOperations.setJournalMinFiles("backup", 100);
+        jmsOperations.setJournalMinFiles("backup", 50);
+        jmsOperations.setClusterConnectionCallTimeout("my-cluster", 60000);
+        jmsOperations.setClusterConnectionCallTimeout("backup", "my-cluster", 60000);
         container(1).stop();
 
         container(2).start();
         jmsOperations = container(2).getJmsOperations();
         jmsOperations.setJournalMinFiles(50);
-        jmsOperations.setJournalMinFiles("backup", 100);
+        jmsOperations.setJournalMinFiles("backup", 50);
+        jmsOperations.setClusterConnectionCallTimeout("backup", "my-cluster", 60000);
         container(2).stop();
 
         container(2).start();

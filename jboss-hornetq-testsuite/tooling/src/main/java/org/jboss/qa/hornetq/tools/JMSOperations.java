@@ -2007,6 +2007,8 @@ public interface JMSOperations {
 
     void setClusterConnectionCallTimeout(String clusterGroupName, long callTimout);
 
+    void setClusterConnectionCallTimeout(String serverName, String clusterGroupName, long callTimout);
+
     void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod);
 
     void setClusterConnectionTTL(String clusterGroupName, long ttl);

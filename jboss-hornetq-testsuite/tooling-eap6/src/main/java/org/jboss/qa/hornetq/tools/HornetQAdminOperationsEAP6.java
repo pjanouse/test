@@ -5137,6 +5137,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setClusterConnectionCallTimeout(String clusterGroupName, long callTimout) {
+        setClusterConnectionCallTimeout("default", clusterGroupName, callTimout);
+    }
+
+    @Override
+    public void setClusterConnectionCallTimeout(String serverName, String clusterGroupName, long callTimout) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
@@ -5209,7 +5214,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setJournalMinFiles(int i) {
-        setJournalFileSize("default", i);
+        setJournalMinFiles("default", i);
     }
 
     @Override

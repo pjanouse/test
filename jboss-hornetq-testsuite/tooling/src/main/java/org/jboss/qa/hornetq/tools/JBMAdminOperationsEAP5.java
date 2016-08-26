@@ -2558,6 +2558,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setClusterConnectionCallTimeout(String serverName, String clusterGroupName, long callTimout) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
         logger.info("This operation is not supported: " + getMethodName());
     }
