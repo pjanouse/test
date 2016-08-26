@@ -1,6 +1,7 @@
 package org.jboss.qa.artemis.test.messages;
 
 import com.opencsv.CSVReader;
+import org.apache.activemq.artemis.utils.IPV6Util;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -73,7 +74,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
                 .setMeasurable(FileMeasurement.class, 5000)
-                .host(container(1).getHostname())
+                .host(IPV6Util.encloseHost(container(1).getHostname()))
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
                 .outFileNamingPattern("target/server")
@@ -123,7 +124,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
                 .setMeasurable(FileMeasurement.class, 5000)
-                .host(container(1).getHostname())
+                .host(IPV6Util.encloseHost(container(1).getHostname()))
                 .port(container(1).getPort())
                 .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
                 .outFileNamingPattern("target/server")
