@@ -9,6 +9,8 @@ import javax.jms.JMSContext;
 import javax.jms.Message;
 import javax.jms.Topic;
 import javax.naming.Context;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class SubscriberTransAck extends Receiver20 {
 
@@ -22,6 +24,7 @@ public class SubscriberTransAck extends Receiver20 {
     private JMSContext jmsContext;
     private Topic topic;
     private JMSConsumer subscriber = null;
+    private CountDownLatch subscribeLatch = new CountDownLatch(1);
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -137,12 +140,17 @@ public class SubscriberTransAck extends Receiver20 {
             jmsContext.start();
             topic = (Topic) context.lookup(getDestinationNameJndi());
             subscriber = jmsContext.createDurableConsumer(topic, subscriberName);
+            subscribeLatch.countDown();
 
         } catch (Exception e) {
 
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
         }
+    }
+
+    public boolean waitOnSubscribe(long timeout, TimeUnit unit) throws InterruptedException {
+        return subscribeLatch.await(timeout, unit);
     }
 
     public int getCommitAfter() {

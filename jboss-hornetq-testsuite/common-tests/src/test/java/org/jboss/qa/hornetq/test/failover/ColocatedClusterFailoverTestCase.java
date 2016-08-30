@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 import javax.jms.Session;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -254,7 +255,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         subscriber.addMessageVerifier(textMessageVerifier);
 
         subscriber.start();
-
+        Assert.assertTrue(subscriber.waitOnSubscribe(3, TimeUnit.SECONDS));
 
         PublisherAutoAck producerAutoAck = new PublisherAutoAck(container(1), topicJndiNamePrefix + "0", 20, "naem");
         producerAutoAck.addMessageVerifier(textMessageVerifier);

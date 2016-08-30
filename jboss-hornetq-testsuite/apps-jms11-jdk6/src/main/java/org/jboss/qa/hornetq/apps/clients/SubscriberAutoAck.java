@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import javax.jms.*;
 import javax.naming.Context;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple subscriber with auto acknowledge session. ABLE to failover.
@@ -22,6 +24,7 @@ public class SubscriberAutoAck extends Receiver11 {
     private Session session;
     private Topic topic;
     private TopicSubscriber subscriber = null;
+    private CountDownLatch subscribeLatch = new CountDownLatch(1);
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -157,9 +160,15 @@ public class SubscriberAutoAck extends Receiver11 {
 
             subscriber = session.createDurableSubscriber(topic, subscriberName);
 
+            subscribeLatch.countDown();
+
         } catch (Exception e) {
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
         }
+    }
+
+    public boolean waitOnSubscribe(long timeout, TimeUnit unit) throws InterruptedException {
+        return subscribeLatch.await(timeout, unit);
     }
 }

@@ -73,6 +73,8 @@ public class PublisherAutoAck extends Producer11 {
 
             Message msg = null;
 
+            String duplicatedHeader = jmsImplementation.getDuplicatedHeader();
+
             while (!stopSending.get() && counter < messages) {
 
                 msg = messageBuilder.createMessage(new MessageCreator10(session), jmsImplementation);
@@ -83,7 +85,7 @@ public class PublisherAutoAck extends Producer11 {
 
                 Thread.sleep(getTimeout());
 
-                logger.info("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID());
+                logger.info("Publisher for node: " + hostname + ". Sent message with property count: " + counter + ", messageId:" + msg.getJMSMessageID() + ", dupId: " + msg.getStringProperty(duplicatedHeader));
 
             }
 

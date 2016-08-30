@@ -10,6 +10,8 @@ import javax.jms.JMSRuntimeException;
 import javax.jms.Message;
 import javax.jms.Topic;
 import javax.naming.Context;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class SubscriberAutoAck extends Receiver20 {
 
@@ -22,6 +24,7 @@ public class SubscriberAutoAck extends Receiver20 {
     private JMSContext jmsContext;
     private Topic topic;
     private JMSConsumer subscriber = null;
+    private CountDownLatch subscribeLatch = new CountDownLatch(1);
 
     /**
      * Creates a subscriber to topic with client acknowledge.
@@ -130,10 +133,16 @@ public class SubscriberAutoAck extends Receiver20 {
 
             subscriber = jmsContext.createDurableConsumer(topic, subscriberName);
 
+            subscribeLatch.countDown();
+
         } catch (Exception e) {
             logger.error("Exception thrown during subsribing.", e);
             exception = e;
         }
+    }
+
+    public boolean waitOnSubscribe(long timeout, TimeUnit unit) throws InterruptedException {
+        return subscribeLatch.await(timeout, unit);
     }
 
 }
