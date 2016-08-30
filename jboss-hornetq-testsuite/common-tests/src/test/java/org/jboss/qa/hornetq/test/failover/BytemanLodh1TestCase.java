@@ -762,7 +762,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         long timeout = System.currentTimeMillis() + 5000;
         while (timeout > System.currentTimeMillis() && largeMessagesDir.listFiles().length != 0) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
         }
