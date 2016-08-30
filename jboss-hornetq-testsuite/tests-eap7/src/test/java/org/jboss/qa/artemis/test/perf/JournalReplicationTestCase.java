@@ -1,6 +1,7 @@
 package org.jboss.qa.artemis.test.perf;
 
 import com.google.common.collect.ImmutableMap;
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -61,7 +62,7 @@ public class JournalReplicationTestCase extends HornetQTestCase {
                 .protocol(protocol)
                 .outFileNamingPattern("live-server")
                 .generateCharts()
-                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000, MemoryMeasurement.class, 10000)))
+                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000l, MemoryMeasurement.class, 10000l)))
                 .build();
         jmsServerMeasurement.startMeasuring();
 
@@ -82,7 +83,7 @@ public class JournalReplicationTestCase extends HornetQTestCase {
                 .protocol(protocol)
                 .outFileNamingPattern("backup-server")
                 .generateCharts()
-                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000, MemoryMeasurement.class, 10000)))
+                .setMeasurables(Map.class.cast(ImmutableMap.of(CpuLoadMeasurement.class, 10000l, MemoryMeasurement.class, 10000l)))
                 .build();
         backupMeasurement.startMeasuring();
 
