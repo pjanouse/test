@@ -607,7 +607,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
         assertEquals("Incorrect number of received messages", 5, receivedMessages.size());
-        assertTrue("Large messages directory should be empty", waitUntilLargeMessagesDirIsEmpty(5000));
+        assertTrue("Large messages directory should be empty", this.isLargeMessagesDirEmpty());
 
         container(1).stop();
 
@@ -743,21 +743,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         ejbXml.append("\n");
 
         return ejbXml.toString();
-    }
-
-    private boolean waitUntilLargeMessagesDirIsEmpty(long timeout) throws Exception {
-        long timeToWait = System.currentTimeMillis() + timeout;
-
-        while (System.currentTimeMillis() < timeToWait) {
-            if (isLargeMessagesDirEmpty()) {
-                return true;
-            }
-            Thread.sleep(500);
-        }
-        if (isLargeMessagesDirEmpty()) {
-            return true;
-        }
-        return false;
     }
 
 
