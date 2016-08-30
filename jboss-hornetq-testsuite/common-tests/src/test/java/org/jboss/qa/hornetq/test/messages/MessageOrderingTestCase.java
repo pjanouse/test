@@ -236,12 +236,14 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         receiver2.start();
         receiver3.start();
 
+        int count = countNumberOfConnections(container(2), container(3));
         long startTime = System.currentTimeMillis();
-        while (numberOfConnections + 2 >= countNumberOfConnections(container(2), container(3))) {
+        while (numberOfConnections + 2 > count) {
             Thread.sleep(1000);
             if (System.currentTimeMillis() - startTime > 30000) {
                 Assert.fail("Receivers did not connect to servers.");
             }
+            count = countNumberOfConnections(container(2), container(3));
         }
 
         GroupMessageBuilder messageBuilder = new GroupMessageBuilder("myJMSXGroupID");
@@ -267,9 +269,11 @@ public class MessageOrderingTestCase extends HornetQTestCase {
 
     private int countNumberOfConnections(Container... containers) {
         int sum = 0;
-        for (Container c : containers)  {
+        for (Container c : containers) {
             JMSOperations jmsOperations = c.getJmsOperations();
-            sum =+ jmsOperations.countConnections();
+            int count = jmsOperations.countConnections();
+            sum += count;
+            jmsOperations.close();
         }
         return sum;
     }
