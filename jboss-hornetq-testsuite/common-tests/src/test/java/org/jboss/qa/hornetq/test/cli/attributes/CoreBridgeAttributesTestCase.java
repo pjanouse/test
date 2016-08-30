@@ -3,18 +3,19 @@ package org.jboss.qa.hornetq.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
-import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliConfiguration;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
@@ -22,10 +23,19 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 /**
- * @author mnovak
+ * @tpChapter Integration testing
+ * @tpSubChapter Administration of HornetQ component
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
+ * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-ipv6-tests/
+ * @tpTcmsLink https://polarion.engineering.redhat.com/polarion/#/project/EAP7/wiki/JMS/EAP%207_x%20ActiveMQ%20Artemis%20Test%20Plan_%20Technical%20Details
+ * @tpTestCaseDetails Read and write values to queue attributes. Tested
+ * attributes : check-period, confirmation-window-size, connection-ttl, filter, forwarding-address, ha, max-retry-interval,
+ * min-large-message-size, password, queue-name, reconnect-attempts, retry-interval, retry-interval-multiplier,
+ * static-connectors, transformer-class-name, use-duplicate-detection, user
+ *
+ * @author mnovak@redhat.com
  *
  */
-
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
@@ -92,14 +102,21 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
         prepareTargetServerForHornetQCoreBridge(container(2));
     }
 
-
     @After
     public void stopServer() {
         container(1).stop();
         container(2).stop();
     }
 
-
+    /**
+     *
+     * @tpTestDetails There are two servers started. Deploy InQueue to Node1
+     * (source server) and OutQueue to Node2 (target server). Configure core
+     * bridge between these two servers. Try to read and write values to core bridge
+     * attributes.
+     *
+     * @tpPassCrit Reading and writing attributes is successful
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -139,6 +156,5 @@ public class CoreBridgeAttributesTestCase extends CliTestBase {
 
         }
     }
-
 
 }
