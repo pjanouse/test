@@ -127,7 +127,10 @@ public class ArchiveServerLogsAfterFailedTest extends TestWatcher {
                             + fileSeparator + containerDef.getContainerName() + "-log");
 
                     if (!whereToCopyServerLogDirectory.exists()) {
-                        whereToCopyServerLogDirectory.mkdirs();
+                        boolean result = whereToCopyServerLogDirectory.mkdirs();
+                        if (result == false) {
+                            log.error("Mkdirs failed: " + whereToCopyServerLogDirectory.getAbsolutePath());
+                        }
                     }
 
                     log.info("Copying log directory " + serverLogDirectory.getAbsolutePath()
