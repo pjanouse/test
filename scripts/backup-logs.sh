@@ -5,15 +5,15 @@ REPORTS=$(mktemp)
 
 cd $WORKSPACE
 
-find . -name "target" >> $LOGS
-find . -name "test-suite.log" >> $LOGS
+find . -name "target" | cat >> $LOGS
+find . -name "test-suite.log" | cat >> $LOGS
 
 # zip log directories of servers 
 # this is good in case that build timeouted and we want to see the log directories of all servers
-find . -name log | grep jboss-eap >> $LOGS
-find . -name "*thread-dump*" | grep jboss-eap >> $LOGS
+find . -name log | grep jboss-eap | cat >> $LOGS
+find . -name "*thread-dump*" | grep jboss-eap | cat >> $LOGS
 
-find . -name "*.xml" | grep "surefire-reports" >> $REPORTS
+find . -name "*.xml" | grep "surefire-reports" | cat >> $REPORTS
 
 cat $LOGS
 cat $LOGS | xargs zip -r logs.zip
