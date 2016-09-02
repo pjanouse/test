@@ -116,7 +116,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void openFileDescriptorsOnTopicTest() throws Exception {
 
-        //ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
+        // todo ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
         Assume.assumeTrue("Test currently runs only on Linux", System.getProperty("os.name").contains("Linux"));
 
         container(1).start();
@@ -161,7 +161,8 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
         Integer first = values.get(0);
 
         for (Integer value : values) {
-            assertTrue("More than 2% file descriptor gain when large messages are processed by server", value.doubleValue() < first.doubleValue() * 1.02);
+            assertTrue("There are more than 50 new file descriptors after test. It's potential leak. Number of file descriptor before test: " + first.doubleValue()
+                    + ", Number of file descriptors after test: " + value.doubleValue(), value.doubleValue() - first.doubleValue() < 50);
         }
 
     }
