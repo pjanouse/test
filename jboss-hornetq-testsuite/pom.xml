@@ -63,7 +63,7 @@
         <hornetq.surefire.jvm.options>-Xmx${hornetq.surefire.jvm.xmx} -Xms${hornetq.surefire.jvm.xms}
             -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9591
             -Djboss.modules.system.pkgs=org.jboss.byteman
-            -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
+            -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar} -Djboss.cli.config=${project.parent.basedir}/common-tests/jboss-cli.xml
         </hornetq.surefire.jvm.options>
 
     </properties>
