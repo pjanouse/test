@@ -604,8 +604,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
         new JMSTools().waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
-        assertEquals("Incorrect number of large message files created in server large message directory", NUMBER_OF_MESSAGES_PER_PRODUCER, getLargeMessageDirFilesNumber(true));
-
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
         assertEquals("Incorrect number of received messages", NUMBER_OF_MESSAGES_PER_PRODUCER, receivedMessages.size());
