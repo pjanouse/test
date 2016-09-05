@@ -36,7 +36,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
      * @param relativePathToOutputFile relative path against $WORKSPACE
      */
     @Override
-    public void printJournal(String relativePathToOutputFile) throws Exception {
+    public File printJournal(String relativePathToOutputFile) throws Exception {
 
         jbossHome = container.getServerHome();
 
@@ -54,7 +54,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
 
-        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), pagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
+        return printJournal(messagingBindingsDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), pagingJournalDirectoryBuilder.toString(), outputFileBuilder.toString());
     }
 
     /**
@@ -65,9 +65,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
      * @param outputFile                 file to which content of journal will be printed
      */
     @Override
-    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
-
-        boolean isPagingAvailable = true;
+    public File printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();
@@ -85,9 +83,17 @@ public class PrintJournalImplEAP7 implements PrintJournal {
             throw new IllegalStateException("Parameter messagingjournalDirectory is null/empty.");
         }
 
-        if (messagingpagingDirectory == null || "".equals(messagingpagingDirectory) || !new File(messagingpagingDirectory).exists()) {
-            log.warn("Paging directory not available. It may be OK, in case the paging on server is deactivated");
-            isPagingAvailable = false;
+        if (messagingpagingDirectory == null || "".equals(messagingpagingDirectory)) {
+            log.warn("Paging directory not available. It may be OK, in case the paging on server is deactivated. We have to create empty " +
+                    "paging directore otherwise print journal operation will fail.");
+            StringBuilder pagingJournalDirectoryBuilder = new StringBuilder(jbossHome);
+            messagingpagingDirectory = pagingJournalDirectoryBuilder.append(File.separator).append("standalone").append(File.separator).append("data")
+                    .append(File.separator).append("activemq").append(File.separator).append("paging").toString();
+        }
+
+        File pagingDir = new File(messagingpagingDirectory);
+        if (!pagingDir.exists())   {
+            pagingDir.mkdir();
         }
 
         if (outputFile == null || "".equalsIgnoreCase(outputFile)) {
@@ -109,14 +115,15 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         javaProcessBuilder.addArgument(messagingbindingsDirectory);
         javaProcessBuilder.addArgument("--journal");
         javaProcessBuilder.addArgument(messagingjournalDirectory);
-        if (isPagingAvailable) {
+
             javaProcessBuilder.addArgument("--paging");
             javaProcessBuilder.addArgument(messagingpagingDirectory);
-        }
-        javaProcessBuilder.addArgument("--configuration");
-        javaProcessBuilder.addArgument(confXML.getAbsolutePath());
+
+//        javaProcessBuilder.addArgument("--configuration");
+//        javaProcessBuilder.addArgument(confXML.getAbsolutePath());
 
         final Process process;
+        File f = null;
 
         try {
             process = javaProcessBuilder.startProcess();
@@ -124,7 +131,7 @@ public class PrintJournalImplEAP7 implements PrintJournal {
             BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
-            File f = new File(outputFile);
+            f = new File(outputFile);
             if (f.exists()) {
                 f.delete();
             }
@@ -148,6 +155,8 @@ public class PrintJournalImplEAP7 implements PrintJournal {
 
         log.info("Journal printed to file: " + outputFile + ", bindings directory: " + messagingbindingsDirectory +
                 ", journal directory: " + messagingjournalDirectory + ", paging directory: " + messagingpagingDirectory);
+
+        return f;
 
     }
 

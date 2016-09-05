@@ -36,7 +36,7 @@ public class PrintJournalImplEAP6 implements PrintJournal {
      * @param relativePathToOutputFile relative path against $WORKSPACE
      */
     @Override
-    public void printJournal(String relativePathToOutputFile) throws Exception {
+    public File printJournal(String relativePathToOutputFile) throws Exception {
 
         jbossHome = container.getServerHome();
 
@@ -51,7 +51,7 @@ public class PrintJournalImplEAP6 implements PrintJournal {
         StringBuilder outputFileBuilder = new StringBuilder(workingDirectory);
         outputFileBuilder.append(File.separator).append(relativePathToOutputFile);
 
-        printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), null, outputFileBuilder.toString());
+        return printJournal(messagingJournalDirectoryBuilder.toString(), messagingJournalDirectoryBuilder.toString(), null, outputFileBuilder.toString());
     }
 
     /**
@@ -62,7 +62,7 @@ public class PrintJournalImplEAP6 implements PrintJournal {
      * @param outputFile                 file to which content of journal will be printed
      */
     @Override
-    public void printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
+    public File printJournal(String messagingbindingsDirectory, String messagingjournalDirectory, String messagingpagingDirectory, String outputFile) throws Exception {
 
         if (workingDirectory == null || "".equalsIgnoreCase(workingDirectory)) {
             workingDirectory = new File(".").getAbsolutePath();
@@ -94,6 +94,7 @@ public class PrintJournalImplEAP6 implements PrintJournal {
         javaProcessBuilder.addArgument(messagingjournalDirectory);
 
         final Process process;
+        File f = null;
 
         try {
             process = javaProcessBuilder.startProcess();
@@ -101,7 +102,7 @@ public class PrintJournalImplEAP6 implements PrintJournal {
             BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
-            File f = new File(outputFile);
+            f = new File(outputFile);
             if (f.exists()) {
                 f.delete();
             }
@@ -125,6 +126,8 @@ public class PrintJournalImplEAP6 implements PrintJournal {
 
         log.info("Journal printed to file: " + outputFile + ", bindings directory: " + messagingbindingsDirectory +
                 ", journal directory: " + messagingjournalDirectory);
+
+        return f;
 
     }
 
