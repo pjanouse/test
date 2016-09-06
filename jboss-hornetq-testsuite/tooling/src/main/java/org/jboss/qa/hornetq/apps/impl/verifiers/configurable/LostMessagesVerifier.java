@@ -49,7 +49,7 @@ public class LostMessagesVerifier implements Verifiable {
         for (Map<String, String> mapOfSentMessageProperties : sendMessages) {
             if (helpSet.add(mapOfSentMessageProperties.get(jmsImplementation.getDuplicatedHeader()))) {
                 problemMessages.add(mapOfSentMessageProperties);
-                logger.info("Detected lost message" + mapOfSentMessageProperties.get(jmsImplementation.getDuplicatedHeader()));
+                logger.info("Detected lost message " + mapOfSentMessageProperties.get(jmsImplementation.getDuplicatedHeader()));
             }
         }
         isOk = problemMessages.isEmpty();
