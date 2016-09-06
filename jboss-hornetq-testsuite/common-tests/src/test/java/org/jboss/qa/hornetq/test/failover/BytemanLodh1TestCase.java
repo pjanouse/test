@@ -72,6 +72,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     private final Archive mdb1Lodh1 = createLodh1Deployment();
     private final Archive mdb2Copy = createLodh1CopyDeployment();
 
+    private String container1LargeMessageDir = null;
+
     public JavaArchive createLodh1Deployment() {
 
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
@@ -575,6 +577,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Sending messages to InQueue");
         this.sendMessages(msgBuilder);
 
+        getLargeMessageDirFilesNumber(true); //prints content of large message directory
+
         logger.info("Deploying MDB " + deployment);
         RuleInstaller.installRule(this.getClass(), container(1));
         try {
@@ -599,10 +603,13 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             Thread.sleep(1000);
         }
         jmsOperations.close();
+
         // wait for InQueue to be empty
         new JMSTools().waitForMessages(IN_QUEUE_NAME, 0, 300000, container(1));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
         new JMSTools().waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+
+        getLargeMessageDirFilesNumber(true); //prints content of large message directory
 
         List<java.util.Map<String, String>> receivedMessages = readMessages();
 
@@ -698,6 +705,12 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
             // Ignore it
         }
         jmsAdminOperations.createQueue("default", OUT_QUEUE_NAME, OUT_QUEUE, true);
+
+        container1LargeMessageDir = container(1).getServerHome() + File.separator
+                + "standalone" + File.separator
+                + "data" + File.separator
+                + jmsAdminOperations.getJournalLargeMessageDirectoryPath();
+
         jmsAdminOperations.close();
         container.stop();
     }
@@ -748,7 +761,8 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     private boolean isLargeMessagesDirEmpty() {
         int numberOfFiles = -1;
         // Deleting the file is async... we keep looking for a period of the time until the file is really gone
-        long timeout = System.currentTimeMillis() + 15000;
+        long waitTime = 15000;
+        long timeout = System.currentTimeMillis() + waitTime;
 
         do {
             numberOfFiles = getLargeMessageDirFilesNumber(false);
@@ -760,7 +774,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         } while (timeout > System.currentTimeMillis() && numberOfFiles != 0);
 
         if (0 != numberOfFiles) {
-            logger.warn("Large message directory not empty after " + timeout + "ms timeout. " + numberOfFiles + " still present. Printing content of directory");
+            logger.warn("Large message directory not empty after " + waitTime + "ms timeout. " + numberOfFiles + " still present. Printing content of directory");
             getLargeMessageDirFilesNumber(true);
             return false;
         }
@@ -768,20 +782,16 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
     }
 
     private int getLargeMessageDirFilesNumber(boolean printFileNames) {
-        String path = container(1).getServerHome() + File.separator
-                + "standalone" + File.separator
-                + "data" + File.separator
-                + container(1).getJmsOperations().getJournalLargeMessageDirectoryPath();
-
-        File largeMessagesDir = new File(path);
+        File largeMessagesDir = new File(container1LargeMessageDir);
 
         if (!largeMessagesDir.isDirectory() || !largeMessagesDir.canRead()) {
-            throw new IllegalStateException("Cannot access large messages directory " + path);
+            throw new IllegalStateException("Cannot access large messages directory " + container1LargeMessageDir);
         }
         File[] files = largeMessagesDir.listFiles();
         if (printFileNames) {
-            StringBuilder sb = new StringBuilder("Content of large message directory (" + path + ")");
+            StringBuilder sb = new StringBuilder("Content of large message directory (" + container1LargeMessageDir + ") [");
             for (File f : files) sb.append(System.lineSeparator()).append(f.getName());
+            sb.append(" ]");
             logger.info(sb.toString());
         }
         return files.length;
