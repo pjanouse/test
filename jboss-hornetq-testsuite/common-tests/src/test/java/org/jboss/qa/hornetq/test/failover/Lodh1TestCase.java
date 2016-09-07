@@ -6,6 +6,8 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.*;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
@@ -19,7 +21,8 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFact
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
-import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -35,11 +38,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
-import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -59,14 +59,6 @@ public class Lodh1TestCase extends HornetQTestCase {
 
     private final Archive mdb1Archive = createLodh1Deployment();
     private final Archive mdbNotCommitArchive = createMdbNoCommitDeployment();
-
-    // queue to send messages in
-    static String inQueueName = "InQueue";
-    static String inQueue = "jms/queue/" + inQueueName;
-
-    // queue for receive messages out
-    static String outQueueName = "OutQueue";
-    static String outQueue = "jms/queue/" + outQueueName;
 
     MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
@@ -89,7 +81,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(inQueue).append("</activation-config-property-value>\n");
+        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
@@ -98,7 +90,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(outQueue).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -197,9 +189,16 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_GUEST_SEND, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true"),
+            @Param(name = PrepareParams.SECURITY_USERS_SEND, value = "true"),
+            @Param(name = PrepareParams.SECURITY_GUEST_CONSUME, value = "true"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "5"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "10")
+    })
     public void testLimitedPoolSize() throws Exception {
-
-        prepareServer(container(1), true);
 
         container(1).start();
 
@@ -210,7 +209,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start producer.");
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         TextMessageBuilder builder = new TextMessageBuilder(1);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -219,7 +218,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producer1.start();
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueue, 20000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 20000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -257,6 +256,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testKill() throws Exception {
         testLodh(false);
     }
@@ -280,6 +280,7 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testShutDown() throws Exception {
         testLodh(true);
     }
@@ -290,11 +291,9 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void testLodh(boolean shutdown) throws Exception {
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         // we use only the first server
-        prepareServer(container(1));
-
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -309,18 +308,18 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(container(1));
         }
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         // wait for 80% of messages
-        new JMSTools().waitForMessages(outQueueName, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 5000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -356,17 +355,15 @@ public class Lodh1TestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
+    @Prepare("TwoNodes")
     public void testAllTransactionsFinishedAfterCleanShutdown() throws Exception {
 
         int numberOfMessages = 2000;
 
-        prepareServer(container(1));
-        prepareServer(container(2));
-
         // cluster A
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -377,7 +374,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         container(1).deploy(mdb1Archive);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 10, 120000, container(1));
         container(1).stop();
 
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
@@ -418,7 +415,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 checkUnfinishedArjunaTransactions(container(2)));
         Assert.assertTrue(
                 "There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
-                new JMSTools().waitForMessages(inQueueName, 1, 5000, container(2)));
+                new JMSTools().waitForMessages(PrepareBase.IN_QUEUE_NAME, 1, 5000, container(2)));
         container(2).stop();
     }
 
@@ -439,15 +436,15 @@ public class Lodh1TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testLodhWithoutKill() throws Exception {
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
         int numberOfMessages = 100;
 
         // we use only the first server
-        prepareServer(container(1));
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -459,11 +456,11 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 10000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -522,8 +519,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     private void printQueuesCount() {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         logger.info("=============Queues status====================");
-        logger.info("Messages on [" + inQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(inQueueName));
-        logger.info("Messages on [" + outQueueName + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(outQueueName));
+        logger.info("Messages on [" + PrepareBase.IN_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.IN_QUEUE_NAME));
+        logger.info("Messages on [" + PrepareBase.OUT_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME));
         logger.info("==============================================");
         jmsAdminOperations.close();
     }
@@ -536,110 +533,6 @@ public class Lodh1TestCase extends HornetQTestCase {
     public void stopAllServers() {
         container(1).stop();
         container(2).stop();
-    }
-
-    /**
-     * Prepare server in simple topology.
-     *
-     * @throws Exception
-     */
-    public void prepareServer(Container container) throws Exception {
-        prepareServer(container, false);
-    }
-
-    public void prepareServer(Container container, boolean isWithSecurityAndLimitedPoolSize) throws Exception {
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-        jmsAdminOperations.removeClusteringGroup("my-cluster");
-        jmsAdminOperations.removeBroadcastGroup("bg-group1");
-        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);
-
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("password-stacking", "useFirstPass");
-        opts.put("unauthenticatedIdentity", "guest");
-        jmsAdminOperations.rewriteLoginModule("Remoting", opts);
-        jmsAdminOperations.rewriteLoginModule("RealmDirect", opts);
-
-        try {
-            jmsAdminOperations.removeQueue(inQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-
-        try {
-            jmsAdminOperations.removeQueue(outQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-
-        if (isWithSecurityAndLimitedPoolSize) {
-
-            jmsAdminOperations.setSecurityEnabled(true);
-            jmsAdminOperations.setAuthenticationForNullUsers(true);
-
-            // set security persmissions for roles admin,users - user is already there
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "create-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "delete-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "manage", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", true);
-
-            jmsAdminOperations.addRoleToSecuritySettings("#", "admin");
-            jmsAdminOperations.addRoleToSecuritySettings("#", "users");
-
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", true);
-
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "consume", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "create-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "delete-non-durable-queue", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "manage", true);
-            jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "users", "send", true);
-
-            File applicationUsersModified = new File(
-                    "src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-            File applicationUsersOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
-                    + File.separator + "configuration" + File.separator + "application-users.properties");
-            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
-
-            File applicationRolesModified = new File(
-                    "src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-            File applicationRolesOriginal = new File(container(1).getServerHome() + File.separator + "standalone"
-                    + File.separator + "configuration" + File.separator + "application-roles.properties");
-            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
-
-            String connectionFactoryName = null;
-            if (container.getContainerType().equals(Constants.CONTAINER_TYPE.EAP7_CONTAINER)) {
-                connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP7;
-            } else {
-                connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP6;
-            }
-            jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 5);
-            jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
-
-        }
-        jmsAdminOperations.close();
-
-        container.stop();
     }
 
     @Deployment(managed = false, testable = false, name = "mdb2")

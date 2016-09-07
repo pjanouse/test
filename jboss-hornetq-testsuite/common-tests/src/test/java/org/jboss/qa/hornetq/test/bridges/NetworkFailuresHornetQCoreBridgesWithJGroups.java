@@ -1,11 +1,12 @@
-package org.jboss.qa.artemis.test.bridges;
+package org.jboss.qa.hornetq.test.bridges;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.Prepare;
+import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesPrepare;
+import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesWithJGroupsPrepare;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 
 
@@ -16,7 +17,7 @@ import org.jboss.qa.hornetq.tools.SimpleProxyServer;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpSince EAP6
- * @tpTestCaseDetails This test has the same test scenarios as NetworkFailuresHornetQCoreBridges
+ * @tpTestCaseDetails This test has the same test scenarios as NetworkFailuresBridges
  * <br/>
  * Lodh4 - cluster A -> bridge (core) -> cluster B. Kill server from A or B
  * repeatedly.
@@ -43,15 +44,12 @@ import org.jboss.qa.hornetq.tools.SimpleProxyServer;
  * disconnected for 20 seconds
  *
  */
-public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailuresHornetQCoreBridges{
+@Prepare(value = "NetworkFailuresCoreBridgesWithJGroupsPrepare")
+public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailuresHornetQCoreBridges {
 
     private static final Logger log = Logger.getLogger(NetworkFailuresHornetQCoreBridgesWithJGroups.class);
 
-    public static String GOSSHIP_ROUTER_ADDRESS = "0.0.0.0";
-    public static int GOSSHIP_ROUTER_PORT = 12001;
-
     Process gosshipRouterProcess = null;
-
 
     /**
      * Executes network failures.
@@ -122,15 +120,15 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port);
+            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), NetworkFailuresCoreBridgesPrepare.PROXY_12_PORT);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), proxy21port);
+            proxy2 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), NetworkFailuresCoreBridgesPrepare.PROXY_21_PORT);
             proxy2.start();
         }
 
-        startGosshipRouter(GOSSHIP_ROUTER_ADDRESS, GOSSHIP_ROUTER_PORT);
+        startGosshipRouter(NetworkFailuresCoreBridgesWithJGroupsPrepare.GOSSHIP_ROUTER_ADDRESS, NetworkFailuresCoreBridgesWithJGroupsPrepare.GOSSHIP_ROUTER_PORT);
 
         log.info("All proxies started.");
 
@@ -152,79 +150,5 @@ public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailure
         stopGosshipRouter();
 
         log.info("All proxies stopped.");
-    }
-
-    /**
-     * Prepares server for topology.
-     *
-     * @param container Test container - defined in arquillian.xml
-     */
-    protected void prepareServer(Container container, int proxyPortIn, int reconnectAttempts) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "connector-to-proxy-directing-to-this-server";
-        String connectorNameForClients = "http-connector";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String connectionFactoryJndiName = "java:jboss/exported/jms/" + connectionFactoryName;
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setPersistenceEnabled(true);
-
-        // every can connect to this server through proxy on 127.0.0.1:proxyPortIn
-        jmsAdminOperations.removeHttpConnector(connectorName);
-
-        jmsAdminOperations.addRemoteSocketBinding("binding-connect-to-this-server-through-remote-proxy", "127.0.0.1", proxyPortIn);
-        jmsAdminOperations.createHttpConnector(connectorName, "binding-connect-to-this-server-through-remote-proxy", null);
-
-        jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-        jmsAdminOperations.setBroadCastGroup(broadCastGroupName, "udp", "udp", 2000, connectorName);
-
-        jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-        jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, 10000, "udp", "udp");
-
-        // update UDP stack to use
-//        <transport type="TUNNEL" shared="false">
-//        <property name="enable_bundling">false</property>
-//        <property name="gossip_router_hosts">0.0.0.0[12001]</property>
-//        </transport>
-        jmsAdminOperations.addTransportToJGroupsStack("udp", "TUNNEL", GOSSHIP_ROUTER_ADDRESS, GOSSHIP_ROUTER_PORT, false);
-
-        jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-        jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-        jmsAdminOperations.setReconnectAttemptsForClusterConnection(clusterGroupName, reconnectAttempts);
-
-       
-        jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-        jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-        jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, -1);
-
-
-        jmsAdminOperations.disableSecurity();
-//        jmsAdminOperations.setLoggingLevelForConsole("DEBUG");
-//        jmsAdminOperations.addLoggerCategory("org.hornetq.core.client.impl.Topology", "DEBUG");
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024, 0, 0, 1024);
-
-        jmsAdminOperations.createQueue(hornetqInQueueName, relativeJndiInQueueName, true);
-
-        jmsAdminOperations.close();
-        container.stop();
-    }
-
-
-    /**
-     * Prepares servers.
-     */
-    @Override
-    public void prepareServers(int reconnectAttempts) {
-
-        prepareServer(container(1), proxy21port, reconnectAttempts);
-        prepareServer(container(2), proxy12port, reconnectAttempts);
     }
 }

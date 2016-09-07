@@ -457,7 +457,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         jmsAdminOperations.setPersistenceEnabled(true);
         jmsAdminOperations.setFactoryType(inVmConnectionFactory, "XA_GENERIC");
         jmsAdminOperations.setFactoryType(connectionFactoryName, "XA_GENERIC");
-//        jmsAdminOperations.disableSecurity();
+//        jmsAdminOperations.prepareSecurity();
         jmsAdminOperations.setSecurityEnabled(true);
         jmsAdminOperations.removeAddressSettings("#");
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);

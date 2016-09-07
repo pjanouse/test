@@ -3,10 +3,14 @@ package org.jboss.qa.hornetq.test.bridges;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesPrepare;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -24,35 +28,16 @@ import java.rmi.RemoteException;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP6/view/EAP6-HornetQ/job/eap-60-hornetq-functional-bridge-network-failure/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  * @tpSince EAP6
- * @tpTestCaseDetails This test case is implemented by NetworkFailuresHornetQCoreBridges and
+ * @tpTestCaseDetails This test case is implemented by NetworkFailuresBridges and
  * NetworkFailuresHornetQCoreBridgesWithJGroups implementation details are specified there.
  */
 @RunWith(Arquillian.class)
 public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
-
-    // this is just maximum limit for producer - producer is stopped once Failure test scenario is complete
-    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
-
     // Logger
     protected static final Logger log = Logger.getLogger(NetworkFailuresBridgesAbstract.class);
 
-    protected String hornetqInQueueName = "InQueue";
-    protected String relativeJndiInQueueName = "queue/InQueue";
-
-    protected String broadcastGroupAddressClusterA = "233.1.2.1";
-    protected int broadcastGroupPortClusterA = 9876;
-
-    protected String broadcastGroupAddressClusterB = "233.1.2.2";
-    protected int broadcastGroupPortClusterB = 9876;
-
-    protected String discoveryGroupAddressClusterA = "233.1.2.3";
-    protected int discoveryGroupPortServerClusterA = 9876;
-
-    protected String discoveryGroupAddressClusterB = "233.1.2.4";
-    protected int discoveryGroupPortServerClusterB = 9876;
-
-    protected int proxy12port = 43812;
-    protected int proxy21port = 43821;
+    // this is just maximum limit for producer - producer is stopped once Failure test scenario is complete
+    public static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 10000000;
 
     protected ControllableProxy proxy1;
     protected ControllableProxy proxy2;
@@ -60,9 +45,7 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     protected MulticastProxy mp21;
 
 
-    public abstract void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails, boolean staysDisconnected) throws Exception;
-
-    public abstract void prepareServers(int reconnectAttempts);
+    public abstract void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int numberOfFails, boolean staysDisconnected) throws Exception;
 
     @Before
     public void stopAllServers() {
@@ -97,8 +80,11 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testNetworkFailureMixMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 2, false);
     }
 
     /**
@@ -112,8 +98,11 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testNetworkFailureSmallMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 2, false);
     }
 
     /**
@@ -126,8 +115,11 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testNetworkFailureLargeMessages() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 2, false);
     }
 
 
@@ -142,8 +134,11 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testNetworkFailureMixMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 1024), 2);
     }
 
 
@@ -158,8 +153,11 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testNetworkFailureSmallMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(50, 50), 2);
     }
 
     /**
@@ -173,51 +171,72 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testNetworkFailureLargeMessages1recAttempts() throws Exception {
-        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 1, 2);
+        testNetworkFailure(120000, new ClientMixMessageBuilder(1024, 1024), 2);
     }
 
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testShortNetworkFailureMixMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), -1, 2, false);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testShortNetworkFailureSmallMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), -1, 2, false);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 50), 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "-1"),
+    })
     public void testShortNetworkFailureLargeMessages() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), -1, 2, false);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(1024, 1024), 2, false);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testShortNetworkFailureMixMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 2);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testShortNetworkFailureSmallMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 2);
     }
 
     @Test
     @RunAsClient
     @CleanUpBeforeTest @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param( name = PrepareParams.RECONNECT_ATTEMPTS, value = "1"),
+    })
     public void testShortNetworkFailureLargeMessages1recAttempts() throws Exception {
-        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 1, 2);
+        testNetworkFailure(20000, new ClientMixMessageBuilder(50, 1024), 2);
     }
 
 
@@ -230,19 +249,12 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
      * @param timeBetweenFails time between fails
      */
     public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder) throws Exception {
-        testNetworkFailure(timeBetweenFails, messageBuilder, -1, 2);
+        testNetworkFailure(timeBetweenFails, messageBuilder, 2);
     }
 
-    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int reconnectAttempts, int numberOfFails) throws Exception {
-        testNetworkFailure(timeBetweenFails, messageBuilder, reconnectAttempts, numberOfFails, true);
+    public void testNetworkFailure(long timeBetweenFails, MessageBuilder messageBuilder, int numberOfFails) throws Exception {
+        testNetworkFailure(timeBetweenFails, messageBuilder, numberOfFails, true);
     }
-
-
-
-
-
-
-
 
     protected int getNumberOfNodesInCluster(Container container) {
         boolean isContainerStarted = CheckServerAvailableUtils.checkThatServerIsReallyUp(
@@ -257,7 +269,6 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
         }
         return numberOfNodesInCluster;
     }
-
 
     /**
      * Executes network failures.
@@ -274,8 +285,6 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
         for (int i = 0; i < numberOfFails; i++) {
 
-
-
             stopProxies();
 
             Thread.sleep(timeBetweenFails);
@@ -291,24 +300,24 @@ public abstract class NetworkFailuresBridgesAbstract extends HornetQTestCase {
 
         log.info("Start all proxies.");
         if (proxy1 == null) {
-            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), proxy12port);
+            proxy1 = new SimpleProxyServer(container(2).getHostname(), container(2).getHornetqPort(), NetworkFailuresCoreBridgesPrepare.PROXY_12_PORT);
             proxy1.start();
         }
         if (proxy2 == null) {
-            proxy2 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), proxy21port);
+            proxy2 = new SimpleProxyServer(container(1).getHostname(), container(1).getHornetqPort(), NetworkFailuresCoreBridgesPrepare.PROXY_21_PORT);
             proxy2.start();
         }
 
         if (mp12 == null){
-            mp12 = new MulticastProxy(broadcastGroupAddressClusterA, broadcastGroupPortClusterA,
-                    discoveryGroupAddressClusterB, discoveryGroupPortServerClusterB);
+            mp12 = new MulticastProxy(NetworkFailuresCoreBridgesPrepare.BROADCAST_GROUP_ADDRESS_A, NetworkFailuresCoreBridgesPrepare.BROADCAST_GROUP_PORT_A,
+                    NetworkFailuresCoreBridgesPrepare.DISCOVERY_GROUP_ADDRESS_B, NetworkFailuresCoreBridgesPrepare.DISCOVERY_GROUP_PORT_B);
             mp12.setIpAddressOfInterface(container(1).getHostname());
             mp12.start();
 
         }
         if (mp21 == null){
-            mp21 = new MulticastProxy(broadcastGroupAddressClusterB, broadcastGroupPortClusterB,
-                    discoveryGroupAddressClusterA, discoveryGroupPortServerClusterA);
+            mp21 = new MulticastProxy(NetworkFailuresCoreBridgesPrepare.BROADCAST_GROUP_ADDRESS_B, NetworkFailuresCoreBridgesPrepare.BROADCAST_GROUP_PORT_B,
+                    NetworkFailuresCoreBridgesPrepare.DISCOVERY_GROUP_ADDRESS_A, NetworkFailuresCoreBridgesPrepare.DISCOVERY_GROUP_PORT_A);
             mp21.setIpAddressOfInterface(container(2).getHostname());
             mp21.start();
         }

@@ -1619,7 +1619,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setPagingDirectoryPath(String path) {
-        setPagingDirectoryPath("backup", path);
+        setPagingDirectoryPath("default", path);
     }
 
     @Override
@@ -1733,7 +1733,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setBindingsDirectoryPath(String path) {
-        setBindingsDirectoryPath("backup", path);
+        setBindingsDirectoryPath("default", path);
     }
 
     @Override
@@ -3527,6 +3527,30 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue, int maxDeliveryAttempts, boolean lastValueQueue) {
+        ModelNode setAddressAttributes = createModelNode();
+        setAddressAttributes.get(ClientConstants.OP).set("add");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("hornetq-server", containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+        setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
+        setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
+        setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
+        setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
+        setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        setAddressAttributes.get("expiry-address").set(expireQueue);
+        setAddressAttributes.get("dead-letter-address").set(deadLetterQueue);
+        setAddressAttributes.get("max-delivery-attempts").set(maxDeliveryAttempts);
+        setAddressAttributes.get("last-value-queue").set(lastValueQueue);
+
+        try {
+            this.applyUpdate(setAddressAttributes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * Adds grouping handler
@@ -5312,11 +5336,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
+    public void setClusterConnectionCheckPeriod(String serverName, String clusterGroupName, long checkPeriod) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
 
         model.get("name").set("check-period");
@@ -5330,11 +5354,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+    public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
+        setClusterConnectionCheckPeriod("default", clusterGroupName, checkPeriod);
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String serverName, String clusterGroupName, long ttl) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
 
         model.get("name").set("connection-ttl");
@@ -5345,6 +5374,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+        setClusterConnectionTTL("default", clusterGroupName, ttl);
     }
 
     @Override
@@ -5508,6 +5542,28 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     @Override
     public void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String serverName, String clusterGroup, boolean value) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroup);
+        model.get("name").set("forward-when-no-consumers");
+        model.get("value").set(value);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String clusterGroup, boolean value) {
+        setForwardWhenNoConsumers("default", clusterGroup, value);
     }
 
     @Override
@@ -6047,11 +6103,15 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setTransactionTimeout(long hornetqTransactionTimeout) {
+        setTransactionTimeout("default", hornetqTransactionTimeout);
+    }
 
+    @Override
+    public void setTransactionTimeout(String serverName, long hornetqTransactionTimeout) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
-        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get("name").set("transaction-timeout");
         model.get("value").set(hornetqTransactionTimeout);
 

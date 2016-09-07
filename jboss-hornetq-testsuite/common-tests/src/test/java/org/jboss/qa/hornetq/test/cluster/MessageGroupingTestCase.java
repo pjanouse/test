@@ -3,7 +3,10 @@ package org.jboss.qa.hornetq.test.cluster;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
@@ -18,6 +21,8 @@ import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueueWithSelectorAndSecurity;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
 import org.jboss.qa.hornetq.test.security.PermissionGroup;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
@@ -50,12 +55,18 @@ import java.util.UUID;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-public class MessageGroupingTestCase extends ClusterTestBase {
+@Prepare(value = "FourNodes", params = {
+        @Param(name = PrepareParams.CLUSTER_TYPE, value = "MULTICAST")
+})
+public class MessageGroupingTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(MessageGroupingTestCase.class);
 
     private final JavaArchive MDB_ON_QUEUE1_SECURITY = createDeploymentMdbOnQueueWithSecurity();
-    private final JavaArchive MDB_ON_QUEUE1_SECURITY2 = createDeploymentMdbOnQueueWithSecurity2();
+
+    protected static final int NUMBER_OF_DESTINATIONS = 1;
+    // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
+    protected static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 100;
 
     // /**
     // * - Start 4 servers - local and remotes (1,2,3)
@@ -89,8 +100,6 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         int numberOfMessages = 10;
 
-        prepareServers();
-
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 5000;
@@ -111,7 +120,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         List<FinalTestMessageVerifier> groupMessageVerifiers = new ArrayList<FinalTestMessageVerifier>();
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(testedContainer, inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(testedContainer, PrepareBase.QUEUE_JNDI, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
@@ -120,7 +129,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         for (int i = 0; i < 2; i++) {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(testedContainer));
             groupMessageVerifiers.add(groupMessageVerifier);
-            ReceiverTransAck receiver = new ReceiverTransAck(testedContainer, inQueueJndiNameForMdb, 10000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(testedContainer, PrepareBase.QUEUE_JNDI, 10000, 100, 10);
             receiver.addMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
@@ -208,8 +217,6 @@ public class MessageGroupingTestCase extends ClusterTestBase {
     @RestoreConfigBeforeTest
     public void clusterTestWitMessageGroupingSimple() throws Exception {
 
-        prepareServers();
-
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 5000;
@@ -224,16 +231,16 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).start();
 
         log.info("Send messages to first server.");
-        sendMessages(container(1), inQueueJndiNameForMdb, new MixMessageGroupMessageBuilder(10, 120, "id1"));
+        sendMessages(container(1), PrepareBase.QUEUE_JNDI, new MixMessageGroupMessageBuilder(10, 120, "id1"));
         log.info("Send messages to first server - done.");
 
         // try to read them from 2nd node
-        ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 10000, 100, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(2), PrepareBase.QUEUE_JNDI, 10000, 100, 10);
         receiver.start();
         receiver.join();
 
         log.info("Receiver got messages: " + receiver.getListOfReceivedMessages().size());
-        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2)));
+        log.info("Messages on servers " + new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1),container(2)));
         Assert.assertEquals(
                 "Number received messages must be 0 as producer was not up in parallel with consumer. There should be 0"
                         + " received but it's: " + receiver.getListOfReceivedMessages().size(), 0, receiver.getListOfReceivedMessages().size());
@@ -273,8 +280,6 @@ public class MessageGroupingTestCase extends ClusterTestBase {
     @RestoreConfigBeforeTest
     public void clusterTestWitMessageGrouping() throws Exception {
 
-        prepareServers();
-
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 5000;
@@ -289,15 +294,15 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).start();
         Thread.sleep(5000);
         FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        ReceiverClientAck receiver = new ReceiverClientAck(container(2), inQueueJndiNameForMdb, 120000, 100, 10);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(2), PrepareBase.QUEUE_JNDI, 120000, 100, 10);
         receiver.addMessageVerifier(verifier);
         receiver.start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiNameForMdb,
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
-        ProducerTransAck producerToInQueue2 = new ProducerTransAck(container(2), inQueueJndiNameForMdb,
+        ProducerTransAck producerToInQueue2 = new ProducerTransAck(container(2), PrepareBase.QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue2.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
@@ -312,11 +317,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).start();
         Thread.sleep(5000);
 
-        ProducerTransAck producerToInQueue3 = new ProducerTransAck(container(1), inQueueJndiNameForMdb,
+        ProducerTransAck producerToInQueue3 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue3.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id1"));
 
-        ProducerTransAck producerToInQueue4 = new ProducerTransAck(container(2), inQueueJndiNameForMdb,
+        ProducerTransAck producerToInQueue4 = new ProducerTransAck(container(2), PrepareBase.QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue4.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id2"));
 
@@ -336,7 +341,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         verifier.verifyMessages();
 
         log.info("Receiver after kill got: " + receiver.getListOfReceivedMessages().size());
-        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1),container(2)));
+        log.info("Messages on servers " + new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1),container(2)));
         Assert.assertEquals("Number of sent and received messages is not correct. There should be " + 4
                         * NUMBER_OF_MESSAGES_PER_PRODUCER + " received but it's : " + receiver.getListOfReceivedMessages().size(),
                 4 * NUMBER_OF_MESSAGES_PER_PRODUCER, receiver.getListOfReceivedMessages().size());
@@ -384,8 +389,6 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         int numberOfMessages = 10000;
 
-        prepareServers();
-
         String name = "my-grouping-handler";
         String address = "jms";
         long timeout = 5000;
@@ -413,7 +416,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         ConnectionFactory factory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
         Connection connection = factory.createConnection();
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Queue queue = (Queue) context.lookup(inQueueJndiNameForMdb);
+        Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
         MessageProducer producer = session.createProducer(queue);
         Message m = null;
 
@@ -452,13 +455,13 @@ public class MessageGroupingTestCase extends ClusterTestBase {
                 serverToConnect = container(4);
             }
 
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(serverToConnect, inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(serverToConnect, PrepareBase.QUEUE_JNDI, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, group));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.addMessageVerifier(verifier);
             producerToInQueue1.start();
             producers.add(producerToInQueue1);
-            ReceiverTransAck receiver = new ReceiverTransAck(serverToConnect, inQueueJndiNameForMdb, 40000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(serverToConnect, PrepareBase.QUEUE_JNDI, 40000, 100, 10);
             receiver.addMessageVerifier(verifier);
             receiver.start();
             receivers.add(receiver);
@@ -496,7 +499,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
 
         verifier.verifyMessages();
 
-        log.info("Messages on servers " + new JMSTools().countMessages(inQueueNameForMdb, container(1), container(2), container(3), container(4)));
+        log.info("Messages on servers " + new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1), container(2), container(3), container(4)));
         Assert.assertEquals("Number of send and received messages is different: ", verifier.getSentMessages().size(),
                 verifier.getReceivedMessages().size());
         Assert.assertNotEquals("No message send.", verifier.getSentMessages(), 0);
@@ -609,17 +612,14 @@ public class MessageGroupingTestCase extends ClusterTestBase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true")
+    })
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGrouping() throws Exception {
-        prepareServer(container(1), true);
-        prepareServer(container(2), true);
         container(1).start();
         container(2).start();
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
-
-        // setup security
-        jmsAdminOperations1.setSecurityEnabled(true);
-        jmsAdminOperations2.setSecurityEnabled(true);
 
         jmsAdminOperations1.setClusterUserPassword("password");
         jmsAdminOperations2.setClusterUserPassword("password");
@@ -665,17 +665,17 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).start();
         container(2).start();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiNameForMdb, 10000, 10, 10);
-        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
 
         // setup producers and receivers
-        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
+        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
-        ProducerClientAck producerRedG2 = new ProducerClientAck(container(2), inQueueJndiNameForMdb,
+        ProducerClientAck producerRedG2 = new ProducerClientAck(container(2), PrepareBase.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG2.setMessageBuilder(new GroupColoredMessageBuilder("g2", "RED"));
-        ProducerClientAck producerBlueG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
+        ProducerClientAck producerBlueG1 = new ProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerBlueG1.setMessageBuilder(new GroupColoredMessageBuilder("g2", "BLUE"));
 
@@ -762,17 +762,14 @@ public class MessageGroupingTestCase extends ClusterTestBase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true")
+    })
     public void clusterTestWithMdbWithSelectorAndSecurityTwoServersWithMessageGroupingToFail() throws Exception {
-        prepareServer(container(1), true);
-        prepareServer(container(2), true);
         container(1).start();
         container(2).start();
         JMSOperations jmsAdminOperations1 = container(1).getJmsOperations();
         JMSOperations jmsAdminOperations2 = container(2).getJmsOperations();
-
-        // setup security
-        jmsAdminOperations1.setSecurityEnabled(true);
-        jmsAdminOperations2.setSecurityEnabled(true);
 
         jmsAdminOperations1.setClusterUserPassword("password");
         jmsAdminOperations2.setClusterUserPassword("password");
@@ -803,11 +800,11 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         container(1).deploy(MDB_ON_QUEUE1_SECURITY);
 
         // setup producers and receivers
-        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), inQueueJndiNameForMdb,
+        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerRedG1.setMessageBuilder(new GroupColoredMessageBuilder("g1", "RED"));
 
-        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), outQueueJndiNameForMdb, 10000, 10, 10);
+        ReceiverClientAck receiver2 = new ReceiverClientAck(container(2), PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
 
         producerRedG1.start();
         receiver2.start();
@@ -830,8 +827,6 @@ public class MessageGroupingTestCase extends ClusterTestBase {
             throws Exception {
 
         int numberOfMessages = 10000;
-
-        prepareServers();
 
         String name = "my-grouping-handler";
         String address = "jms";
@@ -860,14 +855,14 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         for (int i = 0; i < 2; i++) {
             GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(serverWithConsumer));
             groupMessageVerifiers.add(groupMessageVerifier);
-            ReceiverTransAck receiver = new ReceiverTransAck(serverWithConsumer, inQueueJndiNameForMdb, 40000, 100, 10);
+            ReceiverTransAck receiver = new ReceiverTransAck(serverWithConsumer, PrepareBase.QUEUE_JNDI, 40000, 100, 10);
             receiver.addMessageVerifier(groupMessageVerifier);
             receiver.start();
             receivers.add(receiver);
         }
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2), PrepareBase.QUEUE_JNDI, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(20, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();
@@ -886,7 +881,7 @@ public class MessageGroupingTestCase extends ClusterTestBase {
         log.info("Killed server - " + serverToKill);
 
         for (int i = 0; i < 4; i++) {
-            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2), inQueueJndiNameForMdb, numberOfMessages);
+            ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(2), PrepareBase.QUEUE_JNDI, numberOfMessages);
             producerToInQueue1.setMessageBuilder(new MixMessageGroupMessageBuilder(10, 120, "id" + i));
             producerToInQueue1.setCommitAfter(10);
             producerToInQueue1.start();

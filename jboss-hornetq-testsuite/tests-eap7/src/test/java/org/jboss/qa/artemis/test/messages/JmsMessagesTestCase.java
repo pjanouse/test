@@ -1,27 +1,34 @@
 package org.jboss.qa.artemis.test.messages;
 
 import org.apache.activemq.artemis.core.message.impl.MessageImpl;
-import org.apache.log4j.Logger;
 import org.apache.activemq.artemis.jms.client.ActiveMQBytesMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQObjectMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQTextMessage;
+import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
-import org.jboss.qa.hornetq.apps.clients.*;
-import org.jboss.qa.hornetq.apps.impl.*;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
+import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
+import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
+import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,15 +36,28 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
+import javax.jms.BytesMessage;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MapMessage;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.activemq.artemis.api.core.Message.HDR_SCHEDULED_DELIVERY_TIME;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for creating and manipulating messages.
@@ -56,13 +76,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     private static final Logger log = Logger.getLogger(JmsMessagesTestCase.class);
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-
-    private String inQueue = "InQueue";
-    private String inQueueJndiName = "jms/queue/" + inQueue;
-    private String outQueue = "OutQueue";
-    private String outQueueJndiName = "jms/queue/" + outQueue;
-    private String inTopicName = "InTopic";
-    private String inTopicJndiName = "jms/topic/" + inTopicName;
 
     @After
     @Before
@@ -87,9 +100,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare("OneNode")
     public void testRemovingScheduledMessage() throws Exception {
-
-        prepareServer(container(1));
 
         container(1).start();
 
@@ -100,7 +112,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         try {
             ctx = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
-            Queue testQueue = (Queue) ctx.lookup(inQueueJndiName);
+            Queue testQueue = (Queue) ctx.lookup(PrepareBase.IN_QUEUE_JNDI);
             connection = cf.createConnection();
             connection.start();
 
@@ -129,8 +141,8 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         }
         // try to remove this message
         JMSOperations jmsOperations = container(1).getJmsOperations();
-        jmsOperations.removeMessageFromQueue(inQueue, msg.getJMSMessageID());
-        long count = jmsOperations.getCountOfMessagesOnQueue(inQueue);
+        jmsOperations.removeMessageFromQueue(PrepareBase.IN_QUEUE_NAME, msg.getJMSMessageID());
+        long count = jmsOperations.getCountOfMessagesOnQueue(PrepareBase.IN_QUEUE_NAME);
         jmsOperations.close();
 
         Assert.assertEquals("There must be 0 messages in queue.", 0, count);
@@ -246,19 +258,18 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare("OneNode")
     public void testLargeMessageReceiveFromTopicTwoSubscribers() throws Exception {
-
-        prepareServer(container(1));
 
         container(1).start();
 
-        PublisherTransAck topicProducer = new PublisherTransAck(container(1), inTopicJndiName, 1000, "producer");
+        PublisherTransAck topicProducer = new PublisherTransAck(container(1), PrepareBase.TOPIC_JNDI, 1000, "producer");
         topicProducer.setTimeout(0);
         topicProducer.setMessageBuilder(new ClientMixMessageBuilder(110, 200));
-        SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), inTopicJndiName, 60000, 100, 10, "subs", "name");
+        SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), PrepareBase.TOPIC_JNDI, 60000, 100, 10, "subs", "name");
         topicSubscriber.subscribe();
         topicSubscriber.setTimeout(0);
-        SubscriberTransAck topicSubscriber2 = new SubscriberTransAck(container(1), inTopicJndiName, 60000, 100, 10, "subs2", "name2");
+        SubscriberTransAck topicSubscriber2 = new SubscriberTransAck(container(1), PrepareBase.TOPIC_JNDI, 60000, 100, 10, "subs2", "name2");
         topicSubscriber2.subscribe();
         topicSubscriber2.setTimeout(0);
 
@@ -292,6 +303,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesIsAlsoScheduledExclusive() throws Exception {
         testThatDivertedMessagesIsAlsoScheduled(true, false);
     }
@@ -315,6 +331,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesIsAlsoScheduledExclusiveLargeMessage() throws Exception {
         testThatDivertedMessagesIsAlsoScheduled(true, true);
     }
@@ -340,6 +361,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
+    })
     public void testThatDivertedMessagesIsAlsoScheduledNonExclusive() throws Exception {
         testThatDivertedMessagesIsAlsoScheduled(false, false);
     }
@@ -365,13 +391,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false"),
+            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_BIO") // Workaround for https://issues.jboss.org/browse/JBEAP-6570
+    })
     public void testThatDivertedMessagesIsAlsoScheduledNonExclusiveLargeMessage() throws Exception {
         testThatDivertedMessagesIsAlsoScheduled(false, true);
     }
 
     private void testThatDivertedMessagesIsAlsoScheduled(boolean isExclusive, boolean isLargeMessage) throws Exception {
-
-        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         container(1).start();
 
@@ -382,7 +412,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         try {
             ctx = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
-            Queue originalQueue = (Queue) ctx.lookup(inQueueJndiName);
+            Queue originalQueue = (Queue) ctx.lookup(PrepareBase.IN_QUEUE_JNDI);
             connection = cf.createConnection();
             connection.start();
 
@@ -409,10 +439,10 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             producer.close();
             log.info("Producer closed");
 
-            Queue divertedQueue = (Queue) ctx.lookup(outQueueJndiName);
-            log.info("Looked up queue " + outQueueJndiName);
+            Queue divertedQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
+            log.info("Looked up queue " + PrepareBase.QUEUE_JNDI);
             final MessageConsumer consumerDiverted = session.createConsumer(divertedQueue);
-            log.info("Created consumer on queue " + outQueueJndiName);
+            log.info("Created consumer on queue " + PrepareBase.QUEUE_JNDI);
             ReceiveThread receiverThread = new ReceiveThread(consumerDiverted);
             receiverThread.start();
             Thread.sleep(timeout/2);
@@ -503,6 +533,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesIsAlsoExpiredExclusive() throws Exception {
         testThatDivertedMessagesIsAlsoExpired(true, false);
     }
@@ -527,6 +562,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
+    })
     public void testThatDivertedMessagesIsAlsoExpiredNonExclusive() throws Exception {
         testThatDivertedMessagesIsAlsoExpired(false, false);
     }
@@ -550,6 +590,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesIsAlsoExpiredExclusiveLargeMessage() throws Exception {
         testThatDivertedMessagesIsAlsoExpired(true, true);
     }
@@ -574,6 +619,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
+    })
     public void testThatDivertedMessagesIsAlsoExpiredNonExclusiveLargeMessage() throws Exception {
         testThatDivertedMessagesIsAlsoExpired(false, true);
     }
@@ -581,8 +631,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     private void testThatDivertedMessagesIsAlsoExpired(boolean isExclusive, boolean isLargeMessage) throws Exception {
 
         long expireTime = 1000;
-
-        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         container(1).start();
 
@@ -593,7 +641,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         try {
             ctx = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
-            Queue originalQueue = (Queue) ctx.lookup(inQueueJndiName);
+            Queue originalQueue = (Queue) ctx.lookup(PrepareBase.IN_QUEUE_JNDI);
             connection = cf.createConnection();
             connection.start();
 
@@ -614,7 +662,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
             Thread.sleep(2000);
 
-            Queue divertedQueue = (Queue) ctx.lookup(outQueueJndiName);
+            Queue divertedQueue = (Queue) ctx.lookup(PrepareBase.OUT_QUEUE_JNDI);
             Message receivedMessage;
             if (!isExclusive) {
                 MessageConsumer consumerOriginal = session.createConsumer(originalQueue);
@@ -664,6 +712,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesContainsAllHeadersExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, false);
     }
@@ -687,6 +740,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
+    })
     public void testThatDivertedMessagesContainsAllHeadersExclusiveLargeMessages() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(true, true);
     }
@@ -714,6 +772,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
+    })
     public void testThatDivertedMessagesContainsAllHeadersNonExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, false);
     }
@@ -741,6 +804,11 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareBase.IN_QUEUE_NAME),
+            @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareBase.OUT_QUEUE_NAME),
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
+    })
     public void testThatDivertedMessagesContainsAllHeadersNonExclusiveLargeMessages() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, true);
     }
@@ -748,8 +816,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     private void testThatDivertedMessagesContainsAllHeaders(boolean isExclusive, boolean isLargeMessage) throws Exception {
 
         int numberOfMessages = 100;
-
-        prepareServerWithDivert(container(1), inQueue, outQueue, isExclusive);
 
         container(1).start();
 
@@ -763,16 +829,16 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             messageBuilder = new AllHeadersClientMixMessageBuilder(1, 1);
         }
         clientOriginal.setMessageBuilder(messageBuilder);
-        clientOriginal.sendMessages(inQueueJndiName);
+        clientOriginal.sendMessages(PrepareBase.IN_QUEUE_JNDI);
 
         if (!isExclusive) {
-            clientOriginal.receiveMessages(inQueueJndiName);
+            clientOriginal.receiveMessages(PrepareBase.IN_QUEUE_JNDI);
         }
 
         SimpleJMSClient clientDiverted = new SimpleJMSClient(container(1), numberOfMessages, Session.AUTO_ACKNOWLEDGE,
                 false);
         clientDiverted.setReceiveTimeout(1000);
-        clientDiverted.receiveMessages(outQueueJndiName);
+        clientDiverted.receiveMessages(PrepareBase.OUT_QUEUE_JNDI);
 
         List<Message> listOfSentMessages = clientOriginal.getListOfSentMesages();
         List<Message> listOfReceivedMessagesOriginal = clientOriginal.getListOfReceivedMessages();
@@ -901,39 +967,6 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         }
 
         return isSame;
-    }
-
-    private void prepareServer(Container container) {
-
-        container.start();
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.createQueue(inQueue, inQueueJndiName);
-        jmsOperations.createTopic(inTopicName, inTopicJndiName);
-
-        jmsOperations.close();
-
-        container.stop();
-
-    }
-
-    private void prepareServerWithDivert(Container container, String originalQueue, String divertedQueue, boolean isExclusive) {
-
-        container.start();
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.createQueue(inQueue, inQueueJndiName);
-        jmsOperations.createQueue(outQueue, outQueueJndiName);
-        jmsOperations.addDivert("myDivert", "jms.queue." + originalQueue, "jms.queue." + divertedQueue, isExclusive, null, JmsMessagesTestCase.class.getSimpleName(), null);
-
-        jmsOperations.addLoggerCategory("io.netty", "TRACE");
-        jmsOperations.seRootLoggingLevel("TRACE");
-
-        jmsOperations.close();
-
-        container.stop();
     }
 
     /**

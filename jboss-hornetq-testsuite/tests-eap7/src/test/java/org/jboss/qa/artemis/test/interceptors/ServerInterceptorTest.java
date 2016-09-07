@@ -3,6 +3,7 @@ package org.jboss.qa.artemis.test.interceptors;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients20.ProducerAutoAck;
@@ -12,6 +13,7 @@ import org.jboss.qa.hornetq.apps.interceptors.IncomingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.IncomingOutgoingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.OutgoingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ModuleUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -33,27 +35,11 @@ public class ServerInterceptorTest extends HornetQTestCase {
 
     public static final String MODULE_NAME = "test.interceptors";
 
-    public static final String QUEUE_NAME = "testQueue";
-
-    public static final String QUEUE_JNDI = "jms/queue/" + QUEUE_NAME;
-
-    protected void prepareServer(Container container) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI);
-        jmsOperations.close();
-        container.stop();
-    }
-
-    @After
-    public void stopServers() {
-        container(1).stop();
-    }
-
     @RunAsClient
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void incomingInterceptorTest() throws Exception {
         interceptorTest(
                 IncomingMessagePacketInterceptor.class,
@@ -66,6 +52,7 @@ public class ServerInterceptorTest extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void outgoingInterceptorTest() throws Exception {
         interceptorTest(
                 OutgoingMessagePacketInterceptor.class,
@@ -78,6 +65,7 @@ public class ServerInterceptorTest extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void bothInterceptorTest() throws Exception {
         interceptorTest(
                 IncomingOutgoingMessagePacketInterceptor.class,
@@ -92,7 +80,6 @@ public class ServerInterceptorTest extends HornetQTestCase {
         List<String> dependencies = new ArrayList<String>();
         dependencies.add("org.apache.activemq.artemis");
         ModuleUtils.registerModule(container(1), MODULE_NAME, classes, dependencies);
-        prepareServer(container(1));
 
         container(1).startAdminOnly();
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -110,14 +97,14 @@ public class ServerInterceptorTest extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI, 100);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareBase.QUEUE_JNDI, 100);
         producer.start();
         producer.join();
 
         List<String> msgProperties = new ArrayList<String>();
         msgProperties.add(prop);
 
-        ReceiverAutoAck receiver = new ReceiverAutoAckMsgProps(container(1), QUEUE_JNDI, msgProperties);
+        ReceiverAutoAck receiver = new ReceiverAutoAckMsgProps(container(1), PrepareBase.QUEUE_JNDI, msgProperties);
         receiver.start();
         receiver.join();
 

@@ -2,10 +2,12 @@ package org.jboss.qa.artemis.test.httpconnector;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -40,31 +42,22 @@ public class HighLoadingTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void manyDurableSubscribersTest() {
 
-        final String TOPIC = "pageTopic";
-        final String TOPIC_JNDI = "/topic/pageTopic";
-        final String ADDRESS = "jms.topic." + TOPIC;
-        final int maxSizeBytes = 1024 * 50;
-        final int pageSizeBytes = 1024 * 10;
         final int numberOfMessages = 10;
         final int subscribersCount = 100;
 
         container(1).start();
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.cleanupTopic(TOPIC);
-        jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
-        jmsAdminOperations.removeAddressSettings(ADDRESS);
-        jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", maxSizeBytes, 1000, 1000, pageSizeBytes);
 
         try {
             // Publisher
-            PublisherAutoAck publisher = new PublisherAutoAck(container(1), TOPIC_JNDI, numberOfMessages, "publisher");
+            PublisherAutoAck publisher = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI, numberOfMessages, "publisher");
 
             // Consumers
             SubscriberAutoAck[] subscribers = new SubscriberAutoAck[subscribersCount];
             for (int i = 0; i < subscribersCount; i++) {
-                subscribers[i] = new SubscriberAutoAck(container(1), TOPIC_JNDI, "client" + i, "subscriber" + i);
+                subscribers[i] = new SubscriberAutoAck(container(1), PrepareBase.TOPIC_JNDI, "client" + i, "subscriber" + i);
                 subscribers[i].subscribe();
             }
 

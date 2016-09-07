@@ -4,6 +4,8 @@ import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -13,12 +15,12 @@ import org.jboss.qa.hornetq.apps.clients.Receiver;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.FileTools;
-import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -55,27 +57,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(CleanUpOldReplicasTestCase.class);
 
-    private static final String QUEUE_NAME = "testQueue";
-
-    private static final String QUEUE_JNDI = "queue/testQueue";
-
-    private static final String TOPIC_NAME = "testTopic";
-
-    private static final String TOPIC_JNDI = "topic/testTopic";
-
-    private static final String BACKUP_SERVER_NAME = "backup";
-
-    private static final String LIVE_SERVER_NAME = "default";
-
     private static Set<String> journalInterestDirs;
 
     private static Set<String> journalInterestDirsBackup;
 
     @Before
-    public void stopServers() {
-        container(1).stop();
-        container(2).stop();
-
+    public void setup() {
         if (ContainerUtils.isEAP7(container(1))) {
             journalInterestDirs = new HashSet<String>(Arrays.asList("journal", "paging", "largemessages", "bindings"));
             journalInterestDirsBackup = new HashSet<String>(Arrays.asList("journal-backup", "paging-backup", "largemessages-backup", "bindings-backup"));
@@ -100,6 +87,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "ReplicatedHA", params = {
+            @Param(name = PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, value = "0"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
+    })
     public void testMaxReplicatedJournalSize0() throws Exception {
         // Uncomment when https://bugzilla.redhat.com/show_bug.cgi?id=1348588 and https://issues.jboss.org/browse/JBEAP-5086 will be fixed
 //        testMaxReplicatedJournalSize(0, new MixMessageBuilder(120 * 1024), true);
@@ -122,6 +114,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "ReplicatedHA", params = {
+            @Param(name = PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, value = "2"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
+    })
     public void testMaxReplicatedJournalSize2() throws Exception {
         // Uncomment when https://bugzilla.redhat.com/show_bug.cgi?id=1348588 and https://issues.jboss.org/browse/JBEAP-5086 will be fixed
 //        testMaxReplicatedJournalSize(2, new MixMessageBuilder(120 * 1024), true);
@@ -144,6 +141,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "ReplicatedHA", params = {
+            @Param(name = PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, value = "2"),
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
+    })
     // https://bugzilla.redhat.com/show_bug.cgi?id=1369322
     public void testNoPagingLargeMessagesDirectories() throws Exception {
         testMaxReplicatedJournalSize(2, new TextMessageBuilder(20 * 1024), false, false);
@@ -166,6 +169,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "ReplicatedHA", params = {
+            @Param(name = PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, value = "4"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
+    })
     public void testRandomJournalDeletion() throws Exception {
         // Uncomment when https://bugzilla.redhat.com/show_bug.cgi?id=1348588 and https://issues.jboss.org/browse/JBEAP-5086 will be fixed
 //        testMaxReplicatedJournalSize(2, new MixMessageBuilder(120 * 1024), true);
@@ -185,7 +193,6 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman - Synchronization with backup is done.\");(new java.io.File(\"target/synced\")).createNewFile();")
     })
     public void testMaxReplicatedJournalSize(int maxReplicatedJournalSize, MessageBuilder messageBuilder, boolean pagingEnabled, boolean randomDeletion) throws Exception {
-        prepareServers(maxReplicatedJournalSize, pagingEnabled);
         container(1).start();
         container(2).start();
 
@@ -201,12 +208,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
         TextMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), QUEUE_JNDI, 50000);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50000);
         producer.addMessageVerifier(messageVerifier);
         producer.setMessageBuilder(messageBuilder);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), QUEUE_JNDI, 60000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 60000, 10, 10);
         receiver.addMessageVerifier(messageVerifier);
         receiver.setTimeout(0);
         addClient(receiver);
@@ -369,12 +376,16 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     // https://bugzilla.redhat.com/show_bug.cgi?id=1369322
+    @Prepare(value = "ColocatedReplicatedHA", params = {
+            @Param(name = PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, value = "2"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
+    })
     public void testColocatedMaxReplicatedJournalSize() throws Exception {
 
         int maxReplicatedJournalSize = 2;
         MessageBuilder messageBuilder = new TextMessageBuilder(20 * 1024);
 
-        prepareColocatedTopology(maxReplicatedJournalSize);
         container(1).start();
         container(2).start();
 
@@ -382,12 +393,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
         TextMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), QUEUE_JNDI, 50000);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50000);
         producer.addMessageVerifier(messageVerifier);
         producer.setMessageBuilder(messageBuilder);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), QUEUE_JNDI, 60000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 60000, 10, 10);
         receiver.addMessageVerifier(messageVerifier);
         receiver.setTimeout(0);
         addClient(receiver);
@@ -426,7 +437,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             }
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), BACKUP_SERVER_NAME, 300000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), PrepareBase.BACKUP_SERVER_NAME, 300000);
 
             Assert.assertTrue("Receiver crashed so crashing the test - this happens when client detects duplicates " +
                     "- check logs for message id of duplicated message", receiver.isAlive());
@@ -454,10 +465,10 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), LIVE_SERVER_NAME, 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), PrepareBase.SERVER_NAME, 600000);
 
             // check that backup is really down
-            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), BACKUP_SERVER_NAME, 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), PrepareBase.BACKUP_SERVER_NAME, 60000);
 
             Assert.assertTrue(producer.isAlive());
             Assert.assertTrue("Receiver crashed so crashing the test - this happens when client detects duplicates " +
@@ -503,252 +514,6 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
         container(2).stop();
 
         Assert.assertTrue("There are failures detected by MessageVerifier. More information in log.", messageVerifier.verifyMessages());
-    }
-
-    protected void prepareServers(int maxReplicatedJournalSize, boolean pagingEnabled) {
-        if (ContainerUtils.isEAP7(container(1))) {
-            prepareLiveEAP7(container(1), pagingEnabled);
-            prepareBackupEAP7(container(2), maxReplicatedJournalSize, pagingEnabled);
-        } else {
-            prepareLiveEAP6(container(1), pagingEnabled);
-            prepareBackupEAP6(container(2), maxReplicatedJournalSize, pagingEnabled);
-        }
-    }
-
-    protected void prepareColocatedTopology(int maxReplicatedJournalSize) {
-        if (ContainerUtils.isEAP7(container(1))) {
-            prepareColocatedLiveEAP7(container(1), "group-0");
-            prepareColocatedBackupEAP7(container(1), "group-1", maxReplicatedJournalSize);
-            prepareColocatedLiveEAP7(container(2), "group-1");
-            prepareColocatedBackupEAP7(container(2), "group-0", maxReplicatedJournalSize);
-        } else {
-            prepareColocatedLiveEAP6(container(1), "group-0");
-            prepareColocatedBackupEAP6(container(1), "group-1", maxReplicatedJournalSize);
-            prepareColocatedLiveEAP6(container(2), "group-1");
-            prepareColocatedBackupEAP6(container(2), "group-0", maxReplicatedJournalSize);
-        }
-    }
-
-    private void prepareLiveEAP6(Container container, boolean pagingEnabled) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        String fullPolicy = pagingEnabled ? "PAGE" : "BLOCK";
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", fullPolicy, 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.setSharedStore(false);
-        jmsOperations.setBackupGroupName("group0");
-        jmsOperations.setCheckForLiveServer(true);
-        jmsOperations.setAllowFailback(true);
-        jmsOperations.setFailoverOnShutdown(true);
-
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI);
-        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareBackupEAP6(Container container, int maxReplicatedJournalSize, boolean pagingEnabled) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        String fullPolicy = pagingEnabled ? "PAGE" : "BLOCK";
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", fullPolicy, 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.setSharedStore(false);
-        jmsOperations.setBackupGroupName("group0");
-        jmsOperations.setCheckForLiveServer(true);
-        jmsOperations.setAllowFailback(true);
-        jmsOperations.setFailoverOnShutdown(true);
-
-        jmsOperations.setMaxSavedReplicatedJournals(maxReplicatedJournalSize);
-        jmsOperations.setBackup(true);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareLiveEAP7(Container container, boolean pagingEnabled) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        String fullPolicy = pagingEnabled ? "PAGE" : "BLOCK";
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", fullPolicy, 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.addHAPolicyReplicationMaster(true, "my-cluster", "group0");
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI);
-        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI);
-        configureNetty(jmsOperations);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareBackupEAP7(Container container, int maxReplicatedJournalSize, boolean pagingEnabled) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        String fullPolicy = pagingEnabled ? "PAGE" : "BLOCK";
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", fullPolicy, 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.addHAPolicyReplicationSlave(true, "my-cluster", 0, "group0", maxReplicatedJournalSize, true, false, null, null, null, null);
-        configureNetty(jmsOperations);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareColocatedLiveEAP6(Container container, String groupName) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.setSecurityEnabled(false);
-
-        jmsOperations.setSharedStore(false);
-        jmsOperations.setBackupGroupName(groupName);
-        jmsOperations.setCheckForLiveServer(true);
-        jmsOperations.setAllowFailback(true);
-        jmsOperations.setFailoverOnShutdown(true);
-
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI);
-        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareColocatedBackupEAP6(Container container, String groupName, int maxReplicatedJournalSize) {
-        final String discoveryGroupName = "dg-group-backup";
-        final String broadCastGroupName = "bg-group-backup";
-        final String clusterGroupName = "my-cluster";
-        final String connectorName = "netty-backup";
-        final String acceptorName = "netty-backup";
-        final String socketBindingName = "messaging-backup";
-        final String messagingGroupSocketBindingName = "messaging-group";
-        final int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
-
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.addMessagingSubsystem(BACKUP_SERVER_NAME);
-
-        jmsOperations.removeAddressSettings(BACKUP_SERVER_NAME, "#");
-        jmsOperations.addAddressSettings(BACKUP_SERVER_NAME, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.setSecurityEnabled(BACKUP_SERVER_NAME, false);
-
-        jmsOperations.setSharedStore(BACKUP_SERVER_NAME, false);
-        jmsOperations.setBackupGroupName(groupName, BACKUP_SERVER_NAME);
-        jmsOperations.setCheckForLiveServer(true, BACKUP_SERVER_NAME);
-        jmsOperations.setAllowFailback(BACKUP_SERVER_NAME, true);
-        jmsOperations.setFailoverOnShutdown(true, BACKUP_SERVER_NAME);
-
-        jmsOperations.setMaxSavedReplicatedJournals(BACKUP_SERVER_NAME, maxReplicatedJournalSize);
-        jmsOperations.setBackup(BACKUP_SERVER_NAME, true);
-
-        jmsOperations.setClustered(BACKUP_SERVER_NAME, true);
-        jmsOperations.setPersistenceEnabled(BACKUP_SERVER_NAME, true);
-
-        jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, connectorName, socketBindingName, null);
-        jmsOperations.createRemoteAcceptor(BACKUP_SERVER_NAME, acceptorName, socketBindingName, null);
-
-        jmsOperations.setBroadCastGroup(BACKUP_SERVER_NAME, broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-        jmsOperations.setDiscoveryGroup(BACKUP_SERVER_NAME, discoveryGroupName, messagingGroupSocketBindingName, 10000);
-        jmsOperations.setClusterConnections(BACKUP_SERVER_NAME, clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        jmsOperations.setJournalDirectoryPath(BACKUP_SERVER_NAME, "messagingjournal-backup");
-        jmsOperations.setPagingDirectoryPath(BACKUP_SERVER_NAME, "messagingpaging-backup");
-        jmsOperations.setLargeMessagesDirectoryPath(BACKUP_SERVER_NAME, "messaginglargemessages-backup");
-        jmsOperations.setBindingsDirectoryPath(BACKUP_SERVER_NAME, "messagingbindings-backup");
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareColocatedLiveEAP7(Container container, String groupName) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setSecurityEnabled(false);
-
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.addHAPolicyReplicationMaster(true, "my-cluster", groupName);
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI);
-        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI);
-        configureNetty(jmsOperations);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void prepareColocatedBackupEAP7(Container container, String groupName, int maxReplicatedJournalSize) {
-
-        final String discoveryGroupName = "dg-group-backup";
-        final String broadCastGroupName = "bg-group-backup";
-        final String connectorName = "netty-backup";
-        final String acceptorName = "netty-backup";
-        final String inVmConnectorName = "in-vm";
-        final String socketBindingName = "messaging-backup";
-        final int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
-        final String jgroupsChannel = "activemq-cluster";
-        final String clusterConnectionName = "my-cluster";
-
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.addMessagingSubsystem(BACKUP_SERVER_NAME);
-
-        jmsOperations.setSecurityEnabled(BACKUP_SERVER_NAME, false);
-
-        jmsOperations.setPersistenceEnabled(BACKUP_SERVER_NAME, true);
-        jmsOperations.setJournalDirectoryPath(BACKUP_SERVER_NAME, "activemq/journal-backup");
-        jmsOperations.setPagingDirectoryPath(BACKUP_SERVER_NAME, "activemq/paging-backup");
-        jmsOperations.setLargeMessagesDirectoryPath(BACKUP_SERVER_NAME, "activemq/largemessages-backup");
-        jmsOperations.setBindingsDirectoryPath(BACKUP_SERVER_NAME, "activemq/bindings-backup");
-
-        jmsOperations.addAddressSettings(BACKUP_SERVER_NAME, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
-
-        jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, connectorName, socketBindingName, null);
-        jmsOperations.createInVmConnector(BACKUP_SERVER_NAME, inVmConnectorName, 0, null);
-        jmsOperations.createRemoteAcceptor(BACKUP_SERVER_NAME, acceptorName, socketBindingName, null);
-
-        jmsOperations.setBroadCastGroup(BACKUP_SERVER_NAME, broadCastGroupName, null, jgroupsChannel, 1000, connectorName);
-        jmsOperations.setDiscoveryGroup(BACKUP_SERVER_NAME, discoveryGroupName, 1000, null, jgroupsChannel);
-        jmsOperations.setClusterConnections(BACKUP_SERVER_NAME, clusterConnectionName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        jmsOperations.addHAPolicyReplicationSlave(BACKUP_SERVER_NAME, true, clusterConnectionName, 0, groupName, maxReplicatedJournalSize, true, false, null, null, null, null);
-
-        jmsOperations.close();
-        container.stop();
-    }
-
-    private void configureNetty(JMSOperations jmsOperations) {
-        jmsOperations.addSocketBinding("netty", 5445);
-
-        jmsOperations.reload();
-
-        jmsOperations.createRemoteAcceptor("remote-acceptor", "netty", null);
-        jmsOperations.createRemoteConnector("remote-connector", "netty", null);
-
-        jmsOperations.removeClusteringGroup("my-cluster");
-        jmsOperations.setClusterConnections("my-cluster", "jms", "dg-group1", false, 1, 1000, true, "remote-connector");
-
-        jmsOperations.removeBroadcastGroup("bg-group1");
-        jmsOperations.setBroadCastGroup("bg-group1", null, "activemq-cluster", 1000, "remote-connector");
-
-        jmsOperations.setConnectorOnConnectionFactory("RemoteConnectionFactory", "remote-connector");
     }
 
     private boolean waitUntilFileExists(String path, long timeout) throws InterruptedException {

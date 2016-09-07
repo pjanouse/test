@@ -5,14 +5,16 @@ import org.apache.activemq.artemis.utils.IPV6Util;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.resourcemonitor.FileMeasurement;
@@ -44,10 +46,6 @@ import static org.junit.Assert.fail;
 public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(LargeMessageFileDescriptorsTestCase.class);
-    private final String QUEUE_NAME = "testQueue";
-    private final String QUEUE_JNDI_NAME = "jms/queue/" + QUEUE_NAME;
-    private final String TOPIC_NAME = "testTopic";
-    private final String TOPIC_JNDI_NAME = "jms/topic/" + TOPIC_NAME;
     private final int NUMBER_OF_MESSAGES = 1000;
 
     /**
@@ -64,13 +62,15 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "1024")
+    })
     public void openFileDescriptorsOnQueueTest() throws Exception {
 
         //ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
         Assume.assumeTrue("Test currently runs only on Linux", System.getProperty("os.name").contains("Linux"));
 
         container(1).start();
-        prepareServer(container(1));
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
                 .setMeasurable(FileMeasurement.class, 5000)
@@ -82,7 +82,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .build();
         resourceMonitor.startMeasuring();
 
-        ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
         producer.start();
         producer.join();
@@ -114,13 +114,15 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "1024")
+    })
     public void openFileDescriptorsOnTopicTest() throws Exception {
 
         // todo ResourceMonitor can not measure open file descriptors on Windows currently. Once implemented, assume will be removed
         Assume.assumeTrue("Test currently runs only on Linux", System.getProperty("os.name").contains("Linux"));
 
         container(1).start();
-        prepareServer(container(1));
 
         ResourceMonitor resourceMonitor = new ResourceMonitor.Builder()
                 .setMeasurable(FileMeasurement.class, 5000)
@@ -132,13 +134,13 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .build();
         resourceMonitor.startMeasuring();
 
-        PublisherAutoAck producer = new PublisherAutoAck(container(1), TOPIC_JNDI_NAME, NUMBER_OF_MESSAGES, "client1");
+        PublisherAutoAck producer = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI, NUMBER_OF_MESSAGES, "client1");
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
 
         SubscriberAutoAck fastConsumer = new SubscriberAutoAck(container(1),
-                TOPIC_JNDI_NAME, "subscriber-1", "test-fast-subscriber");
+                PrepareBase.TOPIC_JNDI, "subscriber-1", "test-fast-subscriber");
         SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1),
-                TOPIC_JNDI_NAME, "subscriber-2", "test-slow-subscriber");
+                PrepareBase.TOPIC_JNDI, "subscriber-2", "test-slow-subscriber");
         slowConsumer.setTimeout(500); // slow consumer reads only 2 messages per second
         slowConsumer.setMaxRetries(1);
 
@@ -165,15 +167,6 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                     + ", Number of file descriptors after test: " + value.doubleValue(), value.doubleValue() - first.doubleValue() < 50);
         }
 
-    }
-
-    private void prepareServer(Container container) {
-        JMSOperations jmsOperations = container.getJmsOperations();
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
-        jmsOperations.createTopic(TOPIC_NAME, TOPIC_JNDI_NAME);
-        jmsOperations.removeAddressSettings("#");
-        jmsOperations.addAddressSettings("#", "PAGE", 2 * 1024, 0, 0, 1 * 1024);
-        jmsOperations.close();
     }
 
     private List<Integer> readValues() throws Exception {

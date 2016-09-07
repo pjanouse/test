@@ -3,13 +3,13 @@ package org.jboss.qa.hornetq.test.administration;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -34,8 +34,6 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(CloseConsumerConnectionsTestCase.class);
     static  final String BYTEMAN_ACTION = "System.out.println(\"byteman is going to slows iterator\");Thread.sleep(1000);";
-    static String inQueueName = "InQueue";
-    static String inQueueJndiName = "jms/queue/" + inQueueName;
 
 
     /**
@@ -66,10 +64,11 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
                     isAfter = true,
                     targetLocation = "INVOKE Queue.getConsumers",
                     action = BYTEMAN_ACTION)})
+
+    @Prepare(value = "OneNode")
     public void closeConsumerConnectionsForAddress() throws Exception{
-        prepareServer(container(1));
         container(1).start();
-        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1),inQueueJndiName);
+        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareBase.QUEUE_JNDI);
         receiver.start();
         RuleInstaller.installRule(this.getClass(), container(1));
         JMSOperations operations = container(1).getJmsOperations();
@@ -78,7 +77,7 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
             public void run() {
                 List<Client> clientList= new ArrayList<Client>();
                 for(int i =0; i <20; i++){
-                    ReceiverAutoAck receiver = new ReceiverAutoAck(container(1),inQueueJndiName);
+                    ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareBase.QUEUE_JNDI);
                     receiver.start();
                     clientList.add(receiver);
                     try {
@@ -108,23 +107,6 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
 
         container(1).stop();
 
-    }
-
-
-    public void prepareServer(Container container){
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        try {
-            jmsAdminOperations.disableSecurity();
-            jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        } finally {
-            jmsAdminOperations.close();
-            container.stop();
-
-        }
     }
 
 }

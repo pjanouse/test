@@ -3,6 +3,8 @@ package org.jboss.qa.hornetq.test.paging;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.HighLoadConsumerWithSemaphores;
 import org.jboss.qa.hornetq.apps.clients.HighLoadProducerWithSemaphores;
@@ -10,9 +12,10 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -80,8 +83,14 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
+            @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
+    })
     public void normalByteMessagesTest() throws InterruptedException {
-        testLogic(5000, 30000, 10, 30000, new ByteMessageBuilder(512), 1024 * 50, 1024 * 10);
+        testLogic(5000, 30000, 10, 30000, new ByteMessageBuilder(512));
     }
 
     /**
@@ -105,8 +114,14 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
+            @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
+    })
     public void normalTextMessagesTest() throws InterruptedException {
-        testLogic(5000, 30000, 10, 30000, new TextMessageBuilder(512), 1024 * 50, 1024 * 10);
+        testLogic(5000, 30000, 10, 30000, new TextMessageBuilder(512));
     }
 
     /**
@@ -130,8 +145,14 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
+            @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
+    })
     public void largeByteMessagesTest() throws InterruptedException {
-        testLogic(500, 5000, 10, 30000, new ByteMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 5000, 10, 30000, new ByteMessageBuilder(150 * 1024));
     }
 
     /**
@@ -155,8 +176,14 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
+            @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
+    })
     public void largeTextMessagesTest() throws InterruptedException {
-        testLogic(500, 5000, 10, 30000, new TextMessageBuilder(150 * 1024), 1024 * 50, 1024 * 10);
+        testLogic(500, 5000, 10, 30000, new TextMessageBuilder(150 * 1024));
     }
 
     /**
@@ -167,24 +194,11 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
      * @param consumersCount      count of consumers used in tests
      * @param receiveTimeout      receive timeout for consumers
      * @param messageBuilder      implementation of {@link MessageBuilder} used for test
-     * @param maxSizeBytes        max size in bytes for address configurations
-     * @param pageSizeBytes       page size in bytes for address configurations
      */
     private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
-                            int receiveTimeout, MessageBuilder messageBuilder,
-                           int maxSizeBytes, int pageSizeBytes) {
-        final String TOPIC = "pageTopic";
-        final String TOPIC_JNDI = "/topic/pageTopic";
-        final String ADDRESS = "jms.topic." + TOPIC;
+                            int receiveTimeout, MessageBuilder messageBuilder) {
 
         container(1).start();
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.cleanupTopic(TOPIC);
-        jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
-        jmsAdminOperations.removeAddressSettings(ADDRESS);
-        jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", maxSizeBytes, 1000, 1000, pageSizeBytes);
-        jmsAdminOperations.disableTraceLoggingToFile();
-        jmsAdminOperations.reload();
 
         // Clients and semaphores
         HighLoadProducerWithSemaphores producer;
@@ -203,7 +217,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         try {
             context = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
-            Topic topic = (Topic) context.lookup(TOPIC_JNDI);
+            Topic topic = (Topic) context.lookup(PrepareBase.TOPIC_JNDI);
 
             producer = new HighLoadProducerWithSemaphores("producer", topic, cf, semaphores[0], gapBetweenConsumers,
                     messagesCount, messageBuilder, ContainerUtils.getJMSImplementation(container(1)));
@@ -239,8 +253,5 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
             JMSTools.cleanupResources(context, connection, session);
         }
         log.info(String.format("Ending test after %s ms", System.currentTimeMillis() - startTime));
-
-        jmsAdminOperations.removeTopic(TOPIC);
-        jmsAdminOperations.close();
     }
 }

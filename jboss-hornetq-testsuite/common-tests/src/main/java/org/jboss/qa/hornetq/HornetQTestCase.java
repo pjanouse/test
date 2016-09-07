@@ -11,6 +11,8 @@ import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
+import org.jboss.qa.Prepare;
+import org.jboss.qa.PrepareCoordinator;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
@@ -24,9 +26,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -108,6 +114,8 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
 
     protected List<Client> usedClients = new ArrayList<Client>();
 
+    protected PrepareCoordinator prepareCoordinator = new PrepareCoordinator("org.jboss.qa");
+
     // this property is initialized during BeforeClass phase by ArquillianConfiguration extension
     private static ArquillianDescriptor arquillianDescriptor;
 
@@ -145,6 +153,43 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
     }
+
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            prepareCoordinator.clear();
+            prepareCoordinator.processTest(description.getTestClass(), description.getMethodName());
+            prepareCoordinator.processSystemProperties();
+
+            if (System.getProperty("eap") == null || System.getProperty("eap").startsWith("6x")) {
+                prepareCoordinator.requireLabel("EAP6");
+            } else if (System.getProperty("eap").startsWith("7x")) {
+                prepareCoordinator.requireLabel("EAP7");
+            }
+        }
+    };
+
+    @Before
+    public void setUp() {
+        prepareCoordinator.getParams().put("container1", container(1));
+        prepareCoordinator.getParams().put("container2", container(2));
+        prepareCoordinator.getParams().put("container3", container(3));
+        prepareCoordinator.getParams().put("container4", container(4));
+        try {
+            log.info("###############################################################################################");
+            log.info("################################   Starting Prepare phase   ###################################");
+            log.info("###############################################################################################");
+            prepareCoordinator.invokePrepare();
+            log.info("###############################################################################################");
+            log.info("################################   Ending Prepare phase     ###################################");
+            log.info("###############################################################################################");
+        } catch (InvocationTargetException e) {
+            log.error("ERROR", e.getCause());
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Deprecated
     private static String checkMulticastAddress(String multiCastAddress) {

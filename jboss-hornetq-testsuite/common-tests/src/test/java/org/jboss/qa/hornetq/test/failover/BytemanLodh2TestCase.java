@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.apache.commons.io.FileUtils;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
@@ -64,6 +65,7 @@ import java.util.*;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Prepare("BytemanLodh2Prepare")
 public class BytemanLodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(BytemanLodh2TestCase.class);
@@ -556,8 +558,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     public void testRemoteJcaWithTopic(final List<Container> failureSequence, final int numberOfMessages,
             final boolean isDurable) throws Exception {
 
-        prepareRemoteJcaTopology();
-
         // jms server
         container(1).start();
         // mdb server
@@ -632,7 +632,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     public void testRemoteJcaInCluster(final List<Container> failureSequence, final int numberOfMessages,
             final boolean waitForProducer, final boolean isFiltered) throws Exception {
 
-        prepareRemoteJcaTopology();
         // cluster A
         container(1).start();
         container(3).start();
@@ -749,261 +748,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         container(3).stop();
     }
 
-    /**
-     * Prepare two servers in simple dedecated topology.
-     *
-     * @throws Exception
-     */
-    public void prepareRemoteJcaTopology() throws Exception {
-        if (ContainerUtils.isEAP6(container(1))) {
-            prepareRemoteJcaTopologyEAP6();
-        } else {
-            prepareRemoteJcaTopologyEAP7();
-        }
-    }
-
-    /**
-     * Prepare two servers in simple dedecated topology.
-     *
-     * @throws Exception
-     */
-    public void prepareRemoteJcaTopologyEAP6() throws Exception {
-
-        prepareJmsServerEAP6(container(1));
-        prepareMdbServerEAP6(container(2), container(1));
-
-        prepareJmsServerEAP6(container(3));
-        prepareMdbServerEAP6(container(4), container(3));
-
-        copyApplicationPropertiesFiles();
-
-    }
-
-    /**
-     * Prepare two servers in simple dedecated topology.
-     *
-     * @throws Exception
-     */
-    public void prepareRemoteJcaTopologyEAP7() throws Exception {
-
-        prepareJmsServerEAP7(container(1));
-        prepareMdbServerEAP7(container(2), container(1));
-
-        prepareJmsServerEAP7(container(3));
-        prepareMdbServerEAP7(container(4), container(3));
-
-        copyApplicationPropertiesFiles();
-
-    }
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container The container - defined in arquillian.xml
-     */
-    private void prepareJmsServerEAP6(Container container) {
-
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-
-        /*
-         * JmsServerSettings .forContainer(ContainerType.EAP6_WITH_HORNETQ, containerName, this.getArquillianDescriptor())
-         * .withClustering(GROUP_ADDRESS) .withPersistence() .withSharedStore() .withPaging(1024 * 1024, 10 * 1024) .create();
-         */
-        // .clusteredWith()
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        
-        jmsAdminOperations.setClustered(true);
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-        jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME_EAP6, "");
-        jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
-        jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
-        jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                CONNECTOR_NAME_EAP6);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
-        jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-        jmsAdminOperations.close();
-
-        container.restart();
-
-        jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
-
-        jmsAdminOperations.close();
-
-        deployDestinations(container);
-        container.stop();
-    }
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container The container - defined in arquillian.xml
-     */
-    private void prepareJmsServerEAP7(Container container) {
-
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-
-        /*
-         * JmsServerSettings .forContainer(ContainerType.EAP6_WITH_HORNETQ, containerName, this.getArquillianDescriptor())
-         * .withClustering(GROUP_ADDRESS) .withPersistence() .withSharedStore() .withPaging(1024 * 1024, 10 * 1024) .create();
-         */
-        // .clusteredWith()
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME_EAP7, "");
-        jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
-        jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
-        jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                CONNECTOR_NAME_EAP7);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 10 * 1024);
-        jmsAdminOperations.removeSocketBinding(messagingGroupSocketBindingName);
-        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-        jmsAdminOperations.close();
-
-        container.restart();
-
-        jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
-
-        jmsAdminOperations.close();
-
-        deployDestinations(container);
-        container.stop();
-    }
-
-    /**
-     * Prepares mdb server for remote jca topology.
-     *
-     * @param container The container - defined in arquillian.xml
-     */
-    private void prepareMdbServerEAP6(Container container, Container jmsServerContainer) {
-
-        String remoteConnectorName = "netty-remote";
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setClustered(false);
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSharedStore(true);
-
-        jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME_EAP6, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
-        jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
-        jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                CONNECTOR_NAME_EAP6);
-
-        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
-
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerContainer.getHostname(),
-                jmsServerContainer.getHornetqPort());
-        jmsAdminOperations.createRemoteConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory("hornetq-ra", remoteConnectorName);
-        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory("hornetq-ra", -1);
-        jmsAdminOperations.close();
-        container.stop();
-
-    }
-
-    /**
-     * Prepares mdb server for remote jca topology.
-     *
-     * @param container The container - defined in arquillian.xml
-     */
-    private void prepareMdbServerEAP7(Container container, Container jmsServerContainer) {
-
-        String remoteConnectorName = "http-connector-remote";
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsAdminOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME_EAP7, "");
-
-        jmsAdminOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
-        jmsAdminOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsAdminOperations.disableSecurity();
-        jmsAdminOperations.removeClusteringGroup(CLUSTER_GROUP_NAME);
-        jmsAdminOperations.setClusterConnections(CLUSTER_GROUP_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                CONNECTOR_NAME_EAP7);
-
-        jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 5000, 1024 * 1024);
-
-        jmsAdminOperations.addRemoteSocketBinding("messaging-remote", jmsServerContainer.getHostname(),
-                jmsServerContainer.getHornetqPort());
-        jmsAdminOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
-        jmsAdminOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
-        jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
-        jmsAdminOperations.close();
-        container.stop();
-
-    }
-
-    /**
-     * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
-     * TODO - change config by cli console
-     */
-    private void copyApplicationPropertiesFiles() throws IOException {
-
-        File applicationUsersModified = new File(
-                "src/test/resources/org/jboss/qa/hornetq/test/security/application-users.properties");
-        File applicationRolesModified = new File(
-                "src/test/resources/org/jboss/qa/hornetq/test/security/application-roles.properties");
-
-        File applicationUsersOriginal;
-        File applicationRolesOriginal;
-        for (int i = 1; i < 5; i++) {
-
-            // copy application-users.properties
-            applicationUsersOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone"
-                    + File.separator + "configuration" + File.separator + "application-users.properties");
-            // copy application-roles.properties
-            applicationRolesOriginal = new File(System.getProperty("JBOSS_HOME_" + i) + File.separator + "standalone"
-                    + File.separator + "configuration" + File.separator + "application-roles.properties");
-
-            FileUtils.copyFile(applicationUsersModified, applicationUsersOriginal);
-            FileUtils.copyFile(applicationRolesModified, applicationRolesOriginal);
-        }
-    }
-
     private void printThreadDumpsOfAllServers(boolean isTestWithTopic) throws IOException {
         ContainerUtils.printThreadDump(container(1));
         ContainerUtils.printThreadDump(container(2));
@@ -1011,36 +755,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             ContainerUtils.printThreadDump(container(3));
             ContainerUtils.printThreadDump(container(4));
         }
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param container container
-     */
-    private void deployDestinations(Container container) {
-        deployDestinations(container, "default");
-    }
-
-    /**
-     * Deploys destinations to server which is currently running.
-     *
-     * @param container container
-     * @param serverName server name of the hornetq server
-     */
-    private void deployDestinations(Container container, String serverName) {
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        for (int queueNumber = 0; queueNumber < NUMBER_OF_DESTINATIONS; queueNumber++) {
-            jmsAdminOperations.createQueue(serverName, QUEUE_NAME_PREFIX + queueNumber, QUEUE_JNDI_PREFIX + queueNumber, true);
-        }
-
-        jmsAdminOperations.createQueue(serverName, IN_QUEUE_NAME, IN_QUEUE, true);
-        jmsAdminOperations.createQueue(serverName, OUT_QUEUE_NAME, OUT_QUEUE, true);
-        jmsAdminOperations.createTopic(IN_TOPIC_NAME, IN_TOPIC);
-
-        jmsAdminOperations.close();
     }
 
 }

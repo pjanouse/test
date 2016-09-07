@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.test.messages;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
@@ -16,6 +18,7 @@ import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -57,12 +60,18 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 150 * 1024 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "60000"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "2000"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024 * 3)
+    })
     public void checkOrdering() throws Exception {
 
         int numberOfMessages = 500;
         JMSTools jmsTools = new JMSTools();
 
-        prepareServer(container(1));
         container(1).start();
 
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getOrderingVerifier(ContainerUtils.getJMSImplementation(container(1)));
@@ -104,12 +113,18 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 150 * 1024 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "60000"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "2000"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024 * 3)
+    })
     public void checkOrderingLargeMessages() throws Exception {
 
         int numberOfMessages = 500;
         JMSTools jmsTools = new JMSTools();
 
-        prepareServer(container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
@@ -154,11 +169,17 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 150 * 1024 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "60000"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "2000"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024 * 3)
+    })
     public void checkOrderingWithMultipleReceivers() throws Exception {
 
         int numberOfMessages = 500;
 
-        prepareServer(container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
@@ -209,11 +230,17 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ThreeNodes", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 150 * 1024 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "60000"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "2000"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024 * 3)
+    })
     public void checkOrderingWithMultipleReceiversInCluster() throws Exception {
 
         int numberOfMessages = 500;
 
-        prepareServer(container(1), container(2), container(3));
         // set local grouping-handler on 1st node
         addMessageGrouping(container(1), "my-grouping-handler", "LOCAL", "jms", 20000, 10000, 7500);
         // set remote grouping-handler on 2nd node
@@ -302,63 +329,6 @@ public class MessageOrderingTestCase extends HornetQTestCase {
             }
         }
         return count == listOfReceivedMessages.size();
-    }
-
-
-    protected void prepareServer(Container... containers) {
-
-        for (Container container : containers) {
-
-            String discoveryGroupName = "dg-group1";
-            String broadCastGroupName = "bg-group1";
-            String clusterGroupName = "my-cluster";
-            String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
-            String connectionFactoryName = "RemoteConnectionFactory";
-            String messagingGroupSocketBindingName = "messaging-group";
-
-            container.start();
-            JMSOperations jmsAdminOperations = container.getJmsOperations();
-            try {
-
-                if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
-                    jmsAdminOperations.setClustered(true);
-
-                }
-                jmsAdminOperations.setPersistenceEnabled(true);
-
-                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
-                        connectorName);
-
-                jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-                jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-                jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-                jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-                jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, 10);
-
-                jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
-                jmsAdminOperations.disableSecurity();
-
-                jmsAdminOperations.removeAddressSettings("#");
-                jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 150 * 1024 * 1024, 60000, 2000, 1024 * 1024 * 3, "jms.queue.DLQ", "jms.queue.ExpiryQueue", 10);
-
-                jmsAdminOperations.createQueue(inQueue, inQueueJndiName);
-
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            } finally {
-                jmsAdminOperations.close();
-                container.stop();
-
-            }
-        }
-
     }
 
     private void addMessageGrouping(Container container, String name, String type, String address, long timeout, long groupTimeout, long reaperPeriod) {

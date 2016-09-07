@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.messages;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -76,10 +77,8 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare("OneNode")
     public void testDupIdCacheSizeWithDurableQueues() throws Exception {
-
-        prepareServer(container(1));
-        prepareServer(container(2));
 
         container(1).start();
         final long numberOfMessages = 300;
@@ -141,13 +140,5 @@ public class DuplicateIdCacheSizeTestCase extends HornetQTestCase {
             }
         }
         container(1).stop();
-    }
-
-    private void prepareServer(Container container) {
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-        jmsOperations.createQueue(inQueue, inQueueJndiName);
-        jmsOperations.close();
-        container.stop();
     }
 }

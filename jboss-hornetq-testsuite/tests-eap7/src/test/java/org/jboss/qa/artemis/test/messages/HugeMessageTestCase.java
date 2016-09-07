@@ -2,10 +2,12 @@ package org.jboss.qa.artemis.test.messages;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.HashUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -66,9 +68,9 @@ public class HugeMessageTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare("OneNode")
     public void test1GbMessage() throws Exception {
         Container container = container(1);
-        prepareServer(container);
         container.start();
 
         ResourceMonitor serverMeasurement = new ResourceMonitor.Builder()
@@ -116,12 +118,12 @@ public class HugeMessageTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare("TwoNodes")
     public void test1GbMessageCluster() throws Exception {
 
         int redistributionWaitTimeMinutes = 30;
         JMSTools jmsTools = new JMSTools();
 
-        prepareServer(container(1), container(2));
         container(1).start();
         container(2).start();
 
@@ -168,64 +170,6 @@ public class HugeMessageTestCase extends HornetQTestCase {
 
         container(1).stop();
         container(2).stop();
-    }
-
-    protected void prepareServer(Container... containers) {
-
-        for (Container container : containers) {
-
-            String discoveryGroupName = "dg-group1";
-            String broadCastGroupName = "bg-group1";
-            String clusterGroupName = "my-cluster";
-            String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
-            String connectionFactoryName = "RemoteConnectionFactory";
-            String messagingGroupSocketBindingName = "messaging-group";
-
-            container.start();
-            JMSOperations jmsAdminOperations = container.getJmsOperations();
-            try {
-
-                if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
-                    jmsAdminOperations.setClustered(true);
-
-                }
-                jmsAdminOperations.setPersistenceEnabled(true);
-
-                jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-                jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-                jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-                jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-                jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-                jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
-                        connectorName);
-
-                jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-                jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-                jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-                jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-                jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, 10);
-
-                jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
-                jmsAdminOperations.disableSecurity();
-
-                jmsAdminOperations.removeAddressSettings("#");
-                jmsAdminOperations.addAddressSettings("#", "PAGE", 20480, 100, 0, 1024);
-
-                jmsAdminOperations.createQueue(inQueue, inQueueJndiName);
-
-                jmsAdminOperations.enableServerDump(TimeUnit.MINUTES.toMillis(1));
-
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            } finally {
-                jmsAdminOperations.close();
-                container.stop();
-
-            }
-        }
-
     }
 
     private File generateSourceFile(int bytes, File sourceFile) {

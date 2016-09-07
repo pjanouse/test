@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools.jms;
 
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -216,6 +217,61 @@ public class ClientUtils {
                 }
             }
         }
+    }
+
+    public static void waitForClientToFailover(Client client, long timeout) throws Exception {
+        long startTime = System.currentTimeMillis();
+        int initialCount = client.getCount();
+        while (client.isAlive() && client.getCount() <= initialCount) {
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Client - " + client.toString() + " did not failover/failback in: " + timeout + " ms");
+            }
+            Thread.sleep(1000);
+        }
+    }
+
+    public static void waitForClientsToFailover(Clients clients) {
+
+        long timeout = 180000;
+        // wait for 2 min for producers to send more messages
+        long startTime = System.currentTimeMillis();
+
+        int startValue = 0;
+        for (Client c : clients.getProducers()) {
+
+            startValue = c.getCount();
+
+            while (c.getCount() <= startValue) {
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+
+        // wait for 2 min for consumers to send more messages
+        startTime = System.currentTimeMillis();
+
+        Map<Client, Integer> consumersCounts = new HashMap<Client, Integer>();
+        for (Client c : clients.getConsumers()) {
+            consumersCounts.put(c, c.getCount());
+        }
+
+        do {
+            for (Client c : clients.getConsumers()) {
+                if (c.getCount() > consumersCounts.get(c)) {
+                    consumersCounts.remove(c);
+                }
+            }
+            if (System.currentTimeMillis() - startTime > timeout) {
+                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
+            }
+        } while (consumersCounts.size() > 0);
+
     }
 
 }

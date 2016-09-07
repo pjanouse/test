@@ -76,6 +76,15 @@ public class Constants {
         JGROUPS_TCP
     }
 
+    public enum CLUSTER_TYPE {
+        DEFAULT,
+        MULTICAST,
+        JGROUPS_DISCOVERY,
+        JGROUPS_DISCOVERY_TCP,
+        STATIC_CONNECTORS,
+        NONE
+    }
+
     public enum JOURNAL_TYPE
     {
         ASYNCIO, NIO

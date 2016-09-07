@@ -27,7 +27,7 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
         name = "java:jboss/exported/CFfromQueueToTopic",
         resourceAdapter = "activemq-ra",
         properties = {
-            "connectors=http-connector",}
+            "connectors=connector",}
 )
 
 @MessageDriven(name = "mdb1",

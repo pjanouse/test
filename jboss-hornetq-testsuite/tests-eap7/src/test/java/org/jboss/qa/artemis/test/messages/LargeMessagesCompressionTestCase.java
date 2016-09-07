@@ -2,15 +2,24 @@ package org.jboss.qa.artemis.test.messages;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
-import org.apache.activemq.artemis.api.core.client.*;
+import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
+import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -27,7 +36,10 @@ import java.util.Random;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for checking proper large message compression.
@@ -50,10 +62,6 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     private static final char[] CHARS = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
 
     private static final int MIN_LARGE_MESSAGE_SIZE = 100 * 1024;
-
-    private static final String QUEUE_NAME = "TestQueue";
-
-    private static final String QUEUE_CORE_NAME = "jms.queue.TestQueue";
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
 
@@ -85,8 +93,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JOURNAL_FILE_SIZE, value = "10485760")
+    })
     public void testUncompressedNormalMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
        
@@ -116,8 +126,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JOURNAL_FILE_SIZE, value = "10485760")
+    })
     public void testCompressedLargeMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
 
@@ -145,8 +157,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JOURNAL_FILE_SIZE, value = "10485760")
+    })
     public void testLargeMessageCompressedToNormalMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
         
@@ -181,10 +195,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             ClientMessage msg = session.createMessage(Message.TEXT_TYPE, true);
             msg.getBodyBuffer().writeString(messageContents);
 
-            ClientProducer producer = session.createProducer(QUEUE_CORE_NAME);
+            ClientProducer producer = session.createProducer("jms.queue." + PrepareBase.QUEUE_NAME);
             producer.send(msg);
 
-            ClientConsumer consumer = session.createConsumer(QUEUE_CORE_NAME);
+            ClientConsumer consumer = session.createConsumer("jms.queue." + PrepareBase.QUEUE_NAME);
             session.start();
             ClientMessage received = consumer.receive(RECEIVE_TIMEOUT);
 
@@ -220,13 +234,6 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             builder.append(c);
         }
         return builder.toString();
-    }
-
-    private void prepare() {
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_NAME);
-        ops.setJournalFileSize(10485760);
-        ops.close();
     }
 
     private LargeMessagePacketInterceptor getLargeMessagePacketInterceptor() {

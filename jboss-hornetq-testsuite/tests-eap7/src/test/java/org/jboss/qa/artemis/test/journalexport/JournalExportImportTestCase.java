@@ -4,34 +4,45 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Set of journal export/import tests.
@@ -54,16 +65,16 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
-    private static final String DIRECTORY_WITH_JOURNAL = new File("target/journal-directory-for-import-export-testcase").getAbsolutePath();
-    private static final String EXPORTED_JOURNAL_FILE_NAME_PATTERN = "journal_export";
+    private String directoryWithJournal;
+    private static final String EXPORTED_JOURNAL_FILE_NAME_PATTERN = "target/journal_export";
 
-    private static final String TEST_QUEUE = "testQueue";
-    private static final String TEST_QUEUE_NAME = "jms/queue/" + TEST_QUEUE;
-
-    @After
     @Before
-    public void stopAllServers() {
-        container(1).stop();
+    public void setUpTest() {
+        directoryWithJournal = new StringBuilder(container(1).getServerHome())
+                .append(File.separator).append("standalone")
+                .append(File.separator).append("data")
+                .append(File.separator).append("activemq")
+                .toString();
     }
 
     /**
@@ -91,14 +102,15 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testExportImportMessageWithNullProperty() throws Exception {
-
-        prepareServer(container(1));
 
         container(1).start();
 
+        logger.info("JOURNAL DIRECTORY: " + directoryWithJournal);
+
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
-        journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
+        journalExportImportUtils.setPathToJournalDirectory(directoryWithJournal);
 
         Context ctx = null;
         Connection conn = null;
@@ -111,7 +123,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
             MessageProducer producer = session.createProducer(testQueue);
 
             Message msg = session.createTextMessage("Test text");
@@ -126,7 +138,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         journalExportImportUtils.exportJournal(EXPORTED_JOURNAL_FILE_NAME_PATTERN);
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+        FileUtils.deleteDirectory(new File(directoryWithJournal));
 
         journalExportImportUtils.importJournal(EXPORTED_JOURNAL_FILE_NAME_PATTERN);
         container(1).start();
@@ -139,7 +151,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
             MessageConsumer consumer = session.createConsumer(testQueue);
 
             received = consumer.receive(RECEIVE_TIMEOUT);
@@ -153,26 +165,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
-
-    /**
-     * Exporting message with null using CLI operations
-     *
-     * @tpTestDetails Start single server. Send text message with null property
-     * to the destination on the server. Once sent, shut the server down. Export
-     * journal and then import using CLI. (clean server instance between export and import). Read the
-     * messages from the destination.
-     * @tpPassCrit All the test messages are successfully read and preserve all
-     * their properties
-     * @tpInfo <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
-     * @see <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
-     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testExportImportMessageWithNullPropertyUsingAdminOperation() throws Exception {
-
-        prepareServer(container(1));
 
         container(1).start();
 
@@ -187,7 +185,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
             MessageProducer producer = session.createProducer(testQueue);
 
             Message msg = session.createTextMessage("Test text");
@@ -208,10 +206,10 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         container(1).stop();
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "bindings"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "journal"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "paging"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "largemessages"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "bindings"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "journal"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "paging"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "largemessages"));
 
         container(1).start();
         ops = container(1).getJmsOperations();
@@ -228,7 +226,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
             MessageConsumer consumer = session.createConsumer(testQueue);
 
             received = consumer.receive(RECEIVE_TIMEOUT);
@@ -256,9 +254,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, value = "false")
+    })
     public void testExportImportAllTypeMessagesUsingAdminOperation() throws Exception {
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(1, 1024 * 200);
-        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, false);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder);
     }
 
     /**
@@ -275,9 +276,12 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, value = "true")
+    })
     public void testExportImportCompressedAllTypeMessagesUsingAdminOperation() throws Exception {
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(1, 1024 * 200);
-        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, true);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder);
     }
 
     /**
@@ -294,11 +298,14 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, value = "false")
+    })
     public void testExportImportLargeMessagesUsingAdminOperation() throws Exception {
 
         MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 2000);
 
-        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, false);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder);
     }
 
     /**
@@ -315,19 +322,20 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, value = "true")
+    })
     public void testExportImportCompressedLargeMessagesUsingAdminOperation() throws Exception {
 
         MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
-        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, true);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder);
     }
 
-    private void internalTestExportImportLargeMessagesUsingAdminOperation(MessageBuilder messageBuilder, boolean compressMessages) throws Exception {
-
-        prepareServer(container(1), compressMessages);
+    private void internalTestExportImportLargeMessagesUsingAdminOperation(MessageBuilder messageBuilder) throws Exception {
 
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 50);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setCommitAfter(5);
         producerToInQueue1.setTimeout(0);
@@ -344,10 +352,10 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         container(1).stop();
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "bindings"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "journal"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "paging"));
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL, "largemessages"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "bindings"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "journal"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "paging"));
+        FileUtils.deleteDirectory(new File(directoryWithJournal, "largemessages"));
 
         container(1).start();
         ops = container(1).getJmsOperations();
@@ -355,7 +363,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.importJournal(exportedJournalFile);
         ops.close();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), TEST_QUEUE_NAME, 5000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 5000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -368,51 +376,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
                 + receiver1.getListOfReceivedMessages().size() + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()
                 + ".", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
-    }
-
-    private void prepareServer(final Container container) {
-        prepareServer(container, false);
-    }
-
-    private void prepareServer(final Container container, boolean compressLargeMessages) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = "http-connector";
-        String groupAddress = "233.6.88.3";
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-        JMSOperations ops = container.getJmsOperations();
-        ops.createQueue(TEST_QUEUE, TEST_QUEUE_NAME, true);
-        ops.setJournalDirectory(DIRECTORY_WITH_JOURNAL);
-        ops.setLargeMessagesDirectory(DIRECTORY_WITH_JOURNAL);
-        ops.setBindingsDirectory(DIRECTORY_WITH_JOURNAL);
-        ops.setPagingDirectory(DIRECTORY_WITH_JOURNAL);
-
-        ops.removeBroadcastGroup(broadCastGroupName);
-        ops.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-        ops.removeDiscoveryGroup(discoveryGroupName);
-        ops.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, groupAddress);
-        ops.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-        ops.disableSecurity();
-        ops.removeClusteringGroup(clusterGroupName);
-        ops.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
-
-        ops.setCompressionOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, compressLargeMessages);
-
-        ops.close();
-        container.stop();
-    }
-
-    @After
-    public void deleteJournalFiles() {
-        try {
-            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
-        } catch (Exception e) {
-            logger.error("Cannot delete journals directory. Hope it is ok and continue test, in case of failure this can be cause.", e);
-        }
     }
 
 }

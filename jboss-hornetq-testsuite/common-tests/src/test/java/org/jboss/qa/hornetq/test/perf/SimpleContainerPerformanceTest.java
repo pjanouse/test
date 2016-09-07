@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.perf;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -12,6 +13,7 @@ import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.perf.CounterMdb;
 import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -167,6 +169,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void normalByteMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new ByteMessageBuilder(512));
     }
@@ -196,6 +199,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void normalTextMessagesTest() throws InterruptedException {
         testLogic(MESSAGES, MESSAGE_CYCLES, new TextMessageBuilder(512));
     }
@@ -225,6 +229,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void largeByteMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new ByteMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }
@@ -254,6 +259,7 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void largeTextMessagesTest() throws InterruptedException {
         testLogic(LARGE_MESSAGES, LARGE_MESSAGES_CYCLES, new TextMessageBuilder(LARGE_MESSAGES_LENGTH * 1024));
     }
@@ -266,17 +272,6 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
      * @param messageBuilder implementation of {@link org.jboss.qa.hornetq.apps.MessageBuilder} used for test
      */
     private void testLogic(int messagesCount, int cyclesCount, MessageBuilder messageBuilder) {
-        final String IN_QUEUE_NAME = "InQueue";
-        final String IN_QUEUE_JNDI_NAME = "jms/queue/"+IN_QUEUE_NAME;
-        final String OUT_QUEUE_NAME = "OutQueue";
-        final String OUT_QUEUE_JNDI_NAME = "jms/queue/"+OUT_QUEUE_NAME;
-        container(1).start();
-        log.info("Staring container for test ....");
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createQueue(IN_QUEUE_NAME, IN_QUEUE_JNDI_NAME);
-        jmsAdminOperations.createQueue(OUT_QUEUE_NAME, OUT_QUEUE_JNDI_NAME);
-        jmsAdminOperations.close();
-        container(1).stop();
         container(1).start();
 
         Context context = null;
@@ -289,8 +284,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             connection = cf.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue inQueue = (Queue) context.lookup(IN_QUEUE_JNDI_NAME);
-            Queue outQueue = (Queue) context.lookup(OUT_QUEUE_JNDI_NAME);
+            Queue inQueue = (Queue) context.lookup(PrepareBase.IN_QUEUE_JNDI);
+            Queue outQueue = (Queue) context.lookup(PrepareBase.OUT_QUEUE_JNDI);
 
             // cleaning
             MessageConsumer consumer = session.createConsumer(outQueue);

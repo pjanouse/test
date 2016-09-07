@@ -1,12 +1,5 @@
 package org.jboss.qa.artemis.test.annotation;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Queue;
-import javax.jms.Topic;
-import javax.naming.Context;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
-
 import org.apache.activemq.artemis.utils.IPV6Util;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -18,7 +11,8 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Receiver;
@@ -26,16 +20,15 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SoakProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.SoakReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
-import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated2;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTopicAnnotated;
 import org.jboss.qa.hornetq.apps.servlets.ServletProducerInjectedJMSContext;
-import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -44,13 +37,17 @@ import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import javax.jms.ConnectionFactory;
+import javax.jms.Queue;
+import javax.jms.Topic;
+import javax.naming.Context;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingException;
 import java.io.File;
 
 /**
@@ -74,18 +71,6 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 1000;
 
-    // queue to send messages in
-    static String inQueueName = "InQueue";
-    static String inQueue = "jms/queue/" + inQueueName;
-
-    // queue for receive messages out
-    static String outQueueName = "OutQueue";
-    static String outQueue = "jms/queue/" + outQueueName;
-
-    // topic for receive messages out
-    static String outTopicName = "OutTopic";
-    static String outTopic = "jms/topic/" + outTopicName;
-
     /**
      * @tpTestDetails Start one server. Send messages to InQueue. Deploy MDB
      * which uses "@JMSDestinationDefinition" annotation to define OutQueue. MDB
@@ -105,6 +90,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.PREPARE_OUT_QUEUE, value = "false")
+    })
     public void testBasicSendAndReceiveQueue() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithDefinitionsQueue("mdb");
@@ -130,6 +120,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.PREPARE_OUT_TOPIC, value = "false")
+    })
     public void testBasicSendAndReceiveTopic() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithDefinitionsTopic("mdb");
@@ -158,6 +153,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.PREPARE_OUT_QUEUE, value = "false")
+    })
     public void testQueueAccessibilityFromAnotherMdb() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithTwoMdbs("mdb");
@@ -185,12 +185,18 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.PREPARE_OUT_QUEUE, value = "false"),
+            @Param(name = PrepareParams.PREPARE_OUT_TOPIC, value = "false")
+
+    })
     public void testExistenceOfDestinations() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithDefinitionsQueue("mdb1");
         JavaArchive mdbDeployment2 = createDeploymentWithDefinitionsTopic("mdb2");
 
-        prepareServer(container(1));
         container(1).start();
 
         container(1).deploy(mdbDeployment);
@@ -201,7 +207,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         Context ctx = null;
         try {
             ctx = container(1).getContext();
-            Queue myQueue = (Queue) ctx.lookup(outQueue);
+            Queue myQueue = (Queue) ctx.lookup(PrepareBase.OUT_QUEUE_JNDI);
             logger.info("queue exists, should have been created on undeployment of mdb defining it - ok");
         } catch (NamingException e) {
             Assert.fail("naming exception catch, queue doesnt exist when mdb defining it is deployed - thats not ok");
@@ -212,7 +218,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
         try {
             ctx = container(1).getContext();
-            Topic myTopic = (Topic) ctx.lookup(outTopic);
+            Topic myTopic = (Topic) ctx.lookup(PrepareBase.OUT_TOPIC_JNDI);
             logger.info("topic exists, should have been created on undeployment of mdb defining it - ok");
         } catch (NamingException e) {
             Assert.fail("naming exception catch, topic doesnt exist when mdb defining it is deployed - thats not ok");
@@ -230,7 +236,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         ctx = null;
         try {
             ctx = container(1).getContext();
-            Queue myQueue = (Queue) ctx.lookup(outQueue);
+            Queue myQueue = (Queue) ctx.lookup(PrepareBase.OUT_QUEUE_JNDI);
             Assert.fail("queue should not exist, should have been deleted on undeployment of mdb defining it - thats not ok");
         } catch (NamingException e) {
             logger.info("naming exception catch, queue doesnt exist anymore - ok");
@@ -241,7 +247,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
         try {
             ctx = container(1).getContext();
-            Topic myTopic = (Topic) ctx.lookup(outTopic);
+            Topic myTopic = (Topic) ctx.lookup(PrepareBase.OUT_TOPIC_JNDI);
             Assert.fail("Topic should not exist, should have been deleted on undeployment of mdb defining it - thats not ok");
         } catch (NamingException e) {
             logger.info("naming exception catch, topic doesnt exist anymore - ok");
@@ -276,11 +282,15 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.PREPARE_OUT_QUEUE, value = "false")
+    })
     public void testExistenceOfConnectionFactory() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithDefinitionsQueue("mdb1");
 
-        prepareServer(container(1));
         container(1).start();
 
         container(1).deploy(mdbDeployment);
@@ -342,16 +352,19 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20")
+    })
     public void testDeployMdbDefiningAlreadyDefinedDestination() throws Exception {
 
         JavaArchive mdbDeployment = createDeploymentWithDefinitionsQueue("mdb1");
 
-        prepareServerWithOutQueue(container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), inQueue, 200);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, 200);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -363,7 +376,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver.start();
 
         receiver.join();
@@ -396,14 +409,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @RunAsClient
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "1")
+    })
     public void testInjectedJMSContextLowMaxPoolSize() throws Exception {
         container(1).start();
-        JMSOperations jmsOperations = container(1).getJmsOperations();
-        jmsOperations.createQueue("sourceQueue", "jms/queue/sourceQueue");
-        jmsOperations.createQueue("targetQueue", "jms/queue/targetQueue");
-        jmsOperations.setMaxPoolSizeOnPooledConnectionFactory("activemq-ra", 1);
-        jmsOperations.close();
-        container(1).restart();
 
         container(1).deploy(createDeploymentWithInjectedJMSContext());
 
@@ -414,16 +424,16 @@ public class AnnotationsTestCase extends HornetQTestCase {
         for (int i = 0; i < 100; i++) {
             CloseableHttpResponse response = httpClient.execute(httpGet);
             try {
-                System.out.println(response.getStatusLine());
+                logger.info(response.getStatusLine());
                 HttpEntity entity = response.getEntity();
-                System.out.println(IOUtils.toString(entity.getContent()));
+                logger.info(IOUtils.toString(entity.getContent()));
                 EntityUtils.consume(entity);
             } finally {
                 response.close();
             }
         }
 
-        Receiver receiver = new ReceiverAutoAck(container(1), "jms/queue/targetQueue", 2000, 1);
+        Receiver receiver = new ReceiverAutoAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 2000, 1);
         receiver.start();
         receiver.join();
 
@@ -434,12 +444,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     private void basicSendAndReceiveQueue(JavaArchive... mdbDeployment) throws InterruptedException {
 
-        prepareServer(container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -454,7 +463,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
 
         receiver1.join();
@@ -478,12 +487,11 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
     private void basicSendAndReceiveTopic(JavaArchive... mdbDeployment) throws Exception {
 
-        prepareServer(container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -497,7 +505,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
             container(1).deploy(archive);
         }
 
-        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), outTopic, "subscriber1",
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareBase.OUT_TOPIC_JNDI, "subscriber1",
                 "subscription1");
 
         logger.info("Start receiver.");
@@ -519,60 +527,6 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
 
         container(1).stop();
-    }
-
-    /**
-     * Be sure that the server is stopped before and after the test. Delete also
-     * the journal directory.
-     */
-    @Before
-    @After
-    public void stopAllServers() {
-        container(1).stop();
-    }
-
-    private void prepareServer(Container container) {
-
-        String connectionFactoryName = Constants.RESOURCE_ADAPTER_NAME_EAP7;
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
-        jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 20);
-        jmsAdminOperations.setDefaultResourceAdapter("activemq-ra");
-
-        try {
-            jmsAdminOperations.removeQueue(inQueueName);
-
-            jmsAdminOperations.removeQueue(outQueueName);
-            jmsAdminOperations.removeTopic(outTopicName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-
-        jmsAdminOperations.close();
-        container.stop();
-    }
-
-    private void prepareServerWithOutQueue(Container container) {
-        prepareServer(container);
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        container.start();
-
-        try {
-            jmsAdminOperations.removeQueue(outQueueName);
-            jmsAdminOperations.removeTopic(outTopicName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-        jmsAdminOperations.close();
-        container.stop();
-
     }
 
     public JavaArchive createDeploymentWithDefinitionsQueue(String resourceName) {

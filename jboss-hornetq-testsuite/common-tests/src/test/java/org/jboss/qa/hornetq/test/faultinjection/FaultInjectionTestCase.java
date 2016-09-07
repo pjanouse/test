@@ -3,14 +3,16 @@ package org.jboss.qa.hornetq.test.faultinjection;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -28,11 +30,12 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
-
 import java.io.File;
 import java.util.Scanner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test case covers basic fault injection tests for standalone node.
@@ -49,6 +52,12 @@ import static org.junit.Assert.*;
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
+@Prepare(value = "OneNode", params = {
+        @Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
+        @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, value = "0"),
+        @Param(name = PrepareParams.DEAD_LETTER_QUEUE, value = "jms.queue.DLQ"),
+        @Param(name = PrepareParams.EXPIRY_QUEUE, value = "jms.queue.ExpiryQueue")
+})
 public class FaultInjectionTestCase extends HornetQTestCase {
 
     @Rule
@@ -60,22 +69,12 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
     private static final String BYTEMAN_KILL_ACTION = "System.out.println(\"" + BYTEMAN_KILL_MSG + "\");killJVM();";
 
-    private static final String TEST_QUEUE = "dummyQueue";
-    private static final String TEST_QUEUE_JNDI = "/queue/dummyQueue";
     private static final String TEST_QUEUE_JNDI_NEW = "java:jboss/exported/jms/queue/dummyQueue_new_name";
     private static final String TEST_QUEUE_JNDI_CLIENT = "jms/queue/dummyQueue_new_name";
-    private static final String CONNECTION_FACTORY = "RemoteConnectionFactory";
 
     @Before
     public void preActionPrepareServers() throws Exception {
-        container(1).stop();
         container(1).start();
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.createQueue(TEST_QUEUE, TEST_QUEUE_JNDI);
-        jmsAdminOperations.setJournalType("NIO");
-        jmsAdminOperations.setReconnectAttemptsForConnectionFactory(CONNECTION_FACTORY, 0);
-        jmsAdminOperations.reload();
-        jmsAdminOperations.close();
     }
 
     /**
@@ -109,7 +108,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final int MESSAGES = 10;
 
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.addQueueJNDIName(TEST_QUEUE, TEST_QUEUE_JNDI_NEW);
+        jmsAdminOperations.addQueueJNDIName(PrepareBase.QUEUE_NAME, TEST_QUEUE_JNDI_NEW);
         jmsAdminOperations.reload();
 
         SimpleJMSClient client = new SimpleJMSClient(
@@ -122,15 +121,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNull(client.getExceptionDuringSend());
         assertEquals(MESSAGES, client.getSentMessages());
 
-        assertEquals(MESSAGES, jmsAdminOperations.getCountOfMessagesOnQueue(TEST_QUEUE));
+        assertEquals(MESSAGES, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME));
 
         client.receiveMessages(TEST_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringReceive());
         assertEquals(MESSAGES, client.getReceivedMessages());
 
-        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(TEST_QUEUE));
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME));
 
-        jmsAdminOperations.removeQueue(TEST_QUEUE);
+        jmsAdminOperations.removeQueue(PrepareBase.QUEUE_NAME);
         jmsAdminOperations.close();
     }
 
@@ -956,19 +955,19 @@ public class FaultInjectionTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @BMRules({
-            @BMRule(name = "Hornetq Kill before ack is written in journal",
+            @BMRule(name = "Hornetq Kill before ack is written in journal - 1",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledge",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Hornetq  Kill before ack is written in journal",
+            @BMRule(name = "Hornetq  Kill before ack is written in journal - 2",
                     targetClass = "org.hornetq.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledgeTransactional",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Artemis Kill before ack is written in journal",
+            @BMRule(name = "Artemis Kill before ack is written in journal - 1",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledge",
                     action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Artemis Kill before ack is written in journal",
+            @BMRule(name = "Artemis Kill before ack is written in journal - 2",
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "storeAcknowledgeTransactional",
                     action = BYTEMAN_KILL_ACTION),
@@ -1206,7 +1205,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         //long numMessagesOnQueue = new JMSTools().countMessages(TEST_QUEUE, container(1));
         // receive message after test
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), TEST_QUEUE_JNDI, 2000, 1, 5);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 2000, 1, 5);
         receiver.setTimeout(0);
         receiver.start();
         try {
@@ -1302,7 +1301,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
             log.info("Installing Byteman rule before sending message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
-            client.sendMessages(TEST_QUEUE_JNDI);
+            client.sendMessages(PrepareBase.QUEUE_JNDI);
 
             Assert.assertFalse("Byteman rule did not kill server. Check byteman rule if it's still correct.",
                     CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1)));
@@ -1320,15 +1319,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             } catch (Exception e) {
             }
 
-            client.receiveMessages(TEST_QUEUE_JNDI);
+            client.receiveMessages(PrepareBase.QUEUE_JNDI);
         } else {
             log.info("Execution of the client ...");
-            client.sendMessages(TEST_QUEUE_JNDI);
+            client.sendMessages(PrepareBase.QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
-            client.receiveMessages(TEST_QUEUE_JNDI);
+            client.receiveMessages(PrepareBase.QUEUE_JNDI);
 
             Assert.assertFalse("Byteman rule did not kill server. Check byteman rule if it's still correct.",
                     CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1)));

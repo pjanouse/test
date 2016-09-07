@@ -1,7 +1,10 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -20,17 +23,9 @@ import static org.jboss.qa.hornetq.constants.Constants.*;
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
  *
  */
-public class JournalReplicationNioPageTestCase extends JournalReplicationAbstract
-{
-	@Override
-	public JOURNAL_TYPE getJournalType()
-	{
-		return JOURNAL_TYPE.NIO;
-	}
-
-	@Override
-	public AddressFullPolicy getAddressFullPolicy()
-	{
-		return AddressFullPolicy.PAGE;
-	}
+@Prepare(params = {
+		@Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
+		@Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "PAGE")
+})
+public class JournalReplicationNioPageTestCase extends JournalReplicationAbstract {
 }

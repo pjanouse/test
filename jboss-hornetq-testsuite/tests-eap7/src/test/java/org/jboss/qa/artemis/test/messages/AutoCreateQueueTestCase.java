@@ -3,22 +3,22 @@ package org.jboss.qa.artemis.test.messages;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for creating auto create and auto delete queues.
@@ -36,29 +36,6 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(AutoCreateQueueTestCase.class);
 
-
-    @After
-    @Before
-    public void stopTestContainer() {
-        container(1).stop();
-    }
-
-
-    private void prepareServer(Container container, boolean autoCreateJmsQueue, boolean autoDeleteJmsQueue) {
-
-        container.start();
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setAutoCreateJMSQueue(autoCreateJmsQueue);
-        jmsOperations.setAutoDeleteJMSQueue(autoDeleteJmsQueue);
-
-        jmsOperations.close();
-
-        container.stop();
-
-    }
-
     /**
      * @tpTestDetails Start server.
      * @tpProcedure <ul>
@@ -71,10 +48,15 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.AUTO_CREATE_JMS_QUEUES, value = "false"),
+            @Param(name = PrepareParams.AUTO_DELETE_JMS_QUEUES, value = "false"),
+            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false")
+    })
     public void testAutoCreateQueueDisabled() throws Exception {
         Exception exception = null;
         try {
-            testAutoCreateQueue(false, false);
+            testAutoCreateQueue();
         } catch (JMSException ex) {
             log.info("JMSException was thrown - this is expected");
             exception = ex;
@@ -94,8 +76,13 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.AUTO_CREATE_JMS_QUEUES, value = "true"),
+            @Param(name = PrepareParams.AUTO_DELETE_JMS_QUEUES, value = "false"),
+            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false")
+    })
     public void testAutoCreateQueueEnabled() throws Exception {
-        testAutoCreateQueue(true, false);
+        testAutoCreateQueue();
     }
 
     /**
@@ -111,10 +98,15 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.AUTO_CREATE_JMS_QUEUES, value = "true"),
+            @Param(name = PrepareParams.AUTO_DELETE_JMS_QUEUES, value = "true"),
+            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false")
+    })
     public void testAutoDeleteQueueEnabled() throws Exception {
         Exception exception = null;
         try {
-            testAutoDeleteQueue(true, true);
+            testAutoDeleteQueue();
         } catch (Exception ex) {
             log.info("Exception was thrown - this is expected");
             exception = ex;
@@ -134,15 +126,18 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.AUTO_CREATE_JMS_QUEUES, value = "true"),
+            @Param(name = PrepareParams.AUTO_DELETE_JMS_QUEUES, value = "false"),
+            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false")
+    })
     public void testAutoDeleteQueueDisabled() throws Exception {
-            testAutoDeleteQueue(true, false);
+            testAutoDeleteQueue();
     }
 
-    public void testAutoCreateQueue(boolean autoCreateJmsQueue, boolean autoDeleteJmsQueue) throws Exception {
+    public void testAutoCreateQueue() throws Exception {
 
         Container container = container(1);
-
-        prepareServer(container, autoCreateJmsQueue, autoDeleteJmsQueue);
 
         container.start();
 
@@ -187,13 +182,11 @@ public class AutoCreateQueueTestCase extends HornetQTestCase {
         container(1).stop();
     }
 
-    public void testAutoDeleteQueue(boolean autoCreateJmsQueue, boolean autoDeleteJmsQueue) throws Exception {
+    public void testAutoDeleteQueue() throws Exception {
 
         String queueName = "testQueue";
 
         Container container = container(1);
-
-        prepareServer(container, autoCreateJmsQueue, autoDeleteJmsQueue);
 
         container.start();
 

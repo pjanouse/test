@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
+import static org.jboss.as.controller.client.helpers.ClientConstants.SERVER;
+import static org.jboss.as.controller.client.helpers.ClientConstants.SUBSYSTEM;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -634,11 +636,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
+    public void setClusterConnectionCheckPeriod(String serverName, String clusterGroupName, long checkPeriod) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
         model.get("name").set("check-period");
         model.get("value").set(checkPeriod);
@@ -651,11 +653,16 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+    public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
+        setClusterConnectionCheckPeriod(NAME_OF_MESSAGING_DEFAULT_SERVER, clusterGroupName, checkPeriod);
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String serverName, String clusterGroupName, long ttl) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroupName);
         model.get("name").set("connection-ttl");
         model.get("value").set(ttl);
@@ -664,6 +671,11 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String clusterGroupName, long ttl) {
+        setClusterConnectionTTL(NAME_OF_MESSAGING_DEFAULT_SERVER, clusterGroupName, ttl);
     }
 
     @Override
@@ -914,6 +926,31 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String serverName, String clusterGroup, boolean value) {
+        ModelNode modelNode = createModelNode();
+        modelNode.get(ClientConstants.OP).set("write-attribute");
+        modelNode.get(ClientConstants.OP_ADDR).add(SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        modelNode.get(ClientConstants.OP_ADDR).add(SERVER, serverName);
+        modelNode.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroup);
+        modelNode.get("name").set("message-load-balancing-type");
+        if (value) {
+            modelNode.get("value").set(Constants.MESSAGE_LOAD_BALANCING_POLICY.STRICT.name());
+        } else {
+            modelNode.get("value").set(Constants.MESSAGE_LOAD_BALANCING_POLICY.ON_DEMAND.name());
+        }
+        try {
+            this.applyUpdate(modelNode);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String clusterGroup, boolean value) {
+        setForwardWhenNoConsumers(NAME_OF_MESSAGING_DEFAULT_SERVER, clusterGroup, value);
     }
 
     @Override
@@ -4070,6 +4107,30 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue, int maxDeliveryAttempts, boolean lastValueQueue) {
+        ModelNode setAddressAttributes = createModelNode();
+        setAddressAttributes.get(ClientConstants.OP).set("add");
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, containerName);
+        setAddressAttributes.get(ClientConstants.OP_ADDR).add("address-setting", address);
+        setAddressAttributes.get("address-full-policy").set(addressFullPolicy);
+        setAddressAttributes.get("max-size-bytes").set(maxSizeBytes);
+        setAddressAttributes.get("redelivery-delay").set(redeliveryDelay);
+        setAddressAttributes.get("redistribution-delay").set(redistributionDelay);
+        setAddressAttributes.get("page-size-bytes").set(pageSizeBytes);
+        setAddressAttributes.get("expiry-address").set(expireQueue);
+        setAddressAttributes.get("dead-letter-address").set(deadLetterQueue);
+        setAddressAttributes.get("max-delivery-attempts").set(maxDeliveryAttempts);
+        setAddressAttributes.get("last-value-queue").set(lastValueQueue);
+
+        try {
+            this.applyUpdate(setAddressAttributes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Adds grouping handler
      *
@@ -6705,11 +6766,15 @@ private class JMSAdminOperationException extends Exception {
 
     @Override
     public void setTransactionTimeout(long hornetqTransactionTimeout) {
+        setTransactionTimeout(NAME_OF_MESSAGING_DEFAULT_SERVER, hornetqTransactionTimeout);
+    }
 
+    @Override
+    public void setTransactionTimeout(String serverName, long hornetqTransactionTimeout) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
-        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
         model.get("name").set("transaction-timeout");
         model.get("value").set(hornetqTransactionTimeout);
 

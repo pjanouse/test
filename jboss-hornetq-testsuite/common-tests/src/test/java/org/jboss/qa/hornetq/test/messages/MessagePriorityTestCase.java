@@ -2,6 +2,8 @@ package org.jboss.qa.hornetq.test.messages;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
@@ -13,6 +15,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -52,11 +55,19 @@ public class MessagePriorityTestCase extends HornetQTestCase {
      *
      * @ignore https://issues.jboss.org/browse/JBEAP-5196
      */
+    @Ignore
     @RunAsClient
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Ignore
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "PAGE"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 10 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "100"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "0"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "1024")
+
+    })
     public void checkPriorityOrderingWithPaging() throws Exception {
         testPriorityOrder(true);
     }
@@ -76,6 +87,9 @@ public class MessagePriorityTestCase extends HornetQTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
+    })
     public void checkPriorityOrdering() throws Exception {
         testPriorityOrder(false);
     }
@@ -85,7 +99,6 @@ public class MessagePriorityTestCase extends HornetQTestCase {
 
         JMSTools jmsTools = new JMSTools();
 
-        prepareServer(paging, container(1));
         container(1).start();
 
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 150);
@@ -132,31 +145,5 @@ public class MessagePriorityTestCase extends HornetQTestCase {
 
 
         return isOk;
-    }
-
-
-    protected void prepareServer(boolean paging, Container... containers) {
-
-        for (Container container : containers) {
-
-
-            container.start();
-            JMSOperations jmsAdminOperations = container.getJmsOperations();
-            try {
-                if (paging) {
-                    jmsAdminOperations.removeAddressSettings("#");
-                    jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024, 100, 0, 1024);
-                }
-                jmsAdminOperations.createQueue(inQueue, inQueueJndiName);
-
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            } finally {
-                jmsAdminOperations.close();
-                container.stop();
-
-            }
-        }
-
     }
 }

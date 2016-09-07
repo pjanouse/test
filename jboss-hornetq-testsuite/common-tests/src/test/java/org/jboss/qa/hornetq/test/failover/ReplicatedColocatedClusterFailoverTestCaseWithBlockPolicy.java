@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.test.failover;
 
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 
 /**
  *
@@ -12,14 +14,9 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @tpTestCaseDetails This test case implements  all tests from ReplicatedColocatedClusterFailoverTestCase, only BLOCK
  * policy instead of PAGE is set in address settings.
  */
+@Prepare(params = {
+        @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
+})
 public class ReplicatedColocatedClusterFailoverTestCaseWithBlockPolicy extends ReplicatedColocatedClusterFailoverTestCase {
-
-    protected void setAddressSettings(JMSOperations jmsAdminOperations) {
-        setAddressSettings("default", jmsAdminOperations);
-    }
-
-    protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
-        jmsAdminOperations.addAddressSettings(serverName, "#", "BLOCK", 100 * 1024 * 1024, 0, 0, 512 * 1024);
-    }
 
 }

@@ -1,6 +1,9 @@
 package org.jboss.qa.hornetq.test.failover;
 
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.runner.RunWith;
 
@@ -18,6 +21,9 @@ import org.junit.runner.RunWith;
  * is set to addresses
  */
 @RunWith(Arquillian.class)
+@Prepare(params = {
+        @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
+})
 public class ReplicatedDedicatedFailoverTestCaseWithBlockPolicy extends ReplicatedDedicatedFailoverTestCase {
 
 

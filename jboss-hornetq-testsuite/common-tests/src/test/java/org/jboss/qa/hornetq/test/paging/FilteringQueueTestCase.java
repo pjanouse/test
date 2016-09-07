@@ -2,14 +2,12 @@ package org.jboss.qa.hornetq.test.paging;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.ColoredMessagesBuilder;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -40,14 +38,6 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(FilteringQueueTestCase.class);
 
-    // queue to send messages in
-    static String inQueueName = "InQueue";
-    static String inQueue = "jms/queue/" + inQueueName;
-
-    // queue for receive messages out
-    static String outQueueName = "OutQueue";
-    static String outQueue = "jms/queue/" + outQueueName;
-
     @After
     @Before
     public void stopAllServers() {
@@ -77,16 +67,15 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testSimpleFilterClient() throws Exception {
 
         int numberOfMessages = 100;
         int counter = 0;
 
-        prepareJmsServer(container(1));
-
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -104,7 +93,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
-            Queue queue = (Queue) context.lookup(inQueue);
+            Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
             MessageConsumer consumer = session.createConsumer(queue, "color = 'RED'");
 
@@ -167,17 +156,16 @@ public class FilteringQueueTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testSimpleFilterClientWith2Consumers() throws Exception {
 
         int numberOfMessages = 100;
         int counter = 0;
         int counter2 = 0;
 
-        prepareJmsServer(container(1));
-
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -195,7 +183,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
-            Queue queue = (Queue) context.lookup(inQueue);
+            Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
             MessageConsumer consumer = session.createConsumer(queue, "color = 'RED'");
             MessageConsumer consumer2 = session.createConsumer(queue, "color = 'GREEN'");
@@ -245,44 +233,5 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         Assert.assertEquals("There must be half of the send messages.", numberOfMessages / 2, counter);
 
-    }
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container Test container - defined in arquillian.xml
-     */
-    private void prepareJmsServer(Container container) {
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        if (ContainerUtils.isEAP6(container)) {
-            jmsAdminOperations.setClustered(false);
-            jmsAdminOperations.setSharedStore(true);
-        }
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 10 * 1024 * 1024, 0, 0, 100 * 1024);
-        jmsAdminOperations.removeClusteringGroup("my-cluster");
-        jmsAdminOperations.removeBroadcastGroup("bg-group1");
-        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);
-
-        try {
-            jmsAdminOperations.removeQueue(inQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-
-        try {
-            jmsAdminOperations.removeQueue(outQueueName);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-        jmsAdminOperations.close();
-        container.stop();
     }
 }

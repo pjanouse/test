@@ -26,20 +26,6 @@ public interface JMSOperations {
     void addAddressPrefix(String key, String value);
 
     /**
-     * Adds address settings
-     *
-     * @param address             address specification
-     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
-     * @param maxSizeBytes        The max bytes size
-     * @param redeliveryDelay     Defines how long to wait before attempting
-*                            redelivery of a cancelled message
-     * @param redistributionDelay Defines how long to wait when the last
-*                            consumer is closed on a queue before redistributing any messages
-     * @param pageSizeBytes       The paging size
-     */
-    void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes);
-
-    /**
      * Adds settings for slow consumers to existing address settings for given mask.
      *
      * @param address       address specification
@@ -1780,6 +1766,20 @@ public interface JMSOperations {
 
     void removeAddressSettings(String serverName, String address);
 
+    /**
+     * Adds address settings
+     *
+     * @param address             address specification
+     * @param addressFullPolicy   address full policy (PAGE, DROP or BLOCK)
+     * @param maxSizeBytes        The max bytes size
+     * @param redeliveryDelay     Defines how long to wait before attempting
+     *                            redelivery of a cancelled message
+     * @param redistributionDelay Defines how long to wait when the last
+     *                            consumer is closed on a queue before redistributing any messages
+     * @param pageSizeBytes       The paging size
+     */
+    void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes);
+
     void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                             long redistributionDelay, long pageSizeBytes);
 
@@ -1789,6 +1789,17 @@ public interface JMSOperations {
 
     void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
                             long redistributionDelay, long pageSizeBytes, boolean lastValueQueue);
+
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
+                            long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue);
+
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
+                            int redeliveryDelay, long redistributionDelay, long pageSizeBytes,
+                            String expireQueue, String deadLetterQueue, int maxDeliveryAttempts);
+
+    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
+                            int redeliveryDelay, long redistributionDelay, long pageSizeBytes,
+                            String expireQueue, String deadLetterQueue, int maxDeliveryAttempts, boolean lastValueQueue);
 
     void addExternalContext(String binding, String className, String module, String bindingType, Map<String, String> environmentProperies);
 
@@ -1876,13 +1887,6 @@ public interface JMSOperations {
 
     void removeConnectionFactory(String connectionFactoryName);
 
-    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay,
-                                   long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue);
-
-    void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
-            int redeliveryDelay, long redistributionDelay, long pageSizeBytes,
-            String expireQueue, String deadLetterQueue, int maxDeliveryAttempts);
-
     void addMessageGrouping(String name, String type, String address, long timeout);
 
     void addMessageGrouping(String serverName, String name, String type, String address, long timeout);
@@ -1966,6 +1970,8 @@ public interface JMSOperations {
 
     void setTransactionTimeout(long hornetqTransactionTimeout);
 
+    void setTransactionTimeout(String serverName, long hornetqTransactionTimeout);
+
     public String getSocketBindingAtributes(String socketBindingName);
 
     void rewriteLoginModule(String securityDomain, String authentication, String loginModule, HashMap<String, String> moduleOptions);
@@ -2038,7 +2044,11 @@ public interface JMSOperations {
 
     void setClusterConnectionCallTimeout(String serverName, String clusterGroupName, long callTimout);
 
+    void setClusterConnectionCheckPeriod(String serverName, String clusterGroupName, long checkPeriod);
+
     void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod);
+
+    void setClusterConnectionTTL(String serverName, String clusterGroupName, long ttl);
 
     void setClusterConnectionTTL(String clusterGroupName, long ttl);
 
@@ -2136,5 +2146,9 @@ public interface JMSOperations {
     void setScheduledThreadPoolMaxSizeOnConnectionFactory(String connectionFactoryName, int threadPoolMaxSize);
 
     void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools);
+
+    void setForwardWhenNoConsumers(String serverName, String clusterGroup, boolean value);
+
+    void setForwardWhenNoConsumers(String clusterGroup, boolean value);
 
 }

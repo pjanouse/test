@@ -4,9 +4,13 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.byteman.qa.hornetq.BytemanCustomHelper;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -31,13 +35,8 @@ import java.util.ArrayList;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class PagingOnTopicTestCase extends HornetQTestCase {
-    final String TOPIC = "pageTopic";
-    final String TOPIC_JNDI = "/topic/pageTopic";
-    final String ADDRESS = "jms.topic." + TOPIC;
 
     private static final Logger log = Logger.getLogger(PagingOnTopicTestCase.class);
-
-
 
 
     @RestoreConfigBeforeTest
@@ -62,26 +61,26 @@ public class PagingOnTopicTestCase extends HornetQTestCase {
     @RunAsClient
     @Test
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "PAGE"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "2048"),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "1000"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "1000"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "1024")
+    })
     public void pagingNPETestCase() throws Exception {
-        container(1).start();
-        JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.cleanupTopic(TOPIC);
-        jmsAdminOperations.createTopic(TOPIC, TOPIC_JNDI);
-        jmsAdminOperations.removeAddressSettings(ADDRESS);
-        jmsAdminOperations.addAddressSettings(ADDRESS, "PAGE", 2048, 1000, 1000, 1024);
-        container(1).stop();
         container(1).start();
         RuleInstaller.installRule(this.getClass(), container(1));
         ArrayList<PublisherClientAck> publishers = new ArrayList<PublisherClientAck>();
         ArrayList<SubscriberAutoAck> subscribers = new ArrayList<SubscriberAutoAck>();
 
         for(int i=0; i<10; i++){
-            PublisherClientAck publisher = new PublisherClientAck(container(1),TOPIC_JNDI,50,"publisher"+i);
+            PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareBase.TOPIC_JNDI, 50,"publisher"+i);
             publisher.start();
             publishers.add(publisher);
         }
         for(int i=0; i<3; i++){
-            SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1),TOPIC_JNDI,"1","subscriber"+i);
+            SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1),PrepareBase.TOPIC_JNDI,"1","subscriber"+i);
             subscriber.start();
             subscribers.add(subscriber);
         }
@@ -108,27 +107,4 @@ public class PagingOnTopicTestCase extends HornetQTestCase {
                 CheckFileContentUtils.checkThatFileContainsGivenString(serverLog, stringToFind));
 
     }
-
-
-    @RunAsClient
-    @Before
-    public void prepare(){
-        createExternalJarForByteman();
-    }
-
-    public static JavaArchive createExternalJarForByteman() {
-        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "external.jar");
-        lib.addClass(BytemanCustomHelper.class);
-        File target = new File("/tmp/" + "external" + ".jar");
-        if (target.exists()) {
-            target.delete();
-        }
-        lib.as(ZipExporter.class).exportTo(target, true);
-        return lib;
-
-
-    }
-
-
-
 }

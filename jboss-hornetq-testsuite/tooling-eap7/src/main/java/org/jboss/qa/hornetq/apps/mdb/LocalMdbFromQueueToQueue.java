@@ -14,7 +14,7 @@ import javax.jms.Queue;
 import javax.jms.TextMessage;
 
 @MessageDriven(name = "LocalMdbFromQueueToQueue", activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/queue/sourceQueue"),
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/queue/InQueue"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
 })
 public class LocalMdbFromQueueToQueue implements MessageListener {
@@ -24,7 +24,7 @@ public class LocalMdbFromQueueToQueue implements MessageListener {
     @Inject
     private JMSContext jmsContext;
 
-    @Resource(lookup = "java:/jms/queue/targetQueue")
+    @Resource(lookup = "java:/jms/queue/OutQueue")
     private Queue queue;
 
     @Override

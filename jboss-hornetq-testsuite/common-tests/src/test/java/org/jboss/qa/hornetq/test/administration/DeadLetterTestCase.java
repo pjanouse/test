@@ -4,19 +4,21 @@ package org.jboss.qa.hornetq.test.administration;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.specific.DeadLetterPrepare;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -45,29 +47,9 @@ public class DeadLetterTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(DeadLetterTestCase.class);
 
-    private static final int MAX_DELIVERY_ATTEMPTS = 2;
-
-    private static final String QUEUE_NAME = "test.dlq.Queue";
-
-    private static final String QUEUE_JNDI = "jms/queue/test/dlq/Queue";
-
-    private static final String DLQ_NAME = "test.dlq.DeadLetterQueue";
-
-    private static final String DLQ_JNDI = "jms/queue/test/dlq/DeadLetterQueue";
-
-    private static final String EXPIRY_QUEUE_NAME = "test.dlq.ExpiryQueue";
-
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
 
-    //private final ContainerInfo container = CONTAINER1_INFO;
-
     private final MessageBuilder messageBuilder = new TextMessageBuilder(1000);
-
-    @Before
-    @After
-    public void stopAllServers() {
-        container(1).stop();
-    }
 
     /**
      * Tests reading lost message from DLQ after max-deliver-attempts was reached.
@@ -83,9 +65,12 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "DeadLetterPrepare", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "#"),
+            @Param(name = DeadLetterPrepare.DEPLOY_DLQ, value = "true")
+    })
     public void testDeliveryToExistingDLQ() throws Exception {
 
-        prepareServer(container(1), "#", true);
         container(1).start();
         this.testDLQDelivery();
     }
@@ -105,8 +90,11 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "DeadLetterPrepare", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "jms.queue.#"),
+            @Param(name = DeadLetterPrepare.DEPLOY_DLQ, value = "true")
+    })
     public void testDeliveryToSubaddressDLQ() throws Exception {
-        prepareServer(container(1), "jms.queue.test.dlq.#", true);
         container(1).start();
         this.testDLQDelivery();
     }
@@ -129,8 +117,11 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "DeadLetterPrepare", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "#"),
+            @Param(name = DeadLetterPrepare.DEPLOY_DLQ, value = "false")
+    })
     public void testDeliveryToNonExistantDLQ() throws Exception {
-        prepareServer(container(1), "#", false);
         container(1).start();
         this.testDLQDelivery();
     }
@@ -152,8 +143,11 @@ public class DeadLetterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "DeadLetterPrepare", params = {
+            @Param(name = PrepareParams.ADDRESS, value = "#"),
+            @Param(name = DeadLetterPrepare.DEPLOY_DLQ, value = "false")
+    })
     public void testDLQDeployedDuringProcessing() throws Exception {
-        prepareServer(container(1), "#", false);
         container(1).start();
 
         try {
@@ -164,7 +158,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
         }
 
         JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
+        ops.createQueue(DeadLetterPrepare.DLQ_NAME, DeadLetterPrepare.DLQ_JNDI, true);
         ops.close();
 
         // try again, message should be delivered to DLQ now
@@ -184,7 +178,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             connection.start();
 
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
-            Queue queue = (Queue) ctx.lookup(QUEUE_JNDI);
+            Queue queue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
 
             Message msg;
 
@@ -210,7 +204,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             Assert.assertNull("Message should not be delivered after max-delivery-attempts was reached", msg);
 
             // message should be moved to DLQ now
-            Queue dlq = (Queue) ctx.lookup(DLQ_JNDI);
+            Queue dlq = (Queue) ctx.lookup(DeadLetterPrepare.DLQ_JNDI);
             MessageConsumer dlqConsumer = session.createConsumer(dlq);
             msg = dlqConsumer.receive(RECEIVE_TIMEOUT);
             Assert.assertNotNull("There should be lost message in DLQ", msg);
@@ -230,22 +224,6 @@ public class DeadLetterTestCase extends HornetQTestCase {
                 ctx.close();
             }
         }
-    }
-
-    private void prepareServer(Container container, String address, boolean isDLQDeployed) {
-
-        container.start();
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_JNDI, true);
-        if (isDLQDeployed) {
-            ops.createQueue(DLQ_NAME, DLQ_JNDI, true);
-        }
-        ops.removeAddressSettings("#");
-        ops.addAddressSettings("default", address,
-                "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024,
-                "jms.queue." + EXPIRY_QUEUE_NAME, "jms.queue." + DLQ_NAME, MAX_DELIVERY_ATTEMPTS);
-        ops.close();
-        container.stop();
     }
 
 }

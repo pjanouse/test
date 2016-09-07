@@ -26,7 +26,7 @@ public class ServletProducerInjectedJMSContext extends HttpServlet {
     @Inject
     private JMSContext jmsContext;
 
-    @Resource(lookup = "java:/jms/queue/sourceQueue")
+    @Resource(lookup = "java:/jms/queue/InQueue")
     private Queue queue;
 
     @Override

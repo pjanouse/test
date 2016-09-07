@@ -2302,6 +2302,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes, int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue, int maxDeliveryAttempts, boolean lastValueQueue) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void addMessageGrouping(String name, String type, String address, long timeout) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2489,6 +2494,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setTransactionTimeout(String serverName, long hornetqTransactionTimeout) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public String getSocketBindingAtributes(String socketBindingName){
         logger.info("This operation is not supported: " + getMethodName());
         return null;
@@ -2627,8 +2637,18 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setClusterConnectionCheckPeriod(String serverName, String clusterGroupName, long checkPeriod) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setClusterConnectionCheckPeriod(String clusterGroupName, long checkPeriod) {
         logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setClusterConnectionTTL(String serverName, String clusterGroupName, long ttl) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
     @Override
@@ -2714,6 +2734,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String serverName, String clusterGroup, boolean value) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setForwardWhenNoConsumers(String clusterGroup, boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

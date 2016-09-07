@@ -3,12 +3,16 @@ package org.jboss.qa.hornetq.test.transportprotocols;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -42,17 +46,6 @@ public class MessageCompressionTestCase extends HornetQTestCase {
 
     private static final int NUMBER_OF_MESSAGES_PER_PRODUCER = 200;
 
-    String queueName = "testQueue";
-    String queueJndiName = "jms/queue/testQueue";
-
-    @After
-    @Before
-    public void stopAllServers() {
-
-        container(1).stop();
-
-    }
-
     /**
      *
      * @tpTestDetails Start server and send 200 messages to queue (mix of small
@@ -72,14 +65,20 @@ public class MessageCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, value = "true"),
+            @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "PAGE"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5000 * 1024 * 1024),
+            @Param(name = PrepareParams.REDELIVERY_DELAY, value = "0"),
+            @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "0"),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024)
+    })
     public void testCompression() throws Exception {
-        prepareServer(container(1));
-
         container(1).start();
         // Send messages into input node and read from output node
-        ProducerTransAck producer = new ProducerTransAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(new ClientMixMessageBuilder(10, 1024 * 10)); // large messages have 100MB
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), queueJndiName, 30000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 10, 10);
 
         logger.info("Start producer and consumer.");
         producer.start();
@@ -97,35 +96,6 @@ public class MessageCompressionTestCase extends HornetQTestCase {
                 + " Received: " + receiver.getListOfReceivedMessages().size(), receiver.getListOfReceivedMessages().size(), NUMBER_OF_MESSAGES_PER_PRODUCER);
 
         container(1).stop();
-    }
-
-    /**
-     * Test all possible things. Failed operation simply throw RuntimeException
-     *
-     * @param container Test container - defined in arquillian.xml
-     */
-    public void prepareServer(Container container) throws IOException {
-
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String serverName = "default";
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        if (ContainerUtils.isEAP6(container)) {
-            jmsAdminOperations.setClustered(true);
-        }
-        jmsAdminOperations.setJournalType("NIO");
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.setSecurityEnabled(false);
-        // set compression of large messages
-        jmsAdminOperations.setCompressionOnConnectionFactory(connectionFactoryName, true);
-
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 5000 * 1024 * 1024, 0, 0, 1024 * 1024);
-        jmsAdminOperations.createQueue(serverName, queueName, queueJndiName, true);
-        jmsAdminOperations.close();
-        container.stop();
     }
 
 }

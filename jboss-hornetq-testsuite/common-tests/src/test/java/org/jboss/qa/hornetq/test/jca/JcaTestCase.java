@@ -3,6 +3,8 @@ package org.jboss.qa.hornetq.test.jca;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
@@ -17,6 +19,8 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -53,14 +57,6 @@ public class JcaTestCase extends HornetQTestCase {
     private final Archive mdbDeployment = createDeployment();
     private final Archive lodhLikemdb = getLodhLikeMdb();
 
-    // queue to send messages in
-    static String inQueueName = "InQueue";
-    static String inQueue = "jms/queue/" + inQueueName;
-
-    // queue for receive messages out
-    static String outQueueName = "OutQueue";
-    static String outQueue = "jms/queue/" + outQueueName;
-
     public JavaArchive createDeployment() {
 
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-lodh1");
@@ -87,7 +83,7 @@ public class JcaTestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(inQueue).append("</activation-config-property-value>\n");
+        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
@@ -96,7 +92,7 @@ public class JcaTestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(outQueue).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -151,6 +147,11 @@ public class JcaTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.TRANSACTION_TIMEOUT, value = "60000")
+    })
     public void testJcaSmallMessages() throws Exception {
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
         testJca(messageBuilder);
@@ -163,11 +164,9 @@ public class JcaTestCase extends HornetQTestCase {
     public void testJca(MessageBuilder messageBuilder) throws Exception {
 
         // we use only the first server
-        prepareServer(container(1));
-
         container(1).start();
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), inQueue, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -178,7 +177,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -206,16 +205,19 @@ public class JcaTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.TRANSACTION_TIMEOUT, value = "60000")
+    })
     public void testListPreparedTransactionsNPE() throws Exception {
 
         // we use only the first server
-        prepareServer(container(1));
-
         container(1).start();
 
         // send messages to queue
         int numberOfMessages = 10000;
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
         producer1.setMessageBuilder(new TextMessageBuilder(1));
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
@@ -229,7 +231,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         long timeout = System.currentTimeMillis() + (60 * 60 * 1000); //max one hour wait
 
-        while (jmsOperations.getCountOfMessagesOnQueue(outQueueName) < numberOfMessages) {
+        while (jmsOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME) < numberOfMessages) {
             JMXConnector connector = null;
             try {
                 connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
@@ -243,14 +245,14 @@ public class JcaTestCase extends HornetQTestCase {
                     connector.close();
                 }
                 if (System.currentTimeMillis() > timeout){
-                    Assert.fail("Queue contains only " + jmsOperations.getCountOfMessagesOnQueue(outQueueName) + " messages. Expected number is " + numberOfMessages );
+                    Assert.fail("Queue contains only " + jmsOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME) + " messages. Expected number is " + numberOfMessages );
                 }
             }
             Thread.sleep(500);
         }
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueue, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         addClient(receiver1);
@@ -297,6 +299,11 @@ public class JcaTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "TwoNodes", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.TRANSACTION_TIMEOUT, value = "60000")
+    })
     public void testJcaInClusterWithLoad() throws Exception {
 
         logger.info("os.name=" + System.getProperty("os.name"));
@@ -305,15 +312,12 @@ public class JcaTestCase extends HornetQTestCase {
                 && (System.getProperty("os.version").contains("el7") || System.getProperty("os.version").contains("fc2"))));
         int numberOfMesasges = 10000;
 
-        prepareServer(container(1));
-        prepareServer(container(2));
-
         container(1).start();
         container(2).start();
 
         // send messages to InQueue
         FinalTestMessageVerifier mdbMessageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMesasges);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMesasges);
         TextMessageBuilder messageBuilder = new TextMessageBuilder();
         messageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(2));
@@ -334,7 +338,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).deploy(lodhLikemdb);
 
         // wait to have some messages in OutQueue
-        new JMSTools().waitForMessages(outQueueName, numberOfMesasges / 10, 600000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMesasges / 10, 600000, container(1), container(2));
 
         // start load on 1st node
         Container containerUnderLoad = container(1);
@@ -359,12 +363,12 @@ public class JcaTestCase extends HornetQTestCase {
                 }
             }
         }
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(2));
+        new JMSTools().waitUntilMessagesAreStillConsumed(PrepareBase.IN_QUEUE_NAME, 300000, container(1), container(2));
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), 0, false);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 20000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 20000, 100, 10);
         receiver1.addMessageVerifier(mdbMessageVerifier);
         receiver1.setTimeout(0);
         receiver1.setAckAfter(100);
@@ -412,15 +416,18 @@ public class JcaTestCase extends HornetQTestCase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, value = "10"),
+            @Param(name = PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, value = "20"),
+            @Param(name = PrepareParams.TRANSACTION_TIMEOUT, value = "60000")
+    })
     public void testJcaWithDoubleStartOfDelivery() throws Exception {
 
         int numberOfMessages = 100;
         // we use only the first server
-        prepareServer(container(1));
-
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueue, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
         producer1.setCommitAfter(100);
         producer1.setMessageBuilder(new TextMessageBuilder(10));
         producer1.setTimeout(0);
@@ -430,7 +437,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 2, 60000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 2, 60000, container(1));
 
         // call stop delivery
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -440,10 +447,10 @@ public class JcaTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), outQueue, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -460,45 +467,5 @@ public class JcaTestCase extends HornetQTestCase {
         container(1).undeploy(mdbDeployment);
         container(1).stop();
 
-    }
-
-
-    /**
-     * Be sure that both of the servers are stopped before and after the test.
-     * Delete also the journal directory.
-     */
-    @Before
-    @After
-    public void stopAllServers() {
-        container(1).stop();
-        container(2).stop();
-    }
-
-
-    private void prepareServer(Container container) {
-        String connectionFactoryName =
-                container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER ? Constants.RESOURCE_ADAPTER_NAME_EAP6 : Constants.RESOURCE_ADAPTER_NAME_EAP7;
-        prepareJmsServer(container, connectionFactoryName);
-    }
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container Test container - defined in arquillian.xml
-     */
-    private void prepareJmsServer(Container container, String connectionFactoryName) {
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-        jmsAdminOperations.setMinPoolSizeOnPooledConnectionFactory(connectionFactoryName, 10);
-        jmsAdminOperations.setMaxPoolSizeOnPooledConnectionFactory(connectionFactoryName, 20);
-        jmsAdminOperations.setTransactionTimeout(60000);
-        jmsAdminOperations.createQueue("default", inQueueName, inQueue, true);
-        jmsAdminOperations.createQueue("default", outQueueName, outQueue, true);
-        jmsAdminOperations.close();
-        container.stop();
     }
 }

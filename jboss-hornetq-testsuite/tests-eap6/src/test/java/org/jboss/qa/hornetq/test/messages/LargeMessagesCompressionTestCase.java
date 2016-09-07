@@ -8,10 +8,11 @@ import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
 import org.hornetq.core.remoting.impl.netty.TransportConstants;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -47,10 +48,6 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     private static final int MIN_LARGE_MESSAGE_SIZE = 100 * 1024;
 
-    private static final String QUEUE_NAME = "TestQueue";
-
-    private static final String QUEUE_CORE_NAME = "jms.queue.TestQueue";
-
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
 
     private final Random random = new SecureRandom();
@@ -72,8 +69,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testUncompressedNormalMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
 
@@ -93,8 +90,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testCompressedLargeMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
 
@@ -112,8 +109,8 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare("OneNode")
     public void testLargeMessageCompressedToNormalMessage() throws Exception {
-        this.prepare();
 
         container(1).restart();
 
@@ -149,10 +146,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             ClientMessage msg = session.createMessage(Message.TEXT_TYPE, true);
             msg.getBodyBuffer().writeString(messageContents);
 
-            ClientProducer producer = session.createProducer(QUEUE_CORE_NAME);
+            ClientProducer producer = session.createProducer("jms.queue." + PrepareBase.QUEUE_NAME);
             producer.send(msg);
 
-            ClientConsumer consumer = session.createConsumer(QUEUE_CORE_NAME);
+            ClientConsumer consumer = session.createConsumer("jms.queue." + PrepareBase.QUEUE_NAME);
             session.start();
             ClientMessage received = consumer.receive(RECEIVE_TIMEOUT);
 
@@ -191,12 +188,6 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
         return builder.toString();
     }
 
-
-    private void prepare() {
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(QUEUE_NAME, QUEUE_NAME);
-        ops.close();
-    }
     private LargeMessagePacketInterceptor getLargeMessagePacketInterceptor()   {
         ServiceLoader<LargeMessagePacketInterceptor> serviceLoader = ServiceLoader.load(LargeMessagePacketInterceptor.class);
         Iterator<LargeMessagePacketInterceptor> iterator = serviceLoader.iterator();

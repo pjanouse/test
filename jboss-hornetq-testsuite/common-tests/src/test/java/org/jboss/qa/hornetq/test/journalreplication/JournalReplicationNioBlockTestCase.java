@@ -1,7 +1,10 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -18,19 +21,9 @@ import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPol
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>
  *
  */
-public class JournalReplicationNioBlockTestCase extends JournalReplicationAbstract
-{
-
-	@Override
-	public Constants.JOURNAL_TYPE getJournalType()
-	{
-		return Constants.JOURNAL_TYPE.NIO;
-	}
-
-	@Override
-	public AddressFullPolicy getAddressFullPolicy()
-	{
-		return AddressFullPolicy.BLOCK;
-	}
-
+@Prepare(params = {
+		@Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
+		@Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
+})
+public class JournalReplicationNioBlockTestCase extends JournalReplicationAbstract {
 }

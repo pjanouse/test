@@ -3,14 +3,16 @@ package org.jboss.qa.artemis.test.messages;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
@@ -39,8 +41,6 @@ import java.util.*;
 public class LastValueQueuesTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(LastValueQueuesTestCase.class);
-    private String QUEUE_NAME = "testQueue";
-    private String QUEUE_JNDI_NAME = "jms/queue/" + QUEUE_NAME;
 
     /**
      * @tpTestDetails Server is started and queue is deployed. Address setting is configured to recognize queue as
@@ -58,6 +58,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTest() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP"), false, 1, false);
     }
@@ -80,6 +85,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestTwoValues() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP", "MY_PROP2"), false, 2, false);
     }
@@ -104,6 +114,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestAlsoWithoutLastValueMessages() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP"), true, 11, false);
     }
@@ -125,6 +140,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestLargeMessages() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP"), false, 1, true);
     }
@@ -147,6 +167,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestTwoValuesLargeMessages() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP", "MY_PROP2"), false, 2, true);
     }
@@ -171,14 +196,17 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5 * 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestAlsoWithoutLastValueMessagesLargeMessages() throws Exception {
         testOnOneNode(container(1), Arrays.asList("MY_PROP"), true, 11, true);
     }
 
     private void testOnOneNode(Container container, List<String> lvqPropNames, boolean sendNonLvq, int expectedReceiveSize, boolean isLargeMessage) throws Exception {
         String largeMessageSuffix = new String(new char[1024 * 120]);
-
-        prepareServer(container);
 
         container.start();
 
@@ -187,7 +215,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(QUEUE_JNDI_NAME);
+        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
 
@@ -209,7 +237,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, new JMSTools().countMessages(QUEUE_NAME, container(1)));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -260,6 +288,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 10 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 2 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestWithPaging() throws Exception {
         internalLastValueQueueTestWithPaging(false);
     }
@@ -288,6 +321,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 10 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 2 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueTestWithPagingLargeMessages() throws Exception {
         internalLastValueQueueTestWithPaging(true);
     }
@@ -300,8 +338,6 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         String basicPropertyText = "MY_LVQ_PROP_";
         String largeMessageSuffix = new String(new char[150 * 1024]);
 
-        prepareServer(container(1), true);
-
         container(1).start();
 
         Context context = container(1).getContext();
@@ -309,7 +345,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(QUEUE_JNDI_NAME);
+        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
         connection.start();
@@ -332,7 +368,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
 
         //message with LVQ_PROP_42 is send twice, so 300 messages should be in InQueue (301 messages were send)
         //Assert.assertEquals("Only " + numMessages + " messages should be in queue", numMessages, new JMSTools().countMessages(QUEUE_NAME, container(1)));
-        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + new JMSTools().countMessages(QUEUE_NAME, container(1)));
+        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -380,6 +416,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "TwoNodes", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueClusterTest() throws Exception {
         testInCluster(container(1), container(2), Arrays.asList("MY_PROP"), 1);
     }
@@ -401,13 +442,16 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "TwoNodes", params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024),
+            @Param(name = PrepareParams.LAST_VALUE_QUEUE, value = "true")
+    })
     public void lastValueQueueClusterTestTwoValues() throws Exception {
         testInCluster(container(1), container(2), Arrays.asList("MY_PROP", "SECOND_PROP"), 2);
     }
 
     private void testInCluster(Container container1, Container container2, List<String> lvqPropNames, int expectedReceiveSize) throws Exception {
-        prepareServerCluster(container1);
-        prepareServerCluster(container2);
 
         container1.start();
         container2.start();
@@ -417,7 +461,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(QUEUE_JNDI_NAME);
+        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
 
@@ -434,11 +478,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, new JMSTools().countMessages(QUEUE_NAME, container1, container2));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container1, container2));
 
         JMSTools.cleanupResources(context, connection, session);
 
-        ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container2, QUEUE_JNDI_NAME);
+        ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container2, PrepareBase.QUEUE_JNDI);
         receiverAutoAck.start();
         receiverAutoAck.join();
 
@@ -452,73 +496,5 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         for (int i = 0; i < lvqPropNames.size(); i++) {
             Assert.assertTrue("Last send message should be received", receiverAutoAck.getListOfReceivedMessages().get(i).containsValue(lastMessageId.get(lvqPropNames.get(i))));
         }
-    }
-
-
-    private void prepareServerCluster(Container container) {
-
-        String discoveryGroupName = "dg-group1";
-        String broadCastGroupName = "bg-group1";
-        String clusterGroupName = "my-cluster";
-        String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
-        String connectionFactoryName = "RemoteConnectionFactory";
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        container.start();
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-        try {
-
-            if (container.getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
-                jmsAdminOperations.setClustered(true);
-
-            }
-            jmsAdminOperations.setPersistenceEnabled(true);
-
-            jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
-            jmsAdminOperations.setBroadCastGroup(broadCastGroupName, messagingGroupSocketBindingName, 2000, connectorName, "");
-
-            jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
-            jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
-
-            jmsAdminOperations.removeClusteringGroup(clusterGroupName);
-            jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true,
-                    connectorName);
-
-            jmsAdminOperations.setHaForConnectionFactory(connectionFactoryName, true);
-            jmsAdminOperations.setBlockOnAckForConnectionFactory(connectionFactoryName, true);
-            jmsAdminOperations.setRetryIntervalForConnectionFactory(connectionFactoryName, 1000L);
-            jmsAdminOperations.setRetryIntervalMultiplierForConnectionFactory(connectionFactoryName, 1.0);
-            jmsAdminOperations.setReconnectAttemptsForConnectionFactory(connectionFactoryName, 30);
-
-            jmsAdminOperations.setNodeIdentifier(new Random().nextInt());
-            jmsAdminOperations.disableSecurity();
-
-            jmsAdminOperations.removeAddressSettings("#");
-            jmsAdminOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
-            jmsAdminOperations.addAddressSettings("default", "jms.queue.testQueue", "PAGE", 1024 * 1024, 0, 0, 512 * 1024, true);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        } finally {
-            jmsAdminOperations.close();
-            container.stop();
-        }
-    }
-
-    private void prepareServer(Container container) {
-        prepareServer(container, false);
-    }
-
-    private void prepareServer(Container container, boolean paging) {
-        container.start();
-        JMSOperations jmsOperations = container(1).getJmsOperations();
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_NAME);
-        if (paging) {
-            jmsOperations.addAddressSettings("default", "jms.queue.testQueue", "PAGE", 10 * 1024, 0, 0, 2 * 1024, true);
-        } else {
-            jmsOperations.addAddressSettings("default", "jms.queue.testQueue", "PAGE", 5 * 1024 * 1024, 0, 0, 1024 * 1024, true);
-        }
-        jmsOperations.close();
-        container.stop();
     }
 }

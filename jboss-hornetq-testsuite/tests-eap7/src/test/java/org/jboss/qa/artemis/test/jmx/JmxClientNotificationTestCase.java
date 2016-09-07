@@ -9,6 +9,8 @@ import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -18,6 +20,8 @@ import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -51,17 +55,6 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(JmxClientNotificationTestCase.class);
 
-    @Before
-    public void startServerBeforeTest() {
-        container(1).stop();
-        container(1).start();
-    }
-
-    @After
-    public void stopServerAfterTest() {
-        container(1).stop();
-    }
-
     /**
      *
      * @tpTestDetails Test that there are proper JMX notifications sent on consumer connect/disconnect.
@@ -82,16 +75,12 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testConsumerConnectDisconnectNotifications() throws Exception {
-        String queueName = "testQueue";
-        String queueJndiName = "jms/queue/" + queueName;
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.setJmxManagementEnabled(true);
-        ops.createQueue(queueName + "0", queueJndiName + "0");
-        ops.close();
 
-        // we have to restart server for JMX to activate after config change
-        container(1).restart();
+        container(1).start();
 
         // connect notification listeners to HornetQ MBean server
         JmxNotificationListener jmsListener = container(1).createJmxNotificationListener();
@@ -108,7 +97,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             mbeanServer.addNotificationListener(objectNameBuilder.getJMSServerObjectName(), jmsListener, null, null);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
             clients.setMessages(1);
             clients.startClients();
             while (!clients.isFinished()) {
@@ -157,27 +146,22 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testDestroyQueueWithConnectedClients() throws Exception {
 
-        String queueName = "testQueue";
-        String queueJndiName = "jms/queue/" + queueName;
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.setJmxManagementEnabled(true);
-        ops.createQueue(queueName + "0", queueJndiName + "0");
-        ops.close();
-
-        // we have to restart server for JMX to activate after config change
-        container(1).restart();
+        container(1).start();
 
         JMXConnector connector = null;
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName queueControllerName = ObjectName.getInstance(
-                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName + "0");
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + PrepareBase.QUEUE_NAME_PREFIX + "0");
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1000);
+            Clients clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, 1, 1, 1, 1000);
             clients.setMessages(100000);
             clients.startClients();
 
@@ -199,9 +183,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
 
             // test that the queue was really destroyed by the JMX operation
-            ops = container(1).getJmsOperations();
+            JMSOperations ops = container(1).getJmsOperations();
             try {
-                ops.getCountOfMessagesOnQueue(queueName + "0");
+                ops.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + "0");
                 Assert.fail("The queue was supposed to be destroyed by the JMX operation destroyQueue()");
             } catch (Exception ex) {
                 // this is expected
@@ -235,16 +219,12 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testDestroyQueueWithoutConnectedClients() throws Exception {
-        String queueName = "testQueue";
-        String queueJndiName = "jms/queue/" + queueName;
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.setJmxManagementEnabled(true);
-        ops.createQueue(queueName + "0", queueJndiName + "0");
-        ops.close();
 
-        // we have to restart server for JMX to activate after config change
-        container(1).restart();
+        container(1).start();
 
         JMXConnector connector = null;
         try {
@@ -254,9 +234,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             LOG.info("Getting queue controller from JMX");
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName queueControllerName = ObjectName.getInstance(
-                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName + "0");
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + PrepareBase.QUEUE_NAME);
 
-            LOG.info("Destroying queue " + queueName + "0 via JMX");
+            LOG.info("Destroying queue " + PrepareBase.QUEUE_NAME + " via JMX");
             // remove operation returns null
             mbeanServer.invoke(queueControllerName, "remove", null, null);
         } finally {
@@ -266,9 +246,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         }
 
         // test that the queue was really destroyed by the JMX operation
-        ops = container(1).getJmsOperations();
+        JMSOperations ops = container(1).getJmsOperations();
         try {
-            ops.getCountOfMessagesOnQueue(queueName + "0");
+            ops.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME);
             Assert.fail("The queue was supposed to be destroyed by the JMX operation destroyQueue()");
         } catch (Exception ex) {
             // this is expected
@@ -277,7 +257,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         //Thread.sleep(600000);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), queueJndiName + "0", 30);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 30);
         producerToInQueue1.setCommitAfter(10);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -288,7 +268,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         // check that the queue was not automatically created by the broker when we connected producer
         JMSOperations jmsOperations = container(1).getJmsOperations();
         try {
-            jmsOperations.getCountOfMessagesOnQueue(queueName + "0");
+            jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME);
             Assert.fail("Operation count messages must fail because queue was destroyed.");
         } catch (Exception ex) {
             // this is expected
@@ -314,26 +294,22 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testDestroyTopicWithConnectedClients() throws Exception {
-        String topicName = "testTopic";
-        String topicJndiName = "jms/topic/" + topicName;
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.setJmxManagementEnabled(true);
-        ops.createTopic(topicName + "0", topicJndiName + "0");
-        ops.close();
 
-        // we have to restart server for JMX to activate after config change
-        container(1).restart();
+        container(1).start();
 
         JMXConnector connector = null;
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName topicControllerName = ObjectName.getInstance(
-                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + topicName + "0");
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + PrepareBase.TOPIC_NAME_PREFIX + "0");
 
             // send and receive single message
-            Clients clients = new TopicClientsAutoAck(container(1), topicJndiName, 1, 1, 1, 1);
+            Clients clients = new TopicClientsAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, 1, 1, 1, 1);
             clients.setMessages(100000);
             clients.startClients();
 
@@ -355,9 +331,9 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
 
             // test that the queue was really destroyed by the JMX operation
-            ops = container(1).getJmsOperations();
+            JMSOperations ops = container(1).getJmsOperations();
             try {
-                ops.removeTpicJNDIName(topicName, topicJndiName);
+                ops.removeTpicJNDIName(PrepareBase.TOPIC_NAME_PREFIX + "0", PrepareBase.TOPIC_JNDI_PREFIX + "0");
                 Assert.fail("The topic was supposed to be destroyed by the JMX operation");
             } catch (Exception ex) {
                 // this is expected
@@ -390,23 +366,19 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testDestroyTopicWithoutConnectedClients() throws Exception {
-        String topicName = "testTopic";
-        String topicJndiName = "jms/topic/" + topicName;
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.setJmxManagementEnabled(true);
-        ops.createTopic(topicName + "0", topicJndiName + "0");
-        ops.close();
 
-        // we have to restart server for JMX to activate after config change
-        container(1).restart();
+        container(1).start();
 
         JMXConnector connector = null;
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName topicControllerName = ObjectName.getInstance(
-                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + topicName + "0");
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + PrepareBase.TOPIC_NAME);
 
             mbeanServer.invoke(topicControllerName, "remove", null, null);
         } finally {
@@ -415,8 +387,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        PublisherTransAck publisher = new PublisherTransAck(container(1),
-                topicJndiName + "0", 30, "publisher");
+        PublisherTransAck publisher = new PublisherTransAck(container(1), PrepareBase.TOPIC_JNDI, 30, "publisher");
         publisher.setCommitAfter(10);
         publisher.setTimeout(0);
         publisher.start();
@@ -427,7 +398,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         // check that queue was destroyed
         JMSOperations jmsOperations = container(1).getJmsOperations();
         try {
-            jmsOperations.removeTpicJNDIName(topicName, topicJndiName);
+            jmsOperations.removeTpicJNDIName(PrepareBase.TOPIC_NAME, PrepareBase.TOPIC_JNDI);
             Assert.fail("Operation getJNDIEntriesForTopic must fail because topic was destroyed.");
         } catch (Exception ex) {
             // this is expected
@@ -454,20 +425,19 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "OneNode", params = {
+            @Param(name = PrepareParams.JMX_MANAGEMENT_ENABLED, value = "true")
+    })
     public void testDuplicateJNDIName() throws Exception {
-        String queueName = "myTestQueue";
-        String queueJndiName = "jms/queue/" + queueName;
 
-        JMSOperations ops = container(1).getJmsOperations();
-        ops.createQueue(queueName, queueJndiName, true);
-        ops.close();
+        container(1).start();
 
         JMXConnector connector = null;
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             ObjectName queueControllerName = ObjectName.getInstance(
-                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + queueName);
+                    "jboss.as:subsystem=messaging-activemq,server=default,jms-queue=" + PrepareBase.QUEUE_NAME);
 
             try {
                 mbeanServer.invoke(queueControllerName, "add-jndi",

@@ -4,6 +4,7 @@ package org.jboss.qa.hornetq.test.failover;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
@@ -15,6 +16,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
+import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -59,20 +61,22 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
     private static final int LARGE_MESSAGE_SIZE = 1048576;
 
-    // queue to send messages in
-    private static final String IN_QUEUE_NAME = "InQueue";
-
-    private static final String IN_QUEUE = "jms/queue/" + IN_QUEUE_NAME;
-
-    // queue for receive messages out
-    private static final String OUT_QUEUE_NAME = "OutQueue";
-
-    private static final String OUT_QUEUE = "jms/queue/" + OUT_QUEUE_NAME;
-
     private final Archive mdb1Lodh1 = createLodh1Deployment();
     private final Archive mdb2Copy = createLodh1CopyDeployment();
 
     private String container1LargeMessageDir = null;
+
+    @Before
+    public void setUpContainerLargeMessageDir() {
+        container(1).start();
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+        container1LargeMessageDir = container(1).getServerHome() + File.separator
+                + "standalone" + File.separator
+                + "data" + File.separator
+                + jmsOperations.getJournalLargeMessageDirectoryPath();
+        jmsOperations.close();
+        container(1).stop();
+    }
 
     public JavaArchive createLodh1Deployment() {
 
@@ -141,6 +145,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "start",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnTransactionStart() throws Exception {
         this.generalLodh1Test();
     }
@@ -175,6 +180,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetMethod = "start",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillAfterTransactionStart() throws Exception {
         this.generalLodh1Test();
     }
@@ -207,6 +213,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "end",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnTransactionEnd() throws Exception {
         this.generalLodh1Test();
     }
@@ -241,6 +248,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetMethod = "end",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillAfterTransactionEnd() throws Exception {
         this.generalLodh1Test();
     }
@@ -273,6 +281,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "prepare",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnTransactionPrepare() throws Exception {
         this.generalLodh1Test();
     }
@@ -307,6 +316,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetMethod = "prepare",
                     isAfter = true,
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillAfterTransactionPrepare() throws Exception {
         this.generalLodh1Test();
     }
@@ -339,6 +349,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "commit",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -373,6 +384,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetMethod = "commit",
                     targetLocation = "EXIT",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillAfterTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -405,6 +417,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.ra.ActiveMQRAXAResource",
                     targetMethod = "commit",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillWithLargeMessagesOnTransactionCommit() throws Exception {
         this.generalLodh1Test();
     }
@@ -437,6 +450,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "createLargeMessage",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnCreatingLargeMessage() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -473,6 +487,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.server.impl.ServerSessionImpl",
                     targetMethod = "sendContinuations",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnSendingLargeMessage() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -505,6 +520,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "createFileForLargeMessage",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     public void testServerKillOnCreatingLargeMessageFile() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
     }
@@ -537,6 +553,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteLargeMessageFile",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     @Ignore
     public void testServerKillOnDeletingLargeMessageFilePassThrough() throws Exception {
         this.generalLodh1Test(mdb2Copy, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
@@ -556,6 +573,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
                     targetClass = "org.apache.activemq.artemis.core.persistence.impl.journal.JournalStorageManager",
                     targetMethod = "deleteLargeMessageFile",
                     action = "traceStack(\"!!!!! Killing server NOW !!!!!\\n\"); killJVM();")})
+    @Prepare(value = "OneNode")
     @Ignore
     public void testServerKillOnDeletingLargeMessageFile() throws Exception {
         this.generalLodh1Test(mdb1Lodh1, new ByteMessageBuilder(LARGE_MESSAGE_SIZE));
@@ -568,8 +586,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private void generalLodh1Test(final Archive deployment, final MessageBuilder msgBuilder) throws Exception {
-
-        prepareJmsServer(container(1));
 
         container(1).start();
 
@@ -605,9 +621,9 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         jmsOperations.close();
 
         // wait for InQueue to be empty
-        new JMSTools().waitForMessages(IN_QUEUE_NAME, 0, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.IN_QUEUE_NAME, 0, 300000, container(1));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        new JMSTools().waitForMessages(OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         getLargeMessageDirFilesNumber(true); //prints content of large message directory
 
@@ -624,7 +640,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private List<Map<String, String>> sendMessages(final MessageBuilder builder) throws Exception {
-        SoakProducerClientAck producer = new SoakProducerClientAck(container(1), IN_QUEUE,
+        SoakProducerClientAck producer = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);
         producer.setMessageBuilder(builder);
@@ -642,7 +658,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new ReceiverTransAck(container(1), OUT_QUEUE, 5000, 10, 10);
+            receiver = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 5000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();
@@ -656,64 +672,6 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         }
     }
 
-
-    @Before
-    @After
-    @Override
-    public void stopAllServers() {
-        container(1).stop();
-    }
-
-
-    /**
-     * Prepares jms server for remote jca topology.
-     *
-     * @param container Test container - defined in arquillian.xml
-     */
-    private void prepareJmsServer(Container container) {
-            prepareJmsServerEAP6EAP7(container);
-    }
-
-    private void prepareJmsServerEAP6EAP7(Container container) {
-
-        container.start();
-
-        JMSOperations jmsAdminOperations = container.getJmsOperations();
-
-        jmsAdminOperations.setPersistenceEnabled(true);
-        jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", 512 * 1024, 0, 0, 50 * 1024);
-        jmsAdminOperations.removeClusteringGroup("my-cluster");
-        jmsAdminOperations.removeBroadcastGroup("bg-group1");
-        jmsAdminOperations.removeDiscoveryGroup("dg-group1");
-        jmsAdminOperations.setNodeIdentifier(1234567);
-
-        // enable trace logs
-        jmsAdminOperations.addLoggerCategory("org.hornetq", "TRACE");
-        jmsAdminOperations.seRootLoggingLevel("TRACE");
-
-        try {
-            jmsAdminOperations.removeQueue(IN_QUEUE_NAME);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", IN_QUEUE_NAME, IN_QUEUE, true);
-
-        try {
-            jmsAdminOperations.removeQueue(OUT_QUEUE_NAME);
-        } catch (Exception e) {
-            // Ignore it
-        }
-        jmsAdminOperations.createQueue("default", OUT_QUEUE_NAME, OUT_QUEUE, true);
-
-        container1LargeMessageDir = container(1).getServerHome() + File.separator
-                + "standalone" + File.separator
-                + "data" + File.separator
-                + jmsAdminOperations.getJournalLargeMessageDirectoryPath();
-
-        jmsAdminOperations.close();
-        container.stop();
-    }
 
     private static String createEjbJarXml(final Class<?> mdbClass) {
 
@@ -735,7 +693,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(IN_QUEUE)
+        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI)
                 .append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
@@ -745,7 +703,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(OUT_QUEUE).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
