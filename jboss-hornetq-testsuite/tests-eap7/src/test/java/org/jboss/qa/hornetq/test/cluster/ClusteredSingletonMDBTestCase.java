@@ -125,7 +125,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterMDBSigletonTestAnnotation() throws Exception {
-        clusterMDBSigletonTest(HA_SINGLETON_MDB_ANNOTATED);
+        clusterMDBSigletonTest(HA_SINGLETON_MDB_ANNOTATED, Constants.FAILURE_TYPE.SHUTDOWN);
     }
 
     /**
@@ -142,10 +142,44 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void clusterMDBSigletonTestDescriptors() throws Exception {
-        clusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS);
+        clusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS, Constants.FAILURE_TYPE.SHUTDOWN);
     }
 
-    public void clusterMDBSigletonTest(Archive mdb) throws Exception {
+    /**
+     * @tpTestDetails Start two server in Artemis cluster with delivery group "group" active
+     * and deploy queue InQueue and OutQueue.
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (by annotations configured
+     * HA MDB singleton) to both of the server
+     * with HA singleton enabled. Check that node 1 in singleton master and mdb active. Check that mdb on node is
+     * not active. Kill node 1 and check mdb on node 2 is active.
+     * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterMDBSigletonTestAnnotationKill() throws Exception {
+        clusterMDBSigletonTest(HA_SINGLETON_MDB_ANNOTATED, Constants.FAILURE_TYPE.KILL);
+    }
+
+    /**
+     * @tpTestDetails Start two server in Artemis cluster with delivery group "group" active
+     * and deploy queue InQueue and OutQueue.
+     * Start sending messages to InQueue and consume from OutQueue to/from node2. Deploy MDB (by ejb descriptors configured
+     * HA singleton) to both of the server
+     * with HA singleton enabled. Check that node 1 in singleton master and mdb active. Check that mdb on node is
+     * not active. Kill node 1 and check mdb on node 2 is active.
+     * @tpPassCrit MDB on node is active at the end of the test and all messages were processed.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void clusterMDBSigletonTestDescriptorsKill() throws Exception {
+        clusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS, Constants.FAILURE_TYPE.KILL);
+    }
+
+    public void clusterMDBSigletonTest(Archive mdb, Constants.FAILURE_TYPE failureType) throws Exception {
 
         prepareServer(container(1), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, true);
         prepareServer(container(2), Constants.HA_SINGLETON_MDB_DELIVERY_GROUP_NAME, true);
@@ -172,7 +206,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
         // shutdown node 1 and check that mdb 2 is active
-        container(1).stop();
+        container(1).fail(failureType);
 
         // start node 1 and check that mdb 2 is active and mdb on node 1 is inactive
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
@@ -181,8 +215,6 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         queueProducer.stopSending();
         queueProducer.join();
         queueConsumer.join();
-
-        Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());
 
         container(1).stop();
         container(2).stop();
