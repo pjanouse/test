@@ -105,7 +105,7 @@ public class ServerPathUtils {
 
         String activeOverlay = getActiveOverlay(eapHomeDir, eapVersion);
         if (activeOverlay != null) {
-            return new File(container + File.separator + CP_OVERLAYS_DIR, activeOverlay);
+            return new File(eapHomeDir + File.separator + CP_OVERLAYS_DIR, activeOverlay);
         } else {
             return null;
         }
