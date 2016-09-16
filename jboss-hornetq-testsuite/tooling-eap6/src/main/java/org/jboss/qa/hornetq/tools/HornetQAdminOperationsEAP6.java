@@ -1615,7 +1615,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
         model.get(ClientConstants.OP_ADDR).add("path", "large-messages-directory");
-        model.get("path").set(path + File.separator + "mesaaginglargemessages");
+        model.get("path").set(path + File.separator + "messaginglargemessages");
 
         try {
             this.applyUpdate(model);

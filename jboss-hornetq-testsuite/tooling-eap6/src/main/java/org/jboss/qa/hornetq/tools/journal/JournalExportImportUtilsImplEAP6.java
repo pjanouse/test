@@ -152,17 +152,26 @@ public class JournalExportImportUtilsImplEAP6 implements JournalExportImportUtil
         BufferedReader reader = new BufferedReader(new InputStreamReader(importProcess.getInputStream()));
 
         String line;
+        boolean noExceptionsEncountered = true;
         try {
             while ((line = reader.readLine()) != null) {
                 LOG.info(line);
+                if (noExceptionsEncountered) {
+                    noExceptionsEncountered = !line.contains("Exception");
+                }
             }
         } finally {
             reader.close();
         }
 
         int retval = importProcess.waitFor();
+
+        if (!noExceptionsEncountered) {
+            LOG.error("There was an exception during the journal import process, see logs for details...");
+        }
+
         LOG.info("Journal import is done (with return code " + retval + ")");
-        return retval == 0;
+        return (retval == 0) && noExceptionsEncountered;
     }
 
     @Override
