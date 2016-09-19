@@ -10,6 +10,8 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -151,6 +153,19 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
+
+    /**
+     * Exporting message with null using CLI operations
+     *
+     * @tpTestDetails Start single server. Send text message with null property
+     * to the destination on the server. Once sent, shut the server down. Export
+     * journal and then import using CLI. (clean server instance between export and import). Read the
+     * messages from the destination.
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     * @tpInfo <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     * @see <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1121685">BZ1121685</a>
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -227,32 +242,94 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
+    /**
+     * Exporting message with null using CLI operations
+     *
+     * @tpTestDetails Start single server. Send 50 messages of various types and sizes (normal, large)
+     * to the destination on the server. Once sent, restart server in admin only mode. Export
+     * journal, stop server, clean it, start server and import using CLI. Read the
+     * messages from the destination.
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportAllTypeMessagesUsingAdminOperation() throws Exception {
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(1, 1024 * 200);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, false);
+    }
+
+    /**
+     * Exporting message with null using CLI operations
+     *
+     * @tpTestDetails Start single server. Send 50 messages of various types and sizes (normal, large)
+     * to the destination on the server. Compress large messages. Once sent, restart server in admin only mode. Export
+     * journal, stop server, clean it, start server and import using CLI. Read the
+     * messages from the destination.
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportCompressedAllTypeMessagesUsingAdminOperation() throws Exception {
+        MessageBuilder messageBuilder = new ClientMixMessageBuilder(1, 1024 * 200);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, true);
+    }
+
+    /**
+     * Exporting message with null using CLI operations
+     *
+     * @tpTestDetails Start single server. Send 50 messages large TextMessages
+     * to the destination on the server. Once sent, restart server in admin only mode. Export
+     * journal, stop server, clean it, start server and import using CLI. Read the
+     * messages from the destination.
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportLargeMessagesUsingAdminOperation() throws Exception {
-        internalTestExportImportLargeMessagesUsingAdminOperation(false);
+
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
+
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, false);
     }
 
+    /**
+     * Exporting message with null using CLI operations
+     *
+     * @tpTestDetails Start single server. Send 50 messages large TextMessages
+     * to the destination on the server with enabled compression. Once sent, restart server in admin only mode. Export
+     * journal, stop server, clean it, start server and import using CLI. Read the
+     * messages from the destination.
+     * @tpPassCrit All the test messages are successfully read and preserve all
+     * their properties
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportCompressedLargeMessagesUsingAdminOperation() throws Exception {
-        internalTestExportImportLargeMessagesUsingAdminOperation(true);
+
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
+        internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, true);
     }
 
-    private void internalTestExportImportLargeMessagesUsingAdminOperation(boolean compressMessages) throws Exception {
+    private void internalTestExportImportLargeMessagesUsingAdminOperation(MessageBuilder messageBuilder, boolean compressMessages) throws Exception {
 
         prepareServer(container(1), compressMessages);
 
         container(1).start();
 
-        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
-
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 20);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 50);
         producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setCommitAfter(5);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
         producerToInQueue1.join();
@@ -279,6 +356,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         ops.close();
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), TEST_QUEUE_NAME, 5000, 10, 10);
+        receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
 
