@@ -315,6 +315,50 @@ public final class JMSTools {
     }
 
     /**
+     *
+     * @param clients
+     * @return return true if all client threads in the list finished ( = Thread.isAlive() returns false)
+     * @throws InterruptedException
+     */
+    private static boolean isFinished(List<Client> clients) throws InterruptedException {
+
+        boolean isFinished = true;
+
+        for (Thread c : clients) {
+            if (c.isAlive()) {
+                isFinished = false;
+            }
+        }
+        return isFinished;
+    }
+
+    /**
+     * Waits for clients in the list to finish. If they do not
+     * finish in the specified time out then it fails the test.
+     *
+     * @param clients list of Client
+     * @param timeout timeout
+     */
+    public static void waitForClientsToFinish(List<Client> clients, long timeout) {
+
+        long startTime = System.currentTimeMillis();
+        try {
+            while (!isFinished(clients)) {
+                Thread.sleep(1000);
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    DebugTools.printThreadDump();
+                    for (Client c : clients) {
+                        c.forcedStop();
+                    }
+                    Assert.fail("Clients did not stop in : " + timeout + "ms. Failing the test and trying to kill them all.");
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("waitForClientsToFinish failed: ", e);
+        }
+    }
+
+    /**
      * Ping the given port until it's open. This method is used to check whether
      * HQ started on the given port. For example after failover/failback.
      *

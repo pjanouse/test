@@ -5,10 +5,14 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
+import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
+import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
@@ -29,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * @author Miroslav Novak mnovak@redhat.com
  * @tpChapter Integration testing
  * @tpSubChapter Administration of HornetQ component
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
@@ -41,18 +45,11 @@ import java.util.List;
  * list-durable-subscriptions-as-json list-messages-for-subscription
  * list-messages-for-subscription-as-json list-non-durable-subscriptions
  * list-non-durable-subscriptions-as-json remove-messages
- * 
  * @tpInfo For more details see current coverage: https://mojo.redhat.com/docs/DOC-185811
- *
- *
- * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class JmsTopicOperationsTestCase extends CliTestBase {
-
-    @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);
 
@@ -84,7 +81,6 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     }
 
     /**
-     *
      * @tpTestDetails Server is started. Create subscriber and start
      * subscription to servers topic. Create publisher and start publishing
      * messages to servers topic. Using CLI commands try to call topic
@@ -188,6 +184,112 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
 
     }
 
+    /**
+     * @tpTestDetails Server is started. Create subscriber and start 200
+     * subscribers to server topic. Create publisher and start publishing
+     * messages to servers topic. Using CLI commands try to call topic
+     * operations. Optionally validate for operations whether they are working
+     * correctly.
+     * @tpProcedure <ul>
+     * <li>start one server</li>
+     * <li>create and start 200 subscribers for topic deployed on server</li>
+     * <li>create and start publisher for topic deployed on server</li>
+     * <li>connect to CLI</li>
+     * <li>Try to invoke operation on topic</li>
+     * <li>Optional: Validate that operation is working as expected</li>
+     * <li>stop publisher<li/>
+     * <li>stop server<li/>
+     * </ul>
+     * @tpPassCrit invocation of topic operations was successful
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testOperationsWithConnectedClientsUnderLoad() throws Exception {
+
+        // setup server
+        prepareServer(container(1));
+
+        logger.info("Starting subscribers.");
+        // start slow subscribers - try 200 subscriptions
+        int numberOfSubscribers = 200;
+        List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
+        for (int i = 0; i < numberOfSubscribers; i++) {
+            SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), topicJndiName, 120000, 5, 10, "subs" + i, "name" + i);
+            topicSubscriber.setTimeout(1000); // make subscriber really slow 1msb/sec
+            topicSubscriber.subscribe();
+            subscribers.add(topicSubscriber);
+            Thread.sleep(50); // do not create subscribers too fast
+            topicSubscriber.start();
+        }
+        usedClients.addAll(subscribers);
+        logger.info("Subscribers started.");
+
+        logger.info("Starting publisher");
+        // send some messages to it
+        PublisherTransAck publisherTransAck = new PublisherTransAck(container(1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "publisher");
+        publisherTransAck.setMessageBuilder(new TextMessageBuilder(1));
+        publisherTransAck.setCommitAfter(7);
+        publisherTransAck.setTimeout(0);
+        publisherTransAck.start();
+
+        List<Client> producers = new ArrayList<Client>();
+        producers.add(publisherTransAck);
+        logger.info("Waiting for messages");
+        ClientUtils.waitForProducersUntil(producers, 2000, 300000);
+
+        // call different cli operations 100 times in a row
+        int numberOfOperationTries = 10;
+        long timeout = 60000;
+        for (int i = 0; i < numberOfOperationTries; i++) {
+
+            logger.info("Call adminoperations - iteration - " + i);
+            Result r3 = runOperation("list-all-subscriptions", timeout, null);
+            logger.info("Result list-all-subscriptions : " + r3.getResponse().asString());
+            CliTestUtils.assertSuccess(r3);
+
+            Result r4 = runOperation("list-all-subscriptions-as-json", timeout, null);
+            logger.info("Result list-all-subscriptions-as-json : " + r4.getResponse().asString());
+            CliTestUtils.assertSuccess(r4);
+
+            Result r33 = runOperation("list-all-subscriptions", timeout, null);
+            logger.info("Result list-all-subscriptions : " + r33.getResponse().asString());
+            CliTestUtils.assertSuccess(r33);
+
+            Result r5 = runOperation("list-durable-subscriptions", timeout, null);
+            logger.info("Result list-durable-subscriptions: " + r5.getResponse().asString());
+            CliTestUtils.assertSuccess(r5);
+
+            Result r6 = runOperation("list-durable-subscriptions-as-json", timeout, null);
+            logger.info("Result list-durable-subscriptions-as-json: " + r6.getResponse().asString());
+            CliTestUtils.assertSuccess(r6);
+
+            Result r9 = runOperation("list-non-durable-subscriptions", timeout, null);
+            logger.info("Result list-non-durable-subscriptions: " + r9.getResponse().asString());
+            CliTestUtils.assertSuccess(r9);
+
+            Thread.sleep(1000);
+        }
+
+        publisherTransAck.stopSending();
+        publisherTransAck.join();
+        logger.info("Stopping publisher");
+
+        // make all subscribers fast again
+        for (SubscriberTransAck s : subscribers)    {
+            s.setTimeout(0);
+        }
+
+        for (SubscriberTransAck s : subscribers)    {
+            s.join();
+        }
+
+        container(1).stop();
+    }
+
     private Result runOperation(final String operation, final String... params) {
         String cmd;
         if (container(1).getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
@@ -196,6 +298,16 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
             cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
         }
         return this.cli.executeCommand(cmd);
+    }
+
+    private Result runOperation(final String operation, long timeout, final String... params) throws Exception {
+        String cmd;
+        if (container(1).getContainerType() == Constants.CONTAINER_TYPE.EAP6_CONTAINER) {
+            cmd = CliUtils.buildCommand(ADDRESS_EAP6, ":" + operation, params);
+        } else {
+            cmd = CliUtils.buildCommand(ADDRESS_EAP7, ":" + operation, params);
+        }
+        return this.cli.executeCommand(cmd, timeout);
     }
 
     private void prepareServer(Container container) {
@@ -221,7 +333,11 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         }
         jmsAdminOperations.createQueue(expireCoreQueueName, expireQueueJndiName);
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", 1024 * 1024 * 10, 0, 0, 1024 * 1024, "jms.queue." + expireCoreQueueName, "jms.queue." + dlqCoreQueueName);
+
+        // disable trace logging
+        jmsAdminOperations.seRootLoggingLevel("INFO");
+        jmsAdminOperations.disableTraceLoggingToFile();
 
         jmsAdminOperations.close();
     }

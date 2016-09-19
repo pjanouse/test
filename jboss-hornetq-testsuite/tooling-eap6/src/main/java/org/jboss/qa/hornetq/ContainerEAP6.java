@@ -254,6 +254,7 @@ public class ContainerEAP6 implements Container {
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
 
+        final Container con = this;
         Thread shutdownHook = new Thread() {
             public void run() {
 
@@ -263,6 +264,7 @@ public class ContainerEAP6 implements Container {
                             || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
 
                         if (System.currentTimeMillis() - startTime > timeout) {
+                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt"));
                             // kill server because shutdown hangs and fail test
                             try {
                                 if (System.getProperty("os.name").contains("Windows")) {

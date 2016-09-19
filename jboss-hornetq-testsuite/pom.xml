@@ -23,7 +23,7 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.9.CP-bz1359195</eap6.org.jboss.qa.hornetq.apps.clients.version>
+        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.9</eap6.org.jboss.qa.hornetq.apps.clients.version>
         <eap6.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.client>
         <eap6.controller.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.controller.client>
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
@@ -186,6 +186,10 @@
                     </systemPropertyVariables>
                     <argLine>${hornetq.surefire.jvm.options}</argLine>
                     <failIfNoTests>false</failIfNoTests>
+                    <!-- loads all arquillian.xml files -->
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>common-tests/src/main/resources</additionalClasspathElement>
+                    </additionalClasspathElements>
                 </configuration>
             </plugin>
             <plugin> <!-- copy security extension for eap 6 to target dir - used in SslAuthenticationTestCase -->

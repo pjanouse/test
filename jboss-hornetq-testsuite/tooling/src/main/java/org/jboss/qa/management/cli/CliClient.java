@@ -4,10 +4,12 @@ import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
+import org.junit.Assert;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.*;
 
@@ -50,6 +52,54 @@ public class CliClient {
 
         return result;
     }
+
+    /**
+     * Executes command and returns full output as CLI.Result
+     *
+     * @param command Command to be executed
+     * @return CLI.Result object containing request, response and success status of the operation all in one
+     */
+    public CLI.Result executeCommand(final String command, long timeout) throws Exception {
+
+        ExecuteCmd executeCmd = new ExecuteCmd(command);
+        executeCmd.start();
+        executeCmd.join(timeout);
+
+        if (executeCmd.isAlive() || executeCmd.getResult() == null) {
+            Assert.fail("Command: " + command + " was not executed in timeout - " + timeout + ". This indicates hang on server.");
+        }
+
+        return executeCmd.getResult();
+    }
+
+    private class ExecuteCmd extends Thread {
+
+        CLI.Result result = null;
+        String command = null;
+
+        public ExecuteCmd(String command)   {
+            this.command = command;
+        }
+
+        public void run()   {
+            CLI cli = CLI.newInstance();
+
+            log.debug("Connecting to native interface (" + cliConfig.getHost() + ":" + cliConfig.getPort() + ") via CLI");
+            cli.connect(cliConfig.getHost(), cliConfig.getPort(), cliConfig.getUser(), cliConfig.getPassword());
+
+            log.debug("Running cli command: " + command);
+            result = cli.cmd(command);
+
+            log.info("Executed command " + result.getCliCommand() + " ended with response " + result.getResponse());
+            cli.disconnect();
+            log.debug("Successfully disconnected");
+
+        }
+
+        public CLI.Result getResult() {
+            return result;
+        }
+    };
 
     /**
      * Execute the command via CLI and returns its response as ModelNode.

@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Producer extends Client {
 
-    protected AtomicBoolean stopSending = new AtomicBoolean(false);
+    protected volatile AtomicBoolean stopSending = new AtomicBoolean(false);
     protected int messages = 1000;
     protected MessageBuilder messageBuilder = new TextMessageBuilder(1000);
     protected List<Map<String,String>> listOfSentMessages = new ArrayList<Map<String,String>>();
