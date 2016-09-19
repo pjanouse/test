@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.Random;
 
 
@@ -74,11 +73,11 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         mdbJar.addAsManifestResource(new StringAsset(createEjbXml(Constants.HA_SINGLETON_MDB_NAME)), "jboss-ejb3.xml");
         log.info(mdbJar.toString(true));
         // Uncomment when you want to see what's in the servlet
-         File target = new File("/tmp/mdb.jar");
-         if (target.exists()) {
-         target.delete();
-         }
-         mdbJar.as(ZipExporter.class).exportTo(target, true);
+//         File target = new File("/tmp/mdb.jar");
+//         if (target.exists()) {
+//         target.delete();
+//         }
+//         mdbJar.as(ZipExporter.class).exportTo(target, true);
         return mdbJar;
     }
 
@@ -141,7 +140,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void clusterMDBSigletonTestDescriptors() throws Exception {
+    public void clusterMDBSigletonTestDescriptorsShutdown() throws Exception {
         clusterMDBSigletonTest(HA_SINGLETON_MDB_DESCRIPTORS, Constants.FAILURE_TYPE.SHUTDOWN);
     }
 
@@ -188,10 +187,14 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         container(2).start();
 
         ProducerTransAck queueProducer = new ProducerTransAck(container(2), inQueueJndiNameForMdb, 1000000);
-        ReceiverTransAck queueConsumer = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 10, 5);
-
+        queueProducer.setTimeout(50);
         queueProducer.start();
+        usedClients.add(queueProducer);
+
+        ReceiverTransAck queueConsumer = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 10, 5);
+        queueConsumer.setTimeout(0);
         queueConsumer.start();
+        usedClients.add(queueConsumer);
 
         // deploy MDB
         container(1).deploy(mdb);
@@ -210,7 +213,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
 
         // start node 1 and check that mdb 2 is active and mdb on node 1 is inactive
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
-                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
+                checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2), 60000));
 
         queueProducer.stopSending();
         queueProducer.join();
@@ -266,6 +269,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         ReceiverTransAck queueConsumer = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 10, 5);
 
         queueProducer.start();
+        usedClients.add(queueProducer);
 
         // deploy MDB
         container(1).deploy(mdb);
@@ -304,6 +308,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
                 container(1), container(2)) > 0);
 
         queueConsumer.start();
+        usedClients.add(queueConsumer);
         queueProducer.stopSending();
         queueProducer.join();
         queueConsumer.join();
@@ -363,9 +368,9 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         container(2).start();
 
         ProducerTransAck queueProducer = new ProducerTransAck(container(2), inQueueJndiNameForMdb, 1000000);
-        ReceiverTransAck queueConsumer = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 10, 5);
-
+        queueProducer.setTimeout(50);
         queueProducer.start();
+        usedClients.add(queueProducer);
 
         // deploy MDB
         container(1).deploy(mdb);
@@ -412,9 +417,13 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertFalse("MDB on node 1 is delivery active but it must not be. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
-        queueConsumer.start();
         queueProducer.stopSending();
         queueProducer.join();
+
+        ReceiverTransAck queueConsumer = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 10, 5);
+        queueConsumer.setTimeout(0);
+        queueConsumer.start();
+        usedClients.add(queueConsumer);
         queueConsumer.join();
 
         container(2).stop();
@@ -442,6 +451,29 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         jmsOperations.close();
     }
 
+
+    /**
+     * This will wait timeout for MDB delivery-active to be true.
+     * @param mdb
+     * @param mdbName
+     * @param container
+     * @param timeout
+     * @return returns true if MDB is delivery-active, false after timeout expires and MDB delivery is not active
+     */
+    private boolean checkThatMdbIsActive(Archive mdb, String mdbName, Container container, long timeout) throws Exception {
+
+        long startTime = System.currentTimeMillis();
+        while (!checkThatMdbIsActive(mdb, mdbName, container)) {
+            log.info("MDB - " + mdbName + " on node - " + container.getName() + " is not active yet.");
+
+            if (System.currentTimeMillis() - startTime > timeout)   {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+
+        return checkThatMdbIsActive(mdb, mdbName, container);
+    }
 
     private boolean checkThatMdbIsActive(Archive mdb, String mdbName, Container container) {
         JMSOperations jmsOperations = container.getJmsOperations();

@@ -14,6 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ProcessIdUtils;
@@ -135,6 +136,58 @@ public class ClusterTestCase extends ClusterTestBase {
 
         container(2).stop();
 
+    }
+
+    /**
+     * @tpTestDetails Start two server in HornetQ cluster and deploy queue InQueue and OutQueue to both of them.
+     * Start producer which sends messages to InQueue to first server. Deploy MDB to 2nd server which
+     * consumes messages from InQueue and for each message sends message to OutQueue.
+     * When MDB is processing messages then shutdown node 2 (with the MDB)
+     * @tpPassCrit Check there are not Exception in logs
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void shutdownNodeInClusterCheckNoExceptions() throws Exception {
+
+        prepareServers();
+
+        container(1).start();
+        container(2).start();
+
+        ProducerTransAck queueProducer = new ProducerTransAck(container(1), inQueueJndiNameForMdb, 1000000);
+        queueProducer.start();
+        usedClients.add(queueProducer);
+
+        // deploy MDB
+        container(2).deploy(MDB_ON_QUEUE1);
+
+        new JMSTools().waitForMessages(outQueueNameForMdb, 50, 60000, container(1), container(2));
+
+        // shutdown node 2
+        container(2).stop();
+
+        // stop sending messages
+        queueProducer.stopSending();
+        queueProducer.join();
+
+        container(1).stop();
+
+        // check that logs does not contains Exceptions
+        Assert.assertFalse("Server " + container(1).getName() + " cannot contain exceptions but there are. " +
+                "Check logs of the server for details. They can be found target directory with name of this tests.", checkServerLog(container(1)));
+        Assert.assertFalse("Server " + container(2).getName() + " cannot contain exceptions but there are. " +
+                "Check logs of the server for details. They can be found target directory with name of this tests.", checkServerLog(container(2)));
+    }
+
+    private boolean checkServerLog(Container container) throws Exception {
+        StringBuilder pathToServerLog = new StringBuilder(container.getServerHome());
+        pathToServerLog.append(File.separator).append("standalone").append(File.separator)
+                .append("log").append(File.separator).append("server.log");
+        return CheckFileContentUtils.checkThatFileContainsGivenString(new File(pathToServerLog.toString()), "Exception");
     }
 
     /**
