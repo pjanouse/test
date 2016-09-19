@@ -296,7 +296,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testExportImportLargeMessagesUsingAdminOperation() throws Exception {
 
-        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
+        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 2000);
 
         internalTestExportImportLargeMessagesUsingAdminOperation(messageBuilder, false);
     }
