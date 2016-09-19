@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
+import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -83,7 +84,69 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testExportImportMessageWithNullProperty() throws Exception {
-        internalTestExportImportMessage();
+
+        prepareServer(container(1));
+
+        container(1).start();
+
+        JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
+        journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
+
+        Context ctx = null;
+        Connection conn = null;
+        Session session = null;
+
+        try {
+            ctx = container(1). getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+            conn = factory.createConnection();
+
+            session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            MessageProducer producer = session.createProducer(testQueue);
+
+            Message msg = session.createTextMessage("Test text");
+            msg.setStringProperty("test_property", null);
+            producer.send(msg);
+        } finally {
+            JMSTools.cleanupResources(ctx, conn, session);
+        }
+
+        container(1).stop();
+
+        boolean exported = journalExportImportUtils.exportJournal(EXPORTED_JOURNAL_FILE_NAME);
+        assertTrue("Journal should be exported successfully", exported);
+
+        // delete the journal file before we import it again
+        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+
+        container(1).start();
+
+        boolean imported = journalExportImportUtils.importJournal(EXPORTED_JOURNAL_FILE_NAME);
+        assertTrue("Journal should be imported successfully", imported);
+
+        Message received;
+        try {
+            ctx = container(1).getContext();
+            ConnectionFactory factory = (ConnectionFactory) ctx.lookup(container(1).getConnectionFactoryName());
+            conn = factory.createConnection();
+            conn.start();
+
+            session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            Queue testQueue = (Queue) ctx.lookup(TEST_QUEUE_NAME);
+            MessageConsumer consumer = session.createConsumer(testQueue);
+
+            received = consumer.receive(RECEIVE_TIMEOUT);
+        } finally {
+            JMSTools.cleanupResources(ctx, conn, session);
+        }
+
+        assertNotNull("Received message should not be null", received);
+        assertNull("Tested property should be null", received.getStringProperty("test_property"));
+        assertTrue("Test message should be received as proper message type", received instanceof TextMessage);
+        assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
     /**
@@ -104,54 +167,18 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             action = BYTEMAN_SET_LONG_ID)
     })
     public void testExportImportMessageWithQueueWithLongID() throws Exception {
-        internalTestExportImportMessage(true);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testExportImportLargeMessages() throws Exception {
-        internalTestExportImportLargeMessages(false);
-    }
-
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void testExportImportCompressedLargeMessages() throws Exception {
-        internalTestExportImportLargeMessages(true);
-    }
-
-    @After
-    public void deleteJournalFiles() {
-        try {
-            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
-        } catch (Exception e) {
-            logger.error("Cannot delete journals directory. Hope it is ok and continue test, in case of failure this can be cause.", e);
-        }
-    }
-
-    private void internalTestExportImportMessage() throws Exception { internalTestExportImportMessage(false); }
-
-    private void internalTestExportImportMessage(boolean longId) throws Exception {
-
-        String queueName = longId ? LONG_TEST_QUEUE_NAME : TEST_QUEUE_NAME;
-
         prepareServer(container(1));
 
         container(1).start();
 
-        if (longId) {
-            logger.info("Installing Byteman rule before creating queue ...");
-            RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
+        logger.info("Installing Byteman rule before creating queue ...");
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
-            JMSOperations ops = container(1).getJmsOperations();
-            ops.createQueue(LONG_TEST_QUEUE, queueName, true);
+        JMSOperations ops = container(1).getJmsOperations();
+        ops.createQueue(LONG_TEST_QUEUE, LONG_TEST_QUEUE_NAME, true);
 
-            logger.info("Uninstalling Byteman rules after creating queue ...");
-            RuleInstaller.uninstallAllRules(container(1).getHostname(), container(1).getBytemanPort());
-        }
+        logger.info("Uninstalling Byteman rules after creating queue ...");
+        RuleInstaller.uninstallAllRules(container(1).getHostname(), container(1).getBytemanPort());
 
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
         journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
@@ -167,11 +194,10 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(queueName);
+            Queue testQueue = (Queue) ctx.lookup(LONG_TEST_QUEUE_NAME);
             MessageProducer producer = session.createProducer(testQueue);
 
             Message msg = session.createTextMessage("Test text");
-            if (!longId) msg.setStringProperty("test_property", null);
             producer.send(msg);
         } finally {
             JMSTools.cleanupResources(ctx, conn, session);
@@ -183,12 +209,9 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         assertTrue("Journal should be exported successfully", exported);
 
         // delete the journal file before we import it again
-        if (longId) {
-            // a new queue with a new id would be created without the bindings journal so we can't delete the whole directory
-            FileUtils.deleteDirectory(new File(MESSAGES_JOURNAL_DIRECTORY));
-        } else {
-            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
-        }
+        // a new queue with a new id would be created without the bindings journal so we can't delete the whole directory
+        FileUtils.deleteDirectory(new File(MESSAGES_JOURNAL_DIRECTORY));
+
 
         container(1).start();
 
@@ -204,7 +227,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(queueName);
+            Queue testQueue = (Queue) ctx.lookup(LONG_TEST_QUEUE_NAME);
             MessageConsumer consumer = session.createConsumer(testQueue);
 
             received = consumer.receive(RECEIVE_TIMEOUT);
@@ -213,12 +236,52 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         }
 
         assertNotNull("Received message should not be null", received);
-        if (!longId) assertNull("Tested property should be null", received.getStringProperty("test_property"));
         assertTrue("Test message should be received as proper message type", received instanceof TextMessage);
         assertEquals("Test message body should be preserved", "Test text", ((TextMessage) received).getText());
     }
 
-    private void internalTestExportImportLargeMessages(boolean compressMessages) throws Exception {
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportLargeMessages() throws Exception {
+        internalTestExportImportMessages(new MixMessageBuilder(1024 * 200), false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportCompressedLargeMessages() throws Exception {
+        internalTestExportImportMessages(new MixMessageBuilder(1024 * 200), true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportNormalMessages() throws Exception {
+        internalTestExportImportMessages(new MixMessageBuilder(1024), false);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testExportImportCompressedNormalMessages() throws Exception {
+        internalTestExportImportMessages(new MixMessageBuilder(1024), true);
+    }
+
+    @After
+    public void deleteJournalFiles() {
+        try {
+            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+        } catch (Exception e) {
+            logger.error("Cannot delete journals directory. Hope it is ok and continue test, in case of failure this can be cause.", e);
+        }
+    }
+
+    private void internalTestExportImportMessages(MessageBuilder messageBuilder, boolean compressMessages) throws Exception {
 
         prepareServer(container(1), compressMessages);
 
@@ -227,9 +290,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
         journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
 
-        MessageBuilder messageBuilder = new TextMessageBuilder(1024 * 200);
-
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 20);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), TEST_QUEUE_NAME, 50);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
