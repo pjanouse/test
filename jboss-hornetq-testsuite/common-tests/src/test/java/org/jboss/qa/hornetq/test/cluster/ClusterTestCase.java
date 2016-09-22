@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -35,6 +36,7 @@ import javax.naming.Context;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 //TODO
 //ClusterTestCase
 //        - clusterTestWithMdbOnTopicDeployAndUndeployOneServerOnly
@@ -188,6 +190,63 @@ public class ClusterTestCase extends ClusterTestBase {
         Assert.assertFalse("Server " + container(2).getName() + " cannot contain exceptions but there are. " +
                 "Check logs of the server for details. Server logs for failed tests are archived in target " +
                 "directory of the maven module with this test.", checkServerLog(container(2)));
+    }
+
+    /**
+     * @tpTestDetails Start two server in HornetQ cluster and deploy queue InQueue and OutQueue to both of them.
+     * Start producer which sends messages to InQueue to 2nd server. Deploy MDB to 1nd server which
+     * consumes messages from InQueue and for each message sends message to OutQueue.
+     * When MDB is processing messages then restart node 1 (with the MDB)
+     * @tpPassCrit Check there are not Exception in logs
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void shutdownNodeInClusterWithRestart() throws Exception {
+
+        prepareServers();
+
+        container(1).start();
+        container(2).start();
+
+        FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        ProducerTransAck producer = new ProducerTransAck(container(2), inQueueJndiNameForMdb, 1000000);
+        producer.addMessageVerifier(messageVerifier);
+        producer.setCommitAfter(2);
+        producer.start();
+        usedClients.add(producer);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 30000, 5, 10);
+        receiver.setTimeout(1000);
+        receiver.addMessageVerifier(messageVerifier);
+        receiver.start();
+        usedClients.add(receiver);
+
+        // deploy MDB
+        container(1).deploy(MDB_ON_QUEUE1);
+
+        new JMSTools().waitForMessages(outQueueNameForMdb, 50, 60000, container(1), container(2));
+
+        // restart node 1
+        container(1).restart();
+
+        new JMSTools().waitForMessages(outQueueNameForMdb, 100, 60000, container(1), container(2));
+
+        // stop sending messages
+        producer.stopSending();
+        receiver.setTimeout(0);
+        receiver.setReceiveTimeout(5000);
+        producer.join();
+        receiver.join();
+
+        container(2).stop();
+        container(1).stop();
+
+        Assert.assertEquals("Number of send and received messages is different.", producer.getListOfSentMessages().size(), receiver.getListOfReceivedMessages().size());
+
+
     }
 
     private boolean checkServerLog(Container container) throws Exception {
