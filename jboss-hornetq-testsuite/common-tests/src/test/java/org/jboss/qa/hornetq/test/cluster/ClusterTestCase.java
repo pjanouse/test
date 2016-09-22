@@ -158,29 +158,36 @@ public class ClusterTestCase extends ClusterTestBase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck queueProducer = new ProducerTransAck(container(1), inQueueJndiNameForMdb, 1000000);
-        queueProducer.start();
-        usedClients.add(queueProducer);
+        ProducerTransAck producer = new ProducerTransAck(container(2), inQueueJndiNameForMdb, 1000000);
+        producer.start();
+        usedClients.add(producer);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(2), outQueueJndiNameForMdb, 10000, 4, 10);
+        receiver.setTimeout(1000);
+        receiver.start();
+        usedClients.add(receiver);
 
         // deploy MDB
-        container(2).deploy(MDB_ON_QUEUE1);
+        container(1).deploy(MDB_ON_QUEUE1);
 
         new JMSTools().waitForMessages(outQueueNameForMdb, 50, 60000, container(1), container(2));
 
-        // shutdown node 2
-        container(2).stop();
+        // shutdown node 1
+        container(1).stop();
 
         // stop sending messages
-        queueProducer.stopSending();
-        queueProducer.join();
+        producer.stopSending();
+        producer.join();
+        receiver.join();
 
-        container(1).stop();
+        container(2).stop();
 
         // check that logs does not contains Exceptions
         Assert.assertFalse("Server " + container(1).getName() + " cannot contain exceptions but there are. " +
-                "Check logs of the server for details. They can be found target directory with name of this tests.", checkServerLog(container(1)));
+                "Check logs of the server for details. Server logs for failed tests are archived in target directory " +
+                "of the maven module with this test.", checkServerLog(container(1)));
         Assert.assertFalse("Server " + container(2).getName() + " cannot contain exceptions but there are. " +
-                "Check logs of the server for details. They can be found target directory with name of this tests.", checkServerLog(container(2)));
+                "Check logs of the server for details. Server logs for failed tests are archived in target " +
+                "directory of the maven module with this test.", checkServerLog(container(2)));
     }
 
     private boolean checkServerLog(Container container) throws Exception {
