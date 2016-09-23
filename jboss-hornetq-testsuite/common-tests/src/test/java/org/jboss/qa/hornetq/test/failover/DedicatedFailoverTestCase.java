@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -276,6 +277,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             container(1).stop();
             container(2).stop();
         }
+
+        // check that logs does not contains Exceptions
+        Assert.assertFalse("Server " + container(1).getName() + " cannot contain exceptions but there are. " +
+                "Check logs of the server for details. Server logs for failed tests are archived in target directory " +
+                "of the maven module with this test.", checkServerLog(container(1)));
+        Assert.assertFalse("Server " + container(2).getName() + " cannot contain exceptions but there are. " +
+                "Check logs of the server for details. Server logs for failed tests are archived in target " +
+                "directory of the maven module with this test.", checkServerLog(container(2)));
+    }
+
+    private boolean checkServerLog(Container container) throws Exception {
+        StringBuilder pathToServerLog = new StringBuilder(container.getServerHome());
+        pathToServerLog.append(File.separator).append("standalone").append(File.separator)
+                .append("log").append(File.separator).append("server.log");
+        return CheckFileContentUtils.checkThatFileContainsGivenString(new File(pathToServerLog.toString()), "Exception");
     }
 
 
