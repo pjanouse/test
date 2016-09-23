@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.tools.arquillian.extension;
 
 
-import java.io.File;
-
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class JbossConfigFiles {
 
@@ -40,6 +42,37 @@ class JbossConfigFiles {
             standaloneXmlName = DEFAULT_STANDALONE_CONFIG;
         }
         return new File(getStandaloneConfigDir(), standaloneXmlName + BACKUP_EXTENSION);
+    }
+
+    public List<File> getAllStandaloneXmls(){
+        List<File> configFiles = new ArrayList<File>();
+        File[] files = (getStandaloneConfigDir().listFiles());
+        if (files == null) {
+            throw new NullPointerException("no files in config directory");
+        }
+        for (int i = 0; i < files.length; i++) {
+            String fileName = files[i].getName();
+            if (fileName.endsWith(".xml") && fileName.contains("standalone")){
+                configFiles.add(files[i]);
+            }
+        }
+
+        // profile requested bz arquillian descriptor
+        String standaloneXmlName = container.getContainerProperties().get("serverConfig");
+        if (standaloneXmlName == null || standaloneXmlName.isEmpty()) {
+            standaloneXmlName = DEFAULT_STANDALONE_CONFIG;
+        }
+        File arquillianConfig = new File(getStandaloneConfigDir(), standaloneXmlName);
+
+        if (!configFiles.contains(arquillianConfig)) {
+            throw new RuntimeException(arquillianConfig + " not found in config directory " + getStandaloneConfigDir());
+        }
+
+        return configFiles;
+    }
+
+    public File getStandaloneXmlBackup(File original) {
+        return new File(original.getAbsolutePath() + BACKUP_EXTENSION);
     }
 
     public File getDomainXml() {

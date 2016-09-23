@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -94,12 +95,14 @@ public class RestoreConfig {
                     continue;
                 }
 
-                File standaloneXml = files.getStandaloneXml();
-                File standaloneXmlBackup = files.getStandaloneXmlBackup();
-                if (standaloneXml.exists() && !standaloneXmlBackup.exists()) {
-                    logger.info("Copying configuration file " + standaloneXml.getAbsolutePath()
-                            + " to " + standaloneXmlBackup.getAbsolutePath());
-                    FileUtils.copyFile(standaloneXml, standaloneXmlBackup);
+                List<File> standaloneXmls = files.getAllStandaloneXmls();
+                for (File standaloneXml: standaloneXmls) {
+                    File standaloneXmlBackup = files.getStandaloneXmlBackup(standaloneXml);
+                    if (standaloneXml.exists() && !standaloneXmlBackup.exists()) {
+                        logger.info("Copying configuration file " + standaloneXml.getAbsolutePath()
+                                + " to " + standaloneXmlBackup.getAbsolutePath());
+                        FileUtils.copyFile(standaloneXml, standaloneXmlBackup);
+                    }
                 }
             }
         }
@@ -219,12 +222,14 @@ public class RestoreConfig {
                     continue;
                 }
 
-                File standaloneXml = files.getStandaloneXml();
-                File standaloneXmlBackup = files.getStandaloneXmlBackup();
-                if (standaloneXmlBackup.exists()) {
-                    logger.info("Copying configuration file " + standaloneXmlBackup.getAbsolutePath()
-                            + " to " + standaloneXml.getAbsolutePath());
-                    FileUtils.copyFile(standaloneXmlBackup, standaloneXml);
+                List<File> standaloneXmls = files.getAllStandaloneXmls();
+                for (File standaloneXml: standaloneXmls) {
+                    File standaloneXmlBackup = files.getStandaloneXmlBackup(standaloneXml);
+                    if (standaloneXmlBackup.exists()) {
+                        logger.info("Copying configuration file " + standaloneXmlBackup.getAbsolutePath()
+                                + " to " + standaloneXml.getAbsolutePath());
+                        FileUtils.copyFile(standaloneXmlBackup, standaloneXml);
+                    }
                 }
             }
         }
