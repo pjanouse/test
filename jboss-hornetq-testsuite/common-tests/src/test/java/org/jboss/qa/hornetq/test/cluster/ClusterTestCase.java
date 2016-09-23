@@ -11,7 +11,6 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -135,7 +134,6 @@ public class ClusterTestCase extends ClusterTestBase {
         Assert.assertEquals("Number of received messages form topic does not match: ", topicProducer.getCount(), topicSubscriber.getCount());
 
         container(1).stop();
-
         container(2).stop();
 
     }
@@ -183,13 +181,14 @@ public class ClusterTestCase extends ClusterTestBase {
 
         container(2).stop();
 
+        String stringToFind = "Exception";
         // check that logs does not contains Exceptions
         Assert.assertFalse("Server " + container(1).getName() + " cannot contain exceptions but there are. " +
                 "Check logs of the server for details. Server logs for failed tests are archived in target directory " +
-                "of the maven module with this test.", checkServerLog(container(1)));
+                "of the maven module with this test.", checkServerLogString(container(1), stringToFind));
         Assert.assertFalse("Server " + container(2).getName() + " cannot contain exceptions but there are. " +
                 "Check logs of the server for details. Server logs for failed tests are archived in target " +
-                "directory of the maven module with this test.", checkServerLog(container(2)));
+                "directory of the maven module with this test.", checkServerLogString(container(2), stringToFind));
     }
 
     /**
@@ -249,11 +248,63 @@ public class ClusterTestCase extends ClusterTestBase {
 
     }
 
-    private boolean checkServerLog(Container container) throws Exception {
+    /**
+     * @tpTestDetails Start two server in HornetQ cluster and restart 3 times, Check there are no errors or warnings from
+     * Artemis/Netty.
+     * @tpPassCrit Check there are not WARN/ERRORS in logs
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testNoWarningErrorsDuringRestartingNodesInCluster() throws Exception {
+
+        prepareServers();
+
+        container(1).start();
+        container(2).start();
+
+        // restart servers 3 times
+        for (int i = 0; i < 3; i++) {
+            container(1).restart();
+            container(2).restart();
+        }
+
+        container(2).stop();
+        container(1).stop();
+
+        String regex = "(.*)(WARN|ERROR)(.*)(org.apache.activemq.artemis|io.netty)(.*)";
+        Assert.assertTrue("Server " + container(1).getName() + " must not contain ERRORS/WARNINGS from Artemis/Netty/JGroups but there are. " +
+                "Check logs of the server for details. Server logs for failed tests are archived in target directory " +
+                "of the maven module with this test. \n" + formatOutput(findRegexInFile(container(1), regex)), findRegexInFile(container(1), regex).size() == 0);
+    }
+
+    private String formatOutput(List<String> list) {
+        StringBuilder output = new StringBuilder();
+        output.append("###############################################");
+        output.append("#################### BAD LOGS #################");
+        output.append("###############################################");
+        for (String s : list) {
+            output.append(s + "\n");
+        }
+        output.append("###############################################");
+        return output.toString();
+    }
+
+    private boolean checkServerLogString(Container container, String stringToFind) throws Exception {
         StringBuilder pathToServerLog = new StringBuilder(container.getServerHome());
         pathToServerLog.append(File.separator).append("standalone").append(File.separator)
                 .append("log").append(File.separator).append("server.log");
-        return CheckFileContentUtils.checkThatFileContainsGivenString(new File(pathToServerLog.toString()), "Exception");
+        return CheckFileContentUtils.checkThatFileContainsGivenString(new File(pathToServerLog.toString()), stringToFind);
+    }
+
+    private List<String> findRegexInFile(Container container, String regex) throws Exception {
+        StringBuilder pathToServerLog = new StringBuilder(container.getServerHome());
+        pathToServerLog.append(File.separator).append("standalone").append(File.separator)
+                .append("log").append(File.separator).append("server.log");
+        return CheckFileContentUtils.findRegexInFile(new File(pathToServerLog.toString()), regex);
     }
 
     /**
@@ -1980,7 +2031,7 @@ public class ClusterTestCase extends ClusterTestBase {
         int numberOfMessages = 1000;
 
         prepareServers();
-        setRedistributionDelay(0, container(1), container(2), container(3),container(4));
+        setRedistributionDelay(0, container(1), container(2), container(3), container(4));
 
         container(1).start();
         container(2).start();
@@ -2092,7 +2143,7 @@ public class ClusterTestCase extends ClusterTestBase {
         //give consumers time to connect and register on queue
         //once we start sending messages, all consumers must be
         //able to receive, redistribution is turned off.
-        Thread.sleep(10*1000);
+        Thread.sleep(10 * 1000);
 
         ProducerTransAck producer = new ProducerTransAck(container(1), testQueueJndi, numberOfMessages);
         producer.setMessageBuilder(new ClientMixMessageBuilder(1, 150));
