@@ -2653,5 +2653,29 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void createUndertowReverseProxyHandler(String name){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addFilterToUndertowServerHost(String filterRef){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addLocationToUndertowServerHost(String location, String handler){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void removeLocationFromUndertowServerHost(String location){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
 
 }

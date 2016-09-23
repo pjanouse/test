@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.jboss.as.controller.client.helpers.ClientConstants.NAME;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
 
@@ -6851,6 +6852,94 @@ private class JMSAdminOperationException extends Exception {
         createAdminObjects(name, destinationNames);
 
     }
+
+    @Override
+    public void createUndertowReverseProxyHandler(String name){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("configuration", "handler");
+        model.get(ClientConstants.OP_ADDR).add("reverse-proxy", name);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("configuration", "handler");
+        model.get(ClientConstants.OP_ADDR).add("reverse-proxy", handlerName);
+        model.get(ClientConstants.OP_ADDR).add("host", host);
+
+        model.get("outbound-socket-binding").set(outboundSocketBinding);
+        model.get("scheme").set(scheme);
+        model.get("intance-id").set(intanceId);
+        model.get("path").set(path);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addFilterToUndertowServerHost(String filterRef){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, NAME_OF_UNDERTOW_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("host", "default-host");
+        model.get(ClientConstants.OP_ADDR).add("filter-ref", filterRef);
+
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addLocationToUndertowServerHost(String location, String handler){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, NAME_OF_UNDERTOW_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("host", "default-host");
+        model.get(ClientConstants.OP_ADDR).add("location", location);
+
+        model.get("handler").set(handler);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void removeLocationFromUndertowServerHost(String location){
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("remove");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, NAME_OF_UNDERTOW_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("host", "default-host");
+        model.get(ClientConstants.OP_ADDR).add("location", location);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private void createConnectionDefinitions(String raName, String cfName, String user, String password, String hostUrl,
                                              HashMap<String, String> props) {

@@ -2042,4 +2042,23 @@ public interface JMSOperations {
     boolean isDeliveryActive(Archive mdb, String mdbName);
 
     void addDeliveryGroup(String deliveryGroup, boolean isDeliveryGroupActive);
+
+    /**
+     * Creates reverse proxy handler in defaulot server of undertow subsystem
+     * @param name name of this handler
+     */
+    void createUndertowReverseProxyHandler(String name);
+
+    /**
+     * @param handlerName name of reverse proxy handler @see createUndertowReverseProxyHandler
+     * @param host name of host which will be used in udertow subsystem. can be enything, it is not a hostname
+     * @param outboundSocketBinding socket binding to remote host
+     * @param scheme scheme used for this proxy, preffered for our purposes is http
+     * @param intanceId id
+     * @param path path which will be proxied, for hornetq/artemis it is "/"
+     */
+    void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path);
+    void addFilterToUndertowServerHost(String filterRef);
+    void addLocationToUndertowServerHost(String location, String handler);
+    void removeLocationFromUndertowServerHost(String filterRef);
 }

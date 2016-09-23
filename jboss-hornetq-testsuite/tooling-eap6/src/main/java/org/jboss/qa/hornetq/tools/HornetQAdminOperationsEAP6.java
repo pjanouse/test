@@ -5900,6 +5900,30 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createUndertowReverseProxyHandler(String name){
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addFilterToUndertowServerHost(String filterRef){
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addLocationToUndertowServerHost(String location, String handler){
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void removeLocationFromUndertowServerHost(String location){
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
 
     public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
