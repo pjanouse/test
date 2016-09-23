@@ -506,6 +506,11 @@ public class ContainerEAP7 implements Container {
         return iterator.next();
     }
 
+    @Override
+    public void setServerProfile(String name){
+        containerDef.overrideProperty("serverConfig", name);
+    }
+
 
     private ContainerDef getContainerDefinition(String containerName, ArquillianDescriptor descriptor) {
         for (GroupDef groupDef : descriptor.getGroups()) {

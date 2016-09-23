@@ -89,4 +89,6 @@ public interface Container {
     ContainerDef getContainerDefinition();
     PrintJournal getPrintJournal();
 
+    void setServerProfile(String name);
+
 }
