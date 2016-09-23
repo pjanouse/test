@@ -258,6 +258,26 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         testMultipleFailover(Session.SESSION_TRANSACTED, false, true);
     }
 
+    /**
+     * @tpTestDetails Test multiple start -> stop of live/backup pair. Check logs for exceptions. No clients.
+     * @tpPassCrit There are no exception in logs.
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStartStopLiveBackup() throws Exception {
+
+        prepareSimpleDedicatedTopology();
+
+        for (int i = 0; i < 10; i++) {
+            container(1).start();
+            container(2).start();
+            container(1).stop();
+            container(2).stop();
+        }
+    }
+
 
     /**
      * This test will start two servers in dedicated topology - no cluster. Sent
