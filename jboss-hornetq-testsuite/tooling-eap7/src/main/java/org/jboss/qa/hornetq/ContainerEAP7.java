@@ -287,6 +287,9 @@ public class ContainerEAP7 implements Container {
                             } catch (IOException e) {
                                 log.error("Invoking kill -9 " + pid + " failed.", e);
                             }
+                            // fail test which called this stop()
+                            Assert.fail("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
+                                    "Check archived log directory where is thread dump.");
                             return;
                         }
 
