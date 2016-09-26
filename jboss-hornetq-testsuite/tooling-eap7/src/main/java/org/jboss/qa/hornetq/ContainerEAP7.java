@@ -264,46 +264,8 @@ public class ContainerEAP7 implements Container {
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
         final Container con = this;
-        Thread shutdownHook = new Thread() {
-            public void run() {
 
-                long startTime = System.currentTimeMillis();
-                try {
-                    while (CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
-                            || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort())) {
-
-                        if (System.currentTimeMillis() - startTime > timeout) {
-                            ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt"));
-                            // kill server because shutdown hangs and fail test
-                            try {
-                                log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
-                                if (System.getProperty("os.name").contains("Windows")) {
-                                    Runtime.getRuntime().exec("taskkill /PID " + pid);
-                                } else { // it's linux or Solaris
-                                    Runtime.getRuntime().exec("kill -9 " + pid);
-                                }
-                                log.info("Waiting 5 sec for OS close all ports held by container.");
-                                Thread.sleep(5000);
-                            } catch (IOException e) {
-                                log.error("Invoking kill -9 " + pid + " failed.", e);
-                            }
-                            // fail test which called this stop()
-                            Assert.fail("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
-                                    "Check archived log directory where is thread dump.");
-                            return;
-                        }
-
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            //ignore
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Exception occured in shutdownHook: ", e);
-                }
-            }
-        };
+        ShutdownHook shutdownHook = new ShutdownHook(timeout, con, pid);
         shutdownHook.start();
         log.info("Stopping the server.");
         containerController.stop(getName());
@@ -316,6 +278,10 @@ public class ContainerEAP7 implements Container {
         }
         try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
             shutdownHook.join();
+            // fail test which called this stop()
+            Assert.assertTrue("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
+                    "Check archived log directory where is thread dump.", shutdownHook.wasServerKilled());
+
         } catch (InterruptedException e) {
             // ignore
         }
@@ -330,7 +296,7 @@ public class ContainerEAP7 implements Container {
         log.info("Killing server: " + getName());
         try {
 
-           ProcessIdUtils.killProcess(pid);
+            ProcessIdUtils.killProcess(pid);
 
         } catch (Exception ex) {
             log.warn("Container " + getName() + " could not be killed.");
@@ -510,7 +476,7 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
-    public void setServerProfile(String name){
+    public void setServerProfile(String name) {
         containerDef.overrideProperty("serverConfig", name);
     }
 
