@@ -279,7 +279,7 @@ public class ContainerEAP7 implements Container {
         try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
             shutdownHook.join();
             // fail test which called this stop()
-            Assert.assertTrue("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
+            Assert.assertFalse("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
                     "Check archived log directory where is thread dump.", shutdownHook.wasServerKilled());
 
         } catch (InterruptedException e) {
