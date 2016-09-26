@@ -23,9 +23,9 @@ import java.util.Map;
  * @author Miroslav Novak (mnovak@redhat.com)
  */
 @RunWith(Arquillian.class)
-public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
+public class NetworkFailuresJMSBridgesTestCase extends NetworkFailuresBridgesAbstract {
 
-    private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridges.class);
+    private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridgesTestCase.class);
 
     @Before
     @After
@@ -43,10 +43,6 @@ public class NetworkFailuresJMSBridges extends NetworkFailuresBridgesAbstract {
 
         container(2).start(); // B1
         container(1).start(); // A1
-
-
-
-
 
         Thread.sleep(5000);
         // message verifier which detects duplicated or lost messages
