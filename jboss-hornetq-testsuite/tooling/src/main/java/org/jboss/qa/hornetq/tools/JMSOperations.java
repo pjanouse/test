@@ -2058,7 +2058,37 @@ public interface JMSOperations {
      * @param path path which will be proxied, for hornetq/artemis it is "/"
      */
     void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path);
+
     void addFilterToUndertowServerHost(String filterRef);
+
     void addLocationToUndertowServerHost(String location, String handler);
+
     void removeLocationFromUndertowServerHost(String filterRef);
+
+    /**
+     * Set modcluster connector - ajp or default (stands for http)
+     * @param connectorName
+     */
+    void setModClusterConnector(String connectorName);
+
+    /**
+     * Set modcluster advertise security key. Have to be set the same for all nodes expecting to conenct using modcluster
+     * @param key
+     */
+    void setModClusterAdvertiseKey(String key);
+
+    /**
+     * Creates modlcuster filter in undertow subsystem. This fileter needs to be set using addFilterToUndertowServerHost(String filterRef);
+     * @param filterName
+     * @param managementSocketBinding
+     * @param advertiseSocketBinding
+     * @param advertiseKey
+     */
+    void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey);
+
+    /**
+     * Set node id of undertow. Neccessary to run on localhost with more nodes and modcluster
+     * @param id
+     */
+    void setUndertowInstanceId(String id);
 }

@@ -69,6 +69,21 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         container(1).setServerProfile("standalone.xml");
     }
 
+    /**
+     * @tpTestDetails Start one JBoss EAP server configured as a loadbalancer and two backend EAP workers. Loadbalancer uses
+     * undertow with static loadbalancing features, reverse proxy. Send and receive messages with clients knowing only about
+     * frontend loadbalancer. Create multiple connections during send and receive. Backend workers serve messaging tasks.
+     * @tpProcedure <ul>
+     * <li>Start EAP configured as a static load balancer using reverse proxy</li>
+     * <li>Start 2 EAP backend servers with messaging</li>
+     * <li>Producer starts to send messages, it uses connection factory pointing to loadbalancer, not knowing about backed workers</li>
+     * <li>Producer repeats sending with creating of new connection - connections should be balanced between workers</li>
+     * <li>Receiver receives messages, it uses connection factory pointing to loadbalancer, not knowing about backed workers</li>
+     * <li>Receiver repeats recevive with creating of new connection - connections should be balanced between workers and receive messages from all of them</li>
+     * <li>Verify messages count</li>
+     * </ul>
+     * @tpPassCrit Receiver reads same amount of messages as was sent
+     */
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -77,13 +92,29 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         testSendReceive(LoadBalancerType.UNDERTOW_STATIC);
     }
 
-//    @Test
-//    @RunAsClient
-//    @CleanUpBeforeTest
-//    @RestoreConfigBeforeTest
-//    public void basicSendReceiveUndertowWithModClusterBalancer() {
-//        testSendReceive(LoadBalancerType.UNDERTOW_STATIC);
-//    }
+
+    /**
+     * @tpTestDetails Start one JBoss EAP server configured as a loadbalancer and two backend EAP workers. Loadbalancer uses
+     * undertow with with mod cluster dynamic load balancing. Send and receive messages with clients knowing only about
+     * frontend loadbalancer. Create multiple connections during send and receive. Backend workers serve messaging tasks.
+     * @tpProcedure <ul>
+     * <li>Start EAP configured as a dynamic load balancer using modcluster</li>
+     * <li>Start 2 EAP backend servers with messaging</li>
+     * <li>Producer starts to send messages, it uses connection factory pointing to loadbalancer, not knowing about backed workers</li>
+     * <li>Producer repeats sending with creating of new connection - connections should be balanced between workers</li>
+     * <li>Receiver receives messages, it uses connection factory pointing to loadbalancer, not knowing about backed workers</li>
+     * <li>Receiver repeats recevive with creating of new connection - connections should be balanced between workers and receive messages from all of them</li>
+     * <li>Verify messages count</li>
+     * </ul>
+     * @tpPassCrit Receiver reads same amount of messages as was sent
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void basicSendReceiveUndertowWithModClusterBalancer() throws Exception {
+        testSendReceive(LoadBalancerType.UNDERTOW_MODCLUSTER);
+    }
 
     private void testSendReceive(LoadBalancerType loadBalancerType) throws Exception {
 
@@ -125,11 +156,21 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
 
     private void prepareServers(LoadBalancerType loadBalancerType) {
         prepareLoadBalancer(loadBalancerType);
-        prepareWorker(workerA);
-        prepareWorker(workerB);
+        prepareWorker(workerA, loadBalancerType);
+        prepareWorker(workerB, loadBalancerType);
     }
 
-    public void prepareWorker(Container container) {
+    /**
+     * Worker preparation does following:
+     * - deploy destinations
+     * - set connector on connection factory to point on proxy/laodbalancer because clients should be aware only of load balancer/proxy
+     * - disable Artemis cluster to avoid clients to get topology behind proxy/load balancer
+     * - specific setup to work with load balancer if needed
+     *
+     * @param container
+     * @param loadBalancerType
+     */
+    public void prepareWorker(Container container, LoadBalancerType loadBalancerType) {
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
         jmsAdminOperations.createQueue(NAME_QUEUE, QUEUE_JNDI);
@@ -139,6 +180,21 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
+
+        switch (loadBalancerType) {
+            case UNDERTOW_STATIC:
+                break;
+            case UNDERTOW_MODCLUSTER:
+                jmsAdminOperations.setModClusterAdvertiseKey(UndertowWithModClusterConstants.ADVERTISE_KEY);
+                jmsAdminOperations.removeSocketBinding(UndertowWithModClusterConstants.MCAST_SOCKET_BINDING);
+                jmsAdminOperations.reload();
+                jmsAdminOperations.addSocketBinding(UndertowWithModClusterConstants.MCAST_SOCKET_BINDING,
+                        UndertowWithModClusterConstants.MCAST_ADDRESS,
+                        UndertowWithModClusterConstants.MCAST_PORT);
+                jmsAdminOperations.setModClusterConnector(UndertowWithModClusterConstants.HTTP_CONNECTOR);
+                jmsAdminOperations.setUndertowInstanceId(container.getName());
+                break;
+        }
 
         jmsAdminOperations.close();
         container.stop();
@@ -150,6 +206,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
                 prepareUndertowStaticLoadBalancer();
                 break;
             case UNDERTOW_MODCLUSTER:
+                prepareUndertowWithModClusterLoadBalancer();
                 break;
         }
     }
@@ -172,5 +229,30 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         loadBalancer.stop();
     }
 
+    private void prepareUndertowWithModClusterLoadBalancer() {
+        loadBalancer.start();
+        JMSOperations jmsAdminOperations = loadBalancer.getJmsOperations();
+
+        jmsAdminOperations.addSocketBinding(UndertowWithModClusterConstants.MCAST_SOCKET_BINDING,
+                UndertowWithModClusterConstants.MCAST_ADDRESS,
+                UndertowWithModClusterConstants.MCAST_PORT);
+        jmsAdminOperations.addModClusterFilterToUndertow(UndertowWithModClusterConstants.MODCLUSTER_FILTER_NAME,
+                "http",
+                UndertowWithModClusterConstants.MCAST_SOCKET_BINDING,
+                UndertowWithModClusterConstants.ADVERTISE_KEY);
+        jmsAdminOperations.addFilterToUndertowServerHost(UndertowWithModClusterConstants.MODCLUSTER_FILTER_NAME);
+
+        jmsAdminOperations.close();
+        loadBalancer.stop();
+    }
+
+    private static class UndertowWithModClusterConstants {
+        public static final String MODCLUSTER_FILTER_NAME = "modclusterFilter";
+        public static final String ADVERTISE_KEY = "mypassword";
+        public static final String MCAST_SOCKET_BINDING = "modcluster";
+        public static final String MCAST_ADDRESS = "224.0.1.105";
+        public static final int MCAST_PORT = 23364;
+        public static final String HTTP_CONNECTOR = "default";
+    }
 
 }

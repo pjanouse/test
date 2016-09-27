@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jboss.as.controller.client.helpers.ClientConstants.NAME;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
 import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
 
@@ -44,6 +43,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     private static String NAME_OF_MESSAGING_DEFAULT_SERVER = "default";
     private static String NAME_OF_UNDERTOW_SUBSYSTEM = "undertow";
     private static String NAME_OF_UNDERTOW_DEFAULT_SERVER = "default-server";
+    private static String NAME_OF_MODCLUSTER_SUBSYSTEM = "modcluster";
     private static String NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER = "server";
     private static String NAME_OF_JGROUPS_SUBSYSTEM = "jgroups";
 
@@ -6940,6 +6940,75 @@ private class JMSAdminOperationException extends Exception {
         }
     }
 
+    @Override
+    public void setModClusterConnector(String connectorName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MODCLUSTER_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("mod-cluster-config", "configuration");
+
+        model.get("name").set("connector");
+        model.get("value").set(connectorName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setModClusterAdvertiseKey(String key) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MODCLUSTER_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("mod-cluster-config", "configuration");
+
+        model.get("name").set("advertise-security-key");
+        model.get("value").set(key);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding
+            , String advertiseKey) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("configuration", "filter");
+        model.get(ClientConstants.OP_ADDR).add("mod-cluster", filterName);
+
+        model.get("management-socket-binding").set(managementSocketBinding);
+        model.get("advertise-socket-binding").set(advertiseSocketBinding);
+        model.get("security-key").set(advertiseKey);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setUndertowInstanceId(String id) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+
+        model.get("name").set("instance-id");
+        model.get("value").set(id);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private void createConnectionDefinitions(String raName, String cfName, String user, String password, String hostUrl,
                                              HashMap<String, String> props) {

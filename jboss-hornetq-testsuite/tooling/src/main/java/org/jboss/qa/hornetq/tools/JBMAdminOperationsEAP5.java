@@ -2678,4 +2678,24 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setModClusterAdvertiseKey(String key){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setModClusterConnector(String name){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setUndertowInstanceId(String id) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }
