@@ -69,6 +69,9 @@ public interface Container {
     int getJGroupsTcpPort();
 
     void stop();
+
+    void stop(boolean failTestIfServerCannotBeStopped);
+
     void kill();
     void waitForKill();
     void waitForKill(long timeout);

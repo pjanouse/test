@@ -233,7 +233,7 @@ public class ContainerEAP6 implements Container {
 
 
     @Override
-    public void stop() {
+    public void stop(boolean failTestIfServerCannotBeStopped) {
 
         // there is problem with calling stop on already stopped server
         // it throws exception when server is already stopped
@@ -269,14 +269,21 @@ public class ContainerEAP6 implements Container {
         try {  // wait for shutdown hook to stop - otherwise can happen that immeadiate start will keep it running and fail the test
             shutdownHook.join();
             // fail test which called this stop()
-            Assert.assertFalse("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
-                    "Check archived log directory where is thread dump.", shutdownHook.wasServerKilled());
+            if (failTestIfServerCannotBeStopped) {
+                Assert.assertFalse("Server - " + con.getName() + " - did not stop in specified timeout and had to be killed. " +
+                        "Check archived log directory where is thread dump.", shutdownHook.wasServerKilled());
+            }
         } catch (InterruptedException e) {
             // ignore
         }
 
         log.info("Server " + getName() + " was stopped. There is no from tracking ports (f.e.: 9999, 5445, 8080, ..." +
                 ") running on its IP " + getHostname());
+    }
+
+    @Override
+    public void stop() {
+        stop(true);
     }
 
     @Override
