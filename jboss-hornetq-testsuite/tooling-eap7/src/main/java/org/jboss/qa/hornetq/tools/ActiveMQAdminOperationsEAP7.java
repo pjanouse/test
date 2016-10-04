@@ -1,7 +1,6 @@
 // TODO - change prefix names of operations - use just set/add/get/is(for boolean)/remove, remove "create" prefix
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.activemq.artemis.utils.json.JSONArray;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
@@ -12,6 +11,7 @@ import org.jboss.dmr.Property;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
+import org.json.JSONArray;
 import org.kohsuke.MetaInfServices;
 
 import java.io.File;
