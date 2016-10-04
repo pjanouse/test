@@ -29,11 +29,12 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR5</eap7.org.jboss.qa.hornetq.apps.clients.version>
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR6</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
-        <arquillian.eap7x.container.version>1.0.0.Alpha5</arquillian.eap7x.container.version>
+        <arquillian.eap7x.container.version>1.0.0.Alpha5</
+                arquillian.eap7x.container.version>
 
 
         <arquillian.version>1.1.1.Final</arquillian.version>

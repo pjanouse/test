@@ -5945,6 +5945,10 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 
+    public void setRebalanceConnectionsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean rebalanceConnections) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {

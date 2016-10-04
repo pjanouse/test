@@ -1054,7 +1054,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod, String connectorName, String backupConnectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
-    
+
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod, String connectorName) {
     	logger.info("This operation is not supported: " + getMethodName());
@@ -2127,7 +2127,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
         return e;
     }
-    
+
 	@Override
 	public void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName)
 	{
@@ -2698,4 +2698,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    public void setRebalanceConnectionsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean rebalanceConnections) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
 }

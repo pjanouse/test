@@ -2091,4 +2091,7 @@ public interface JMSOperations {
      * @param id
      */
     void setUndertowInstanceId(String id);
+
+    void setRebalanceConnectionsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean rebalanceConnections);
+
 }
