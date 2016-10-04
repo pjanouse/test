@@ -1,3 +1,4 @@
+// todo add test which says that mdb has precedence before xml
 package org.jboss.qa.hornetq.test.remote.jca;
 
 import org.apache.commons.io.FileUtils;
@@ -13,7 +14,6 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
-import org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageUtils;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
@@ -21,8 +21,10 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFact
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopicToQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbOnlyInbound;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueue;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueDisableRebalancing;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithSecurity;
+import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithRebalancing;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -39,11 +41,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +69,7 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
     private final Archive mdbNoRebalancing = getMdbNoRebalancing();
     private final Archive mdbWithOnlyInbound = getMdbWithOnlyInboundConnection();
     private final Archive mdbFromTopic = getMdbFromTopic();
+    private final Archive mdbDisableRebalancing = getMdbDisableRebalancing();
 
     private String messagingGroupSocketBindingName = "messaging-group";
 
@@ -100,6 +101,17 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
     public Archive getMdbWithOnlyInboundConnection() {
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-inbound.jar");
         mdbJar.addClasses(MdbOnlyInbound.class);
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+    }
+
+    public Archive getMdbDisableRebalancing() {
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdbDisableRebalancing.jar");
+        mdbJar.addClasses(MdbWithRemoteOutQueueDisableRebalancing.class);
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
         logger.info(mdbJar.toString(true));
         return mdbJar;
     }
@@ -297,6 +309,73 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
                 Math.abs(numberOfConsumer1 - numberOfConsumer3) < 3);
         Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1 + " and on node-3 is: " + numberOfConsumer3,
                 numberOfConsumer1 > 0 && numberOfConsumer3 > 0);
+    }
+
+    /**
+     * @throws Exception
+     * @tpTestDetails There are 3 EAP servers. Severs 1, 3 are in cluster configured using Netty discovery..
+     * Queue InQueue is deployed to servers 1,3,
+     * Servers 2 has (inbound) configured to connect to servers 1 and 3 server using Netty discovery. Server 2 has
+     * rebalancing enabled.
+     * Start server 1 and send 500 (~1Kb) messages to InQueue
+     * Start servers 2 with MDB consuming messages from InQueue - MDB has rebalancing disabled
+     * Wait until MDBs process some messages from InQueue and start server 3
+     * @tpPassCrit >Difference between number of consumers on server 1 and 3 must be <= 2.
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testMdbConfigHasPrecedenceBeforeServerConfig() throws Exception {
+
+        int numberOfMessagesPerServer = 500;
+
+        Constants.CONNECTOR_TYPE connectorType = Constants.CONNECTOR_TYPE.HTTP_CONNECTOR;
+        prepareRemoteJcaTopology(connectorType, true);
+        // cluster A
+        container(1).start();
+
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessagesPerServer);
+        producer1.start();
+        producer1.join();
+
+        // cluster B with mdbs
+        container(2).start();
+        container(2).deploy(mdbDisableRebalancing);
+
+        long startTime = System.currentTimeMillis();
+        long timeout = 120000;
+        while (new JMSTools().countMessages(inQueueName, container(1)) > numberOfMessagesPerServer/2
+                && System.currentTimeMillis() - startTime < timeout) {
+            logger.info("Waiting for half of the messages to be read from " + inQueueName);
+            Thread.sleep(1000);
+        }
+
+        container(3).start();
+
+        while (new JMSTools().countMessages(inQueueName, container(1), container(3)) > 0
+                && System.currentTimeMillis() - startTime < timeout) {
+            logger.info("Waiting for all messages to be read from " + inQueueName);
+            Thread.sleep(1000);
+        }
+
+        // get number of consumer from server 3 and 1
+        int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
+        int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
+        logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer1);
+        logger.info(container(3).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumer3);
+
+        container(2).undeploy(mdbDisableRebalancing);
+        container(2).stop();
+        container(1).stop();
+        container(3).stop();
+
+        Assert.assertTrue("Number of consumers on node-1 is: " + numberOfConsumer1 + " but should be more than 14 (well 16 but just be safe)",
+                numberOfConsumer1 > 14);
+        Assert.assertTrue("Number of consumers must be higher than 0, number of consumer on node-1 is: " + numberOfConsumer1,
+                numberOfConsumer1 > 0);
     }
 
     /**
@@ -955,30 +1034,6 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
         ContainerUtils.printThreadDump(container(4));
     }
 
-    private Map<SimpleSendEJB, Context> lookupEjbs(Container container, int numberOfEjbs) throws Exception {
-        Map<SimpleSendEJB, Context> ejbs = new HashMap<SimpleSendEJB, Context>();
-        for (int i = 0; i < numberOfEjbs; i++) {
-            Context ctx = container.getContext(Constants.JNDI_CONTEXT_TYPE.EJB_CONTEXT);
-            SimpleSendEJB simpleSendBean = (SimpleSendEJB) ctx.lookup("ejb-sender/SimpleSendEJBStatefulBean!org.jboss.qa.hornetq.apps.ejb.SimpleSendEJB");
-            ejbs.put(simpleSendBean, ctx);
-        }
-        return ejbs;
-    }
-
-    private void createConnectionsInEjbsAndSend(Map<SimpleSendEJB, Context> ejbs) {
-        for (SimpleSendEJB ejb : ejbs.keySet()) {
-            ejb.createConnection();
-            ejb.sendMessage();
-        }
-    }
-
-    private void closeConnectionsInEjb(Map<SimpleSendEJB, Context> ejbs) throws Exception {
-        for (SimpleSendEJB ejb : ejbs.keySet()) {
-            ejb.closeConnection();
-            ejbs.get(ejb).close();
-        }
-    }
-
     private int countConnectionOnContainer(Container container) {
         int count;
         JMSOperations jmsOperations = container.getJmsOperations();
@@ -1044,8 +1099,11 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
     }
 
     public void prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE connectorType) throws Exception {
+        prepareRemoteJcaTopology(connectorType, true);
+    }
 
-        prepareRemoteJcaTopologyEAP7(connectorType);
+    public void prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE connectorType, boolean rebalanceConnections) throws Exception {
+        prepareRemoteJcaTopologyEAP7(connectorType, rebalanceConnections);
     }
 
 
@@ -1054,13 +1112,13 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
      *
      * @throws Exception
      */
-    public void prepareRemoteJcaTopologyEAP7(Constants.CONNECTOR_TYPE connectorType) throws Exception {
+    public void prepareRemoteJcaTopologyEAP7(Constants.CONNECTOR_TYPE connectorType, boolean rebalanceConnections) throws Exception {
 
         prepareJmsServerEAP7(container(1), connectorType, container(1), container(3));
-        prepareMdbServerEAP7(container(2), connectorType, container(1), container(3));
+        prepareMdbServerEAP7(container(2), connectorType, rebalanceConnections, container(1), container(3));
 
         prepareJmsServerEAP7(container(3), connectorType, container(1), container(3));
-        prepareMdbServerEAP7(container(4), connectorType, container(1), container(3));
+        prepareMdbServerEAP7(container(4), connectorType, rebalanceConnections, container(1), container(3));
 
     }
 
@@ -1217,12 +1275,12 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
+    private void prepareMdbServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, boolean rebalanceConnections,
+                                      Container... remoteContainers) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
         String clusterGroupName = "my-cluster";
-        String remoteConnectorName = "http-remote-connector";
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -1238,7 +1296,7 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.setNodeIdentifier(new Random().nextInt(10000));
 
-        setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, remoteContainers);
+        setConnectorTypeForPooledConnectionFactoryEAP7(container, connectorType, rebalanceConnections, remoteContainers);
 
         // set security persmissions for roles admin,users - user is already there
         jmsAdminOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
@@ -1292,7 +1350,8 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
         container.stop();
     }
 
-    private void setConnectorTypeForPooledConnectionFactoryEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, Container... remoteContainers) {
+    private void setConnectorTypeForPooledConnectionFactoryEAP7(Container container, Constants.CONNECTOR_TYPE connectorType,
+                                                                boolean rebalanceConnections, Container... remoteContainers) {
         String remoteSocketBindingPrefix = "socket-binding-to-";
         String remoteConnectorNamePrefix = "connector-to-node-";
         String discoveryGroupName = "dg-group1";
@@ -1403,7 +1462,7 @@ public class RemoteJcaRebalancingTestCase extends HornetQTestCase {
         }
 
         // set rebalancing on pooled connection factory
-        jmsAdminOperations.setRebalanceConnectionsOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
+        jmsAdminOperations.setRebalanceConnectionsOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, rebalanceConnections);
         jmsAdminOperations.close();
 
     }
