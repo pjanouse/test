@@ -33,9 +33,7 @@
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
-        <arquillian.eap7x.container.version>1.0.0.Alpha5</
-                arquillian.eap7x.container.version>
-
+        <arquillian.eap7x.container.version>1.0.0.Alpha5</arquillian.eap7x.container.version>
 
         <arquillian.version>1.1.1.Final</arquillian.version>
         <artemis.version>1.1.0.wildfly-018</artemis.version>
