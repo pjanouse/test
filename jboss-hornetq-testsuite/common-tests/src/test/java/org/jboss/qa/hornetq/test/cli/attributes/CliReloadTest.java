@@ -48,21 +48,6 @@ public class CliReloadTest extends HornetQTestCase {
         reloadServerTest(100, true);
     }
 
-    /**
-     * @tpTestDetails Start server in standalone-full-ha.xml profile and reload 100 times. Do not wait for EAP server to get
-     * to running state before reloading server again.
-     * @tpPassCrit Check there are not exception from :reload operation calls.
-     * @tpInfo For more information see related test case described in the
-     * beginning of this section.
-     */
-    @Test
-    @RunAsClient
-    @CleanUpBeforeTest
-    @RestoreConfigBeforeTest
-    public void reloadServerTestDoNotWaitForFullReload() throws Exception {
-        reloadServerTest(100, false);
-    }
-
     public void reloadServerTest(int numberOfReloads, boolean waitForServerToReload) throws Exception {
 
         container(1).start();
