@@ -2037,6 +2037,8 @@ public interface JMSOperations {
 
     long getMessagesAdded(String coreQueueName);
 
+    long getMessagesAdded(String coreQueueName, boolean isTopic);
+
     List<Map<String, String>> listMessages(String coreQueueName);
 
     boolean isDeliveryActive(Archive mdb, String mdbName);

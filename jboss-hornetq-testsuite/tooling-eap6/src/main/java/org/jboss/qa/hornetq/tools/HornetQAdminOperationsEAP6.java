@@ -5277,12 +5277,21 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public long getMessagesAdded(String coreQueueName) {
+        return getMessagesAdded(coreQueueName, false);
+    }
+
+    @Override
+    public long getMessagesAdded(String destName, boolean isTopic) {
         // /subsystem=messaging/server=default/jms-queue=InQueue:read-attribute(name=messages-added)
         final ModelNode messagesAdded = createModelNode();
         messagesAdded.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
         messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
         messagesAdded.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
-        messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", coreQueueName);
+        if(isTopic){
+            messagesAdded.get(ClientConstants.OP_ADDR).add("jms-topic", destName);
+        }else{
+            messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", destName);
+        }
         messagesAdded.get("name").set("messages-added");
 
         ModelNode modelNode;

@@ -2850,6 +2850,11 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public long getMessagesAdded(String coreQueueName, boolean isTopic) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public List<Map<String, String>> listMessages(String coreQueueName) {
         throw new NotImplementedException();
     }

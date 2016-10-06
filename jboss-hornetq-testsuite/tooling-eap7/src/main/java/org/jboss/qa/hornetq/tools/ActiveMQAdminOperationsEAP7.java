@@ -824,14 +824,23 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public long getMessagesAdded(String coreQueueName) {
+    public long getMessagesAdded(String coreQueueName){
+        return getMessagesAdded(coreQueueName,false);
+    }
+
+    @Override
+    public long getMessagesAdded(String destName, boolean isTopic) {
         // /subsystem=messaging/server=default/jms-queue=InQueue:read-attribute(name=messages-added)
         final ModelNode messagesAdded = createModelNode();
         messagesAdded.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
         messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         messagesAdded.get(ClientConstants.OP_ADDR)
                 .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
-        messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", coreQueueName);
+        if(isTopic){
+            messagesAdded.get(ClientConstants.OP_ADDR).add("jms-topic", destName);
+        }else{
+            messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", destName);
+        }
         messagesAdded.get("name").set("messages-added");
         ModelNode modelNode;
         try {

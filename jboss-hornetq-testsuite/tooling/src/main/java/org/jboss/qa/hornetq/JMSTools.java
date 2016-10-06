@@ -183,9 +183,21 @@ public final class JMSTools {
      *
      * @param queueName  queue name
      * @param containers container list
-     * @return total number of messages in queue on given nodes
+     * @return total number of messages added in queue on given nodes
      */
     public long getAddedMessagesCount(String queueName, org.jboss.qa.hornetq.Container... containers) {
+        return getAddedMessagesCount(queueName, false, containers);
+    }
+
+    /**
+     * Returns total number of messages added to topic on given nodes
+     *
+     * @param destinationName  destination name
+     * @param isTopic topic ot queue
+     * @param containers container list
+     * @return total number of messages added in topic on given nodes
+     */
+    public long getAddedMessagesCount(String destinationName ,boolean isTopic, org.jboss.qa.hornetq.Container... containers) {
         long sum = 0;
         for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
@@ -195,11 +207,11 @@ public final class JMSTools {
             while (count == -1 && numberOfTries < maxNumberOfTries) {
                 try {
                     numberOfTries++;
-                    count = jmsOperations.getMessagesAdded(queueName);
+                    count = jmsOperations.getMessagesAdded(destinationName, isTopic);
                     break;
                 } catch (Exception ex) {
                     if (numberOfTries > maxNumberOfTries - 1) {
-                        throw new RuntimeException("getAddedMessagesCount() failed for queue:" + queueName
+                        throw new RuntimeException("getAddedMessagesCount() failed for destiantion:" + destinationName
                                 + " and container: " + container.getName() + ". Number of tries: " + numberOfTries, ex);
                     }
                 }

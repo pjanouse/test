@@ -8,9 +8,11 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.*;
 import org.jboss.qa.hornetq.constants.Constants;
@@ -115,20 +117,39 @@ public class ClusterTestCase extends ClusterTestBase {
         container(2).start();
         container(1).start();
 
+        ConfigurableMessageVerifier topicVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
+        ConfigurableMessageVerifier queueVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
+
         Client queueProducer = new ProducerTransAck(container(1), queueJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER);
         Client topicProducer = new PublisherTransAck(container(2), topicJndiNamePrefix + "0", NUMBER_OF_MESSAGES_PER_PRODUCER, "producer");
         Client queueConsumer = new ReceiverTransAck(container(2), queueJndiNamePrefix + "0");
         SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), topicJndiNamePrefix + "0", 60000, 100, 10, "subs", "name");
         topicSubscriber.subscribe();
 
+        queueProducer.addMessageVerifier(queueVerifier);
+        queueConsumer.addMessageVerifier(queueVerifier);
+        topicProducer.addMessageVerifier(topicVerifier);
+        topicSubscriber.addMessageVerifier(topicVerifier);
+
         queueProducer.start();
+        topicSubscriber.start();
         topicProducer.start();
         queueConsumer.start();
-        topicSubscriber.start();
         queueProducer.join();
         topicProducer.join();
         queueConsumer.join();
         topicSubscriber.join();
+
+        JMSTools jmsTools = new JMSTools();
+
+        //print number of added messages to nodes and destinations
+        jmsTools.getAddedMessagesCount(topicNamePrefix + "0", true, container(2));
+        jmsTools.getAddedMessagesCount(topicNamePrefix + "0", true, container(1));
+        jmsTools.getAddedMessagesCount(queueNamePrefix + "0", container(1));
+        jmsTools.getAddedMessagesCount(queueNamePrefix + "0", container(2));
+
+        Assert.assertTrue(queueVerifier.verifyMessages());
+        Assert.assertTrue(topicVerifier.verifyMessages());
 
         Assert.assertEquals("Number of received messages from queue does not match: ", queueProducer.getCount(), queueConsumer.getCount());
         Assert.assertEquals("Number of received messages form topic does not match: ", topicProducer.getCount(), topicSubscriber.getCount());
