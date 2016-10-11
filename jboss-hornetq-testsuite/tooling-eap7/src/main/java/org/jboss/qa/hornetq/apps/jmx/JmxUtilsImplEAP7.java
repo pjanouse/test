@@ -1,7 +1,7 @@
-// TODO REFACTOR FOR EAP 7
 package org.jboss.qa.hornetq.apps.jmx;
 
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
+import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.kohsuke.MetaInfServices;
 
@@ -28,6 +28,8 @@ import static org.jboss.qa.hornetq.JMSTools.isIpv6Address;
  */
 @MetaInfServices
 public class JmxUtilsImplEAP7 implements JmxUtils {
+
+    private static final Logger log = Logger.getLogger(JmxUtilsImplEAP7.class);
 
     /**
      * Create JMX connector to EAP 6 server.
