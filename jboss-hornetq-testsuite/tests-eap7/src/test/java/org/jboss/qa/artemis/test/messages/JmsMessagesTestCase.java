@@ -391,33 +391,42 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageCreator messageCreator = new MessageCreator10(session);
             JMSImplementation jmsImpl = ArtemisJMSImplementation.getInstance();
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 1024).createMessage(messageCreator, jmsImpl);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 200   ).createMessage(messageCreator, jmsImpl);
             } else {
                 msg = (TextMessage) new TextMessageBuilder(1).createMessage(messageCreator, jmsImpl);
             }
 
-            long timeout = System.currentTimeMillis() + 5000;
+            long timeout = System.currentTimeMillis() + 10000;
 
             msg.setLongProperty(HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
 
+            log.info("Start send of message to queue: " + originalQueue);
             producer.send(msg);
             log.info("Send message to queue - isExclusive: " + isExclusive + ", isLargeMessage:" + isLargeMessage);
             producer.close();
+            log.info("Producer closed");
 
             Queue divertedQueue = (Queue) ctx.lookup(outQueueJndiName);
+            log.info("Looked up queue " + outQueueJndiName);
             MessageConsumer consumerDiverted = session.createConsumer(divertedQueue);
+            log.info("Created consumer on queue " + outQueueJndiName);
             Message receivedMessage = consumerDiverted.receive(1000);
-            Assert.assertNull("This is scheduled message which should not be received so soon.", receivedMessage);
+            log.info("Trying to receive message from diverted queue - should be null - : " + receivedMessage);
+            Assert.assertNull("This is scheduled message received from diverted queue which should not be received so soon." +
+                    " Content of received message: " + receivedMessage, receivedMessage);
 
             if (!isExclusive) {
                 MessageConsumer consumerOriginal = session.createConsumer(originalQueue);
+                log.info("Created consumer on queue " + originalQueue);
                 receivedMessage = consumerOriginal.receive(1000);
-                Assert.assertNull("This is scheduled message which should not be received so soon.", receivedMessage);
-                receivedMessage = consumerOriginal.receive(10000);
-                Assert.assertNotNull("This is scheduled message which should be received now.", receivedMessage);
+                log.info("Trying to receive message from original queue - should be null - : " + receivedMessage);
+                Assert.assertNull("This is scheduled message from original queue which should not be received so soon. " +
+                        "Content of received message: " + receivedMessage, receivedMessage);
+                receivedMessage = consumerOriginal.receive(11000);
+                Assert.assertNotNull("Scheduled message from original queue should be received now but it wasn't.", receivedMessage);
             }
 
-            receivedMessage = consumerDiverted.receive(10000);
+            receivedMessage = consumerDiverted.receive(11000);
             Assert.assertNotNull("This is scheduled message which should be received now.", receivedMessage);
 
         } finally {
