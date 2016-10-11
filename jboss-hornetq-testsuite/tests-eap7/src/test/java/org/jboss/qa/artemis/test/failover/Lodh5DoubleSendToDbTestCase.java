@@ -839,32 +839,46 @@ public abstract class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
     public int countRecords(Container container, Archive dbServlet) throws Exception {
         boolean wasStarted = true;
         int numberOfRecords = -1;
-        try {
-            if (!ContainerUtils.isStarted(container)) {
-                container.start();
-                wasStarted = false;
-            }
-            container.deploy(dbServlet);
 
-            String url = "http://" + container.getHostname() + ":" + container.getHttpPort() + "/DbUtilServlet/DbUtilServlet?op=countAll";
-            logger.info("Calling servlet: " + url);
-            String response = HttpRequest.get(url, 60, TimeUnit.SECONDS);
+        int maxNumberOfTries = 3;
+        int numberOfTries = 0;
 
-            logger.info("Response is: " + response);
-
-            StringTokenizer st = new StringTokenizer(response, ":");
-
-            while (st.hasMoreTokens()) {
-                if (st.nextToken().contains("Records in DB")) {
-                    numberOfRecords = Integer.valueOf(st.nextToken().trim());
+        while (numberOfRecords == -1 && numberOfTries < maxNumberOfTries) {
+            try {
+                if (!ContainerUtils.isStarted(container)) {
+                    container.start();
+                    wasStarted = false;
                 }
+                container.deploy(dbServlet);
+
+                String url = "http://" + container.getHostname() + ":" + container.getHttpPort() + "/DbUtilServlet/DbUtilServlet?op=countAll";
+                logger.info("Calling servlet: " + url);
+                String response = HttpRequest.get(url, 60, TimeUnit.SECONDS);
+
+                logger.info("Response is: " + response);
+
+                StringTokenizer st = new StringTokenizer(response, ":");
+
+                while (st.hasMoreTokens()) {
+                    if (st.nextToken().contains("Records in DB")) {
+                        numberOfRecords = Integer.valueOf(st.nextToken().trim());
+                    }
+                }
+                logger.info("Number of records " + numberOfRecords);
+            } catch (Exception ex)  {
+                numberOfTries++;
+                if (numberOfTries > maxNumberOfTries)   {
+                    throw new Exception("DbUtilServlet could not get number of records in database. Failing the test.", ex);
+
+                }
+                logger.warn("Exception thrown during counting records by DbUtilServlet. Number of tries: " + numberOfTries
+                        + ", Maximum number of tries is: " + maxNumberOfTries);
+            } finally {
+                container.undeploy(dbServlet);
             }
-            logger.info("Number of records " + numberOfRecords);
-        } finally {
-            container.undeploy(dbServlet);
-        }
-        if (!wasStarted) {
-            container.stop();
+            if (!wasStarted) {
+                container.stop();
+            }
         }
         return numberOfRecords;
     }
