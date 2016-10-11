@@ -409,6 +409,108 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     /**
+     * @tpTestDetails There are 2 servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 1 (live). MDB
+     * sends messages form InQueue to OutQueue. Rebalacing is disabled. Shutdown live server and start again. Receive
+     * messages from OutQueue from live server.
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
+    @RunAsClient
+    @Test
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testShutdownFailbackWithMdbOnLive() throws Exception {
+        testFailbackWithMdbOnLive(true, mdbWithNORebalancing);
+    }
+
+    /**
+     * @tpTestDetails There are 2 servers. Live server (Node 1) and backup
+     * server (Node 2) are in dedicated HA topology.InQueue and OutQueue are
+     * deployed on live and backup. Send messages to InQueue on live server.
+     * When all messages are sent, deploy message driven bean on Node 1 (live). MDB
+     * sends messages form InQueue to OutQueue. Rebalacing is disabled. Kill live server and start again. Receive
+     * messages from OutQueue from live server.
+     * @tpPassCrit Receiver received all messages send by producer.
+     */
+    @RunAsClient
+    @Test
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testKillFailbackWithMdbOnLive() throws Exception {
+        testFailbackWithMdbOnLive(false, mdbWithNORebalancing);
+    }
+
+
+    /**
+     * @param shutdown shutdown server
+     * @throws Exception
+     */
+    public void testFailbackWithMdbOnLive(boolean shutdown, Archive mdb) throws Exception {
+
+        prepareRemoteJcaTopology();
+        // start live-backup servers
+        container(1).start();
+        container(2).start();
+
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
+        producerToInQueue1.setMessageBuilder(messageBuilder);
+        producerToInQueue1.setTimeout(0);
+        producerToInQueue1.setCommitAfter(500);
+        producerToInQueue1.addMessageVerifier(messageVerifier);
+        producerToInQueue1.start();
+        producerToInQueue1.join();
+        logger.info("Deploying MDB to mdb server.");
+
+        // start mdb server
+        container(1).deploy(mdb);
+
+        Assert.assertTrue("MDB on container 1 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
+                waitForMessagesOnOneNode(container(1), outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+
+        if (shutdown) {
+            logger.info("Stopping container 1.");
+            container(1).stop();
+            logger.info("Container 1 stopped.");
+        } else {
+            logger.info("Killing container 1.");
+            container(1).kill();
+            logger.info("Container 1 killed.");
+        }
+
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
+
+        // start node 1 again so failback occur
+        container(1).start();
+
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000); // wait for live to activate
+        CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 30000); // wait for backup to deactivate
+
+        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
+
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 3000, 100, 10);
+        receiver1.addMessageVerifier(messageVerifier);
+        receiver1.start();
+        receiver1.join();
+
+        logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
+        logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
+        messageVerifier.verifyMessages();
+
+        container(1).undeploy(mdb);
+
+        container(2).stop();
+        container(1).stop();
+        Assert.assertEquals("There is different number of sent and received messages.",
+                producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
+
+    }
+
+
+    /**
      * @param shutdown shutdown server
      * @throws Exception
      */
