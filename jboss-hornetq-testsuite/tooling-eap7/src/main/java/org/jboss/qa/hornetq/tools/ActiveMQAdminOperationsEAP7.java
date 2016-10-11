@@ -7266,7 +7266,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm){
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7278,6 +7278,9 @@ private class JMSAdminOperationException extends Exception {
         model.get("scheme").set(scheme);
         model.get("intance-id").set(intanceId);
         model.get("path").set(path);
+        if(securityRealm != null){
+            model.get("security-realm").set(securityRealm);
+        }
 
         try {
             this.applyUpdate(model);

@@ -45,6 +45,7 @@ public interface Container {
     Constants.CONTAINER_TYPE getContainerType();
 
     int getHttpPort();
+    int getHttpsPort();
     String getUsername();
     String getPassword();
 

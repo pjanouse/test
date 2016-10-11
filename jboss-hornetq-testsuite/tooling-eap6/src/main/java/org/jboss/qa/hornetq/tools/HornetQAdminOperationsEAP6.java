@@ -6183,7 +6183,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm){
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 

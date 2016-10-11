@@ -2813,7 +2813,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path){
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm){
         logger.info("This operation is not supported: " + getMethodName());
     }
 

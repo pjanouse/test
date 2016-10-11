@@ -133,6 +133,11 @@ public class ContainerEAP7 implements Container {
     }
 
     @Override
+    public int getHttpsPort() {
+        return 8443 + getPortOffset();
+    }
+
+    @Override
     public String getUsername() {
         return containerDef.getContainerProperties().get("username");
     }

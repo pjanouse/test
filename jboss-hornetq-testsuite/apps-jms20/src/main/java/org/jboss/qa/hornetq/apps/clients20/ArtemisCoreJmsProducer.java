@@ -27,6 +27,7 @@ public class ArtemisCoreJmsProducer extends Thread {
 
     private int counter = 0;
     private boolean stopClient = false;
+    private boolean isSslEnabled = false;
 
     public ArtemisCoreJmsProducer(Container container, String queueName, int messageCount) {
         this.container = container;
@@ -34,11 +35,23 @@ public class ArtemisCoreJmsProducer extends Thread {
         this.messageCount = messageCount;
     }
 
+    public ArtemisCoreJmsProducer(Container container, String queueName, int messageCount, boolean ssl) {
+        this.container = container;
+        this.queueName = queueName;
+        this.messageCount = messageCount;
+        this.isSslEnabled = ssl;
+    }
+
     public void run() {
 
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("host", container.getHostname());
-        map.put("port", container.getHornetqPort());
+        if (isSslEnabled) {
+            map.put("port", container.getHttpsPort());
+            map.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
+        } else {
+            map.put("port", container.getHornetqPort());
+        }
         map.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
 
 

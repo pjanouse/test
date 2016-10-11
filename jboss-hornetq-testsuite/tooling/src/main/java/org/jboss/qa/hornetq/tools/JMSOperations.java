@@ -2108,8 +2108,9 @@ public interface JMSOperations {
      * @param scheme scheme used for this proxy, preffered for our purposes is http
      * @param intanceId id
      * @param path path which will be proxied, for hornetq/artemis it is "/"
+     * @param securityRealm security realm to use when connecting via https. ignored if null
      */
-    void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path);
+    void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm);
 
     void addFilterToUndertowServerHost(String filterRef);
 

@@ -128,6 +128,11 @@ public class ContainerEAP6 implements Container {
         return 8080 + getPortOffset();
     }
 
+    @Override
+    public int getHttpsPort() {
+        return 8443 + getPortOffset();
+    }
+
     /**
      * Return username as defined in arquillian.xml.
      *
