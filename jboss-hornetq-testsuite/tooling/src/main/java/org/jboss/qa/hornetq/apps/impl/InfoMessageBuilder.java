@@ -9,6 +9,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.MessageCreator;
 
 import javax.jms.Message;
+import javax.jms.ObjectMessage;
 import java.util.Random;
 import java.util.UUID;
 
@@ -38,12 +39,15 @@ public class InfoMessageBuilder implements MessageBuilder {
     @Override
     public synchronized Message createMessage(MessageCreator messageCreator, JMSImplementation jmsImplementation) throws Exception {
         long randomLong = r.nextLong();
-        return messageCreator.createObjectMessage(new MessageInfo("name" + randomLong,
+        ObjectMessage msg = messageCreator.createObjectMessage(new MessageInfo("name" + randomLong,
                 "cool-address" + randomLong, sizeInBytes));
+        if (isAddDuplicatedHeader()) {
+            msg.setStringProperty(jmsImplementation.getDuplicatedHeader(), String.valueOf(UUID.randomUUID()) + System.currentTimeMillis());
+        }
+        return msg;
     }
 
     /**
-     *
      * @return if header for message duplication will be added
      */
     @Override
@@ -52,7 +56,6 @@ public class InfoMessageBuilder implements MessageBuilder {
     }
 
     /**
-     *
      * if header for message duplication will be added
      *
      * @param addDuplicatedHeader
