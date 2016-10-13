@@ -3268,6 +3268,74 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setConsumerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("consumer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConsumerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("consumer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setProducerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("producer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setProducerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("producer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Sets ha attribute.
      *

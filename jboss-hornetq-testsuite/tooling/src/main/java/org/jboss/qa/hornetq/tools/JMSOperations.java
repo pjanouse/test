@@ -1812,6 +1812,14 @@ public interface JMSOperations {
 
     void setMaxPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
 
+    void setConsumerWindowSizeOnConnectionFactory(String connectionFactoryName, long size);
+
+    void setConsumerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size);
+
+    void setProducerWindowSizeOnConnectionFactory(String connectionFactoryName, long size);
+
+    void setProducerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size);
+
     void removeJGroupsStack(String stackName);
 
     void addJGroupsStack(String stackName, LinkedHashMap<String, Properties> protocols, Properties transportParameters);

@@ -2739,6 +2739,73 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void setConsumerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("consumer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConsumerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("consumer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setProducerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("connection-factory", connectionFactoryName);
+        model.get("name").set("producer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setProducerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", "default");
+        model.get(ClientConstants.OP_ADDR).add("pooled-connection-factory", connectionFactoryName);
+        model.get("name").set("producer-window-size");
+        model.get("value").set(size);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Sets ha attribute.

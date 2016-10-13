@@ -878,6 +878,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         jmsAdminOperations.addAddressSettings("#", "PAGE", 50 * 1024 * 1024, 0, 0, 1024 * 1024);
         jmsAdminOperations.createQueue("default", inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue("default", outQueueName, outQueueJndiName, true);
+        jmsAdminOperations.setProducerWindowSizeOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, 65536 * 5); //5 times default
 
         switch (connectorType) {
             case HTTP_CONNECTOR:

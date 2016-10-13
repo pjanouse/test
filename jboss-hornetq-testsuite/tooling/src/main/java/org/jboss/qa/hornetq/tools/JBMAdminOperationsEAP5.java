@@ -2155,6 +2155,26 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setConsumerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConsumerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setProducerWindowSizeOnConnectionFactory(String connectionFactoryName, long size) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setProducerWindowSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeJGroupsStack(String stackName) {
         throw new RuntimeException("Not implemented yet");
     }
