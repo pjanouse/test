@@ -17,9 +17,11 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.*;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
+import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -391,14 +393,15 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             MessageCreator messageCreator = new MessageCreator10(session);
             JMSImplementation jmsImpl = ArtemisJMSImplementation.getInstance();
             if (isLargeMessage) {
-                msg = (TextMessage) new TextMessageBuilder(1024 * 200   ).createMessage(messageCreator, jmsImpl);
+                msg = (TextMessage) new TextMessageBuilder(1024 * 200).createMessage(messageCreator, jmsImpl);
             } else {
                 msg = (TextMessage) new TextMessageBuilder(1).createMessage(messageCreator, jmsImpl);
             }
 
-            long timeout = System.currentTimeMillis() + 10000;
+            long timeout = 10000;
+            long scheduledDelivery = System.currentTimeMillis() + timeout;
 
-            msg.setLongProperty(HDR_SCHEDULED_DELIVERY_TIME.toString(), timeout);
+            msg.setLongProperty(HDR_SCHEDULED_DELIVERY_TIME.toString(), scheduledDelivery);
 
             log.info("Start send of message to queue: " + originalQueue);
             producer.send(msg);
@@ -408,9 +411,17 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
             Queue divertedQueue = (Queue) ctx.lookup(outQueueJndiName);
             log.info("Looked up queue " + outQueueJndiName);
-            MessageConsumer consumerDiverted = session.createConsumer(divertedQueue);
+            final MessageConsumer consumerDiverted = session.createConsumer(divertedQueue);
             log.info("Created consumer on queue " + outQueueJndiName);
-            Message receivedMessage = consumerDiverted.receive(1000);
+            ReceiveThread receiverThread = new ReceiveThread(consumerDiverted);
+            receiverThread.start();
+            Thread.sleep(timeout/2);
+            log.info("Initiate printing thread dump.");
+            DebugTools.printThreadDump();
+            log.info("Thread dump created.");
+            receiverThread.join();
+            Message receivedMessage = receiverThread.getReceivedMessage();
+
             log.info("Trying to receive message from diverted queue - should be null - : " + receivedMessage);
             Assert.assertNull("This is scheduled message received from diverted queue which should not be received so soon." +
                     " Content of received message: " + receivedMessage, receivedMessage);
@@ -446,6 +457,32 @@ public class JmsMessagesTestCase extends HornetQTestCase {
 
         container(1).stop();
 
+    }
+
+    class ReceiveThread extends Thread {
+
+        private Message receivedMessage;
+        MessageConsumer consumerDiverted;
+
+        ReceiveThread(MessageConsumer consumerDiverted) {
+            this.consumerDiverted = consumerDiverted;
+        }
+
+        public void run() {
+            try {
+                long startTime = System.currentTimeMillis();
+                log.info("Start message comsumption from original queue with receive timeout 1000ms");
+                receivedMessage = consumerDiverted.receive(1000);
+                log.info("Message comsuption from original queue finished in: "
+                        + (System.currentTimeMillis() - startTime) + "ms");
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public Message getReceivedMessage() {
+            return receivedMessage;
+        }
     }
 
     /**
@@ -890,6 +927,9 @@ public class JmsMessagesTestCase extends HornetQTestCase {
         jmsOperations.createQueue(inQueue, inQueueJndiName);
         jmsOperations.createQueue(outQueue, outQueueJndiName);
         jmsOperations.addDivert("myDivert", "jms.queue." + originalQueue, "jms.queue." + divertedQueue, isExclusive, null, JmsMessagesTestCase.class.getSimpleName(), null);
+
+        jmsOperations.addLoggerCategory("io.netty", "TRACE");
+        jmsOperations.seRootLoggingLevel("TRACE");
 
         jmsOperations.close();
 
