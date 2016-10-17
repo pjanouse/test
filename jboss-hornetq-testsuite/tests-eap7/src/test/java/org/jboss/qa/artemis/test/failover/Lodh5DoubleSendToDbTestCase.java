@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.marshalling.TraceInformation;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.HttpRequest;
@@ -18,7 +17,11 @@ import org.jboss.qa.hornetq.apps.mdb.SimpleMdbToDbAndRemoteInQueue;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServlet;
 import org.jboss.qa.hornetq.apps.servlets.DbUtilServletForMessageInfo1Table;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.tools.*;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
+import org.jboss.qa.hornetq.tools.DBAllocatorUtils;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JdbcUtils;
+import org.jboss.qa.hornetq.tools.MulticastAddressUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
@@ -34,7 +37,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -388,7 +398,10 @@ public abstract class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
     @Before
     @After
     public void stopAllServers() {
+        container(4).stop();
+        container(2).stop();
         container(1).stop();
+        container(3).stop();
     }
 
     /**
@@ -502,6 +515,10 @@ public abstract class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
         jmsAdminOperations.setDiscoveryGroup(discoveryGroupName, messagingGroupSocketBindingName, 10000);
 
         jmsAdminOperations.disableSecurity();
+
+        jmsAdminOperations.addLoggerCategory("org.apache.activemq.artemis", "TRACE");
+        jmsAdminOperations.addLoggerCategory("com.arjuna", "TRACE");
+        jmsAdminOperations.seRootLoggingLevel("TRACE");
 
         jmsAdminOperations.removeClusteringGroup(clusterGroupName);
         jmsAdminOperations.setClusterConnections(clusterGroupName, "jms", discoveryGroupName, false, 1, 1000, true, connectorName);
