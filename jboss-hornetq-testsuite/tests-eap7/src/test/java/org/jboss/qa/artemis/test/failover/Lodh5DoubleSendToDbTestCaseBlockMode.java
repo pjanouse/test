@@ -13,6 +13,6 @@ public class Lodh5DoubleSendToDbTestCaseBlockMode extends Lodh5DoubleSendToDbTes
     @Override
     protected  void setAddressSettings(JMSOperations jmsAdminOperations) {
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "BLOCK", MAX_SIZE_BYTES_DEFAULT, 0, 0, PAGE_SIZE_BYTES_DEFAULT);
+        jmsAdminOperations.addAddressSettings("default", "#", "BLOCK", MAX_SIZE_BYTES_DEFAULT, 0, 0, PAGE_SIZE_BYTES_DEFAULT,  "jms.queue.ExpiryQueue", "jms.queue.DLQ");
     }
 }

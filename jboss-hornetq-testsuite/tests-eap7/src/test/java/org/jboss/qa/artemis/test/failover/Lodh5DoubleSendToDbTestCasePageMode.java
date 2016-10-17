@@ -13,6 +13,6 @@ public class Lodh5DoubleSendToDbTestCasePageMode extends Lodh5DoubleSendToDbTest
     @Override
     protected  void setAddressSettings(JMSOperations jmsAdminOperations) {
         jmsAdminOperations.removeAddressSettings("#");
-        jmsAdminOperations.addAddressSettings("#", "PAGE", MAX_SIZE_BYTES_PAGING, 0, 0, PAGE_SIZE_BYTES_PAGING);
+        jmsAdminOperations.addAddressSettings("default", "#", "PAGE", MAX_SIZE_BYTES_PAGING, 0, 0, PAGE_SIZE_BYTES_PAGING,  "jms.queue.ExpiryQueue", "jms.queue.DLQ");
     }
 }

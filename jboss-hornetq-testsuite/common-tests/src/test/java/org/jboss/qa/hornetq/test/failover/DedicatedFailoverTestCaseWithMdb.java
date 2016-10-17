@@ -1028,7 +1028,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
     }
 
     protected void setAddressSettings(String serverName, JMSOperations jmsAdminOperations) {
-        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
+        jmsAdminOperations.addAddressSettings(serverName, "#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024, "jms.queue.ExpiryQueue", "jms.queue.DLQ");
     }
 
     /**
