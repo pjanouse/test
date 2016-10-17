@@ -35,6 +35,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -1225,6 +1226,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore(value = "https://issues.jboss.org/browse/PRODMGT-1586 - unignore once this is implemented")
     public void testLoadBalancingOfOutboundConnectionsToClusterWithFail() throws Exception {
 
         int numberOfEjbs = 20;
