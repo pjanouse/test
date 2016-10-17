@@ -96,10 +96,6 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
     // Journal directory for server in colocated replicated topology (each server must have own journal)
     public static final String JOURNAL_DIRECTORY_D;
 
-    // Active server - EAP 5 or EAP 6?
-    @Deprecated
-    protected String currentContainerForTest;
-
     @ArquillianResource
     protected ContainerController controller;
 
@@ -395,14 +391,6 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
             }
         }
         return ipAddress;
-    }
-
-    /**
-     * Default constructor
-     */
-    public HornetQTestCase() {
-        this.setCurrentContainerForTest(getCurrentContainerId());
-        log.info("Setting current container ID : " + this.getCurrentContainerForTest());
     }
 
     /**
@@ -756,28 +744,6 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
         }
 
         return null;
-    }
-
-    /**
-     * Gets current container for test.
-     *
-     * @deprecated  use @see Container#getContainerType()
-     *
-     * @return name
-     */
-    @Deprecated
-    public String getCurrentContainerForTest() {
-        return currentContainerForTest;
-    }
-
-    /**
-     * Set current container for testing.
-     *
-     * @param currentContainerForTest container
-     */
-    @Deprecated
-    public void setCurrentContainerForTest(String currentContainerForTest) {
-        this.currentContainerForTest = currentContainerForTest;
     }
 
     @Before
