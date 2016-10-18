@@ -859,6 +859,10 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         // Create queue
         jmsAdminContainer1.disableSecurity();
         jmsAdminContainer2.disableSecurity();
+
+        // disable traces as we log content of large messages in traces
+        jmsAdminContainer1.disableTraceLoggingToFile();
+        jmsAdminContainer2.disableTraceLoggingToFile();
         jmsAdminContainer1.removeClusteringGroup(CLUSTER_NAME);
         jmsAdminContainer2.removeClusteringGroup(CLUSTER_NAME);
         jmsAdminContainer1.createQueue(sourceQueue, sourceQueueJndiName);
@@ -975,3 +979,4 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
     }
 
 }
+
