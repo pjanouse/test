@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.Container;
@@ -70,13 +71,15 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
 
     @Override
     public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                "default", true).getActiveMQServerObjectName(),
                 mbeanType);
     }
 
     @Override
     public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
+        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                "default", true).getJMSServerObjectName(),
                 jmsServerMbeanType);
     }
 

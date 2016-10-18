@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.clients.clients;
 
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
@@ -76,7 +77,8 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
             LOG.info("Attaching notification listener to JMX server");
 
-            connection.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
+            connection.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                    "default", true).getActiveMQServerObjectName(),
                     notificationListener, null, null);
 
             LOG.info("Setting up error listener for JMS org.jboss.qa.hornetq.apps.clients");

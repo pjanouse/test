@@ -2,6 +2,8 @@ package org.jboss.qa.artemis.test.jmx;
 
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 
 import org.apache.log4j.Logger;
@@ -98,9 +100,11 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         try {
             connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(), coreListener, null,
+            mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                    "default", true).getActiveMQServerObjectName(), coreListener, null,
                     null);
-            mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getJMSServerObjectName(), jmsListener, null, null);
+            mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                    "default", true).getJMSServerObjectName(), jmsListener, null, null);
 
             // send and receive single message
             Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);

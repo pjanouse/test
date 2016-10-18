@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.clients.clients.slow;
 
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.log4j.Logger;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -170,13 +171,12 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testSlowConsumerNotification() throws Exception {
         prepareServerForNotifications(10);
-        JMXConnector jmxConnector = null;
-
+        JMXConnector jmxConnector;
         JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
         jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
         MBeanServerConnection mbeanServer = jmxConnector.getMBeanServerConnection();
-        mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getActiveMQServerObjectName(),
-                notificationListener, null, null);
+        mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+                "default", true).getActiveMQServerObjectName(), notificationListener, null, null);
 
         PublisherAutoAck producer1 = new PublisherAutoAck(container(1),
                 TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer1");
