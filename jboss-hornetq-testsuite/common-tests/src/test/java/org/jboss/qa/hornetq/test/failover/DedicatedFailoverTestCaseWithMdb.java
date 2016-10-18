@@ -555,10 +555,11 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000);
         logger.info("Container 1 started again");
-        Thread.sleep(10000);
-        logger.info("Container 2 stopping...");
-        container(2).stop();
-        logger.info("Container 2 stopped");
+        // todo - once https://issues.apache.org/jira/browse/ARTEMIS-517 is in CLI then check if backup inSync and then shutdown it
+//        Thread.sleep(10000);
+//        logger.info("Container 2 stopping...");
+//        container(2).stop();
+//        logger.info("Container 2 stopped");
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
