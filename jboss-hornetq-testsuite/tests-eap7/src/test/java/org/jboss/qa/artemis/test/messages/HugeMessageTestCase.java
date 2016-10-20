@@ -5,22 +5,20 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
-import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
-import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
+import org.jboss.qa.hornetq.tools.HashUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.*;
 import javax.naming.Context;
+import java.io.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +35,19 @@ public class HugeMessageTestCase extends HornetQTestCase {
     private final String inQueue = "InQueue";
     private final String inQueueJndiName = "jms/queue/" + inQueue;
     private final int messageSize = 1073741824; //1GB
+    private final File sourceFile = new File("sourceFile");
+    private final File receivedFile = new File("receivedFile");
+
+    @After
+    @Before
+    public void deleteLargeFiles() {
+        if (sourceFile.exists()) {
+            sourceFile.delete();
+        }
+        if (receivedFile.exists()) {
+            receivedFile.delete();
+        }
+    }
 
     /**
      * @tpTestDetails Server is started. Send one byte message with size of 1GB.
@@ -59,27 +70,19 @@ public class HugeMessageTestCase extends HornetQTestCase {
         prepareServer(container);
         container.start();
 
-        FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        MessageBuilder messageBuilder = new ByteMessageBuilder(messageSize);
-        ProducerClientAck producer = new ProducerClientAck(container, inQueueJndiName, 1);
-        producer.setMessageBuilder(messageBuilder);
-        producer.addMessageVerifier(verifier);
-        producer.start();
-        log.info("Waiting for message send");
-        producer.join();
-        log.info("Producer finished");
+        generateSourceFile(1024 * 1024 * 1024, sourceFile);
 
-        ReceiverClientAck consumer = new ReceiverClientAck(container, inQueueJndiName);
-        consumer.start();
-        consumer.addMessageVerifier(verifier);
-        log.info("Waiting for message receive");
-        consumer.join();
-        log.info("Consumer finished");
+        StreamingProducer streamingProducer = new StreamingProducer(container, sourceFile);
+        streamingProducer.run();
 
-        verifier.verifyMessages();
+        StreamingReceiver streamingReceiver = new StreamingReceiver(container, receivedFile);
+        streamingReceiver.run();
 
-        Assert.assertEquals("Message should be sent", 1, producer.getCount());
-        Assert.assertEquals("Message should be receiver", 1, consumer.getCount());
+        String sourceHash = HashUtils.getMd5(sourceFile);
+        String receivedHash = HashUtils.getMd5(receivedFile);
+        log.info("Source file [" + sourceHash + "] Received file [" + receivedHash + "]");
+
+        Assert.assertEquals("File hash should be equal", sourceHash, receivedHash);
         container.stop();
     }
 
@@ -108,37 +111,23 @@ public class HugeMessageTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        MessageBuilder messageBuilder = new ByteMessageBuilder(messageSize);
-        ProducerClientAck producer = new ProducerClientAck(container(1), inQueueJndiName, 1);
-        producer.setMessageBuilder(messageBuilder);
-        producer.start();
-        log.info("Waiting for message send");
-        producer.join();
-        log.info("Producer finished");
+        generateSourceFile(1024 * 1024 * 1024, sourceFile);
 
+        StreamingProducer streamingProducer = new StreamingProducer(container(1), sourceFile);
+        streamingProducer.run();
 
-        // Lets receive message manually - first just connect receiver on node2 and wait for redistribution, then start receive
-        Context namingContext = JMSTools.getEAP7Context(container(2));
-        String connectionFactoryString = System.getProperty("connection.factory", Constants.CONNECTION_FACTORY_JNDI_EAP7);
-        log.info("Attempting to acquire connection factory \"" + connectionFactoryString + "\"");
-        ConnectionFactory connectionFactory = (ConnectionFactory) namingContext.lookup(connectionFactoryString);
-        log.info("Found connection factory \"" + connectionFactoryString + "\" in JNDI");
-        Queue destination = (Queue) namingContext.lookup(inQueueJndiName);
-        log.info("Found destination \"" + inQueueJndiName + "\" in JNDI");
-        Connection conn = connectionFactory.createConnection();
-        conn.start();
-        Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-        MessageConsumer receiver = session.createConsumer(destination);
+        StreamingReceiver streamingReceiver = new StreamingReceiver(container(2), receivedFile);
+        streamingReceiver.connect();
 
         log.info("Waiting for large message to redistribute on node 2 (max " + redistributionWaitTimeMinutes + " minutes)");
         jmsTools.waitForMessages(inQueue, 1, TimeUnit.MINUTES.toMillis(redistributionWaitTimeMinutes), container(2));
 
         log.info("Starting receive. Max 10 minutes timeout.");
 
-        Message msg = receiver.receive(TimeUnit.MINUTES.toMillis(10));
-        Assert.assertEquals("Message should be sent", 1, producer.getCount());
-        Assert.assertNotNull("Message should be received", msg);
-        Assert.assertEquals("No message should be in queue", 0, jmsTools.countMessages(inQueue, container(1), container(2)));
+        streamingReceiver.setTimeout(TimeUnit.MINUTES.toMillis(10));
+        streamingReceiver.run();
+
+        Assert.assertEquals("File hash should be equal", HashUtils.getMd5(sourceFile), HashUtils.getMd5(receivedFile));
 
         container(1).stop();
         container(2).stop();
@@ -195,6 +184,140 @@ public class HugeMessageTestCase extends HornetQTestCase {
                 jmsAdminOperations.close();
                 container.stop();
 
+            }
+        }
+
+    }
+
+    private File generateSourceFile(int bytes, File sourceFile) {
+        try (OutputStream os = new FileOutputStream(sourceFile)) {
+            Random random = new Random(System.currentTimeMillis());
+            byte data[] = new byte[1024];
+            while (bytes > 0) {
+                bytes -= 1024;
+                random.nextBytes(data);
+                os.write(data);
+            }
+            os.flush();
+        } catch (IOException e) {
+            log.error(e);
+        }
+        return sourceFile;
+    }
+
+    private class StreamingProducer implements Runnable {
+
+        Container targetContainer;
+        File streamFile;
+
+        public StreamingProducer(Container targetContainer, File streamFile) {
+            this.targetContainer = targetContainer;
+            this.streamFile = streamFile;
+        }
+
+        @Override
+        public void run() {
+            Connection connection = null;
+            try (InputStream is = new FileInputStream(streamFile);
+                 BufferedInputStream bufferedInput = new BufferedInputStream(is);) {
+                Context context = targetContainer.getContext();
+                ConnectionFactory cf = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
+                connection = cf.createConnection();
+                connection.start();
+
+                Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                Destination destination = (Destination) context.lookup(inQueueJndiName);
+
+                MessageProducer producer = session.createProducer(destination);
+
+                long startTime = System.currentTimeMillis();
+                log.info("Sending of message started");
+                BytesMessage message = session.createBytesMessage();
+                message.setObjectProperty("JMS_AMQ_InputStream", bufferedInput);
+                producer.send(message);
+                log.info("Sending of message finished in " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime) + " seconds");
+
+            } catch (Exception e) {
+                log.error(e);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (JMSException e1) {
+                        log.error(e1);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private class StreamingReceiver implements Runnable {
+
+        private Container fromContainer;
+        private File targetFile;
+        private MessageConsumer consumer = null;
+        private Connection connection = null;
+        private long timeout = 10000;
+
+        public void setTimeout(long timeout) {
+            this.timeout = timeout;
+        }
+
+        public StreamingReceiver(Container fromContainer, File targetFile) {
+            this.fromContainer = fromContainer;
+            this.targetFile = targetFile;
+        }
+
+        public void connect() {
+            try {
+                Context context = fromContainer.getContext();
+                ConnectionFactory cf = (ConnectionFactory) context.lookup(Constants.CONNECTION_FACTORY_JNDI_EAP7);
+                connection = cf.createConnection();
+                connection.start();
+
+                Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                Destination destination = (Destination) context.lookup(inQueueJndiName);
+
+                consumer = session.createConsumer(destination);
+            } catch (Exception e) {
+                log.error(e);
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (JMSException e1) {
+                        log.error(e1);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void run() {
+            if (connection == null || consumer == null) {
+                connect();
+            }
+
+            try (OutputStream outputStream = new FileOutputStream(targetFile);
+                 BufferedOutputStream bufferedOutput = new BufferedOutputStream(outputStream);) {
+
+                long startTime = System.currentTimeMillis();
+                log.info("Receiveing of message started");
+                BytesMessage messageReceived = (BytesMessage) consumer.receive(timeout);
+
+                // This will block until the entire content is saved on disk
+                messageReceived.setObjectProperty("JMS_AMQ_SaveStream", bufferedOutput);
+                log.info("Receiving of message finished in " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime) + " seconds");
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (JMSException e1) {
+                        log.error(e1);
+                    }
+                }
             }
         }
 
