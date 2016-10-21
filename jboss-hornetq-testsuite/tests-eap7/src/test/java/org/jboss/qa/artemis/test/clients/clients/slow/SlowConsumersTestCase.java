@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.apps.mdb.LocalSlowMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -173,10 +174,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
         prepareServerForNotifications(10);
         JMXConnector jmxConnector;
         JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
-        jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+        JmxUtils jmxUtils = container(1).getJmxUtils();
+        jmxConnector = jmxUtils.getJmxConnectorForEap(container(1));
         MBeanServerConnection mbeanServer = jmxConnector.getMBeanServerConnection();
-        mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                "default", true).getActiveMQServerObjectName(), notificationListener, null, null);
+        mbeanServer.addNotificationListener(jmxUtils.getObjectNameBuilder(ObjectNameBuilder.class).getActiveMQServerObjectName(), notificationListener, null, null);
 
         PublisherAutoAck producer1 = new PublisherAutoAck(container(1),
                 TOPIC_JNDI_NAME, 1000, CLIENT_NAME + "producer1");

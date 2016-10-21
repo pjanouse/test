@@ -72,4 +72,9 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
         return MBeanServerInvocationHandler.newProxyInstance(mbeanServer, mbeanName, mbeanClass, false);
     }
 
+    @Override
+    public <T> T getObjectNameBuilder(Class<T> builderType) {
+        return (T) ObjectNameBuilder.DEFAULT;
+    }
+
 }

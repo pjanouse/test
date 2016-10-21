@@ -19,6 +19,9 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import static org.jboss.qa.hornetq.JMSTools.isIpv6Address;
 
 
@@ -71,16 +74,18 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
 
     @Override
     public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                "default", true).getActiveMQServerObjectName(),
-                mbeanType);
+//        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+//                "default", true).getActiveMQServerObjectName(),
+//                mbeanType);
+        return null;
     }
 
     @Override
     public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                "default", true).getJMSServerObjectName(),
-                jmsServerMbeanType);
+//        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
+//                "default", true).getJMSServerObjectName(),
+//                jmsServerMbeanType);
+        return null;
     }
 
     @Override
@@ -89,6 +94,24 @@ public class JmxUtilsImplEAP7 implements JmxUtils {
         return MBeanServerInvocationHandler.newProxyInstance(mbeanServer, mbeanName, mbeanClass, false);
     }
 
+    @Override
+    public <T> T getObjectNameBuilder(Class<T> builderType) {
+        Class builderClass = ObjectNameBuilder.class;
+
+        try {
+            Method method = builderClass.getMethod("create", String.class, String.class, boolean.class);
+            return (T) method.invoke(null, ActiveMQDefaultConfiguration.getDefaultJmxDomain(), "default", true);
+        } catch (NoSuchMethodException e) {
+            return (T) ObjectNameBuilder.DEFAULT;
+        } catch (InvocationTargetException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+
+    }
 
 
     public static void main(String[] args) throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {

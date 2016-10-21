@@ -16,6 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.PublisherTransAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -98,13 +99,13 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
         JMXConnector connector = null;
         try {
-            connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            JmxUtils jmxUtils = container(1).getJmxUtils();
+            ObjectNameBuilder objectNameBuilder = jmxUtils.getObjectNameBuilder(ObjectNameBuilder.class);
+            connector = jmxUtils.getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
-            mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                    "default", true).getActiveMQServerObjectName(), coreListener, null,
+            mbeanServer.addNotificationListener(objectNameBuilder.getActiveMQServerObjectName(), coreListener, null,
                     null);
-            mbeanServer.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                    "default", true).getJMSServerObjectName(), jmsListener, null, null);
+            mbeanServer.addNotificationListener(objectNameBuilder.getJMSServerObjectName(), jmsListener, null, null);
 
             // send and receive single message
             Clients clients = new QueueClientsAutoAck(container(1), queueJndiName, 1, 1, 1, 1);

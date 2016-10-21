@@ -24,6 +24,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
@@ -134,9 +135,10 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             JmxNotificationListener notificationListener = container(1).createJmxNotificationListener();
-            jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            JmxUtils jmxUtils = container(1).getJmxUtils();
+            jmxConnector = jmxUtils.getJmxConnectorForEap(container(1));
             MBeanServerConnection mbeanServer = jmxConnector.getMBeanServerConnection();
-            mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
+            mbeanServer.addNotificationListener(jmxUtils.getObjectNameBuilder(ObjectNameBuilder.class).getHornetQServerObjectName(),
                     notificationListener, null, null);
 
             PublisherAutoAck producer = new PublisherAutoAck(container(1),

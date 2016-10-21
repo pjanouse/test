@@ -22,4 +22,6 @@ public interface JmxUtils {
 
     Object getHornetQMBean(MBeanServerConnection mbeanServer, ObjectName mbeanName,
                            Class<?> mbeanClass);
+
+    <T> T getObjectNameBuilder(Class<T> builderType);
 }

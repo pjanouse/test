@@ -4,6 +4,7 @@ import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -72,13 +73,13 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
         try {
             LOG.info("Connecting to JMX server");
-            jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            JmxUtils jmxUtils = container(1).getJmxUtils();
+            jmxConnector = jmxUtils.getJmxConnectorForEap(container(1));
             MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
 
             LOG.info("Attaching notification listener to JMX server");
 
-            connection.addNotificationListener(ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(),
-                    "default", true).getActiveMQServerObjectName(),
+            connection.addNotificationListener(jmxUtils.getObjectNameBuilder(ObjectNameBuilder.class).getActiveMQServerObjectName(),
                     notificationListener, null, null);
 
             LOG.info("Setting up error listener for JMS org.jboss.qa.hornetq.apps.clients");

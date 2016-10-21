@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.clients;
 
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
@@ -70,12 +71,13 @@ public abstract class AbstractClientCloseTestCase extends HornetQTestCase {
 
         try {
             LOG.info("Connecting to JMX server");
-            jmxConnector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
+            JmxUtils jmxUtils = container(1).getJmxUtils();
+            jmxConnector = jmxUtils.getJmxConnectorForEap(container(1));
             MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
 
             LOG.info("Attaching notification listener to JMX server");
 
-            connection.addNotificationListener(ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(), notificationListener,
+            connection.addNotificationListener(jmxUtils.getObjectNameBuilder(ObjectNameBuilder.class).getHornetQServerObjectName(), notificationListener,
                     null, null);
 
             LOG.info("Setting up error listener for JMS org.jboss.qa.hornetq.apps.clients");
