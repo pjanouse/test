@@ -702,6 +702,14 @@ public interface JMSOperations {
      */
     void createHttpAcceptor(String serverName, String name, String httpListener, Map<String, String> params);
 
+    void setParamsForHttpAcceptor(String serverName, String acceptorName, Map<String, String> params);
+
+    void setParamsForHttpAcceptor(String acceptorName, Map<String, String> params);
+
+    void setParamsForHttpConnector(String serverName, String connectorName, Map<String, String> params);
+
+    void setParamsForHttpConnector(String connectorName, Map<String, String> params);
+
     /**
      * Remove connector
      *
@@ -1048,6 +1056,14 @@ public interface JMSOperations {
      * @param connectorNames
      */
     void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames);
+
+    void setConnectorOnBroadcastGroup(String serverName, String broadcastGroup, List<String> connectorNames);
+
+    void setConnectorOnBroadcastGroup(String broadcastGroup, List<String> connectorNames);
+
+    void setConnectorOnClusterGroup(String serverName, String clusterGroup, String connectorName);
+
+    void setConnectorOnClusterGroup(String clusterGroup, String connectorName);
 
     void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout);
 

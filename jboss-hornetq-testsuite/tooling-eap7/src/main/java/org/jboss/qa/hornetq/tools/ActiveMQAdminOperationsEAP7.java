@@ -1187,6 +1187,58 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setConnectorOnBroadcastGroup(String serverName, String broadcastGroup, List<String> connectorNames) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", broadcastGroup);
+
+        model.get("name").set("connectors");
+        List<ModelNode> connectors = new ArrayList<ModelNode>();
+        for (String s : connectorNames) {
+            ModelNode modelnew = createModelNode();
+            modelnew.set(s);
+            connectors.add(modelnew);
+        }
+        model.get("value").set(connectors);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConnectorOnBroadcastGroup(String broadcastGroup, List<String> connectorNames) {
+        setConnectorOnBroadcastGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, broadcastGroup, connectorNames);
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String serverName, String clusterGroup, String connectorName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroup);
+
+        model.get("name").set("connector-name");
+        model.get("value").set(connectorName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String clusterGroup, String connectorName) {
+        setConnectorOnClusterGroup(NAME_OF_MESSAGING_DEFAULT_SERVER, clusterGroup, connectorName);
+    }
+
+    @Override
     public void setDiscoveryGroup(String name, String groupAddress, int groupPort, long refreshTimeout) {
         setDiscoveryGroup(name, null, groupAddress, groupPort, refreshTimeout);
     }
@@ -4910,7 +4962,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
+            model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -5802,6 +5854,62 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setParamsForHttpAcceptor(String serverName, String acceptorName, Map<String, String> params) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-acceptor", acceptorName);
+
+        ModelNode paramsModel = new ModelNode();
+        for (String key : params.keySet()) {
+            paramsModel.add(key, params.get(key));
+        }
+
+        model.get("name").set("params");
+        model.get("value").set(paramsModel);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setParamsForHttpAcceptor(String acceptorName, Map<String, String> params) {
+        setParamsForHttpAcceptor(NAME_OF_MESSAGING_DEFAULT_SERVER, acceptorName, params);
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String serverName, String connectorName, Map<String, String> params) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+        model.get(ClientConstants.OP_ADDR).add("http-connector", connectorName);
+
+        ModelNode paramsModel = new ModelNode();
+        for (String key : params.keySet()) {
+            paramsModel.add(key, params.get(key));
+        }
+
+        model.get("name").set("params");
+        model.get("value").set(paramsModel);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String connectorName, Map<String, String> params) {
+        setParamsForHttpConnector(NAME_OF_MESSAGING_DEFAULT_SERVER, connectorName, params);
     }
 
     @Override

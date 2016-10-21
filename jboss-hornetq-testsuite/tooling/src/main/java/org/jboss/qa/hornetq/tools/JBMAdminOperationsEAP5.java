@@ -881,6 +881,26 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setParamsForHttpAcceptor(String serverName, String acceptorName, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setParamsForHttpAcceptor(String acceptorName, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String serverName, String connectorName, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String connectorName, Map<String, String> params) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void removeConnector(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -1138,6 +1158,26 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setConnectorOnPooledConnectionFactory(String connectionFactoryName, List<String> connectorNames) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConnectorOnBroadcastGroup(String serverName, String broadcastGroup, List<String> connectorNames) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConnectorOnBroadcastGroup(String broadcastGroup, List<String> connectorNames) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String serverName, String clusterGroup, String connectorName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String clusterGroup, String connectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

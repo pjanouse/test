@@ -189,6 +189,26 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setParamsForHttpAcceptor(String serverName, String acceptorName, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void setParamsForHttpAcceptor(String acceptorName, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String serverName, String connectorName, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void setParamsForHttpConnector(String connectorName, Map<String, String> params) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
     public void removeConnector(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -837,6 +857,58 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setConnectorOnBroadcastGroup(String serverName, String broadcastGroup, List<String> connectorNames) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("broadcast-group", broadcastGroup);
+
+        model.get("name").set("connectors");
+        List<ModelNode> connectors = new ArrayList<ModelNode>();
+        for (String s : connectorNames) {
+            ModelNode modelnew = createModelNode();
+            modelnew.set(s);
+            connectors.add(modelnew);
+        }
+        model.get("value").set(connectors);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConnectorOnBroadcastGroup(String broadcastGroup, List<String> connectorNames) {
+        setConnectorOnBroadcastGroup("default", broadcastGroup, connectorNames);
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String serverName, String clusterGroup, String connectorName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "messaging");
+        model.get(ClientConstants.OP_ADDR).add("hornetq-server", serverName);
+        model.get(ClientConstants.OP_ADDR).add("cluster-connection", clusterGroup);
+
+        model.get("name").set("connector-ref");
+        model.get("value").set(connectorName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setConnectorOnClusterGroup(String clusterGroup, String connectorName) {
+        setConnectorOnClusterGroup("default", clusterGroup, connectorName);
     }
 
     @Override
