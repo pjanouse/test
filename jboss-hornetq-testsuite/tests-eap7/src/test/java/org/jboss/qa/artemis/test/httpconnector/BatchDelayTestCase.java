@@ -146,7 +146,7 @@ public class BatchDelayTestCase extends HornetQTestCase {
         receiver.start();
         receiver.join(5000);
 
-        if (!receiver.isAlive()) {
+        if (receiver.isAlive()) {
             DebugTools.printThreadDump();
             ContainerUtils.printThreadDump(container);
             Assert.fail();
