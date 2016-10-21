@@ -28,6 +28,11 @@ public class ShutdownHook extends Thread {
 
     public void run() {
 
+        if (pid < 0) {
+            log.info("Shutdown hook started with pid < 0. Stopping shutdown hook now.");
+            return;
+        }
+
         long startTime = System.currentTimeMillis();
         try {
             while (CheckServerAvailableUtils.checkThatServerIsReallyUp(con.getHostname(), con.getHttpPort())
