@@ -57,13 +57,15 @@ public class JmxUtilsImplEAP6 implements JmxUtils {
 
     @Override
     public <T> T getServerMBean(MBeanServerConnection mbeanServer, Class<T> mbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getHornetQServerObjectName(),
+        ObjectNameBuilder objectNameBuilder = getObjectNameBuilder(ObjectNameBuilder.class);
+        return (T) getHornetQMBean(mbeanServer, objectNameBuilder.getHornetQServerObjectName(),
                 mbeanType);
     }
 
     @Override
     public <T> T getJmsServerMBean(MBeanServerConnection mbeanServer, Class<T> jmsServerMbeanType) throws Exception {
-        return (T) getHornetQMBean(mbeanServer, ObjectNameBuilder.DEFAULT.getJMSServerObjectName(),
+        ObjectNameBuilder objectNameBuilder = getObjectNameBuilder(ObjectNameBuilder.class);
+        return (T) getHornetQMBean(mbeanServer, objectNameBuilder.getJMSServerObjectName(),
                 jmsServerMbeanType);    }
 
     @Override
