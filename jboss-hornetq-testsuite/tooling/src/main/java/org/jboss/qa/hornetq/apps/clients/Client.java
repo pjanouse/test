@@ -33,7 +33,8 @@ public class Client extends Thread implements HornetQTestCaseConstants {
     protected String hostname;
     protected int port;
     protected String destinationNameJndi;
-    protected long timeout = 100;
+    // setting volatile so any change is visible
+    protected volatile long timeout = 100;
     protected int counter = 0;
     protected int maxRetries = 10;
     protected Exception exception = null;
