@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -75,9 +74,6 @@ import java.util.List;
 @Category(FunctionalTests.class)
 public class JmsQueueOperationsTestCase extends CliTestBase {
 
-    @Rule
-    public Timeout timeout = new Timeout(DEFAULT_TEST_TIMEOUT);
-
     private static final Logger logger = Logger.getLogger(JmsQueueOperationsTestCase.class);
 
     private final CliClient cli = new CliClient(new CliConfiguration(container(1).getHostname(), container(1).getPort(), container(1).getUsername(), container(1).getPassword()));
@@ -108,34 +104,37 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
     }
 
 // TODO uncomment when bz: https://bugzilla.redhat.com/show_bug.cgi?id=1155247 gets clear
-//    /**
-//     * When queue is destroyed with connected consumers then nothing should happen.
-//     */
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    public void testDestroyWithActiveClients() {
-//
-//        // setup server
-//        prepareServer(CONTAINER1_NAME_NAME);
-//
-//        // send some messages to queue and receive them
-//        ProducerClientAck producer = new ProducerClientAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
-//
-//        producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
-//
-//        producer.start();
-//
-//        ReceiverClientAck receiverClientAck = new ReceiverClientAck(getHostname(CONTAINER1_NAME_NAME), getJNDIPort(CONTAINER1_NAME_NAME), queueJndiName, 1000, 100, 10);
-//
-//        receiverClientAck.start();
-//
-//        Result r1 = runOperation("remove");
-//
-//        CliTestUtils.assertFailure(r1);
-//
-//    }
+    /**
+     * When queue is destroyed with connected consumers then nothing should happen.
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testDestroyWithActiveClients() throws Exception {
+
+        // setup server
+        prepareServer(container(1));
+
+        // send some messages to queue and receive them
+        ProducerClientAck producer = new ProducerClientAck(container(1), queueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        producer.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        producer.start();
+
+        ReceiverClientAck receiverClientAck = new ReceiverClientAck(container(1), queueJndiName, 1000, 50, 10);
+        receiverClientAck.start();
+
+        // remove queue
+        Result r1 = runOperation("remove");
+
+        producer.stopSending();
+        producer.join();
+        receiverClientAck.setTimeout(0);
+        receiverClientAck.join();
+
+        CliTestUtils.assertFailure(r1);
+
+    }
 //
 //    /**
 //     * When queue is destroyed with connected consumers then nothing should happen.
