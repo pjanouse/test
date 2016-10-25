@@ -96,8 +96,11 @@ public class ContainerUtils {
                 printStream.flush();
                 printStream.close();
                 input.close();
-                if (printThreadDump.waitFor() == 0) {
+                int printThreadDumpExitValue = printThreadDump.waitFor();
+                if (printThreadDumpExitValue == 0) {
                     log.info("Print thread dump of process: " + pid + " was successful. Check server log for more details.");
+                } else{
+                    log.warn("Print thread dump of process: " + pid + " was not successful. Return value was " + printThreadDumpExitValue);
                 }
             } else {
                 log.warn("We cannot print thread dump on IBM JDK java. Printing thread dump for process: " + pid + " is canceled.");

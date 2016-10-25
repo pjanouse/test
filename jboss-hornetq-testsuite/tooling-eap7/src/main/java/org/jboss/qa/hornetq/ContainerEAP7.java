@@ -218,6 +218,7 @@ public class ContainerEAP7 implements Container {
             // ignore
         } catch (Exception ex) {
             log.error("Error during start.", ex);
+            throw new RuntimeException(ex);
         }
     }
 
