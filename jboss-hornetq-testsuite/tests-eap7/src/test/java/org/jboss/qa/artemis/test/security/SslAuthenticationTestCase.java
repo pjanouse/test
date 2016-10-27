@@ -33,6 +33,7 @@ import org.jboss.qa.hornetq.tools.XMLManipulation;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.*;
 import org.junit.experimental.categories.Category;
@@ -276,16 +277,29 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @BMRule(
-            name = "rule to force sslv3",
-            targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
-            targetMethod = "initChannel",
-            isAfter = true,
+    @BMRules({
+            @BMRule(
+                    name = "1s rule to force sslv3 - createSSLEngine()",
+                    targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
+                    targetMethod = "initChannel",
+                    isAfter = true,
 //            binding = "engine:SSLEngine = $0",
-            targetLocation = "INVOKE createSSLEngine",
+            targetLocation = "INVOKE createSSLEngine()",
             action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
 
-    )
+            ),
+            @BMRule(
+                    name = "2nd rule to force sslv3  - createSSLEngine(String, int)",
+                    targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
+                    targetMethod = "initChannel",
+                    isAfter = true,
+//            binding = "engine:SSLEngine = $0",
+                    targetLocation = "INVOKE createSSLEngine(String, int)",
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+
+            )
+    })
+
     public void testOneWaySslOverSSLv3Jms() throws Exception {
         container(1).start();
         JMSOperations ops = this.prepareServer();
