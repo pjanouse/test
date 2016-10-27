@@ -104,7 +104,7 @@ public class HugeMessageTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     public void test1GbMessageCluster() throws Exception {
 
-        int redistributionWaitTimeMinutes = 10;
+        int redistributionWaitTimeMinutes = 30;
         JMSTools jmsTools = new JMSTools();
 
         prepareServer(container(1), container(2));
@@ -124,7 +124,7 @@ public class HugeMessageTestCase extends HornetQTestCase {
 
         log.info("Starting receive. Max 10 minutes timeout.");
 
-        streamingReceiver.setTimeout(TimeUnit.MINUTES.toMillis(10));
+        streamingReceiver.setTimeout(TimeUnit.MINUTES.toMillis(30));
         streamingReceiver.run();
 
         Assert.assertEquals("File hash should be equal", HashUtils.getMd5(sourceFile), HashUtils.getMd5(receivedFile));
