@@ -135,24 +135,24 @@ public class JmsQueueOperationsTestCase extends CliTestBase {
         CliTestUtils.assertFailure(r1);
 
     }
-//
-//    /**
-//     * When queue is destroyed with connected consumers then nothing should happen.
-//     */
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    public void testDestroyWithoutClients() {
-//
-//        // setup server
-//        prepareServer(CONTAINER1_NAME_NAME);
-//
-//        Result r1 = runOperation("remove");
-//
-//        CliTestUtils.assertSuccess(r1);
-//
-//    }
+
+    /**
+     * When queue is destroyed with connected consumers then nothing should happen.
+     */
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testDestroyWithoutClients() {
+
+        // setup server
+        prepareServer(container(1));
+
+        Result r1 = runOperation("remove");
+
+        CliTestUtils.assertSuccess(r1);
+
+    }
     /**
      *
      * @tpTestDetails Server is started. Create client which sends messages to
