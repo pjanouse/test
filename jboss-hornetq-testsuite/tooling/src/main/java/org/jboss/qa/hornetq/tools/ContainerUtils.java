@@ -48,10 +48,12 @@ public class ContainerUtils {
     }
 
     public static void printThreadDump(Container container) {
-        boolean isUp = CheckServerAvailableUtils.checkThatServerIsReallyUp(container);
-        if (!isUp) {
-            log.warn("Cannot print thread dumps because " + container.getName() + " is not runnig.");
-            return;
+        if (container.getProcessId() < 0) {
+            boolean isUp = CheckServerAvailableUtils.checkThatServerIsReallyUp(container);
+            if (!isUp) {
+                log.warn("Cannot print thread dumps because " + container.getName() + " is not runnig.");
+                return;
+            }
         }
         long pid = container.getProcessId();
         log.info("Print thread dump for container: " + container.getName() + " which has pid: " + pid);
