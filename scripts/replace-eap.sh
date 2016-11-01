@@ -43,8 +43,8 @@ cp $ARTEMIS_HOME/artemis-service-extensions/target/artemis-service-extensions-$V
 
 cp $ARTEMIS_HOME/artemis-protocols/artemis-hornetq-protocol/target/artemis-hornetq-protocol-$VERSION.jar $(findJar artemis-hornetq-protocol-*.jar)
 
-cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $(findJar libartemis-native-64.so)
-cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $(findJar libartemis-native-32.so)
+#cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-64.so $(findJar libartemis-native-64.so)
+#cp $ARTEMIS_HOME/artemis-native/bin/libartemis-native-32.so $(findJar libartemis-native-32.so)
 
 
 
