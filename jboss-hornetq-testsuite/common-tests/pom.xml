@@ -32,10 +32,7 @@
                                     <value>arquillian-4-nodes.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap6/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap6}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -70,10 +67,7 @@
                                     <value>arquillian-4-nodes.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap6/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap6}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -108,10 +102,7 @@
                                     <value>arquillian-4-nodes-domain.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap6/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap6}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -157,9 +148,7 @@
                                     <value>arquillian-4-nodes-eap7.xml</value>
                                 </property>
                             </systemProperties>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -198,9 +187,7 @@
                                     <value>arquillian-4-nodes-eap7.xml</value>
                                 </property>
                             </systemProperties>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -239,9 +226,7 @@
                                     <value>arquillian-4-nodes-eap7-ipv6.xml</value>
                                 </property>
                             </systemProperties>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -270,10 +255,7 @@
                                     <value>arquillian-4-nodes-eap7.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -314,10 +296,7 @@
                                     <value>arquillian-4-nodes-eap7-ipv6.xml</value>
                                 </property>
                             </systemProperties>
-                            <argLine>${hornetq.surefire.jvm.options}</argLine>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -369,9 +348,7 @@
                                     <value>arquillian-4-nodes-domain-eap7.xml</value>
                                 </property>
                             </systemProperties>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>../tests-eap7/src/test/resources/cli/jboss-cli.xml</additionalClasspathElement>
-                            </additionalClasspathElements>
+                            <argLine>${hornetq.surefire.jvm.options.eap7}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
