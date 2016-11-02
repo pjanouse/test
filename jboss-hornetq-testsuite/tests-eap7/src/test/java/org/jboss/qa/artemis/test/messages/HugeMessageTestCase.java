@@ -11,6 +11,8 @@ import org.jboss.qa.hornetq.tools.HashUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.resourcemonitor.MemoryMeasurement;
+import org.jboss.qa.resourcemonitor.ResourceMonitor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,7 +36,6 @@ public class HugeMessageTestCase extends HornetQTestCase {
     private static final Logger log = Logger.getLogger(HugeMessageTestCase.class);
     private final String inQueue = "InQueue";
     private final String inQueueJndiName = "jms/queue/" + inQueue;
-    private final int messageSize = 1073741824; //1GB
     private final File sourceFile = new File("sourceFile");
     private final File receivedFile = new File("receivedFile");
 
@@ -70,6 +71,17 @@ public class HugeMessageTestCase extends HornetQTestCase {
         prepareServer(container);
         container.start();
 
+        ResourceMonitor serverMeasurement = new ResourceMonitor.Builder()
+                .host(container.getHostname())
+                .port(container.getPort())
+                .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
+                .outFileNamingPattern(container.getName())
+                .generateCharts()
+                .setMeasurable(MemoryMeasurement.class, TimeUnit.SECONDS.toMillis(10))
+                .build();
+        serverMeasurement.startMeasuring();
+
+
         generateSourceFile(1024 * 1024 * 1024, sourceFile);
 
         StreamingProducer streamingProducer = new StreamingProducer(container, sourceFile);
@@ -77,6 +89,8 @@ public class HugeMessageTestCase extends HornetQTestCase {
 
         StreamingReceiver streamingReceiver = new StreamingReceiver(container, receivedFile);
         streamingReceiver.run();
+
+        serverMeasurement.stopMeasuring();
 
         String sourceHash = HashUtils.getMd5(sourceFile);
         String receivedHash = HashUtils.getMd5(receivedFile);
@@ -111,6 +125,26 @@ public class HugeMessageTestCase extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
+        ResourceMonitor server1Measurement = new ResourceMonitor.Builder()
+                .host(container(1).getHostname())
+                .port(container(1).getPort())
+                .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
+                .outFileNamingPattern(container(1).getName() + "-cluster")
+                .generateCharts()
+                .setMeasurable(MemoryMeasurement.class, TimeUnit.SECONDS.toMillis(10))
+                .build();
+        server1Measurement.startMeasuring();
+
+        ResourceMonitor server2Measurement = new ResourceMonitor.Builder()
+                .host(container(2).getHostname())
+                .port(container(2).getPort())
+                .protocol(ResourceMonitor.Builder.JMX_URL_EAP7)
+                .outFileNamingPattern(container(2).getName() + "-cluster")
+                .generateCharts()
+                .setMeasurable(MemoryMeasurement.class, TimeUnit.SECONDS.toMillis(10))
+                .build();
+        server2Measurement.startMeasuring();
+
         generateSourceFile(1024 * 1024 * 1024, sourceFile);
 
         StreamingProducer streamingProducer = new StreamingProducer(container(1), sourceFile);
@@ -126,6 +160,9 @@ public class HugeMessageTestCase extends HornetQTestCase {
 
         streamingReceiver.setTimeout(TimeUnit.MINUTES.toMillis(30));
         streamingReceiver.run();
+
+        server1Measurement.stopMeasuring();
+        server2Measurement.startMeasuring();
 
         Assert.assertEquals("File hash should be equal", HashUtils.getMd5(sourceFile), HashUtils.getMd5(receivedFile));
 
@@ -177,6 +214,8 @@ public class HugeMessageTestCase extends HornetQTestCase {
                 jmsAdminOperations.addAddressSettings("#", "PAGE", 20480, 100, 0, 1024);
 
                 jmsAdminOperations.createQueue(inQueue, inQueueJndiName);
+
+                jmsAdminOperations.enableServerDump(TimeUnit.MINUTES.toMillis(1));
 
             } catch (Exception e) {
                 log.error(e.getMessage());

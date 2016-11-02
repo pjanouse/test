@@ -592,6 +592,11 @@ public interface JMSOperations {
     void reload();
 
     /**
+     * Each dumpPerion ms server state will be printed in server log
+     */
+    void enableServerDump(long dumpPeriod);
+
+    /**
      * Removes address settings
      *
      * @param address address specification

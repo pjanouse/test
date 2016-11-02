@@ -5184,6 +5184,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         }
     }
 
+    @Override
+    public void enableServerDump(long dumpPeriod){
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * @return the hostname
      */

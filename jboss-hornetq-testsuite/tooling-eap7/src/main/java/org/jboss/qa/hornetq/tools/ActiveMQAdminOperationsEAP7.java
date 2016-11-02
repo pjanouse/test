@@ -6214,6 +6214,22 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         reload(false);
     }
 
+    @Override
+    public void enableServerDump(long dumpPeriod) {
+        final ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
+        model.get("name").set("server-dump-interval");
+        model.get("value").set(dumpPeriod);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * @return the hostname
      */
