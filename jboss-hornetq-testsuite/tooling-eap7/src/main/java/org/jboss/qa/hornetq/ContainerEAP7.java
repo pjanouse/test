@@ -23,7 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.ServiceLoader;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -272,15 +275,25 @@ public class ContainerEAP7 implements Container {
         final Container con = this;
 
         // if pid is set to value < 0 and server is running then try to get new pid
-        if (pid < 0)    {
+        if (pid < 0) {
             log.info("Server " + this.getName() + " is running but pid is less than 0. PID: " + pid + " -- try to get pid of running server.");
             try {
-                ProcessIdUtils.getProcessId(this);
-            } catch (Exception ex)  {
-                log.warn("Server " + this.getName() + " is running but it's not possible get its PID", ex);
+                pid = ProcessIdUtils.getProcessId(this);
+            } catch (Exception ex) {
+                log.warn("Server " + this.getName() + " is running but it's not possible get its PID as PID of running container", ex);
+            }
+            if (pid < 0) {
+                try {
+                    pid = ProcessIdUtils.getProcessIdOfNotFullyStartedContainer(this);
+                } catch (Exception ex) {
+                    log.warn("Server " + this.getName() + " is running but it's not possible get its PID of not fully started container", ex);
+                }
+            }
+
+            if (pid < 0)
                 Assert.fail("Server - " + this.getName() + " - is running but it's not possible get its PID. Failing the test. " +
                         "Check logs for stacktrace why the pid could not be obtained.");
-            }
+
         }
         ShutdownHook shutdownHook = new ShutdownHook(timeout, con, pid);
         shutdownHook.start();
