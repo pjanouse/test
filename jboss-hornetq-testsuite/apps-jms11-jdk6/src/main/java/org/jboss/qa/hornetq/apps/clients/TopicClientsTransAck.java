@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class starts publishers and subscribers on multiple topic.
@@ -125,6 +126,12 @@ public class TopicClientsTransAck implements Clients {
                 getSubscribers().add(subscriber);
 
                 subscriber.subscribe();
+
+                try {
+                    subscriber.waitOnSubscribe(10, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
             }
 
             PublisherTransAck p = null;

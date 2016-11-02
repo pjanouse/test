@@ -295,12 +295,12 @@ public class ContainerEAP7 implements Container {
         }
         ShutdownHook shutdownHook = new ShutdownHook(timeout, con, pid);
         shutdownHook.start();
-        log.info("Stopping the server.");
+        log.info("Stopping the server - " + getName());
         containerController.stop(getName());
         try {
             containerController.kill(getName());
         } catch (Exception ex) {
-            log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
+            log.error("Container - " + getName() + " was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
                     "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
                     "controller.kill() will do that.", ex);
         }

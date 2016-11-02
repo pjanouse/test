@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,18 +56,6 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     protected static final String TOPIC_JNDI_NAME_PREFIX = "jms/topic/testTopic";
 
     protected static final String JOURNAL_DIR = JOURNAL_DIRECTORY_A;
-
-
-    @Before
-    public void startContainerBeforeTest() {
-        container(1).start();
-    }
-
-
-    @After
-    public void stopContainerAfterTest() {
-        container(1).stop();
-    }
 
     /**
      * @tpTestDetails This test scenario tests whether is possible to send and receive messages from queue with older EAP clients
@@ -186,7 +175,7 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
     }
 
 
-    private void testClient(final Container container, final int acknowledgeMode, final boolean isTopic)
+    protected void testClient(final Container container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
 
         this.prepareContainer(container);
@@ -195,23 +184,18 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
         Clients client = createClients(container, acknowledgeMode, isTopic);
         client.startClients();
 
-        long startTime = System.currentTimeMillis();
-
-        while (!client.isFinished() && System.currentTimeMillis() - startTime < 300000) {
-            LOG.info("Waiting for client " + client + " to finish.");
-            Thread.sleep(1500);
-        }
+        ClientUtils.waitForClientsToFinish(client, 600000);
 
         container.stop();
 
-        Assert.assertTrue("There are failures detected by org.jboss.qa.hornetq.apps.clients. More information in log.", client.evaluateResults());
+        Assert.assertTrue("There are failures detected by clients. More information in log.", client.evaluateResults());
     }
 
 
     abstract protected void prepareContainer(final Container container) throws Exception;
 
 
-    private Clients createClients(final Container container, final int acknowledgeMode, final boolean isTopic)
+    protected Clients createClients(final Container container, final int acknowledgeMode, final boolean isTopic)
             throws Exception {
 
         Clients clients;
@@ -262,6 +246,9 @@ public abstract class ClientCompatibilityTestBase extends HornetQTestCase {
         for (Client c : clients.getConsumers()) {
             c.setTimeout(0);
         }
+
+        usedClients.addAll(clients.getConsumers());
+        usedClients.addAll(clients.getProducers());
 
         return clients;
     }

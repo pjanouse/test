@@ -14,7 +14,7 @@ public class Receiver extends Client {
 
     private static final Logger logger = Logger.getLogger(Receiver.class);
 
-    protected long receiveTimeout;
+    protected long receiveTimeout = 10000;
     protected String selector;
 
     protected List<Map<String, String>> listOfReceivedMessages = new ArrayList<Map<String, String>>();

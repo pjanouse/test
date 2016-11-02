@@ -11,6 +11,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class starts publishers and subscribers on multiple topic.
@@ -35,13 +36,13 @@ public class TopicClientsAutoAck implements Clients {
     private String containerType = HornetQTestCaseConstants.EAP6_CONTAINER;
     private MessageBuilder messageBuilder;
 
-    public TopicClientsAutoAck(Container container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic){
+    public TopicClientsAutoAck(Container container, int numberOfTopics, int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic) {
 
         this(container, "jms/topic/testTopic", numberOfTopics, numberOfPublishersPerTopic, numberOfsubscribersPerTopic, 100);
     }
 
     public TopicClientsAutoAck(Container container, String topicJndiNamePrefix, int numberOfTopics,
-                               int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages){
+                               int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
         this.container = container;
         this.containerType = container.getContainerType().toString();
         this.hostnameForSubscribers = container.getHostname();
@@ -66,6 +67,7 @@ public class TopicClientsAutoAck implements Clients {
         this(HornetQTestCaseConstants.EAP6_CONTAINER, hostname, jndiPort, topicJndiNamePrefix, numberOfTopics, numberOfPublishersPerTopic,
                 numberOfsubscribersPerTopic, numberOfMessages);
     }
+
     @Deprecated
     public TopicClientsAutoAck(String containerType, String hostname, int jndiPort, String topicJndiNamePrefix, int numberOfTopics,
                                int numberOfPublishersPerTopic, int numberOfsubscribersPerTopic, int numberOfMessages) {
@@ -215,7 +217,7 @@ public class TopicClientsAutoAck implements Clients {
 
         // check message verifiers
         for (SubscriberAutoAck subscriber : getSubscribers()) {
-                        if (!subscriber.verifyMessages()) {
+            if (!subscriber.verifyMessages()) {
                 isOk = false;
             }
         }
@@ -412,7 +414,7 @@ public class TopicClientsAutoAck implements Clients {
     @Override
     public List<Client> getConsumers() {
         List<Client> list = new ArrayList<Client>();
-        for (Client c : subscribers)  {
+        for (Client c : subscribers) {
             list.add(c);
         }
         return list;
@@ -421,7 +423,7 @@ public class TopicClientsAutoAck implements Clients {
     @Override
     public List<Client> getProducers() {
         List<Client> list = new ArrayList<Client>();
-        for (Client c : publishers)  {
+        for (Client c : publishers) {
             list.add(c);
         }
         return list;
