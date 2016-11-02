@@ -63,7 +63,8 @@ public interface Container {
 
     // ContainerController delegates
     void start();
-    void start(Map<String,String> containerProperties);
+    void start(int startTimeout);
+    void start(Map<String,String> containerProperties, int startTimeout);
     void startAdminOnly();
 
     int getJGroupsTcpPort();

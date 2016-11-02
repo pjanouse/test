@@ -334,7 +334,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
-            container(1).start();
+            container(1).start(280000);
 
             Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
 

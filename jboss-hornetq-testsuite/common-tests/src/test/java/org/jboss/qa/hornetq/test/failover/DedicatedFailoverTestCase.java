@@ -29,6 +29,7 @@ import javax.jms.Session;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -357,7 +358,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
             logger.warn("########################################");
             logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
-            container(1).start();
+            container(1).start(280000);
 
             Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
 

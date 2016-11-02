@@ -170,12 +170,11 @@ public class ContainerEAP7 implements Container {
 
     @Override
     public void start() {
+        start(180000);
+    }
 
-        // modify properties for arquillian.xml
-        // set port off set based on how it was configured here
-        // -Djboss.socket.binding.port-offset=${PORT_OFFSET_1} add to vmarguments
-        // replace 9091 for byteman port
-
+    @Override
+    public void start(int startTimeout){
         Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
 
         containerProperties.put("managementPort", String.valueOf(getPort()));
@@ -188,14 +187,13 @@ public class ContainerEAP7 implements Container {
         javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
-        start(containerProperties);
+        start(containerProperties, startTimeout);
     }
 
     @Override
-    public void start(final Map<String, String> containerProperties) {
+    public void start(final Map<String, String> containerProperties, int timeout) {
 
         final Container container = this;
-        long timeout = 180000;
 
         Thread startServerThread = new Thread() {
             public void run() {
@@ -237,7 +235,7 @@ public class ContainerEAP7 implements Container {
         javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
-        start(containerProperties);
+        start(containerProperties, 180000);
     }
 
     @Override

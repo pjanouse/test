@@ -1190,7 +1190,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         }
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        container(2).start(properties);
+        container(2).start(properties, 180000);
 
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10);
 

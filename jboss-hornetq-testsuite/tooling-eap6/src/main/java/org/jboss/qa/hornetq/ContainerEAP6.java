@@ -1,9 +1,5 @@
 package org.jboss.qa.hornetq;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.*;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -23,7 +19,10 @@ import org.kohsuke.MetaInfServices;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.*;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -209,21 +208,26 @@ public class ContainerEAP6 implements Container {
         javaVmArguments = javaVmArguments.replace(String.valueOf(DEFAULT_BYTEMAN_PORT), String.valueOf(getBytemanPort()));
         containerProperties.put("javaVmArguments", javaVmArguments);
 
-        start(containerProperties);
+        start(containerProperties, 0);
     }
 
     @Override
-    public void start(Map<String, String> containerProperties) {
+    public void start(int startTimeout) {
+        log.warn("Start with timeout is not supported for EAP6. Starting without timeout.");
+        start();
+    }
+
+    @Override
+    public void start(Map<String, String> containerProperties, int timeout) {
         containerController.start(getName(), containerProperties);
         pid = ProcessIdUtils.getProcessId(this);
-
     }
 
     @Override
     public void startAdminOnly() {
         Map<String, String> containerProperties = DefaultContainerConfigurationUtil.getOriginalContainerProperties(containerDef, containerIndex);
         containerProperties.put("adminOnly", "true");
-        start(containerProperties);
+        start(containerProperties, 0);
     }
 
     @Override

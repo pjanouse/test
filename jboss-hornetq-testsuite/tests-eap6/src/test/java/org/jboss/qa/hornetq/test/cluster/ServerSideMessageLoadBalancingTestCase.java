@@ -478,7 +478,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        container.start(properties);
+        container.start(properties, 180000);
     }
 
     private void stopServers() {

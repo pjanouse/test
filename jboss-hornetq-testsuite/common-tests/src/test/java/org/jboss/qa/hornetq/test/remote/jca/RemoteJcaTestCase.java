@@ -1694,7 +1694,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         }
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("javaVmArguments", s);
-        container(2).start(properties);
+        container(2).start(properties, 180000);
 
         JavaArchive mdbWithConnectionParameters = getMdbWithConnectionParameters();
         container(2).deploy(mdbWithConnectionParameters);
