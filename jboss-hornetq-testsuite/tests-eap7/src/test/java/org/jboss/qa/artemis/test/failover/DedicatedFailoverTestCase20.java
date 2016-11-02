@@ -40,6 +40,7 @@ import javax.jms.Session;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -843,8 +844,8 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
 
     protected void waitForClientsToFailover() {
 
-        long timeout = 180000;
-        // wait for 2 min for producers to send more messages
+        long timeout = TimeUnit.MINUTES.toMillis(5);
+        // wait for 5 min for producers to send more messages
         long startTime = System.currentTimeMillis();
 
         int startValue = 0;
@@ -864,7 +865,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
             }
         }
 
-        // wait for 2 min for consumers to send more messages
+        // wait for 5 min for consumers to receive more messages
         startTime = System.currentTimeMillis();
 
         Map<Client, Integer> consumersCounts = new HashMap<Client, Integer>();
