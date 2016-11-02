@@ -879,7 +879,8 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
                 }
             }
             if (System.currentTimeMillis() - startTime > timeout) {
-                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms");
+                Assert.fail("Clients - consumers - did not failover/failback in: " + timeout + " ms. " + consumersCounts.size()
+                        + " from total " + clients.getConsumers().size() + " consumers did not failover/failback");
             }
         } while (consumersCounts.size() > 0);
 
