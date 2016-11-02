@@ -3,15 +3,21 @@ package org.jboss.qa.hornetq.test.cli.operations;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
+import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -27,6 +33,9 @@ import org.junit.runner.RunWith;
 
 import javax.jms.*;
 import javax.naming.Context;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by okalman on 2/9/15. // TODO EAP7 list-delivering-messages operation
@@ -44,6 +53,8 @@ import javax.naming.Context;
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
 public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
+
+    private static final Logger log = Logger.getLogger(RuntimeQueueOperationsTestCaseCli.class);
 
     String queueName = "testQueue";
     String queueJndiName = "jms/queue/" + queueName;
@@ -226,10 +237,60 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         container(1).stop();
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void listMessagesBeforeReceiveTest() throws Exception {
+        final int numberOfMessages = 300;
+        final JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+
+        prepareServer(container(1));
+        container(1).start();
+
+        TextMessageVerifier messageVerifier = new TextMessageVerifier(jmsImplementation);
+        ProducerTransAck producerTransAck = new ProducerTransAck(container(1), queueJndiName, numberOfMessages);
+        addClient(producerTransAck);
+        producerTransAck.setTimeout(0);
+        producerTransAck.setCommitAfter(10);
+        producerTransAck.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
+        producerTransAck.addMessageVerifier(messageVerifier);
+
+        producerTransAck.start();
+        producerTransAck.join();
+
+        Set<String> duplicates = new HashSet<String>();
+        boolean duplicationsDetected = false;
+
+        JMSOperations jmsOperations = container(1).getJmsOperations();
+        for (Map<String, String> message: jmsOperations.listMessages(queueName)) {
+            if (!duplicates.add(message.get(jmsImplementation.getDuplicatedHeader()))) {
+                log.error("Duplication detected: " + message);
+                duplicationsDetected = true;
+            }
+        }
+        jmsOperations.close();
+
+        ReceiverTransAck receiverTransAck = new ReceiverTransAck(container(1), queueJndiName, 10000, 10, 10);
+        addClient(receiverTransAck);
+        receiverTransAck.addMessageVerifier(messageVerifier);
+        receiverTransAck.start();
+        receiverTransAck.join();
+
+        boolean verified = messageVerifier.verifyMessages();
+
+        container(1).stop();
+
+        Assert.assertFalse(duplicationsDetected);
+        Assert.assertTrue(verified);
+    }
+
     private void prepareServer(Container container) {
         container.start();
         JMSOperations ops = container(1).getJmsOperations();
         ops.createQueue(queueName, queueJndiName);
+        ops.removeAddressSettings("#");
+        ops.addAddressSettings("#", "PAGE", 1024 * 1024, 0, 0, 512 * 1024);
         ops.close();
         container.stop();
     }
