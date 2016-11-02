@@ -269,7 +269,6 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
                 duplicationsDetected = true;
             }
         }
-        jmsOperations.close();
 
         ReceiverTransAck receiverTransAck = new ReceiverTransAck(container(1), queueJndiName, 10000, 10, 10);
         addClient(receiverTransAck);
@@ -277,12 +276,17 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         receiverTransAck.start();
         receiverTransAck.join();
 
+        long countOfMessages = jmsOperations.getCountOfMessagesOnQueue(queueName);
+        log.info("Count of messages after receive: " + countOfMessages);
+
         boolean verified = messageVerifier.verifyMessages();
 
+        jmsOperations.close();
         container(1).stop();
 
         Assert.assertFalse(duplicationsDetected);
         Assert.assertTrue(verified);
+        Assert.assertEquals(0, countOfMessages);
     }
 
     private void prepareServer(Container container) {
