@@ -42,7 +42,7 @@ public class ShutdownHook extends Thread {
                     ContainerUtils.printThreadDump(pid, new File(ServerPathUtils.getStandaloneLogDirectory(con), con.getName() + "-thread-dump.txt"));
                     // kill server because shutdown hangs and fail test
                     try {
-                        log.info("Killing the server with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
+                        log.info("Killing the server " + con.getName() + " with PID: " + pid + " after timeout: " + timeout + " because it wasn't stopped by controller.stop()");
                         if (System.getProperty("os.name").contains("Windows")) {
                             Runtime.getRuntime().exec("taskkill /PID " + pid);
                         } else { // it's linux or Solaris
