@@ -162,7 +162,7 @@ public class HugeMessageTestCase extends HornetQTestCase {
         streamingReceiver.run();
 
         server1Measurement.stopMeasuring();
-        server2Measurement.startMeasuring();
+        server2Measurement.stopMeasuring();
 
         Assert.assertEquals("File hash should be equal", HashUtils.getMd5(sourceFile), HashUtils.getMd5(receivedFile));
 
