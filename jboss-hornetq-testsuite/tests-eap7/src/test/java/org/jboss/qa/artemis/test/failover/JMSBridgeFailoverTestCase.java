@@ -29,6 +29,7 @@ import javax.naming.Context;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -135,19 +136,12 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.stopSending();
         producerToInQueue1.join();
 
-        new JMSTools().waitForMessages(outQueueName, producerToInQueue1.getCount(), 180000, outContainer);
+        new JMSTools().waitForMessages(outQueueName, producerToInQueue1.getCount(), TimeUnit.MINUTES.toMillis(4), outContainer);
 
-        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, container(3), 1);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(TimeUnit.MINUTES.toMillis(4), container(3), 1);
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(TimeUnit.MINUTES.toMillis(4), outContainer, 1);
+
         ReceiverClientAck receiver1;
-        if (failback) {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
-//            logger.warn("########################################");
-//            logger.warn("WAITING 3 minutes");
-//            logger.warn("########################################");
-//            Thread.sleep(180000);
-        } else {
-            new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(180000, outContainer, 1);
-        }
         receiver1 = new ReceiverClientAck(outContainer, outQueueJndiName, 130000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();

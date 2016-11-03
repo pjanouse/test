@@ -108,8 +108,9 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
         new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 120000, container(1));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
+        receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
         producerToInQueue1.join();
