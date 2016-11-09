@@ -39,6 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.jboss.qa.hornetq.constants.Constants.*;
 
@@ -73,6 +74,7 @@ public class Lodh2TestCase extends HornetQTestCase {
     public final Archive mdbOnNonDurableTopic = getDeploymentNonDurableMdbOnTopic();
     public final Archive mdbWithPropertiesMappedName = getDeploymentMdbWithProperties();
     public final Archive mdbWithPropertiesName = getDeploymentMdbWithPropertiesName();
+    public final Archive inboundMdb = getDeploymentMdbInbound();
     // queue to send messages in 
     static String inQueueName = "InQueue";
     static String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -95,6 +97,18 @@ public class Lodh2TestCase extends HornetQTestCase {
         writer.close();
         final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb1.jar");
         mdbJar.addClasses(MdbWithRemoteOutQueueToContaniner1.class);
+        JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
+        mdbJar.addClass(JMSImplementation.class);
+        mdbJar.addClass(jmsImplementation.getClass());
+        mdbJar.addAsServiceProvider(JMSImplementation.class, jmsImplementation.getClass());
+        logger.info(mdbJar.toString(true));
+        return mdbJar;
+
+    }
+
+    public Archive getDeploymentMdbInbound() {
+        final JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb-inbound.jar");
+        mdbJar.addClasses(MdbOnlyInboundWithWait.class);
         JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
         mdbJar.addClass(JMSImplementation.class);
         mdbJar.addClass(jmsImplementation.getClass());
@@ -1009,6 +1023,51 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(4).stop();
         container(1).stop();
         container(3).stop();
+    }
+
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @RunAsClient
+    public void testRemoteJcaInboundOnly() throws Exception {
+
+        int numberOfMessages = 1;
+
+        Container jmsServer = container(1);
+        Container mdbServer = container(2);
+
+        prepareRemoteJcaTopology(jmsServer, mdbServer);
+
+        jmsServer.start();
+        mdbServer.start();
+
+        ProducerTransAck producer1 = new ProducerTransAck(jmsServer, inQueueJndiName, numberOfMessages);
+        ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
+        builder.setAddDuplicatedHeader(true);
+        producer1.setMessageBuilder(builder);
+        producer1.setTimeout(0);
+        producer1.setCommitAfter(1000);
+        producer1.start();
+        producer1.join();
+
+        mdbServer.deploy(inboundMdb);
+        Thread.sleep(10000);
+        mdbServer.kill();
+        mdbServer.start();
+
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(jmsServer, inQueueName, 0, TimeUnit.MINUTES.toMillis(5));
+
+        new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, jmsServer);
+
+        logger.info("Number of sent messages: " + (producer1.getListOfSentMessages().size()
+                + ", Producer to jms1 server sent: " + producer1.getListOfSentMessages().size() + " messages"));
+
+        long countMessages = new JMSTools().countMessages(inQueueName, jmsServer);
+        Assert.assertTrue("Number of messages in InQueue must be 0 but is: " + countMessages, countMessages == 0);
+
+        mdbServer.undeploy(inboundMdb);
+        mdbServer.stop();
+        jmsServer.stop();
     }
 
     private void printThreadDumpsOfAllServers() throws IOException {
