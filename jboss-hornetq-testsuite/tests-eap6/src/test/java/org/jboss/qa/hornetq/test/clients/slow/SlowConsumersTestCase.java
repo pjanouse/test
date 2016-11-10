@@ -9,6 +9,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
 import javax.naming.Context;
+
 import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -31,6 +32,7 @@ import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -250,6 +252,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
     public void testSlowReceiverKill() throws Exception {
         prepareServerForKills();
 
+        int numberOfMessages = 1000;
         Context ctx = null;
         Connection connection = null;
         Session session = null;
@@ -261,7 +264,7 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             ProducerAutoAck producer = new ProducerAutoAck(container(1),
-                    QUEUE_JNDI_NAME, NUMBER_OF_MESSAGES);
+                    QUEUE_JNDI_NAME, numberOfMessages);
             producer.setMessageBuilder(new TextMessageBuilder(10));
             producer.setTimeout(0);
 
@@ -284,7 +287,11 @@ public class SlowConsumersTestCase extends HornetQTestCase {
             LOG.info("Waiting for producer");
             producer.join();
             LOG.info("Waiting for slow receiver");
-            slowReceiver.join();
+            slowReceiver.join(600000);
+
+            Assert.assertFalse("Slow consumer is running after 5 min. It should be disconnected after 1 min but it did not happen.",
+                    slowReceiver.isAlive());
+
             //LOG.info("Waiting for fast receiver");
             //fastReceiver.join();
 
