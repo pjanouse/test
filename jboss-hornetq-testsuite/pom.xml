@@ -29,7 +29,7 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR7</eap7.org.jboss.qa.hornetq.apps.clients.version>
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR8</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
@@ -68,7 +68,6 @@
         </hornetq.surefire.jvm.options.eap6>
         <hornetq.surefire.jvm.options.eap7>${hornetq.surefire.jvm.options} -Djboss.cli.config=${project.basedir}/../tests-eap6/src/test/resources/cli/jboss-cli.xml
         </hornetq.surefire.jvm.options.eap7>
-
 
 
     </properties>
@@ -230,7 +229,6 @@
         </plugins>
     </build>
     <dependencies>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -259,7 +257,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.jboss.byteman</groupId>
             <artifactId>byteman</artifactId>
@@ -472,6 +469,12 @@
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap6x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.arquillian.protocol</groupId>
@@ -726,6 +729,22 @@
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
+                    <groupId>org.wildfly.security</groupId>
+                    <artifactId>wildfly-elytron</artifactId>
+                    <version>1.1.0.Beta13</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
@@ -753,11 +772,6 @@
                             <artifactId>jboss-logging</artifactId>
                         </exclusion>
                     </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <version>${arquillian.eap7x.container.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>commons-logging</groupId>
@@ -792,6 +806,10 @@
                         <exclusion>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -961,6 +979,12 @@
                     <groupId>org.wildfly.arquillian</groupId>
                     <artifactId>wildfly-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>commons-logging</groupId>
@@ -995,6 +1019,10 @@
                         <exclusion>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1147,6 +1175,12 @@
                     <groupId>org.wildfly.arquillian</groupId>
                     <artifactId>wildfly-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>commons-logging</groupId>
@@ -1181,6 +1215,10 @@
                         <exclusion>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1375,6 +1413,10 @@
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
                         </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
                     </exclusions>
                 </dependency>
             </dependencies>
@@ -1448,6 +1490,12 @@
                     <groupId>org.wildfly.arquillian</groupId>
                     <artifactId>wildfly-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>commons-logging</groupId>
@@ -1482,6 +1530,10 @@
                         <exclusion>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1634,6 +1686,12 @@
                     <groupId>org.wildfly.arquillian</groupId>
                     <artifactId>wildfly-arquillian-container-managed</artifactId>
                     <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>commons-logging</groupId>
@@ -1668,6 +1726,10 @@
                         <exclusion>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-xml</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1757,7 +1819,10 @@
     <!-- ################################################### -->
 
     <repositories>
-
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>
         <repository>                 <!-- todo add mead repo + http://repository.jboss.org/nexus/content/groups/public/ -->
             <id>jboss-qa-releases</id>
             <name>JBoss QA Release Repository</name>
