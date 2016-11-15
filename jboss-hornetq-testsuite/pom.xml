@@ -939,6 +939,22 @@
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
+                    <groupId>org.wildfly.security</groupId>
+                    <artifactId>wildfly-elytron</artifactId>
+                    <version>1.1.0.Beta13</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
@@ -972,17 +988,6 @@
                         <exclusion>
                             <groupId>org.apache.activemq</groupId>
                             <artifactId>artemis-jms-client</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <version>${arquillian.eap7x.container.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.jboss.sasl</groupId>
-                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1143,6 +1148,22 @@
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
+                    <groupId>org.wildfly.security</groupId>
+                    <artifactId>wildfly-elytron</artifactId>
+                    <version>1.1.0.Beta13</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
@@ -1168,17 +1189,6 @@
                         <exclusion>
                             <groupId>org.jboss.logging</groupId>
                             <artifactId>jboss-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <version>${arquillian.eap7x.container.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.jboss.sasl</groupId>
-                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
@@ -1458,6 +1468,22 @@
                     <version>${qa.resource.monitor.version}</version>
                 </dependency>
                 <dependency>
+                    <groupId>org.wildfly.security</groupId>
+                    <artifactId>wildfly-elytron</artifactId>
+                    <version>1.1.0.Beta13</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>${arquillian.eap7x.container.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.jboss.sasl</groupId>
+                            <artifactId>jboss-sasl</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <version>${eap7.client}</version>
@@ -1483,17 +1509,6 @@
                         <exclusion>
                             <groupId>org.jboss.logging</groupId>
                             <artifactId>jboss-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <version>${arquillian.eap7x.container.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.jboss.sasl</groupId>
-                            <artifactId>jboss-sasl</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>
