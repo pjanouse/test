@@ -2771,4 +2771,35 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     public void setRebalanceConnectionsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean rebalanceConnections) {
         logger.info("This operation is not supported: " + getMethodName());
     }
+
+    @Override
+    public void setThreadPoolMaxSizeOnPooledConnectionFactory(String pooledConnectionFactoryName, int threadPoolMaxSize) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setScheduledThreadPoolMaxSizeOnPooledConnectionFactory(String pooledConnectionFactoryName, int scheduledThreadPoolMaxSize) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setThreadPoolMaxSizeOnConnectionFactory(String connectionFactoryName, int threadPoolMaxSize) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setScheduledThreadPoolMaxSizeOnConnectionFactory(String connectionFactoryName, int scheduledThreadPoolMaxSize) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 }

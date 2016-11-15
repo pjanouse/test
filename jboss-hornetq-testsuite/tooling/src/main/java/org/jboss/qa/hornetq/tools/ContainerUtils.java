@@ -71,6 +71,10 @@ public class ContainerUtils {
         return temporaryTestExistenceFile;
     }
 
+    public static void printThreadDump(Container container, File toOutputFileForThreadump){
+        printThreadDump(container.getProcessId(), toOutputFileForThreadump);
+    }
+
     public static void printThreadDump(long pid, File toOutputFileForThreadump) {
 
         toOutputFileForThreadump = ifFileExistsAddSuffix(toOutputFileForThreadump);

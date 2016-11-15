@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.tools;
 
 import org.jboss.logging.Logger;
 
+import java.lang.management.ManagementFactory;
 import java.security.CodeSource;
 import java.util.Map;
 
@@ -49,5 +50,10 @@ public class DebugTools
 		}
 		stack.append("---------------------------------------------\n");
 		log.error(stack);
+	}
+
+	public static int getSurefirePid(){
+		String name = ManagementFactory.getRuntimeMXBean().getName();
+		return Integer.parseInt(name.split("@")[0]);
 	}
 }

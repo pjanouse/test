@@ -2125,4 +2125,16 @@ public interface JMSOperations {
 
     void setRebalanceConnectionsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean rebalanceConnections);
 
+    void setThreadPoolMaxSizeOnPooledConnectionFactory(String pooledConnectionFactoryName, int threadPoolMaxSize);
+
+    void setScheduledThreadPoolMaxSizeOnPooledConnectionFactory(String pooledConnectionFactoryName, int threadPoolMaxSize);
+
+    void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools);
+
+    void setThreadPoolMaxSizeOnConnectionFactory(String connectionFactoryName, int threadPoolMaxSize);
+
+    void setScheduledThreadPoolMaxSizeOnConnectionFactory(String connectionFactoryName, int threadPoolMaxSize);
+
+    void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools);
+
 }
