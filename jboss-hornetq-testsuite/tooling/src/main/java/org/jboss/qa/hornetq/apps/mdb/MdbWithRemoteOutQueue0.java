@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
                 @ActivationConfigProperty(propertyName = "rebalanceConnections", propertyValue = "true"),
                 @ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
+                @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "10"),
                 @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/InQueue0")})
 @TransactionManagement(value = TransactionManagementType.CONTAINER)
 @TransactionAttribute(value = TransactionAttributeType.REQUIRED)

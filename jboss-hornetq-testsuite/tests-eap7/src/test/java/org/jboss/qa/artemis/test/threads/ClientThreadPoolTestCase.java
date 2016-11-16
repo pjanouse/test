@@ -11,9 +11,9 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.apps.clients.Producer;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
+import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueue0;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Testing of client thread pool implementation. Client thread pool is tested when used inside EAP server, and also
  * when used in client. Thread pools need to have correct size. Thread must time out after 60sec of idling.
- *
+ * <p>
  * Created by mstyk on 11/8/16.
  */
 @RunWith(Arquillian.class)
@@ -53,6 +53,7 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     private final int numberOfMessagesPerProducer = 100;
     private final int numberOfProducers = 10;
     private final int numberOfConsumers = 10;
+    private final int mdbMaxSession = 10;
 
     private Archive mdb1 = getMdb();
 
@@ -72,10 +73,10 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     private static final int containerMaxScheduledClientPoolSize = 20;
 
     //max size of client thread pool of external clients
-    private static final int clientMaxClientPoolSize = 5;
+    private static final int clientMaxClientPoolSize = 7;
 
     //max size of scheduled client thread pool on client, e.g. core threads
-    private static final int clientMaxScheduledClientPoolSize = 3;
+    private static final int clientMaxScheduledClientPoolSize = 6;
 
     /**
      * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first.
@@ -214,6 +215,10 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
         Map<String, List<String>> resultsClient = clientMeasurement.getCurrentValues(ArtemisClientThreadPoolMeasurement.class);
         clientMeasurement.stopMeasuring();
 
+        container(2).undeploy(mdb1);
+        container(2).stop();
+        container(1).stop();
+
         Assert.assertEquals("There is different number of sent and received messages.",
                 numberOfProducers * numberOfMessagesPerProducer, getConsumedMessages(consumers));
 
@@ -225,15 +230,12 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
             checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, clientMaxClientPoolSize, false);
             checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, clientMaxScheduledClientPoolSize, true);
         } else {
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, containerMaxClientPoolSize, false);
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, containerMaxScheduledClientPoolSize, true);
+            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, mdbMaxSession * containerMaxClientPoolSize, false);
+            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, mdbMaxSession * containerMaxScheduledClientPoolSize, true);
 
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, clientMaxClientPoolSize, false);
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, clientMaxScheduledClientPoolSize, true);
+            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxClientPoolSize, false);
+            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxScheduledClientPoolSize, true);
         }
-        container(2).undeploy(mdb1);
-        container(2).stop();
-        container(1).stop();
     }
 
     private void checkThreadPools(Map<String, List<String>> results, String resourceMonitorParameter, int maxSize, boolean isScheduledPool) {
@@ -254,7 +256,7 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
             Assert.assertTrue("Maximal number of threads should not exceed configured max size", max <= maxSize);
         } else {
             if (max >= maxSize) {
-                Assert.assertTrue("At least core threads of scheduled executors should be still alive", last >= maxSize);
+                Assert.assertTrue("At least core threads of scheduled executors should be still alive", last <= maxSize);
             }
         }
 
@@ -509,8 +511,8 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
 
     private int getConsumedMessages(Clients clients) {
         int result = 0;
-        for (Client c : clients.getProducers()) {
-            result += ((ProducerAutoAck) c).getListOfSentMessages().size();
+        for (Client c : clients.getConsumers()) {
+            result += ((ReceiverAutoAck) c).getListOfReceivedMessages().size();
         }
         return result;
     }
