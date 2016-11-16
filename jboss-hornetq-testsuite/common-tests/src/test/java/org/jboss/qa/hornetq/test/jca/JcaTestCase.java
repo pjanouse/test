@@ -221,6 +221,7 @@ public class JcaTestCase extends HornetQTestCase {
         producer1.setTimeout(0);
         logger.info("Start producer.");
         producer1.start();
+        addClient(producer1);
 
         container(1).deploy(mdbDeployment);
 
@@ -252,6 +253,7 @@ public class JcaTestCase extends HornetQTestCase {
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueue, 10000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
+        addClient(receiver1);
         producer1.join();
         receiver1.join();
 
