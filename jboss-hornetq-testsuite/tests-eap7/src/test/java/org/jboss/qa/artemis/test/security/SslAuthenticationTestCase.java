@@ -228,6 +228,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      */
     @Test
     @RunAsClient
+    @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testOneWaySslOverJms() throws Exception {
         prepareServerWithNettySslConnection(false,false,true);
