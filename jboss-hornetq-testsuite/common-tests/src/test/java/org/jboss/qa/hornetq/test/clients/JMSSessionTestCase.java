@@ -1,11 +1,13 @@
 package org.jboss.qa.hornetq.test.clients;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -13,6 +15,8 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -30,6 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@RunWith(Arquillian.class)
+@RestoreConfigBeforeTest
+@Category(FunctionalTests.class)
 public class JMSSessionTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JMSSessionTestCase.class);
