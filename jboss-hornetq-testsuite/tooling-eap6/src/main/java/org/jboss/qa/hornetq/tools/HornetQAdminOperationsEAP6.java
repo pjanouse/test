@@ -4481,8 +4481,17 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void createOutBoundSocketBinding(String socketBindingName, String host, int port) {
-        logger.info("This operation is not supported: " + getMethodName());
-        throw new RuntimeException("This operation is not supported: " + getMethodName());
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add("socket-binding-group", "standard-sockets");
+        model.get(ClientConstants.OP_ADDR).add("remote-destination-outbound-socket-binding", socketBindingName);
+        model.get("port").set(port);
+        model.get("host").set(host);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
