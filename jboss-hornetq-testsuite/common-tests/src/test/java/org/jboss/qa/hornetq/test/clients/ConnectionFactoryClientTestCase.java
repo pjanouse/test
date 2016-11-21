@@ -95,7 +95,11 @@ public class ConnectionFactoryClientTestCase extends HornetQTestCase {
         container(1).restart();
         jmsOperations.createSocketBinding(socketBindingNameForMessaging, 5448);
         jmsOperations.createOutBoundSocketBinding(outboundSocketBingingName, container(1).getHostname(), 5448);
-        jmsOperations.reload();
+        jmsOperations.close();
+
+        container(1).restart();
+
+        jmsOperations = container(1).getJmsOperations();
         jmsOperations.createRemoteAcceptor("netty-acceptor2", socketBindingNameForMessaging, null);
         jmsOperations.createRemoteConnector("netty-connector2", outboundSocketBingingName, null);
         jmsOperations.setConnectorOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, "netty-connector2");
