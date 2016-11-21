@@ -790,7 +790,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         File[] files = largeMessagesDir.listFiles();
         if (printFileNames) {
             StringBuilder sb = new StringBuilder("Content of large message directory (" + container1LargeMessageDir + ") [");
-            for (File f : files) sb.append(System.lineSeparator()).append(f.getName());
+            for (File f : files) sb.append(File.separator).append(f.getName());
             sb.append(" ]");
             logger.info(sb.toString());
         }
