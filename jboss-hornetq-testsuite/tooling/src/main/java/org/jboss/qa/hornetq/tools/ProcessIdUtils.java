@@ -6,11 +6,11 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainNode;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
 
 
 /**
