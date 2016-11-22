@@ -403,7 +403,7 @@
 
         <dependency>
             <groupId>org.jboss.qa</groupId>
-            <artifactId>eap-prepare</artifactId>
+            <artifactId>prepare-framework</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
