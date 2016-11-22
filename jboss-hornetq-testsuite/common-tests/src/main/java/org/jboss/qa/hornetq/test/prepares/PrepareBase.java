@@ -3,12 +3,17 @@ package org.jboss.qa.hornetq.test.prepares;
 import org.jboss.logging.Logger;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
+import org.jboss.qa.hornetq.tools.DBAllocatorUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.JdbcUtils;
+import org.jboss.qa.hornetq.tools.ModuleUtils;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -534,6 +539,41 @@ public class PrepareBase {
         jmsOperations.setJmxManagementEnabled(jmxManagementEnabled);
         jmsOperations.setAutoCreateJMSQueue(autoCreateJMSQueues);
         jmsOperations.setAutoDeleteJMSQueue(autoDeleteJMSQueues);
+    }
+
+    protected void prepareDatabase(Map<String, Object> params, Container container) throws Exception {
+        prepareDatabase(params, container, SERVER_NAME);
+    }
+
+    protected void prepareDatabase(Map<String, Object> params, Container container, String serverName) throws Exception {
+        String database = PrepareUtils.getString(params, PrepareParams.DATABASE);
+
+        if (database == null) {
+            return;
+        }
+
+        JdbcUtils.downloadJdbcDriver(container, database);
+
+        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
+        HornetQTestCase.jdbcAllocatorProperties = dbAllocatorUtils.allocateDatabase(database);
+
+        JMSOperations jmsOperations = container.getJmsOperations();
+
+        String moduleName = "test.sql-provider-factory";
+        String jndiName = "java:jboss/datasources/messaging";
+        String poolName = "messaging";
+        String driver = "ojdbc7.jar";
+        String connectionUrl = HornetQTestCase.jdbcAllocatorProperties.get("db.jdbc_url");
+        String userName = HornetQTestCase.jdbcAllocatorProperties.get("db.username");
+        String password = HornetQTestCase.jdbcAllocatorProperties.get("db.password");
+
+        URL sqlProviderFactory = getClass().getResource("/artemis-sql-provider-factory-oracle.jar");
+        ModuleUtils.registerModule(container, moduleName, sqlProviderFactory, Arrays.asList("org.apache.activemq.artemis"));
+
+        jmsOperations.createDataSource(jndiName, poolName, driver, connectionUrl, userName, password);
+        jmsOperations.setJournalDataSource(poolName);
+        jmsOperations.setJournalSqlProviderFactoryClass("com.oracle.OracleSQLProviderFactory", moduleName);
+        jmsOperations.close();
     }
 
 }

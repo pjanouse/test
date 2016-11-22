@@ -11,7 +11,6 @@ import org.jboss.arquillian.core.api.annotation.Observes;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.test.spi.event.suite.BeforeSuite;
-import org.jboss.qa.Prepare;
 import org.jboss.qa.PrepareCoordinator;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.clients.Client;
@@ -46,6 +45,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.ServiceLoader;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parent class for all HornetQ test cases. Provides an abstraction of used container
@@ -101,6 +101,8 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
 
     // Journal directory for server in colocated replicated topology (each server must have own journal)
     public static final String JOURNAL_DIRECTORY_D;
+
+    public static Map<String, String> jdbcAllocatorProperties = null;
 
     @ArquillianResource
     protected ContainerController controller;
@@ -374,6 +376,14 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
         usedClients.clear();
     }
 
+    @After
+    public void deallocateDatabase() throws Exception {
+        if (jdbcAllocatorProperties != null) {
+            HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + jdbcAllocatorProperties.get("uuid"),
+                    20, TimeUnit.SECONDS);
+            jdbcAllocatorProperties = null;
+        }
+    }
     /**
      * Returns a psuedo-random number between min and max, inclusive.
      * The difference between min and max can be at most

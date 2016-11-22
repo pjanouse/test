@@ -56,6 +56,7 @@ public class OneNode extends PrepareBase {
         prepareSecurity(params, container);
         prepareConnectionFactory(params, jmsOperations);
         prepareMisc(params, jmsOperations);
+        prepareDatabase(params, container);
 
         jmsOperations.close();
     }

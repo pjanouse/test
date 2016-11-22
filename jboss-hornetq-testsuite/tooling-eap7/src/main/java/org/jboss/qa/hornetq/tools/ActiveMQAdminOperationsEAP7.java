@@ -2331,6 +2331,71 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    @Override
+    public void createDataSource(String jndiName, String poolName, String driver, String connectionUrl, String userName, String password) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.ADD);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, "datasources");
+        model.get(ClientConstants.OP_ADDR).add("data-source", poolName);
+
+        model.get("jndi-name").set(jndiName);
+        model.get("driver-name").set(driver);
+        model.get("connection-url").set(connectionUrl);
+        model.get("user-name").set(userName);
+        model.get("password").set(password);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalDataSource(String serverName, String dataSourceName) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+
+        model.get("name").set("journal-datasource");
+        model.get("value").set(dataSourceName);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalDataSource(String dataSourceName) {
+        setJournalDataSource(NAME_OF_MESSAGING_DEFAULT_SERVER, dataSourceName);
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String serverName, String className, String module) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+
+        model.get("name").set("journal-sql-provider-factory-class");
+        model.get("value").get("name").set(className);
+        model.get("value").get("module").set(module);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String className, String module) {
+        setJournalSqlProviderFactoryClass(NAME_OF_MESSAGING_DEFAULT_SERVER, className, module);
+    }
+
     /**
      * Add XA datasource property.
      *

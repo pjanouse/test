@@ -760,6 +760,31 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createDataSource(String jndiName, String poolName, String driver, String connectionUrl, String userName, String password) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalDataSource(String serverName, String dataSourceName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalDataSource(String dataSourceName) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String serverName, String className, String module) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String className, String module) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void disableSecurity() {
         String configurationFile = getHornetQConfigurationFile();
         try {

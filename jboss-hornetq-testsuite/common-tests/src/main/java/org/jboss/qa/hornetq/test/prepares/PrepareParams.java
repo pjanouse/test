@@ -155,4 +155,6 @@ public class PrepareParams {
     public static final String AUTO_CREATE_JMS_QUEUES = "AUTO_CREATE_JMS_QUEUES";
 
     public static final String AUTO_DELETE_JMS_QUEUES = "AUTO_DELETE_JMS_QUEUES";
+
+    public static final String DATABASE = "DATABASE";
 }

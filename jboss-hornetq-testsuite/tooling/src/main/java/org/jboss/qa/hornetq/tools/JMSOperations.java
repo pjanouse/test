@@ -550,6 +550,17 @@ public interface JMSOperations {
      * @param xaDatasourceProperties
      */
     void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM, String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride, boolean noTxSeparatePool,Map<String,String> xaDatasourceProperties);
+
+    void createDataSource(String jndiName, String poolName, String driver, String connectionUrl, String userName, String password);
+
+    void setJournalDataSource(String serverName, String dataSourceName);
+
+    void setJournalDataSource(String dataSourceName);
+
+    void setJournalSqlProviderFactoryClass(String serverName, String className, String module);
+
+    void setJournalSqlProviderFactoryClass(String className, String module);
+
     /**
      * Disables security on HornetQ
      */

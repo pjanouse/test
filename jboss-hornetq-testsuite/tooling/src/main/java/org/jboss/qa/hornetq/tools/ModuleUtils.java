@@ -1,11 +1,13 @@
 package org.jboss.qa.hornetq.tools;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import sun.misc.IOUtils;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -16,6 +18,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -90,6 +93,14 @@ public class ModuleUtils {
         }
         moduleJar.as(ZipExporter.class).exportTo(new File(moduleDir, "module.jar"));
         createModuleDescriptor(moduleDir, moduleName, dependencies);
+    }
+
+    public static void registerModule(Container container, String moduleName, URL pathToJar, List<String> dependencies) throws Exception {
+        File moduleDir = new File(getModulePath(container, moduleName));
+        moduleDir.mkdirs();
+        FileUtils.copyURLToFile(pathToJar, new File(moduleDir, "module.jar"));
+        createModuleDescriptor(moduleDir, moduleName, dependencies);
+
     }
 
 }
