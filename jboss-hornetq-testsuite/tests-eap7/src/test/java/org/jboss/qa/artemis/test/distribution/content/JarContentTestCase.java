@@ -8,10 +8,9 @@ package org.jboss.qa.artemis.test.distribution.content;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 import org.apache.log4j.Logger;
-import org.jboss.arquillian.config.descriptor.api.ContainerDef;
-import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.junit.Test;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
@@ -19,7 +18,6 @@ import org.junit.experimental.categories.Category;
 import org.testng.Assert;
 
 /**
- *
  * Test that artemis in EAP contains only expected jar files.
  *
  * @author mstyk
@@ -28,31 +26,60 @@ import org.testng.Assert;
 public class JarContentTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JarContentTestCase.class);
-    private static List<String> expectedJars = new ArrayList<String>();
+    private static List<String> expectedMainModuleJars = new ArrayList<String>();
+    private static List<String> expectedJournalModuleJars = new ArrayList<String>();
+    private static List<String> expectedRAModuleJars = new ArrayList<String>();
+    private static List<String> expectedHornetQProtocolModuleJars = new ArrayList<String>();
 
     static {
-        expectedJars.add("artemis-cli");
-        expectedJars.add("artemis-dto");
-        expectedJars.add("artemis-native");
-        expectedJars.add("artemis-server");
-        expectedJars.add("artemis-commons");
-        expectedJars.add("artemis-journal");
-        expectedJars.add("artemis-selector");
-        expectedJars.add("artemis-jms-client");
-        expectedJars.add("artemis-jms-server");
-        expectedJars.add("artemis-core-client");
-        expectedJars.add("artemis-hqclient-protocol");
-        expectedJars.add("artemis-ra");
-        expectedJars.add("artemis-service-extensions");
-        expectedJars.add("artemis-hornetq-protocol");
-        expectedJars.add("artemis-jdbc-store");
+        expectedMainModuleJars.add("artemis-cli");
+        expectedMainModuleJars.add("artemis-dto");
+        expectedMainModuleJars.add("artemis-server");
+        expectedMainModuleJars.add("artemis-selector");
+        expectedMainModuleJars.add("artemis-jms-client");
+        expectedMainModuleJars.add("artemis-jms-server");
+        expectedMainModuleJars.add("artemis-core-client");
+        expectedMainModuleJars.add("artemis-jdbc-store");
+        expectedMainModuleJars.add("artemis-hqclient-protocol");
+
+        expectedJournalModuleJars.add("artemis-journal");
+        expectedJournalModuleJars.add("artemis-native");
+        expectedJournalModuleJars.add("artemis-commons");
+        expectedJournalModuleJars.add("artemis-jdbc-store");
+
+        expectedRAModuleJars.add("artemis-ra");
+        expectedRAModuleJars.add("artemis-service-extensions");
+
+        expectedHornetQProtocolModuleJars.add("artemis-hornetq-protocol");
     }
 
     @Test
-    public void checkContainingJars() {
-        String pathToArtemisModule = getPathToArtemisModule(container(1));
-        List<File> artemisJars = getJarFilesInDirectory(pathToArtemisModule);
+    public void checkArtemisMainModuleJars() throws Exception {
+        String pathToArtemisModule = ServerPathUtils.getModuleDirectory(container(1), "org/apache/activemq/artemis").getAbsolutePath();
+        checkModuleJars(pathToArtemisModule, expectedMainModuleJars);
+    }
 
+    @Test
+    public void checkArtemisRAModuleJars() throws Exception {
+        String pathToArtemisModule = ServerPathUtils.getModuleDirectory(container(1), "org/apache/activemq/artemis/ra").getAbsolutePath();
+        checkModuleJars(pathToArtemisModule, expectedRAModuleJars);
+    }
+
+    @Test
+    public void checkArtemisJournalModuleJars() throws Exception {
+        String pathToArtemisModule = ServerPathUtils.getModuleDirectory(container(1), "org/apache/activemq/artemis/journal").getAbsolutePath();
+        checkModuleJars(pathToArtemisModule, expectedJournalModuleJars);
+    }
+
+    @Test
+    public void checkArtemisProtocolModuleJars() throws Exception {
+        String pathToArtemisModule = ServerPathUtils.getModuleDirectory(container(1), "org/apache/activemq/artemis/protocol/hornetq").getAbsolutePath();
+        checkModuleJars(pathToArtemisModule, expectedHornetQProtocolModuleJars);
+    }
+
+    private void checkModuleJars(String pathToModule, List<String> expectedJars) {
+
+        List<File> artemisJars = getJarFilesInDirectory(pathToModule);
         List<File> unexpectedFile = new ArrayList<File>();
 
         //check there is nothing more in distribution than expected
@@ -104,31 +131,6 @@ public class JarContentTestCase extends HornetQTestCase {
         Assert.assertTrue(unexpectedFile.isEmpty(), "Unexpected jar files found in artemis module. Problems in " + unexpectedFile.toString());
         Assert.assertTrue(expectedJars.size() == artemisJars.size(), "Number of artemis jars in artemis module is unexpected");
 
-    }
-
-    private String getPathToArtemisModule(Container container) {
-        ContainerDef containerDef = container.getContainerDefinition();
-        Map<String, String> containerProperties = containerDef.getContainerProperties();
-        String jbossHome = containerProperties.get("jbossHome");
-        StringBuilder pathToArtemisModuleBuilder = new StringBuilder(jbossHome)
-                .append(File.separator)
-                .append("modules")
-                .append(File.separator)
-                .append("system")
-                .append(File.separator)
-                .append("layers")
-                .append(File.separator)
-                .append("base")
-                .append(File.separator)
-                .append("org")
-                .append(File.separator)
-                .append("apache")
-                .append(File.separator)
-                .append("activemq")
-                .append(File.separator)
-                .append("artemis");
-
-        return pathToArtemisModuleBuilder.toString();
     }
 
     private List<File> getJarFilesInDirectory(String directoryPath) {
