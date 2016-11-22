@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.test.compatibility;
 
 import org.apache.log4j.Logger;
-import org.jboss.util.NotImplementedException;
 
 import javax.jms.Message;
 import java.util.List;
@@ -35,12 +34,12 @@ class CounterVerifier  {
 
 
     public List<Message> getReceivedMessages() {
-        throw new NotImplementedException("This verifier does not support returning list of messages.");
+        throw new UnsupportedOperationException("This verifier does not support returning list of messages.");
     }
 
 
     public List<Message> getSentMessages() {
-        throw new NotImplementedException("This verifier does not support returning list of messages.");
+        throw new UnsupportedOperationException("This verifier does not support returning list of messages.");
     }
 
 

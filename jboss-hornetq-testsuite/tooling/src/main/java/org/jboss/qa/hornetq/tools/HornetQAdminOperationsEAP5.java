@@ -3,7 +3,6 @@ package org.jboss.qa.hornetq.tools;
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.util.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -2921,7 +2920,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public List<Map<String, String>> listMessages(String coreQueueName) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
