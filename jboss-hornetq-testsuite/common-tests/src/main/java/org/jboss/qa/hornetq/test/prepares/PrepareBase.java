@@ -554,6 +554,8 @@ public class PrepareBase {
 
         JdbcUtils.downloadJdbcDriver(container, database);
 
+        Thread.sleep(10000);
+
         DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
         HornetQTestCase.jdbcAllocatorProperties = dbAllocatorUtils.allocateDatabase(database);
 
