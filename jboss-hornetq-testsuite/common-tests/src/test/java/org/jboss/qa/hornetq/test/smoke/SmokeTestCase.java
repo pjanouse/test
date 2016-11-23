@@ -10,13 +10,16 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessage
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.DuplicatesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.LostMessagesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.SendReceiveCountVerifier;
+import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(FunctionalTests.class)
 public class SmokeTestCase extends HornetQTestCase {
 
     @Test
