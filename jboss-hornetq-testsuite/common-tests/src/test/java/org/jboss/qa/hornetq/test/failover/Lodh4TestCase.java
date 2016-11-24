@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -244,6 +245,7 @@ public class Lodh4TestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("Unignore once jira - https://issues.jboss.org/browse/JBEAP-2214 - is implemented")
     public void testClusterWithCoreBridge() throws Exception {
 
         prepareTopologyWith3Servers();
