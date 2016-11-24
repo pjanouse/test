@@ -55,4 +55,38 @@ public class SmokeTestCase extends HornetQTestCase {
 
     }
 
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @Prepare("OneNode")
+    public void sendManyMessagesAndRestart() throws Exception {
+        container(1).start();
+
+        ConfigurableMessageVerifier verifier = new ConfigurableMessageVerifier(
+                ContainerUtils.getJMSImplementation(container(1)), LostMessagesVerifier.class, DuplicatesVerifier.class, SendReceiveCountVerifier.class);
+
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 10000);
+        producer.setCommitAfter(1000);
+        producer.setMessageBuilder(new TextMessageBuilder(10));
+        producer.addMessageVerifier(verifier);
+        addClient(producer);
+
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 1000, 1);
+        receiver.addMessageVerifier(verifier);
+        addClient(receiver);
+
+        producer.start();
+        producer.join();
+
+        container(1).restart();
+
+        receiver.start();
+        receiver.join();
+
+        container(1).stop();
+
+        Assert.assertTrue(verifier.verifyMessages());
+    }
+
 }

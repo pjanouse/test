@@ -27,8 +27,8 @@ public class DBAllocatorUtils {
     public Map<String, String> allocateDatabase(String database) throws Exception {
 
         String response = "";
-        String url = "http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=alloc&label="
-                + database + "&expiry=60&requestee=eap6-hornetq-lodh5";
+        String url = "http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=allocate&expression="
+                + database + "%26%26geo_BOS&expiry=60&requestee=eap6-hornetq-lodh5";
         logger.info("Allocate db: " + url);
         try {
             response = HttpRequest.get(url, 20, TimeUnit.SECONDS);
