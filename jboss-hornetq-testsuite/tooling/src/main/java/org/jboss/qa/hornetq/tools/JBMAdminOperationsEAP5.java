@@ -2204,7 +2204,7 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 	}
 
     @Override
-    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
         throw new RuntimeException("Not implemented yet");
     }
 

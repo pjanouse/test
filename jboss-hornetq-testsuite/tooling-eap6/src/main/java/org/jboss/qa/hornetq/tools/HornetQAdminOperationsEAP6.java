@@ -1847,6 +1847,31 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("operation not supported for eap6, use operation without xaDatasourceProperties");
     }
 
+    @Override
+    public void createDataSource(String jndiName, String poolName, String driver, String connectionUrl, String userName, String password) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalDataSource(String serverName, String dataSourceName) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalDataSource(String dataSourceName) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String serverName, String className, String module) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalSqlProviderFactoryClass(String className, String module) {
+        throw new RuntimeException("This operation is not supported: " + getMethodName());
+    }
+
     /**
      * Add XA datasource property.
      *
@@ -2744,7 +2769,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", "messaging");

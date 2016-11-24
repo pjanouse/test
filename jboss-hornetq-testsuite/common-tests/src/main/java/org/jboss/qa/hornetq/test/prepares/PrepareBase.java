@@ -251,6 +251,7 @@ public class PrepareBase {
         double rcfRetryIntervalMultiplier = PrepareUtils.getDouble(params, PrepareParams.REMOTE_CONNECTION_FACTORY_RETRY_INTERVAL_MULTIPLIER, 1.0);
         int rcfReconnectAttempts = PrepareUtils.getInteger(params, PrepareParams.REMOTE_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, -1);
         boolean rcfCompression = PrepareUtils.getBoolean(params, PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, false);
+        long rfcMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.REMOTE_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 100 * 1024 * 1024l);
 
         boolean pcfHa = PrepareUtils.getBoolean(params, PrepareParams.POOLED_CONNECTION_FACTORY_HA, false);
         boolean pcfBlockOnAck = PrepareUtils.getBoolean(params, PrepareParams.POOLED_CONNECTION_FACTORY_BLOCK_ON_ACK, false);
@@ -259,6 +260,7 @@ public class PrepareBase {
         int pcfReconnectAttempts = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, -1);
         int pcfMinPoolSize = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, -1);
         int pcfMaxPoolSize = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, -1);
+        long pcfMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.POOLED_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 100 * 1024 * 1024l);
 
         jmsOperations.setHaForConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rcfHa);
         jmsOperations.setBlockOnAckForConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rcfBlockOnAck);
@@ -266,6 +268,7 @@ public class PrepareBase {
         jmsOperations.setRetryIntervalMultiplierForConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rcfRetryIntervalMultiplier);
         jmsOperations.setReconnectAttemptsForConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rcfReconnectAttempts);
         jmsOperations.setCompressionOnConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rcfCompression);
+        jmsOperations.setMinLargeMessageSizeOnConnectionFactory(REMOTE_CONNECTION_FACTORY_NAME, rfcMinLargeMessageSize);
 
         String pooledConnectionFactoryName = ContainerUtils.isEAP6(getContainer(params, 1)) ? POOLED_CONNECTION_FACTORY_NAME_EAP6 : POOLED_CONNECTION_FACTORY_NAME_EAP7;
 
@@ -276,6 +279,7 @@ public class PrepareBase {
         jmsOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, pcfReconnectAttempts);
         jmsOperations.setMinPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMinPoolSize);
         jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMaxPoolSize);
+        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMinLargeMessageSize);
     }
 
     protected void prepareConnectorEAP6(Map<String, Object> params, JMSOperations jmsOperations) {

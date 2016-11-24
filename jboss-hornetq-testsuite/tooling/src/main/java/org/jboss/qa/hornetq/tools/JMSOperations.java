@@ -1847,7 +1847,7 @@ public interface JMSOperations {
 
     void setConnectorOnConnectionFactory(String nameConnectionFactory, String proxyConnectorName);
 
-    void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size);
+    void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, long size);
 
     void setMinLargeMessageSizeOnPooledConnectionFactory(String connectionFactoryName, long size);
 

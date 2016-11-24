@@ -3355,7 +3355,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, int size) {
+    public void setMinPoolSizeOnPooledConnectionFactory(String connectionFactoryName, long size) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
