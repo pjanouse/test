@@ -8,7 +8,6 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
