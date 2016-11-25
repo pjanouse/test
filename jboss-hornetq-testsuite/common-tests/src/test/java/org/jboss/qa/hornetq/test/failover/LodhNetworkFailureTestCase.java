@@ -388,8 +388,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         String poolName = "lodhDb";
         String database = ORACLE11GR2;
         String jdbcDriverFileName = JdbcUtils.downloadJdbcDriver(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        databaseProperties = dbAllocatorUtils.allocateDatabase(database);
+        databaseProperties = DBAllocatorUtils.allocateDatabase(database);
 
 
         container.start();
@@ -486,8 +485,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         String poolName = "lodhDb";
         String database = ORACLE11GR2;
 //        String jdbcDriverFileName = JdbcUtils.downloadJdbcDriver(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        databaseProperties = dbAllocatorUtils.allocateDatabase(database);
+        databaseProperties = DBAllocatorUtils.allocateDatabase(database);
 
         JdbcUtils.installJdbcDriverModule(container, database);
 

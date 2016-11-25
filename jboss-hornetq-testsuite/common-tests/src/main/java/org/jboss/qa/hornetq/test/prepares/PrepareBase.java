@@ -561,12 +561,15 @@ public class PrepareBase {
             return;
         }
 
+        String journalBindingsTable = PrepareUtils.getString(params, PrepareParams.JOURNAL_BINDINGS_TABLE);
+        String journalMessagesTable = PrepareUtils.getString(params, PrepareParams.JOURNAL_MESSAGES_TABLE);
+        String journalLargeMessagesTable = PrepareUtils.getString(params, PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE);
+
         JdbcUtils.downloadJdbcDriver(container, database);
 
         Thread.sleep(10000);
 
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        HornetQTestCase.jdbcAllocatorProperties = dbAllocatorUtils.allocateDatabase(database);
+        Map<String, String> properties = DBAllocatorUtils.allocateDatabase(database);
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
@@ -574,16 +577,27 @@ public class PrepareBase {
         String jndiName = "java:jboss/datasources/messaging";
         String poolName = "messaging";
         String driver = "ojdbc7.jar";
-        String connectionUrl = HornetQTestCase.jdbcAllocatorProperties.get("db.jdbc_url");
-        String userName = HornetQTestCase.jdbcAllocatorProperties.get("db.username");
-        String password = HornetQTestCase.jdbcAllocatorProperties.get("db.password");
+        String connectionUrl = properties.get("db.jdbc_url");
+        String userName = properties.get("db.username");
+        String password = properties.get("db.password");
 
         URL sqlProviderFactory = getClass().getResource("/artemis-sql-provider-factory-oracle.jar");
         ModuleUtils.registerModule(container, moduleName, sqlProviderFactory, Arrays.asList("org.apache.activemq.artemis"));
 
         jmsOperations.createDataSource(jndiName, poolName, driver, connectionUrl, userName, password);
-        jmsOperations.setJournalDataSource(poolName);
-        jmsOperations.setJournalSqlProviderFactoryClass("com.oracle.OracleSQLProviderFactory", moduleName);
+        jmsOperations.setJournalDataSource(serverName, poolName);
+        jmsOperations.setJournalSqlProviderFactoryClass(serverName, "com.oracle.OracleSQLProviderFactory", moduleName);
+
+        if (journalBindingsTable != null) {
+            jmsOperations.setJournalBindingsTable(serverName, journalBindingsTable);
+        }
+        if (journalMessagesTable != null) {
+            jmsOperations.setJournalMessagesTable(serverName, journalMessagesTable);
+        }
+        if (journalLargeMessagesTable != null) {
+            jmsOperations.setJournalLargeMessagesTable(serverName, journalLargeMessagesTable);
+        }
+
         jmsOperations.close();
     }
 

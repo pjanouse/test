@@ -954,6 +954,72 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setJournalBindingsTable(String journalBindingsTable) {
+        setJournalBindingsTable(NAME_OF_MESSAGING_DEFAULT_SERVER, journalBindingsTable);
+    }
+
+    @Override
+    public void setJournalBindingsTable(String serverName, String journalBindingsTable) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+
+        model.get(ClientConstants.NAME).set("journal-bindings-table");
+        model.get(ClientConstants.VALUE).set(journalBindingsTable);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalMessagesTable(String journalMessagesTable) {
+        setJournalMessagesTable(NAME_OF_MESSAGING_DEFAULT_SERVER, journalMessagesTable);
+    }
+
+    @Override
+    public void setJournalMessagesTable(String serverName, String journalMessagesTable) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+
+        model.get(ClientConstants.NAME).set("journal-messages-table");
+        model.get(ClientConstants.VALUE).set(journalMessagesTable);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String journalLargeMessagesTable) {
+        setJournalLargeMessagesTable(NAME_OF_MESSAGING_DEFAULT_SERVER, journalLargeMessagesTable);
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String serverName, String journalLargeMessagesTable) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+
+        model.get(ClientConstants.NAME).set("journal-large-messages-table");
+        model.get(ClientConstants.VALUE).set(journalLargeMessagesTable);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void setDeliveryGroupActive(String deliveryGroup, boolean isDeliveryGroupActive) {
         // /subsystem=ejb3/mdb-delivery-group=group2:add(active=true)
         ModelNode addDeliveryGroup = createModelNode();

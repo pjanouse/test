@@ -540,9 +540,8 @@ public abstract class Lodh5DoubleSendToDbTestCase extends HornetQTestCase {
         final String driverModuleName = "com.mylodhdb";
 
         JdbcUtils.installJdbcDriverModule(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
         if (properties == null) {
-            properties = dbAllocatorUtils.allocateDatabase(database);
+            properties = DBAllocatorUtils.allocateDatabase(database);
         }
 
         Random r = new Random();

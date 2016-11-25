@@ -2162,4 +2162,16 @@ public interface JMSOperations {
 
     void setForwardWhenNoConsumers(String clusterGroup, boolean value);
 
+    void setJournalBindingsTable(String journalBindingsTable);
+
+    void setJournalBindingsTable(String serverName, String journalBindingsTable);
+
+    void setJournalMessagesTable(String journalMessagesTable);
+
+    void setJournalMessagesTable(String serverName, String journalMessagesTable);
+
+    void setJournalLargeMessagesTable(String journalLargeMessagesTable);
+
+    void setJournalLargeMessagesTable(String serverName, String journalLargeMessagesTable);
+
 }

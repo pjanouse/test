@@ -4,6 +4,7 @@ import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.Map;
@@ -106,7 +107,12 @@ public class TwoNodes extends PrepareBase {
     // Before
 
     protected void beforePrepare(Map<String, Object> params) throws Exception {
-
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node1-bindings-table");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node1-messages-table");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node1-large-messages-table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node2-bindings-table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node2-messages-table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node2-large-messages-table");
     }
 
     protected void beforePrepareEAP6(Map<String, Object> params) throws Exception {
@@ -199,6 +205,8 @@ public class TwoNodes extends PrepareBase {
         prepareCluster(params, jmsOperations);
 
         prepareMisc(params, jmsOperations);
+
+        prepareDatabase(params, container);
 
         jmsOperations.close();
     }

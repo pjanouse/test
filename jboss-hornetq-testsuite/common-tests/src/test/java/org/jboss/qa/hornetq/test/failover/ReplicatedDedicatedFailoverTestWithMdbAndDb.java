@@ -512,9 +512,8 @@ public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase
 
         try {
             JdbcUtils.installJdbcDriverModule(container, database);
-            DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
             if (properties == null) {
-                properties = dbAllocatorUtils.allocateDatabase(database);
+                properties = DBAllocatorUtils.allocateDatabase(database);
             }
         } catch (Exception e) {
             throw new RuntimeException("Can not allocate database");

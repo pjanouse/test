@@ -540,8 +540,7 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
 
     @Before
     public void allocateDatabase() throws  Exception{
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        databaseProperties = dbAllocatorUtils.allocateDatabase(database);
+        databaseProperties = DBAllocatorUtils.allocateDatabase(database);
     }
 
     @After

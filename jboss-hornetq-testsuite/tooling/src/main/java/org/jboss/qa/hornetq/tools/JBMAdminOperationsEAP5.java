@@ -2773,6 +2773,36 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setJournalBindingsTable(String journalBindingsTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalBindingsTable(String serverName, String journalBindingsTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalMessagesTable(String journalMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalMessagesTable(String serverName, String journalMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String journalLargeMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String serverName, String journalLargeMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         logger.info("This operation is not supported: " + getMethodName());
     }

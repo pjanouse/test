@@ -5592,6 +5592,36 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setJournalBindingsTable(String journalBindingsTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalBindingsTable(String serverName, String journalBindingsTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalMessagesTable(String journalMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalMessagesTable(String serverName, String journalMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String journalLargeMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setJournalLargeMessagesTable(String serverName, String journalLargeMessagesTable) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalMinCompactFiles(int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);

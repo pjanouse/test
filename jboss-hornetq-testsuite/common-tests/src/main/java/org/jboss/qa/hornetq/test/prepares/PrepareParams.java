@@ -161,4 +161,10 @@ public class PrepareParams {
     public static final String AUTO_DELETE_JMS_QUEUES = "AUTO_DELETE_JMS_QUEUES";
 
     public static final String DATABASE = "DATABASE";
+
+    public static final String JOURNAL_BINDINGS_TABLE = "JOURNAL_BINDINGS_TABLE";
+
+    public static final String JOURNAL_MESSAGES_TABLE = "JOURNAL_MESSAGES_TABLE";
+
+    public static final String JOURNAL_LARGE_MESSAGES_TABLE = "JOURNAL_LARGE_MESSAGES_TABLE";
 }

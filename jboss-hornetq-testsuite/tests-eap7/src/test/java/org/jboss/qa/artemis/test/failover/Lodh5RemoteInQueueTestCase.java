@@ -433,9 +433,8 @@ public abstract class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         String messagingGroupSocketBindingName = "messaging-group";
 
         String jdbcDriverFileName = JdbcUtils.installJdbcDriverModule(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
         if (properties == null) {
-            properties = dbAllocatorUtils.allocateDatabase(database);
+            properties = DBAllocatorUtils.allocateDatabase(database);
         }
 
         container.start();

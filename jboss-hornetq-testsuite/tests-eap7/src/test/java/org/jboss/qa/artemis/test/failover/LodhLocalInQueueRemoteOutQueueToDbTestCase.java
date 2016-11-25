@@ -424,8 +424,7 @@ public class LodhLocalInQueueRemoteOutQueueToDbTestCase extends HornetQTestCase 
 
     @Before
     public void allocateDatabase() throws  Exception{
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        databaseProperties = dbAllocatorUtils.allocateDatabase(database);
+        databaseProperties = DBAllocatorUtils.allocateDatabase(database);
         String host = databaseProperties.get("db.hostname"); // db.hostname=db14.mw.lab.eng.bos.redhat.com
         int portNumber = Integer.parseInt(databaseProperties.get("db.port")); // db.port=5432
         prepareDatabaseProxyServers(host,portNumber);

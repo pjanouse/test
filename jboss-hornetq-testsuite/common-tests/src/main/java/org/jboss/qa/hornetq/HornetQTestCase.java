@@ -19,6 +19,7 @@ import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.junit.rules.ArchiveServerLogsAfterFailedTest;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerInfo;
+import org.jboss.qa.hornetq.tools.DBAllocatorUtils;
 import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.After;
@@ -101,8 +102,6 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
 
     // Journal directory for server in colocated replicated topology (each server must have own journal)
     public static final String JOURNAL_DIRECTORY_D;
-
-    public static Map<String, String> jdbcAllocatorProperties = null;
 
     @ArquillianResource
     protected ContainerController controller;
@@ -378,11 +377,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
 
     @After
     public void deallocateDatabase() throws Exception {
-        if (jdbcAllocatorProperties != null) {
-            HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + jdbcAllocatorProperties.get("uuid"),
-                    20, TimeUnit.SECONDS);
-            jdbcAllocatorProperties = null;
-        }
+        DBAllocatorUtils.free();
     }
     /**
      * Returns a psuedo-random number between min and max, inclusive.

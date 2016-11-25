@@ -891,8 +891,7 @@ public class Lodh5TestCase extends HornetQTestCase {
         final String driverModuleName = "com.mylodhdb";
 
         String jdbcDriverFileName = JdbcUtils.installJdbcDriverModule(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        properties = dbAllocatorUtils.allocateDatabase(database);
+        properties = DBAllocatorUtils.allocateDatabase(database);
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
