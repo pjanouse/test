@@ -279,7 +279,7 @@ public class PrepareBase {
         jmsOperations.setReconnectAttemptsForPooledConnectionFactory(pooledConnectionFactoryName, pcfReconnectAttempts);
         jmsOperations.setMinPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMinPoolSize);
         jmsOperations.setMaxPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMaxPoolSize);
-        jmsOperations.setMinPoolSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMinLargeMessageSize);
+        jmsOperations.setMinLargeMessageSizeOnPooledConnectionFactory(pooledConnectionFactoryName, pcfMinLargeMessageSize);
     }
 
     protected void prepareConnectorEAP6(Map<String, Object> params, JMSOperations jmsOperations) {
