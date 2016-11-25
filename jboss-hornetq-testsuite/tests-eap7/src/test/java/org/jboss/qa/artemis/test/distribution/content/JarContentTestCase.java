@@ -41,12 +41,12 @@ public class JarContentTestCase extends HornetQTestCase {
         expectedMainModuleJars.add("artemis-core-client");
         expectedMainModuleJars.add("artemis-jdbc-store");
         expectedMainModuleJars.add("artemis-hqclient-protocol");
+        expectedMainModuleJars.add("artemis-jdbc-store");
 
         expectedJournalModuleJars.add("artemis-journal");
         expectedJournalModuleJars.add("artemis-native");
         expectedJournalModuleJars.add("artemis-commons");
-        expectedJournalModuleJars.add("artemis-jdbc-store");
-
+        
         expectedRAModuleJars.add("artemis-ra");
         expectedRAModuleJars.add("artemis-service-extensions");
 
