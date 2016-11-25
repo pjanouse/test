@@ -534,15 +534,20 @@ public class PrepareBase {
         long journalFileSize = PrepareUtils.getLong(params, PrepareParams.JOURNAL_FILE_SIZE, 10 * 1024 * 1024l);
         long transactionTimeout = PrepareUtils.getLong(params, PrepareParams.TRANSACTION_TIMEOUT, 300000l);
         boolean jmxManagementEnabled = PrepareUtils.getBoolean(params, PrepareParams.JMX_MANAGEMENT_ENABLED, false);
-        boolean autoCreateJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_CREATE_JMS_QUEUES, false);
-        boolean autoDeleteJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_DELETE_JMS_QUEUES, false);
+        Boolean autoCreateJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_CREATE_JMS_QUEUES);
+        Boolean autoDeleteJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_DELETE_JMS_QUEUES);
 
         jmsOperations.setJournalType(serverName, journalType);
         jmsOperations.setJournalFileSize(serverName, journalFileSize);
         jmsOperations.setTransactionTimeout(serverName, transactionTimeout);
         jmsOperations.setJmxManagementEnabled(jmxManagementEnabled);
-        jmsOperations.setAutoCreateJMSQueue(autoCreateJMSQueues);
-        jmsOperations.setAutoDeleteJMSQueue(autoDeleteJMSQueues);
+
+        if (autoCreateJMSQueues != null) {
+            jmsOperations.setAutoCreateJMSQueue(autoCreateJMSQueues);
+        }
+        if (autoDeleteJMSQueues != null) {
+            jmsOperations.setAutoDeleteJMSQueue(autoDeleteJMSQueues);
+        }
     }
 
     protected void prepareDatabase(Map<String, Object> params, Container container) throws Exception {
