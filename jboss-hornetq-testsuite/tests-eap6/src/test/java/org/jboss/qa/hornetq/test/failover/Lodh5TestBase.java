@@ -112,8 +112,7 @@ public class Lodh5TestBase extends HornetQTestCase {
         String poolName = "lodhDb";
 
         String jdbcDriverFileName = JdbcUtils.downloadJdbcDriver(container, database);
-        DBAllocatorUtils dbAllocatorUtils = new DBAllocatorUtils();
-        properties = dbAllocatorUtils.allocateDatabase(database);
+        properties = DBAllocatorUtils.allocateDatabase(database);
 
         container.start();
         JMSOperations jmsAdminOperations = container.getJmsOperations();
