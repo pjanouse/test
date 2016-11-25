@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.smoke;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -12,6 +13,7 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.LostMessagesVerifie
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.SendReceiveCountVerifier;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -51,6 +53,8 @@ public class SmokeTestCase extends HornetQTestCase {
 
         container(1).stop();
 
+        Assert.assertNull(producer.getException());
+        Assert.assertNull(receiver.getException());
         Assert.assertTrue(verifier.verifyMessages());
 
     }
@@ -86,6 +90,8 @@ public class SmokeTestCase extends HornetQTestCase {
 
         container(1).stop();
 
+        Assert.assertNull(producer.getException());
+        Assert.assertNull(receiver.getException());
         Assert.assertTrue(verifier.verifyMessages());
     }
 
