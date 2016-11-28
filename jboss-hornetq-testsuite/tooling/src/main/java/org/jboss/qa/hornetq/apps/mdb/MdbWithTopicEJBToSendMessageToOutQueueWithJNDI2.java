@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.ejb.SenderEJB;
 
 import javax.ejb.*;

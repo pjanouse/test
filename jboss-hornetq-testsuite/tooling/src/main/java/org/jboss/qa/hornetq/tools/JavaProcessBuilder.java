@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

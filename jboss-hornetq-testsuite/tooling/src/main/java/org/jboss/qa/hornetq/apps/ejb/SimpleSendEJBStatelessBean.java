@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.apps.ejb;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;

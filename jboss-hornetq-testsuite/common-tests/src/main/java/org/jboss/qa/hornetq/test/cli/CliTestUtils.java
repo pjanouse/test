@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.test.cli;
 
-import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.*;
 import org.jboss.dmr.*;
+import org.jboss.logging.Logger;
 import org.jboss.qa.management.cli.CliClient;
 import org.jboss.qa.management.cli.CliUtils;
 import org.jboss.qa.management.cli.ModelNodeUtils;

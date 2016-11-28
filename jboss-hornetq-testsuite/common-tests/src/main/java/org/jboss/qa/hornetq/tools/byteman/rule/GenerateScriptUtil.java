@@ -16,7 +16,7 @@
  */
 package org.jboss.qa.hornetq.tools.byteman.rule;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
 
 import java.io.ByteArrayOutputStream;

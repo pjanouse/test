@@ -1,38 +1,32 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.logging.Logger;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
-import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
-import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.constants.Constants.JOURNAL_TYPE;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
+import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemController;
+import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.test.prepares.specific.JournalReplicationPrepare;
-import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
-import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.Queue;
+import javax.jms.Session;
 import javax.naming.Context;
-import java.io.File;
-import java.rmi.RemoteException;
-import java.util.Map;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;

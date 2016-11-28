@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.constants.Constants;
 
@@ -69,7 +68,7 @@ public class MdbToDBAndRemoteInOutQueue implements MessageListener {
                 try {
                     jmsConnection.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (sqlConnection != null) {

@@ -1,14 +1,10 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.ActivationConfigProperty;
-import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
-import javax.ejb.MessageDrivenBean;
-import javax.ejb.MessageDrivenContext;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.ejb.TransactionManagement;
@@ -59,14 +55,14 @@ public class RemoteMdbFromQueueToQueue implements MessageListener{
             MessageProducer sender = session.createProducer(queue);
             sender.send(message);
         }catch(Exception e){
-            log.log(Level.FATAL, e.getMessage(), e);
+            log.fatal(e.getMessage(), e);
         }finally {
             try {
                 if(connection!=null){
                     connection.close();
                 }
             }catch (Exception e){
-                log.log(Level.FATAL, e.getMessage(), e);
+                log.fatal(e.getMessage(), e);
             }
         }
 

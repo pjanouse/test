@@ -1,15 +1,14 @@
 package org.jboss.qa.management.cli;
 
-import org.apache.log4j.Logger;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.dmr.ModelNode;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.junit.Assert;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.*;
 

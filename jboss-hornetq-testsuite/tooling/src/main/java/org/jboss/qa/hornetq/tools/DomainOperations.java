@@ -1,5 +1,11 @@
 package org.jboss.qa.hornetq.tools;
 
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.dmr.ModelNode;
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.threads.JBossThreadFactory;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -10,15 +16,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.log4j.Logger;
-import org.jboss.as.controller.client.ModelControllerClient;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.controller.client.impl.ClientConfigurationImpl;
-import org.jboss.dmr.ModelNode;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.threads.JBossThreadFactory;
-
 
 /**
  * Administration operations for manipulating domain structure.

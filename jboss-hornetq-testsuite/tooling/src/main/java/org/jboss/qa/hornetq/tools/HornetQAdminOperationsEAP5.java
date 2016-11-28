@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.shrinkwrap.api.Archive;
 import org.w3c.dom.Document;

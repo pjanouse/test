@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -38,7 +37,7 @@ public class LocalMdbFromQueueToQueueWithSelectorAndSecurity implements MessageD
     public void onMessage(Message message) {
         QueueConnection queueConnection=null;
         try{
-            log.log(Level.TRACE,"MDB received message "+ message.getStringProperty("_HQ_DUPL_ID"));
+            log.trace("MDB received message "+ message.getStringProperty("_HQ_DUPL_ID"));
             queueConnection = connectionFactory.createQueueConnection(username,password);
             QueueSession session = queueConnection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
             QueueSender queueSender = session.createSender(queue);
@@ -51,7 +50,7 @@ public class LocalMdbFromQueueToQueueWithSelectorAndSecurity implements MessageD
             try {
                 queueConnection.close();
             }catch(Exception e){
-                log.log(Level.FATAL, e.getMessage(), e);
+                log.fatal(e.getMessage(), e);
             }
         }
 

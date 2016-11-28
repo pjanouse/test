@@ -1,9 +1,10 @@
 package org.jboss.qa.hornetq.apps.clients;
 
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.JMSTools;
+import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -12,10 +13,6 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.naming.Context;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 
 /**

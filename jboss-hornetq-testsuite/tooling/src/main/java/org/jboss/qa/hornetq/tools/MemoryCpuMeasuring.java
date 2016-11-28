@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;

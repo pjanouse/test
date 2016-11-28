@@ -10,7 +10,8 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.jms.Message;
 import javax.jms.MessageListener;
-import org.apache.log4j.Logger;
+
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
 
 

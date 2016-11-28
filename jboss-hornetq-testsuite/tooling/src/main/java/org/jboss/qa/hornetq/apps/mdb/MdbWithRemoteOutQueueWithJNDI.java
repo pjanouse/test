@@ -1,18 +1,31 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.HornetQTestCaseConstants;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
-import javax.ejb.*;
-import javax.jms.*;
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.EJBException;
+import javax.ejb.MessageDriven;
+import javax.ejb.MessageDrivenBean;
+import javax.ejb.MessageDrivenContext;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -65,7 +78,7 @@ public class MdbWithRemoteOutQueueWithJNDI implements MessageDrivenBean, Message
             try {
                 counter = message.getIntProperty("count");
             } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
@@ -113,7 +126,7 @@ public class MdbWithRemoteOutQueueWithJNDI implements MessageDrivenBean, Message
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }

@@ -1,15 +1,14 @@
 
 package org.jboss.qa.hornetq.apps.mdb;
 
-        import org.apache.log4j.Level;
-        import org.apache.log4j.Logger;
-        import org.jboss.qa.hornetq.apps.JMSImplementation;
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.apps.JMSImplementation;
 
-        import javax.annotation.Resource;
-        import javax.ejb.*;
-        import javax.jms.*;
-        import java.util.ServiceLoader;
-        import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Resource;
+import javax.ejb.*;
+import javax.jms.*;
+import java.util.ServiceLoader;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A MdbWithRemoteOutQueueNoRebalancing used for lodh tests. Used in RemoteJcaTestCase.
@@ -55,7 +54,7 @@ public class MdbWithRemoteOutQueueNoRebalancing implements MessageListener {
             try {
                 counter = message.getIntProperty("count");
             } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
@@ -102,7 +101,7 @@ public class MdbWithRemoteOutQueueNoRebalancing implements MessageListener {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

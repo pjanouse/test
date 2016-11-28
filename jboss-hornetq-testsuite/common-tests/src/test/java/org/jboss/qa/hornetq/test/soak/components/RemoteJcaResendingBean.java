@@ -2,14 +2,26 @@ package org.jboss.qa.hornetq.test.soak.components;
 
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.ejb3.annotation.ResourceAdapter;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.RemoteJcaSoakModule;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.*;
-import javax.jms.*;
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.MessageDriven;
+import javax.ejb.MessageDrivenContext;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -90,14 +102,14 @@ public class RemoteJcaResendingBean implements MessageListener {
             try {
                 ctxRemote.close();
             } catch (NamingException e) {
-                LOG.log(Level.FATAL, e.getMessage(), e);
+                LOG.fatal(e.getMessage(), e);
             }
         }
         if (ctx != null) {
             try {
                 ctx.close();
             } catch (NamingException e) {
-                LOG.log(Level.FATAL, e.getMessage(), e);
+                LOG.fatal(e.getMessage(), e);
             }
         }
     }
@@ -116,7 +128,7 @@ public class RemoteJcaResendingBean implements MessageListener {
             try {
                 counter = message.getIntProperty("count");
             } catch (Exception e) {
-                LOG.log(Level.ERROR, e.getMessage(), e);
+                LOG.error(e.getMessage(), e);
             }
 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
@@ -140,7 +152,7 @@ public class RemoteJcaResendingBean implements MessageListener {
         } catch (Exception e) {
 
             e.printStackTrace();
-            LOG.log(Level.FATAL, e.getMessage(), e);
+            LOG.fatal(e.getMessage(), e);
 
             this.context.setRollbackOnly();
         } finally {
@@ -148,14 +160,14 @@ public class RemoteJcaResendingBean implements MessageListener {
                 try {
                     session.close();
                 } catch (JMSException e) {
-                    LOG.log(Level.FATAL, e.getMessage(), e);
+                    LOG.fatal(e.getMessage(), e);
                 }
             }
             if (con != null) {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    LOG.log(Level.FATAL, e.getMessage(), e);
+                    LOG.fatal(e.getMessage(), e);
                 }
             }
 

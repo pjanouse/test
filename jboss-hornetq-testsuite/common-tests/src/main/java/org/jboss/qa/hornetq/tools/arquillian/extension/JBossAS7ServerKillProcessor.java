@@ -1,9 +1,8 @@
 package org.jboss.qa.hornetq.tools.arquillian.extension;
 
-
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.spi.Container;
 import org.jboss.arquillian.container.spi.ServerKillProcessor;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.JMSTools;
 
 import java.io.BufferedReader;

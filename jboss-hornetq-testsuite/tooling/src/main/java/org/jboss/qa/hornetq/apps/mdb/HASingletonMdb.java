@@ -1,9 +1,8 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.jboss.ejb3.annotation.ClusteredSingleton;
 import org.jboss.ejb3.annotation.DeliveryGroup;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.constants.Constants;
 
@@ -58,7 +57,7 @@ public class HASingletonMdb implements MessageListener {
             try {
                 counter = message.getIntProperty("count");
             } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
 
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
@@ -105,7 +104,7 @@ public class HASingletonMdb implements MessageListener {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }

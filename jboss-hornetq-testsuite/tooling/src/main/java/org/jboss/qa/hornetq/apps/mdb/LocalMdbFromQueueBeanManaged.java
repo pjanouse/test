@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -70,7 +69,7 @@ public class LocalMdbFromQueueBeanManaged implements MessageDrivenBean, MessageL
             long time = System.currentTimeMillis();
             int counter = globalCounter.incrementAndGet();
 
-            log.log(Level.INFO, " Start of message: " + counter + ", message info:" + message.getJMSMessageID());
+            log.info("Start of message: " + counter + ", message info:" + message.getJMSMessageID());
 
             con = cf.createConnection();
 
@@ -87,12 +86,12 @@ public class LocalMdbFromQueueBeanManaged implements MessageDrivenBean, MessageL
             sender.send(newMessage);
             Thread.sleep(100);
 
-            log.log(Level.DEBUG, " End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.debug("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
             userTransaction.commit();
 
         } catch (Exception t) {
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
             try {
                 userTransaction.rollback();
             } catch (SystemException e) {
@@ -105,7 +104,7 @@ public class LocalMdbFromQueueBeanManaged implements MessageDrivenBean, MessageL
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
 

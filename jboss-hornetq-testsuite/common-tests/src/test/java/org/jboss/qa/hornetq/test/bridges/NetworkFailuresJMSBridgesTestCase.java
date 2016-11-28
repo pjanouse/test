@@ -1,8 +1,7 @@
 package org.jboss.qa.hornetq.test.bridges;
 
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.Prepare;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;

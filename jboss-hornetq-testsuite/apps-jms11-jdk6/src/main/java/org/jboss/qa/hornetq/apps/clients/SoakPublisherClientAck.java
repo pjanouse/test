@@ -1,12 +1,16 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.Topic;
 import javax.naming.Context;
 import javax.naming.NamingException;
 

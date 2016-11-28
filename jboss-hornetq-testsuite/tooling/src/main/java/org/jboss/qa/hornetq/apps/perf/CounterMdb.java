@@ -1,8 +1,6 @@
 package org.jboss.qa.hornetq.apps.perf;
 
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -105,7 +103,7 @@ public class CounterMdb implements MessageListener {
                     ((BytesMessage) newMessage).writeBytes(content);
                 }
                 if (newMessage == null) {
-                    log.log(Level.FATAL, "Unknown message type " + message);
+                    log.fatal("Unknown message type " + message);
                 } else {
                     newMessage.setLongProperty(PerformanceConstants.MESSAGE_PARAM_CREATED, created);
                     newMessage.setIntProperty(PerformanceConstants.MESSAGE_PARAM_COUNTER, counter + 1);
@@ -134,21 +132,21 @@ public class CounterMdb implements MessageListener {
                 sender.send(newMessage);
             }
         } catch (Exception t) {
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
             this.context.setRollbackOnly();
         } finally {
             if (session != null) {
                 try {
                     session.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (con != null) {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

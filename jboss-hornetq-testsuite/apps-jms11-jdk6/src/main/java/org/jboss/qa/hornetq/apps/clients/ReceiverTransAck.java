@@ -1,7 +1,7 @@
 //TODO write duplicate detection
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 
 import javax.jms.*;

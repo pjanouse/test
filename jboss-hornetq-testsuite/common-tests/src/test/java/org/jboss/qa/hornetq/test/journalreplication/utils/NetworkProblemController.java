@@ -2,7 +2,7 @@ package org.jboss.qa.hornetq.test.journalreplication.utils;
 
 import java.rmi.RemoteException;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 
 /**

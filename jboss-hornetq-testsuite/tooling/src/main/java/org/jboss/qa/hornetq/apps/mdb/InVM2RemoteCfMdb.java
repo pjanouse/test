@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -46,7 +45,7 @@ public class InVM2RemoteCfMdb implements MessageListener {
         Session session = null;
         try {
             if (log.isInfoEnabled()) {
-                log.log(Level.INFO, "Start getJMSMessageID: " + message.getJMSMessageID());
+                log.info("Start getJMSMessageID: " + message.getJMSMessageID());
             }
             con = cf.createConnection();
             con.start();
@@ -57,11 +56,11 @@ public class InVM2RemoteCfMdb implements MessageListener {
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
             if (log.isInfoEnabled()) {
-                log.log(Level.INFO, "End getJMSMessageID: " + message.getJMSMessageID());
+                log.info("End getJMSMessageID: " + message.getJMSMessageID());
             }
             killServer();
         } catch (Exception t) {
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
             this.context.setRollbackOnly();
 
         } finally {
@@ -69,14 +68,14 @@ public class InVM2RemoteCfMdb implements MessageListener {
                 try {
                     session.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (con != null) {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

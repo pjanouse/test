@@ -11,12 +11,11 @@
     <artifactId>apps-jms11-jdk6</artifactId>
     <packaging>jar</packaging>
 
-
     <dependencies>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>tooling</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

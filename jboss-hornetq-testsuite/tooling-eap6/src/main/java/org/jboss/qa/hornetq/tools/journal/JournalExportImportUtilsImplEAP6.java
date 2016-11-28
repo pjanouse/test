@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.tools.journal;
 
-
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.tools.EapVersion;
 import org.jboss.qa.hornetq.tools.JavaProcessBuilder;

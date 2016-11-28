@@ -1,9 +1,10 @@
 package org.jboss.qa.hornetq;
 
 
+import org.jboss.logging.Logger;
+
 import java.util.Iterator;
 import java.util.ServiceLoader;
-import org.apache.log4j.Logger;
 
 
 public class DomainHornetQTestCase extends HornetQTestCase {

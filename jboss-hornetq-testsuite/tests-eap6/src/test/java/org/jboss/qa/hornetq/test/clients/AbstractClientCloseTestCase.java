@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.clients;
 
-import org.apache.log4j.Logger;
 import org.hornetq.api.core.management.ObjectNameBuilder;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.Container;

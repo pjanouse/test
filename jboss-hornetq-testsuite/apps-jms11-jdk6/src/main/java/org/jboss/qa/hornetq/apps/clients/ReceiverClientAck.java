@@ -1,13 +1,11 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.*;
 import javax.jms.Queue;
 import javax.naming.Context;
-import java.util.*;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.

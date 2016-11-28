@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.apps.impl.verifiers.configurable;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import java.util.*;

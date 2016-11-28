@@ -21,7 +21,7 @@
  */
 package org.jboss.qa.hornetq;
 
-import org.apache.xerces.impl.dv.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -117,7 +117,7 @@ public class HttpRequest {
                 final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 if (username != null) {
                     final String userpassword = username + ":" + password;
-                    final String basicAuthorization = Base64.encode(userpassword.getBytes());
+                    final String basicAuthorization = Base64.encodeBase64String(userpassword.getBytes());
                     conn.setRequestProperty("Authorization", "Basic " + basicAuthorization);
                 }
                 conn.setDoInput(true);

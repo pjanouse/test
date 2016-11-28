@@ -1,13 +1,11 @@
 package org.jboss.qa.hornetq.apps.ejb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 import org.jboss.qa.hornetq.constants.Constants;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.jms.*;
 import javax.sql.DataSource;
 import javax.transaction.SystemException;
@@ -87,7 +85,7 @@ public class SenderEJBWithDatabaseAccess implements SimpleSendEJB {
                 try {
                     jmsConnection.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (sqlConnection != null) {
@@ -95,7 +93,7 @@ public class SenderEJBWithDatabaseAccess implements SimpleSendEJB {
                     sqlConnection.close();
                     sqlConnection = null;
                 } catch (SQLException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

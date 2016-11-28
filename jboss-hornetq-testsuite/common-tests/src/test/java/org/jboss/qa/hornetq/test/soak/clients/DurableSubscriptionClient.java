@@ -1,7 +1,12 @@
 package org.jboss.qa.hornetq.test.soak.clients;
 
 
-import java.util.UUID;
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
+import org.jboss.qa.hornetq.tools.jms.ClientUtils;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -11,13 +16,7 @@ import javax.jms.Topic;
 import javax.jms.TopicSubscriber;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
-import org.jboss.qa.hornetq.tools.jms.ClientUtils;
+import java.util.UUID;
 
 
 /**

@@ -2,10 +2,10 @@ package org.jboss.qa.hornetq;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.ContainerController;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.tools.HornetQAdminOperationsEAP6;

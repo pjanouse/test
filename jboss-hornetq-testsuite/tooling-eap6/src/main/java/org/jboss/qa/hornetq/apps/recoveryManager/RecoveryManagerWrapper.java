@@ -6,7 +6,7 @@ import com.arjuna.ats.arjuna.common.RecoveryEnvironmentBean;
 import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import java.io.File;
 import java.util.ArrayList;

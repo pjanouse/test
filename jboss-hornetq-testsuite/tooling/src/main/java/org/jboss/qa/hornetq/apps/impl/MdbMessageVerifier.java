@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.apps.impl;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 
 import javax.jms.JMSException;

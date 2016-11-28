@@ -1,13 +1,11 @@
 package org.jboss.qa.hornetq;
 
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
+
+import java.io.File;
+import java.io.IOException;
 
 
 public class JournalDirectory {

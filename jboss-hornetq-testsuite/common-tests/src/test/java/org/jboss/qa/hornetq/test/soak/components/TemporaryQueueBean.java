@@ -16,7 +16,8 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
-import org.apache.log4j.Logger;
+
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
 
 

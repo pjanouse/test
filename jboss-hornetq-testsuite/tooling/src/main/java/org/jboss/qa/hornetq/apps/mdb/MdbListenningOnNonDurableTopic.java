@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;
@@ -92,7 +91,7 @@ public class    MdbListenningOnNonDurableTopic implements MessageListener {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

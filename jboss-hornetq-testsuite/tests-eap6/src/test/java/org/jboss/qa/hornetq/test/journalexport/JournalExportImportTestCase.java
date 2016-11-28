@@ -39,7 +39,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -68,9 +67,9 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final String DIRECTORY_WITH_JOURNAL = new File("target/journal-directory-for-import-export-testcase").getAbsolutePath();
     private static final String EXPORTED_JOURNAL_FILE_NAME = "target/journal_export.xml";
-    private static final String BINDINGS_JOURNAL_DIRECTORY = Paths.get(DIRECTORY_WITH_JOURNAL, "messagingbindings").toString();
-    private static final String MESSAGES_JOURNAL_DIRECTORY = Paths.get(DIRECTORY_WITH_JOURNAL, "messagingjournal").toString();
-    private static final String LARGE_MESSAGES_JOURNAL_DIRECTORY = Paths.get(DIRECTORY_WITH_JOURNAL, "messaginglargemessages").toString();
+    private static final String BINDINGS_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messagingbindings").getAbsolutePath();
+    private static final String MESSAGES_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messagingjournal").getAbsolutePath();
+    private static final String LARGE_MESSAGES_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messaginglargemessages").getAbsolutePath();
 
     private static final String LONG_TEST_QUEUE = "TestQueueLong";
     private static final String LONG_TEST_QUEUE_NAME = "jms/queue/" + LONG_TEST_QUEUE;

@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;
@@ -99,7 +98,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
 
         } catch (Exception t) {
 
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.error(t.getMessage(), t);
 
             context.setRollbackOnly();
 
@@ -109,7 +108,7 @@ public class LocalMdbFromQueue implements MessageDrivenBean, MessageListener {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.error(e.getMessage(), e);
                 }
             }
 

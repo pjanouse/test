@@ -1,12 +1,12 @@
 package org.jboss.qa.hornetq.test.cli.operations;
 
-import org.apache.log4j.Logger;
 import org.hornetq.core.transaction.impl.XidImpl;
 import org.hornetq.utils.UUIDGenerator;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI.Result;
 import org.jboss.dmr.ModelNode;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JmsServerInfo;
 import org.jboss.qa.hornetq.apps.clients.Client;

@@ -2,7 +2,7 @@ package org.jboss.qa.hornetq.apps.jmx;
 
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.kohsuke.MetaInfServices;
 

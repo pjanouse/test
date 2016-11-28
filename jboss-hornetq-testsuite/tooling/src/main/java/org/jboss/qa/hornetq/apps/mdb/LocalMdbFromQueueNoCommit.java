@@ -1,14 +1,23 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.*;
-import javax.jms.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import javax.ejb.ActivationConfigProperty;
+import javax.ejb.MessageDriven;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,7 +82,7 @@ public class LocalMdbFromQueueNoCommit implements MessageListener {
             log.info("End of message: " +  counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
             throw new RuntimeException(t);
         }
     }

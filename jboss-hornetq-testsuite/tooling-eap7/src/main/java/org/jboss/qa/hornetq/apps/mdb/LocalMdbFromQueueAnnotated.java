@@ -1,13 +1,11 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Inject;
 import org.jboss.ejb3.annotation.ResourceAdapter;
+import org.jboss.logging.Logger;
 
 /**
  * A LocalMdbFromQueueAnnotated used for AnnotationsTestCase.
@@ -104,7 +102,7 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
             //  log.info("End of message: " + counter + ", message info: " + message.getJMSMessageID() + " in " + (System.currentTimeMillis() - time) + " ms");
         } catch (Exception t) {
 
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
 
             context.setRollbackOnly();
 
@@ -114,7 +112,7 @@ public class LocalMdbFromQueueAnnotated implements MessageDrivenBean, MessageLis
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
 

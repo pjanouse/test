@@ -13,10 +13,10 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.testng.Assert;
 
 import java.io.File;
 
@@ -78,16 +78,16 @@ public class JournalPropertiesTest extends HornetQTestCase {
         ProducerAutoAck producer = new ProducerAutoAck(container(1), queueJNDI, NUM_MESSAGES);
         producer.start();
         producer.join();
-        Assert.assertEquals(producer.getCount(), NUM_MESSAGES, "Producer does not send all messages.");
+        Assert.assertEquals("Producer does not send all messages.", producer.getCount(), NUM_MESSAGES);
 
         int journalFilesAll = numberOfFilesInJournal();
         log.info("Number of journal files after all messages send " + journalFilesAll);
-        Assert.assertTrue(journalFilesAll > JOURNAL_POOL_FILES, "Number of files in journal is not greater than journal-pool-files param");
+        Assert.assertTrue("Number of files in journal is not greater than journal-pool-files param", journalFilesAll > JOURNAL_POOL_FILES);
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), queueJNDI);
         receiver.start();
         receiver.join();
-        Assert.assertEquals(receiver.getCount(), NUM_MESSAGES, "Different number sent and received messages.");
+        Assert.assertEquals("Different number sent and received messages.", receiver.getCount(), NUM_MESSAGES);
 
         container(1).stop();
         setupCompacting(container(1));
@@ -97,7 +97,7 @@ public class JournalPropertiesTest extends HornetQTestCase {
         producer2.start();
         producer2.join();
 
-        Assert.assertEquals(numberOfFilesInJournal(), JOURNAL_POOL_FILES, "Number of files in journal is not equal to journal-pool-files param");
+        Assert.assertEquals("Number of files in journal is not equal to journal-pool-files param", numberOfFilesInJournal(), JOURNAL_POOL_FILES);
 
         container(1).stop();
     }
@@ -105,8 +105,8 @@ public class JournalPropertiesTest extends HornetQTestCase {
     private int numberOfFilesInJournal() {
 
         File journalDir = new File(JournalDirectory.getJournalDirectory(container(1).getServerHome(), JOURNAL_DIRECTORY_A), "journal");
-        Assert.assertTrue(journalDir.exists(), "Journal directory does not exists");
-        Assert.assertTrue(journalDir.isDirectory(), "Journal directory is not a directory");
+        Assert.assertTrue("Journal directory does not exists", journalDir.exists());
+        Assert.assertTrue("Journal directory is not a directory", journalDir.isDirectory());
 
         int num = 0;
         for (File file : journalDir.listFiles()) {

@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TransactionRolledBackException;
-import org.apache.log4j.Logger;
+
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 
 

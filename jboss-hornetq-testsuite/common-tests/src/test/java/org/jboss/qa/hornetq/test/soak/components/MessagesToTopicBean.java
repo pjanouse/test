@@ -1,7 +1,7 @@
 package org.jboss.qa.hornetq.test.soak.components;
 
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.EjbSoakModule;
 
 import javax.annotation.Resource;

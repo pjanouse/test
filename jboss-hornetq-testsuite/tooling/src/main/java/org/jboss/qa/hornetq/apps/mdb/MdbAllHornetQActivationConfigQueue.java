@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -76,10 +75,10 @@ public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, Me
             try {
                 counter = message.getIntProperty("count");
             } catch (Exception e) {
-                log.log(Level.ERROR, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
             String messageInfo = message.getJMSMessageID() + ", count:" + counter;
-            log.log(Level.INFO, " Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
+            log.info("Start of message: " + globalCounter.incrementAndGet() + ", message info:" + messageInfo);
 
             con = cf.createConnection();
 
@@ -93,11 +92,11 @@ public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, Me
             newMessage.setStringProperty("inMessageId", message.getJMSMessageID());
             sender.send(newMessage);
 
-            log.log(Level.INFO, " End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
+            log.info("End of " + messageInfo + " in " + (System.currentTimeMillis() - time) + " ms");
 
         } catch (Exception t) {
             t.printStackTrace();
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
             this.context.setRollbackOnly();
 
         } finally {
@@ -105,14 +104,14 @@ public class MdbAllHornetQActivationConfigQueue implements MessageDrivenBean, Me
                 try {
                     session.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (con != null) {
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
 

@@ -1,8 +1,6 @@
 package org.jboss.qa.hornetq.apps.ejb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.apps.ejb.SenderEJBWithDatabaseAccessUsingExecutor;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.impl.MessageInfo;
 
 import javax.ejb.SessionContext;
@@ -17,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SendAndDbInteractTask implements Runnable {
 
-    private static final Logger log = Logger.getLogger(SenderEJBWithDatabaseAccessUsingExecutor.class.getName());
+    private static final Logger log = Logger.getLogger(SendAndDbInteractTask.class.getName());
     private static AtomicInteger numberOfProcessedMessages = new AtomicInteger(0);
 
     private javax.jms.Connection jmsConnection = null;
@@ -66,7 +64,7 @@ public class SendAndDbInteractTask implements Runnable {
                 try {
                     jmsConnection.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
             if (sqlConnection != null) {
@@ -74,7 +72,7 @@ public class SendAndDbInteractTask implements Runnable {
                     sqlConnection.close();
                     sqlConnection = null;
                 } catch (SQLException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
         }

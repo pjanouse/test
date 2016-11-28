@@ -16,7 +16,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-version}</version>
                 <configuration>
                     <systemProperties>
                         <property>
@@ -38,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
-            <artifactId>tooling</artifactId>
+            <artifactId>tooling-eap6</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -1,12 +1,17 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 
-import javax.jms.*;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.Queue;
+import javax.jms.QueueSession;
+import javax.jms.Session;
 import javax.naming.Context;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Simple receiver with client acknowledge session. ABLE to failover.

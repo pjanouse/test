@@ -1,7 +1,7 @@
 // TODO REFACTOR FOR EAP 7
 package org.jboss.qa.hornetq.apps.jmx;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.kohsuke.MetaInfServices;
 
 import javax.management.Notification;

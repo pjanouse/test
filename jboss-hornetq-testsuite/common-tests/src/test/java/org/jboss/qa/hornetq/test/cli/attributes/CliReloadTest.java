@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.test.cli.attributes;
 
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.as.cli.scriptsupport.CLI;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;

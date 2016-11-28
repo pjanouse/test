@@ -1,11 +1,15 @@
 package org.jboss.qa.hornetq.test.soak.clients;
 
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import org.jboss.logging.Logger;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.clients.Client;
+import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
+import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
+import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
+import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -17,16 +21,11 @@ import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import org.apache.log4j.Logger;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.test.soak.modules.TemporaryQueueSoakModule;
-import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.apps.MessageBuilder;
-import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
-import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
-import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.tools.ContainerInfo;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 
 /**

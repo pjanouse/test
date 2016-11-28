@@ -1,8 +1,8 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.log4j.Logger;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.DomainNode;
 

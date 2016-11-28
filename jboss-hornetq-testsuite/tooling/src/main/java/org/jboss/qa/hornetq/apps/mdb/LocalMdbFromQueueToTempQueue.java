@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
@@ -54,7 +53,7 @@ public class LocalMdbFromQueueToTempQueue implements MessageDrivenBean, MessageL
             try {
                 queueConnection.close();
             }catch(Exception e){
-                log.log(Level.FATAL, e.getMessage(), e);
+                log.fatal(e.getMessage(), e);
             }
         }
 

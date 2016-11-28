@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.tools;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 

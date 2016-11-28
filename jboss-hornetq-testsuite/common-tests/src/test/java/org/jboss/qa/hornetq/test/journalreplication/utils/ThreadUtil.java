@@ -1,6 +1,6 @@
 package org.jboss.qa.hornetq.test.journalreplication.utils;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>

@@ -3,7 +3,7 @@ package org.jboss.qa.hornetq.test.bridges;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesPrepare;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesWithJGroupsPrepare;

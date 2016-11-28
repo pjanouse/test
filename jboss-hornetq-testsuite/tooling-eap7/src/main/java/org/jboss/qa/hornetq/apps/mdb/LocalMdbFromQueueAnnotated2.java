@@ -1,7 +1,5 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
@@ -11,6 +9,7 @@ import javax.resource.AdministeredObjectDefinition;
 import javax.resource.ConnectionFactoryDefinition;
 import javax.resource.spi.TransactionSupport;
 import org.jboss.ejb3.annotation.ResourceAdapter;
+import org.jboss.logging.Logger;
 
 /**
  * A LocalMdbFromQueueAnnotated used for AnnotationsTestCase.
@@ -94,7 +93,7 @@ public class LocalMdbFromQueueAnnotated2 implements MessageDrivenBean, MessageLi
 
         } catch (Exception t) {
 
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
 
             context.setRollbackOnly();
 
@@ -104,7 +103,7 @@ public class LocalMdbFromQueueAnnotated2 implements MessageDrivenBean, MessageLi
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
 

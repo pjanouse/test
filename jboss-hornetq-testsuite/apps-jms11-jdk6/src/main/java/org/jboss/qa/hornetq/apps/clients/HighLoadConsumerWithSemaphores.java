@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.apps.clients;
 
-
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 
 import javax.jms.*;
 import java.util.concurrent.Semaphore;

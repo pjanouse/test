@@ -1,14 +1,12 @@
 package org.jboss.qa.hornetq.apps.jmx;
 
-
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
+import org.kohsuke.MetaInfServices;
 
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import org.kohsuke.MetaInfServices;
 
 
 /**

@@ -1,10 +1,10 @@
 package org.jboss.qa.hornetq.test.journalreplication.utils;
 
+import org.jboss.logging.Logger;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-
-import org.apache.log4j.Logger;
 
 /**
  * @author <a href="dpogrebn@redhat.com">Dmytro Pogrebniuk</a>

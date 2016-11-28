@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.apps.servlets;
 
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.IllegalStateException;
 
-import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 

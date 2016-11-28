@@ -1,14 +1,12 @@
 package org.jboss.qa.hornetq.apps.mdb;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.jms.*;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -100,7 +98,7 @@ public class LocalSlowMdbFromTopic implements MessageDrivenBean, MessageListener
 
         } catch (Exception t) {
 
-            log.log(Level.FATAL, t.getMessage(), t);
+            log.fatal(t.getMessage(), t);
 
             context.setRollbackOnly();
 
@@ -110,7 +108,7 @@ public class LocalSlowMdbFromTopic implements MessageDrivenBean, MessageListener
                 try {
                     con.close();
                 } catch (JMSException e) {
-                    log.log(Level.FATAL, e.getMessage(), e);
+                    log.fatal(e.getMessage(), e);
                 }
             }
 

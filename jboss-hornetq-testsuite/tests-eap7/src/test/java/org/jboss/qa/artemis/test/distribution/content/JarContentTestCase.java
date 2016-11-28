@@ -11,11 +11,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.junit.experimental.categories.Category;
-import org.testng.Assert;
 
 /**
  * Test that artemis in EAP contains only expected jar files.
@@ -127,9 +127,9 @@ public class JarContentTestCase extends HornetQTestCase {
             log.error("Missing jar file " + s);
         }
 
-        Assert.assertTrue(missingFile.isEmpty(), "Expected jar files are missing in artemis module. Problems in " + missingFile.toString());
-        Assert.assertTrue(unexpectedFile.isEmpty(), "Unexpected jar files found in artemis module. Problems in " + unexpectedFile.toString());
-        Assert.assertTrue(expectedJars.size() == artemisJars.size(), "Number of artemis jars in artemis module is unexpected");
+        Assert.assertTrue("Expected jar files are missing in artemis module. Problems in " + missingFile.toString(), missingFile.isEmpty());
+        Assert.assertTrue("Unexpected jar files found in artemis module. Problems in " + unexpectedFile.toString(), unexpectedFile.isEmpty());
+        Assert.assertTrue("Number of artemis jars in artemis module is unexpected", expectedJars.size() == artemisJars.size());
 
     }
 

@@ -17,7 +17,8 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
-import org.apache.log4j.Logger;
+
+import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.test.soak.modules.BridgeSoakModule;
 import org.jboss.qa.hornetq.test.soak.modules.DurableSubscriptionsSoakModule;
 
