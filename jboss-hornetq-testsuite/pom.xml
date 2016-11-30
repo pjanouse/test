@@ -227,6 +227,11 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.basepom.maven</groupId>
+                <artifactId>duplicate-finder-maven-plugin</artifactId>
+                <version>1.1.0</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -510,6 +515,10 @@
                     <exclusion>
                         <groupId>org.jboss.sasl</groupId>
                         <artifactId>jboss-sasl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.wildfly</groupId>
+                        <artifactId>wildfly-patching</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
