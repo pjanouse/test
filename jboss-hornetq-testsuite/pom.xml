@@ -421,10 +421,6 @@
                 <exclusions>
                     <exclusion>
                         <groupId>org.apache.activemq</groupId>
-                        <artifactId>artemis-commons</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.activemq</groupId>
                         <artifactId>artemis-core-client</artifactId>
                     </exclusion>
                     <exclusion>
@@ -432,6 +428,11 @@
                         <artifactId>netty-all</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>artemis-commons</artifactId>
+                <version>${artemis.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -452,12 +453,6 @@
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-journal</artifactId>
                 <version>${artemis.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.activemq</groupId>
-                        <artifactId>artemis-commons</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -471,10 +466,6 @@
                     <exclusion>
                         <groupId>org.apache.activemq</groupId>
                         <artifactId>artemis-core-client</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.activemq</groupId>
-                        <artifactId>artemis-commons</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -540,6 +531,26 @@
                 <module>tooling</module>
                 <module>apps-jms11-jdk6</module>
             </modules>
+
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jboss.as</groupId>
+                        <artifactId>jboss-as-client</artifactId>
+                        <version>${eap6.client}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>eap</groupId>
+                        <artifactId>eap-jboss-as-controller-client</artifactId>
+                        <version>${eap6.controller.client}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jboss.as</groupId>
+                        <artifactId>jboss-as-cli</artifactId>
+                        <version>${eap6.cli.client}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>
@@ -560,6 +571,26 @@
                 <module>apps-jms11-jdk8</module>
                 <module>apps-jms20</module>
             </modules>
+
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>eap</groupId>
+                        <artifactId>eap-jboss-client</artifactId>
+                        <version>${eap7.client}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>eap</groupId>
+                        <artifactId>eap-wildfly-controller-client</artifactId>
+                        <version>${eap7.controller.client}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>eap</groupId>
+                        <artifactId>eap-jboss-cli-client</artifactId>
+                        <version>${eap7.cli.client}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>

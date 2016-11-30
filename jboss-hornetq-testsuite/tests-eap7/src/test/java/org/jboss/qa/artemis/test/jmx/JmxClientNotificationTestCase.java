@@ -3,7 +3,6 @@ package org.jboss.qa.artemis.test.jmx;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
-import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 
 import org.apache.log4j.Logger;

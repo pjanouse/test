@@ -20,26 +20,6 @@
                 </property>
             </activation>
 
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jboss.as</groupId>
-                        <artifactId>jboss-as-client</artifactId>
-                        <version>${eap6.client}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>eap</groupId>
-                        <artifactId>eap-jboss-as-controller-client</artifactId>
-                        <version>${eap6.controller.client}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jboss.as</groupId>
-                        <artifactId>jboss-as-cli</artifactId>
-                        <version>${eap6.cli.client}</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
@@ -93,26 +73,6 @@
                     <value>7x</value>
                 </property>
             </activation>
-
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>eap</groupId>
-                        <artifactId>eap-jboss-client</artifactId>
-                        <version>${eap7.client}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>eap</groupId>
-                        <artifactId>eap-wildfly-controller-client</artifactId>
-                        <version>${eap7.controller.client}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>eap</groupId>
-                        <artifactId>eap-jboss-cli-client</artifactId>
-                        <version>${eap7.cli.client}</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
 
             <dependencies>
                 <dependency>
