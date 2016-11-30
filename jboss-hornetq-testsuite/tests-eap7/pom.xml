@@ -53,32 +53,8 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.qa.hornetq</groupId>
-            <artifactId>apps-jms11-jdk6</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.qa.hornetq</groupId>
             <artifactId>apps-jms2</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eap</groupId>
-            <artifactId>eap-jboss-client</artifactId>
-            <version>${eap7.client}</version>
-        </dependency>
-        <dependency>
-            <groupId>eap</groupId>
-            <artifactId>eap-wildfly-controller-client</artifactId>
-            <version>${eap7.controller.client}</version>
-        </dependency>
-        <dependency>
-            <groupId>eap</groupId>
-            <artifactId>eap-jboss-cli-client</artifactId>
-            <version>${eap7.cli.client}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
         </dependency>
     </dependencies>
 
