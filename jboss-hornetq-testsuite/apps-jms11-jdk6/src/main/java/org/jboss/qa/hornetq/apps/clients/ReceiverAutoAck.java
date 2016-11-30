@@ -81,7 +81,7 @@ public class ReceiverAutoAck extends Receiver11 {
 
                 counter++;
 
-                logger.info("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
+                logger.debug("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
                         + ". Received message - count: "
                         + counter + ", messageId:" + message.getJMSMessageID());
             }

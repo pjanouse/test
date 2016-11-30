@@ -141,7 +141,6 @@ public class Receiver11 extends Receiver {
                 if (msg != null) {
                     msg = cleanMessage(msg);
                 }
-                logger.info("received");
                 return msg;
 
             } catch (JMSException ex) {

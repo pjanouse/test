@@ -94,7 +94,7 @@ public class ReceiverClientAck extends Receiver11 {
 
                 counter++;
 
-                logger.info("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
+                logger.debug("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
                         + ". Received message - count: "
                         + counter + ", message-counter: " + message.getStringProperty("counter")
                         + ", messageId:" + message.getJMSMessageID()

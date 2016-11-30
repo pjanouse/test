@@ -73,7 +73,7 @@ public class SubscriberTransAck extends Receiver20 {
 
                 counter++;
 
-                logger.info("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + destinationNameJndi
+                logger.debug("Subscriber - name: " + getSubscriberName() + " - for node: " + getHostname() + " and topic: " + destinationNameJndi
                         + ". Received message - counter: "
                         + counter + ", messageId:" + message.getJMSMessageID()
                         + ", dupId: " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));

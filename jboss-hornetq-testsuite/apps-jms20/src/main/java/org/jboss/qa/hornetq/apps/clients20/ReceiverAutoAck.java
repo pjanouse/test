@@ -71,7 +71,7 @@ public class ReceiverAutoAck extends Receiver20 {
                             + counter + ", messageId:" + message.getJMSMessageID());
                 }
 
-                logger.info("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
+                logger.debug("Receiver for node: " + getHostname() + " and queue: " + destinationNameJndi
                         + ". Received NULL - number of received messages: " + counter);
 
                 addReceivedMessages(listOfReceivedMessages);

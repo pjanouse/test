@@ -87,7 +87,7 @@ public class ReceiverTransAck extends Receiver20 {
 
                     counter++;
 
-                    logger.info("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
+                    logger.debug("Receiver for node: " + hostname + " and queue: " + destinationNameJndi
                             + ". Received message - count: "
                             + counter + ", messageId:" + message.getJMSMessageID()
                             + " dupId: " + message.getStringProperty(jmsImplementation.getDuplicatedHeader()));
