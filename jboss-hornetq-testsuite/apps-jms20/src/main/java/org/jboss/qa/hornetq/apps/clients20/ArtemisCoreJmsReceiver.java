@@ -84,6 +84,7 @@ public class ArtemisCoreJmsReceiver extends Thread {
 
         } catch (JMSException e) {
             logger.error(e);
+            e.printStackTrace();
         } finally {
             if (connection != null) try {
                 connection.close();

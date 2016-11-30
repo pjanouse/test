@@ -6213,7 +6213,7 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
-    public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey) {
+    public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey, String securityRealm) {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 

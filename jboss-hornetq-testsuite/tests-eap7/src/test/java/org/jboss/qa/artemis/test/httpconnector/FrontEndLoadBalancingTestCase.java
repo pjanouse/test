@@ -25,24 +25,35 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Test case covers test developed for purpose of RFE  @see <a href="https://issues.jboss.org/browse/EAP7-581"> Reintroduce JMS over HTTP/HTTPS_CLIENT_BALANCER capability</a>
- * Tests use HTTP upgrade feature and correct loadbalancing on front-end HTTP load balancer is tested. Main purpose of this test case is to ensure
- * that currently supported http load balancers can handle http upgrade packets, forward them to back-end workers and than tunnel communication. Client`s should be aware only
- * of front-end loadbalancer/proxy
  * <p>
+ * IPV6
  * This test case can be run with IPv6 - just replace those environment
  * variables for ipv6 ones:
  * export MYTESTIP_1=$MYTESTIPV6_1
  * export MYTESTIP_2=$MYTESTIPV6_2
  * export MCAST_ADDR=$MCAST_ADDRIPV6
+ * <p>
+ * <p>
+ * SECURITY
+ * Tests cover three scenarios
+ * * plain HTTP without SSL
+ * * HTTPS secured communication between client and loadbalancer
+ * * HTTPS secured communication between client and loadbalancer, and also between loadbalancer and workers
+ * Truststores are configured as follows
+ * * client trust store    : balancer
+ * * balancer trust store  : client, workerA, workerB
+ * * workerA trust store   : balancer
+ * * workerB trust store   : balancer
  *
  * @author mstyk@redhat.com
  * @tpChapter Functional testing
  * @tpSubChapter HTTP CONNECTOR - TEST SCENARIOS
- * @tpTestCaseDetails Test case covers test developed for purpose of RFE  @see <a href="https://issues.jboss.org/browse/EAP7-581"> Reintroduce JMS over HTTP/HTTPS_CLIENT_BALANCER capability</a>
- * Tests use HTTP upgrade feature and correct loadbalancing on front-end HTTP load balancer is tested. Main purpose of this test case is to ensure
- * that currently supported http load balancers can handle http upgrade packets, forward them to back-end workers and than tunnel communication. Client`s should be aware only
- * of front-end loadbalancer/proxy
+ * @tpTestCaseDetails Test case covers test developed for purpose of RFE <a href="https://issues.jboss.org/browse/EAP7-581">
+ * Reintroduce JMS over HTTP/HTTPS_CLIENT_BALANCER capability</a>.
+ * Tests use HTTP upgrade feature and correct loadbalancing on front-end HTTP load balancer is tested. Main purpose of
+ * this test case is to ensure that currently supported HTTP loadbalancers can handle http upgrade packets, forward
+ * them to back-end workers and than tunnel communication. Client`s should be aware only of front-end loadbalancer/proxy
+ * <p>
  * @see <a href="https://issues.jboss.org/browse/EAP7-581"> Reintroduce JMS over HTTP/HTTPS_CLIENT_BALANCER capability</a>
  */
 @RunWith(Arquillian.class)
@@ -66,7 +77,6 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
     public static final String ADVERTISE_KEY = "mypassword";
     public static final String MCAST_SOCKET_BINDING = "modcluster";
     public static final int MCAST_PORT = 23364;
-    public static final String HTTP_CONNECTOR = "default";
     public static final String MCAST_ADDRESS = loadBalancer.MCAST_ADDRESS;
 
     @Before
@@ -168,7 +178,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
      * </ul>
      * @tpPassCrit Receiver reads same amount of messages as was sent
      */
-    @Ignore //TODO 
+    @Ignore //TODO this is configured, but feature doesn't work so far
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -193,7 +203,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
      * </ul>
      * @tpPassCrit Receiver reads same amount of messages as was sent
      */
-    @Ignore //TODO
+    @Ignore //TODO this is configured, but feature doesn't work so far
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -206,7 +216,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
      * @tpTestDetails Start one JBoss EAP server configured as a loadbalancer and two backend EAP workers. Loadbalancer uses
      * undertow with with mod cluster dynamic load balancing. Send and receive messages with clients knowing only about
      * frontend loadbalancer. Create multiple connections during send and receive. Backend workers serve messaging tasks.
-     *  Use SSL between balancer and clients and also between balancer and workers.
+     * Use SSL between balancer and clients and also between balancer and workers.
      * @tpProcedure <ul>
      * <li>Start EAP configured as a dynamic load balancer using modcluster</li>
      * <li>Start 2 EAP backend servers with messaging</li>
@@ -218,7 +228,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
      * </ul>
      * @tpPassCrit Receiver reads same amount of messages as was sent
      */
-    @Ignore //TODO
+    @Ignore //TODO this is configured, but feature doesn't work so far
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -253,7 +263,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         }
 
         int sumReceived = 0;
-        //todo can connect to one server
+        //todo remove this workaround when client topology updates are disabled
         for (int i = 0; i < 2; i++) {
             ArtemisCoreJmsReceiver receiver = new ArtemisCoreJmsReceiver(loadBalancer, NAME_QUEUE, 10000, !SecurityType.HTTP.equals(securityType));
             receiver.start();
@@ -283,46 +293,37 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
             prepareLoadBalancerUndertowStatic(loadBalancer, securityType);
         }
 
-        //TODO
         if (LoadBalancerType.UNDERTOW_MODCLUSTER.equals(loadBalancerType)) {
-            switch (securityType) {
-                case HTTP:
-                    prepareLoadBalancerUndertowModClusterHttp(loadBalancer);
-                    break;
-                case HTTPS_CLIENT_BALANCER:
-                    prepareLoadBalancerUndertowModClusterHttps(loadBalancer);
-                    break;
-                case HTTPS_ALL:
-                    prepareLoadBalancerUndertowModClusterHttps(loadBalancer);
-                    break;
-            }
-
+            prepareLoadBalancerUndertowModCluster(loadBalancer, securityType);
         }
     }
 
-    private void prepareLoadBalancerUndertowModClusterHttp(Container loadBalancer) {
+    private void prepareLoadBalancerUndertowModCluster(Container loadBalancer, SecurityType securityType) {
         loadBalancer.start();
+
+        // prepare security realm and https listener if required
+        // for plain http tests this does nothing
+        securityType.setUpBalancerSecurity(loadBalancer,
+                getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/balancer.keystore.jks").getPath(),
+                getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/balancer.truststore.jks").getPath(),
+                "secret"
+        );
 
         JMSOperations jmsAdminOperations = loadBalancer.getJmsOperations();
         jmsAdminOperations.addSocketBinding(MCAST_SOCKET_BINDING, MCAST_ADDRESS, MCAST_PORT);
-        jmsAdminOperations.addModClusterFilterToUndertow(MODCLUSTER_FILTER_NAME, "http", MCAST_SOCKET_BINDING, ADVERTISE_KEY);
+
+        //only setup https security realm between backed servers for HTTPS_ALL tests
+        if (SecurityType.HTTPS_ALL.equals(securityType)) {
+            jmsAdminOperations.addModClusterFilterToUndertow(MODCLUSTER_FILTER_NAME, "http", MCAST_SOCKET_BINDING, ADVERTISE_KEY, "https");
+        } else {
+            jmsAdminOperations.addModClusterFilterToUndertow(MODCLUSTER_FILTER_NAME, "http", MCAST_SOCKET_BINDING, ADVERTISE_KEY, null);
+        }
         jmsAdminOperations.addFilterToUndertowServerHost(MODCLUSTER_FILTER_NAME);
 
         jmsAdminOperations.close();
         loadBalancer.stop();
     }
 
-    private void prepareLoadBalancerUndertowModClusterHttps(Container loadBalancer) {
-        loadBalancer.start();
-
-        JMSOperations jmsAdminOperations = loadBalancer.getJmsOperations();
-        jmsAdminOperations.addSocketBinding(MCAST_SOCKET_BINDING, MCAST_ADDRESS, MCAST_PORT);
-        jmsAdminOperations.addModClusterFilterToUndertow(MODCLUSTER_FILTER_NAME, "https", MCAST_SOCKET_BINDING, ADVERTISE_KEY);
-        jmsAdminOperations.addFilterToUndertowServerHost(MODCLUSTER_FILTER_NAME);
-
-        jmsAdminOperations.close();
-        loadBalancer.stop();
-    }
 
     private void prepareLoadBalancerUndertowStatic(Container loadBalancer, SecurityType securityType) {
         final String handlerName = "my-handler";
@@ -372,14 +373,12 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
      * @param securityType
      */
     public void prepareWorker(Container container, LoadBalancerType loadBalancerType, SecurityType securityType) {
-        final String LISTENER_NAME = "https";
         final String keyStorePath = container.getName().equals("node-2") ?
                 getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/worker.a.keystore.jks").getPath() :
                 getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/worker.b.keystore.jks").getPath();
         final String trustStorePath = container.getName().equals("node-2") ?
                 getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/worker.a.truststore.jks").getPath() :
                 getClass().getResource("/org/jboss/qa/artemis/test/httpconnector/worker.b.truststore.jks").getPath();
-        final String ACCEPTOR_NAME = "https-acceptor";
 
         container.start();
 
@@ -394,20 +393,31 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
             jmsAdminOperations.createHttpConnector("proxy-connector", "socket-binding-to-proxy", null);
 
         } else {
-            jmsAdminOperations.createHttpAcceptor(ACCEPTOR_NAME, LISTENER_NAME, null);
+            jmsAdminOperations.createHttpAcceptor("https-acceptor", "https", null);
 
             Map<String, String> httpConnectorParams = new HashMap<String, String>();
             httpConnectorParams.put("ssl-enabled", "true");
-            jmsAdminOperations.createHttpConnector("proxy-connector", "socket-binding-to-proxy", httpConnectorParams, ACCEPTOR_NAME);
+            jmsAdminOperations.createHttpConnector("proxy-connector", "socket-binding-to-proxy", httpConnectorParams, "https-acceptor");
         }
         jmsAdminOperations.setConnectorOnConnectionFactory(NAME_CONNECTION_FACTORY, "proxy-connector");
         jmsAdminOperations.removeClusteringGroup("my-cluster");
         jmsAdminOperations.removeDiscoveryGroup("dg-group1");
         jmsAdminOperations.removeBroadcastGroup("bg-group1");
 
-        jmsAdminOperations.close();
+        if (loadBalancerType.equals(LoadBalancerType.UNDERTOW_MODCLUSTER)) {
+            jmsAdminOperations.setModClusterAdvertiseKey(ADVERTISE_KEY);
+            jmsAdminOperations.removeSocketBinding(MCAST_SOCKET_BINDING);
+            jmsAdminOperations.reload();
+            jmsAdminOperations.addSocketBinding(MCAST_SOCKET_BINDING, MCAST_ADDRESS, MCAST_PORT);
+            if (securityType.equals(SecurityType.HTTPS_ALL)) {
+                jmsAdminOperations.setModClusterConnector("https");
+            } else {
+                jmsAdminOperations.setModClusterConnector("default");
+            }
+            jmsAdminOperations.setUndertowInstanceId(container.getName());
+        }
 
-        loadBalancerType.tweakWorkerConfig(container);
+        jmsAdminOperations.close();
 
         container.stop();
     }
@@ -415,23 +425,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
 
     enum LoadBalancerType {
         UNDERTOW_STATIC,
-        UNDERTOW_MODCLUSTER {
-            @Override
-            protected void tweakWorkerConfig(Container container) {
-                JMSOperations jmsAdminOperations = container.getJmsOperations();
-                jmsAdminOperations.setModClusterAdvertiseKey(ADVERTISE_KEY);
-                jmsAdminOperations.removeSocketBinding(MCAST_SOCKET_BINDING);
-                jmsAdminOperations.reload();
-                jmsAdminOperations.addSocketBinding(MCAST_SOCKET_BINDING, MCAST_ADDRESS, MCAST_PORT);
-                jmsAdminOperations.setModClusterConnector(HTTP_CONNECTOR);
-                jmsAdminOperations.setUndertowInstanceId(container.getName());
-                jmsAdminOperations.close();
-            }
-        };
-
-        protected void tweakWorkerConfig(Container container) {
-
-        }
+        UNDERTOW_MODCLUSTER
     }
 
 

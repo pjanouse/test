@@ -2136,8 +2136,9 @@ public interface JMSOperations {
      * @param managementSocketBinding
      * @param advertiseSocketBinding
      * @param advertiseKey
+     * @param securityRealm if null, than it is ignored
      */
-    void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey);
+    void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding, String advertiseKey, String securityRealm);
 
     /**
      * Set node id of undertow. Neccessary to run on localhost with more nodes and modcluster

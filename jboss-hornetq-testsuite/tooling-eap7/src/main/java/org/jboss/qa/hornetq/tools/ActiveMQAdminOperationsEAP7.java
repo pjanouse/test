@@ -24,10 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jboss.as.controller.client.helpers.ClientConstants.OP;
-import static org.jboss.as.controller.client.helpers.ClientConstants.OP_ADDR;
-import static org.jboss.as.controller.client.helpers.ClientConstants.SERVER;
-import static org.jboss.as.controller.client.helpers.ClientConstants.SUBSYSTEM;
+import static org.jboss.as.controller.client.helpers.ClientConstants.*;
 
 /**
  * Basic administration operations for JMS subsystem
@@ -7376,7 +7373,7 @@ private class JMSAdminOperationException extends Exception {
 
     @Override
     public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding
-            , String advertiseKey) {
+            , String advertiseKey, String securityRealm) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7386,6 +7383,10 @@ private class JMSAdminOperationException extends Exception {
         model.get("management-socket-binding").set(managementSocketBinding);
         model.get("advertise-socket-binding").set(advertiseSocketBinding);
         model.get("security-key").set(advertiseKey);
+
+        if (securityRealm != null) {
+            model.get("security-realm").set(securityRealm);
+        }
 
         try {
             this.applyUpdate(model);
