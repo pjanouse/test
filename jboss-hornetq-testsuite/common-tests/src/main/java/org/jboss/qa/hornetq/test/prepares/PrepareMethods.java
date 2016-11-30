@@ -170,7 +170,7 @@ public class PrepareMethods extends PrepareBase {
         double rcfRetryIntervalMultiplier = PrepareUtils.getDouble(params, PrepareParams.REMOTE_CONNECTION_FACTORY_RETRY_INTERVAL_MULTIPLIER, 1.0);
         int rcfReconnectAttempts = PrepareUtils.getInteger(params, PrepareParams.REMOTE_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, -1);
         boolean rcfCompression = PrepareUtils.getBoolean(params, PrepareParams.REMOTE_CONNECTION_FACTORY_COMPRESSION, false);
-        long rfcMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.REMOTE_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 100 * 1024 * 1024l);
+        long rfcMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.REMOTE_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 102400l);
         String rfcType = PrepareUtils.getString(params, PrepareParams.REMOTE_CONNECTION_FACTORY_TYPE);
 
         boolean pcfHa = PrepareUtils.getBoolean(params, PrepareParams.POOLED_CONNECTION_FACTORY_HA, false);
@@ -180,7 +180,7 @@ public class PrepareMethods extends PrepareBase {
         int pcfReconnectAttempts = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, -1);
         int pcfMinPoolSize = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_MIN_POOL_SIZE, -1);
         int pcfMaxPoolSize = PrepareUtils.getInteger(params, PrepareParams.POOLED_CONNECTION_FACTORY_MAX_POOL_SIZE, -1);
-        long pcfMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.POOLED_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 100 * 1024 * 1024l);
+        long pcfMinLargeMessageSize = PrepareUtils.getLong(params, PrepareParams.POOLED_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE, 102400l);
 
         if (invmType != null) {
             jmsOperations.setFactoryType(PrepareConstants.INVM_CONNECTION_FACTORY_NAME, invmType);

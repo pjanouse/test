@@ -64,7 +64,9 @@ public class MessageCompressionTestCase extends HornetQTestCase {
             @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 5000 * 1024 * 1024),
             @Param(name = PrepareParams.REDELIVERY_DELAY, value = "0"),
             @Param(name = PrepareParams.REDISTRIBUTION_DELAY, value = "0"),
-            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024)
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 1024),
+            @Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
+            @Param(name = PrepareParams.DESTINATION_COUNT, value = "0")
     })
     public void testCompression() throws Exception {
         container(1).start();
