@@ -131,7 +131,7 @@ public class JMSSessionTestCase extends HornetQTestCase {
 
         container(1).start();
         container(2).start();
-        Thread.sleep(5000);
+        Thread.sleep(30000);
 
         Context context = getContext(container(1));
         ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
