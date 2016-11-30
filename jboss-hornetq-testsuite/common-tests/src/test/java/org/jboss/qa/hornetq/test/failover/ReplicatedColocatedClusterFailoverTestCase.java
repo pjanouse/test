@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -178,7 +178,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(1000);
@@ -206,7 +206,7 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
 //        logger.info("Second server started");
 //        logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 1000, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setAckAfter(1000);
 

@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -215,7 +215,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
+        Destination destination = (Destination) context.lookup(PrepareConstants.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
 
@@ -237,7 +237,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1)));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -345,7 +345,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
+        Destination destination = (Destination) context.lookup(PrepareConstants.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
         connection.start();
@@ -368,7 +368,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
 
         //message with LVQ_PROP_42 is send twice, so 300 messages should be in InQueue (301 messages were send)
         //Assert.assertEquals("Only " + numMessages + " messages should be in queue", numMessages, new JMSTools().countMessages(QUEUE_NAME, container(1)));
-        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container(1)));
+        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -461,7 +461,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
         Connection connection = cf.createConnection();
 
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        Destination destination = (Destination) context.lookup(PrepareBase.QUEUE_JNDI);
+        Destination destination = (Destination) context.lookup(PrepareConstants.QUEUE_JNDI);
 
         MessageProducer producer = session.createProducer(destination);
 
@@ -478,11 +478,11 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, new JMSTools().countMessages(PrepareBase.QUEUE_NAME, container1, container2));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container1, container2));
 
         JMSTools.cleanupResources(context, connection, session);
 
-        ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container2, PrepareBase.QUEUE_JNDI);
+        ReceiverAutoAck receiverAutoAck = new ReceiverAutoAck(container2, PrepareConstants.QUEUE_JNDI);
         receiverAutoAck.start();
         receiverAutoAck.join();
 

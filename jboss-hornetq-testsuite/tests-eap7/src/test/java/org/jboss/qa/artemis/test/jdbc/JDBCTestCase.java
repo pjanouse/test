@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.ConfigurableMessage
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.DuplicatesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.LostMessagesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.SendReceiveCountVerifier;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -41,12 +41,12 @@ public class JDBCTestCase extends HornetQTestCase {
         ConfigurableMessageVerifier verifier = new ConfigurableMessageVerifier(
                 ContainerUtils.getJMSImplementation(container(1)), LostMessagesVerifier.class, DuplicatesVerifier.class, SendReceiveCountVerifier.class);
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 1);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 1);
         producer.setMessageBuilder(new TextMessageBuilder(20));
         producer.addMessageVerifier(verifier);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver.addMessageVerifier(verifier);
         addClient(receiver);
 

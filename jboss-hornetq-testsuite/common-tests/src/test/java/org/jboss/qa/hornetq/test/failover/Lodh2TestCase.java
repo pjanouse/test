@@ -25,7 +25,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.Lodh2Prepare;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
@@ -927,7 +927,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         }
 
         PublisherTransAck producer1 = new PublisherTransAck(container(1),
-                PrepareBase.IN_TOPIC_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
+                PrepareConstants.IN_TOPIC_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER, "clientId-myPublisher");
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -940,14 +940,14 @@ public class Lodh2TestCase extends HornetQTestCase {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
 
         executeFailureSequence(failureSequence, 3000, failureType);
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 3000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 10, 10);
         receiver1.setCommitAfter(100);
         receiver1.start();
 
@@ -1033,7 +1033,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         installBytemanRules(container(2));
         installBytemanRules(container(4));
 
-        ProducerTransAck producer1 = new ProducerTransAck(inServer, PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(inServer, PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -1052,12 +1052,12 @@ public class Lodh2TestCase extends HornetQTestCase {
             container(4).deploy(mdbOnQueue2);
         }
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
                 container(3), container(4));
 
         executeFailureSequence(failureSequence, 5000, failureType);
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 400000, container(1), container(2),
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 400000, container(1), container(2),
                 container(3), container(4));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
@@ -1066,11 +1066,11 @@ public class Lodh2TestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(4));
 
         // wait some time so recovered rollbacked TXs have some time to be processed
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 60000, container(1), container(2),
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 60000, container(1), container(2),
                 container(3), container(4));
 
         // set longer timeouts so xa recovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, PrepareBase.OUT_QUEUE_JNDI, 30000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, PrepareConstants.OUT_QUEUE_JNDI, 30000, 10, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();
@@ -1121,7 +1121,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         jmsServer.start();
         mdbServer.start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(jmsServer, PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(jmsServer, PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -1135,14 +1135,14 @@ public class Lodh2TestCase extends HornetQTestCase {
         mdbServer.kill();
         mdbServer.start();
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(jmsServer, PrepareBase.IN_QUEUE_NAME, 0, TimeUnit.MINUTES.toMillis(5));
+        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(jmsServer, PrepareConstants.IN_QUEUE_NAME, 0, TimeUnit.MINUTES.toMillis(5));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, jmsServer);
 
         logger.info("Number of sent messages: " + (producer1.getListOfSentMessages().size()
                 + ", Producer to jms1 server sent: " + producer1.getListOfSentMessages().size() + " messages"));
 
-        long countMessages = new JMSTools().countMessages(PrepareBase.IN_QUEUE_NAME, jmsServer);
+        long countMessages = new JMSTools().countMessages(PrepareConstants.IN_QUEUE_NAME, jmsServer);
         Assert.assertTrue("Number of messages in InQueue must be 0 but is: " + countMessages, countMessages == 0);
 
         mdbServer.undeploy(inboundMdb);
@@ -1202,7 +1202,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(2).start();
         container(4).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(inServer, PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(inServer, PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -1214,14 +1214,14 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(2).deploy(getDeployment1());
         container(4).deploy(getDeployment2());
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 100, 120000, container(1), container(3));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 100, 120000, container(1), container(3));
 
         container(2).stop();
         container(4).stop();
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
-                " when MDB is processing messages", new JMSTools().waitForMessages(PrepareBase.IN_QUEUE_NAME, 1, 10000, container(1), container(3)));
+                " when MDB is processing messages", new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 1, 10000, container(1), container(3)));
 
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";
         String journalFile3 = CONTAINER3_NAME + "journal_content_after_shutdown.txt";
@@ -1328,7 +1328,7 @@ public class Lodh2TestCase extends HornetQTestCase {
                 if (containerDef.getContainerName().equalsIgnoreCase(container(2).getName())) {
                     if (containerDef.getContainerProperties().containsKey("javaVmArguments")) {
                         s = containerDef.getContainerProperties().get("javaVmArguments");
-                        s = s.concat(" -Djms.queue.InQueue=" + PrepareBase.IN_QUEUE_JNDI);
+                        s = s.concat(" -Djms.queue.InQueue=" + PrepareConstants.IN_QUEUE_JNDI);
                         s = s.concat(" -Dpooled.connection.factory.name=java:/JmsXA");
                         s = s.concat(" -Dpooled.connection.factory.name.jms=java:/JmsXA");
                         containerDef.getContainerProperties().put("javaVmArguments", s);
@@ -1340,7 +1340,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         properties.put("javaVmArguments", s);
         container(2).start(properties, 180000);
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER / 10);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER / 10);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
@@ -1354,7 +1354,7 @@ public class Lodh2TestCase extends HornetQTestCase {
         container(2).deploy(mdbDeployemnt);
 
         // set longer timeouts so xarecovery is done at least once
-        ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, PrepareConstants.OUT_QUEUE_JNDI, 10000, 10, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setCommitAfter(1000);
         receiver1.start();

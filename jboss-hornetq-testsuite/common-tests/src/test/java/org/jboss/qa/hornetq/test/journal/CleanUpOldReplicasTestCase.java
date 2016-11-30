@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -208,12 +208,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
         TextMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50000);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 50000);
         producer.addMessageVerifier(messageVerifier);
         producer.setMessageBuilder(messageBuilder);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 60000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 60000, 10, 10);
         receiver.addMessageVerifier(messageVerifier);
         receiver.setTimeout(0);
         addClient(receiver);
@@ -393,12 +393,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
         TextMessageVerifier messageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50000);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 50000);
         producer.addMessageVerifier(messageVerifier);
         producer.setMessageBuilder(messageBuilder);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 60000, 10, 10);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 60000, 10, 10);
         receiver.addMessageVerifier(messageVerifier);
         receiver.setTimeout(0);
         addClient(receiver);
@@ -437,7 +437,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             }
 
             logger.warn("Wait some time to give chance backup to come alive and org.jboss.qa.hornetq.apps.clients to failover");
-            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), PrepareBase.BACKUP_SERVER_NAME, 300000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(2), PrepareConstants.BACKUP_SERVER_NAME, 300000);
 
             Assert.assertTrue("Receiver crashed so crashing the test - this happens when client detects duplicates " +
                     "- check logs for message id of duplicated message", receiver.isAlive());
@@ -465,10 +465,10 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), PrepareBase.SERVER_NAME, 600000);
+            CheckServerAvailableUtils.waitForBrokerToActivate(container(1), PrepareConstants.SERVER_NAME, 600000);
 
             // check that backup is really down
-            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), PrepareBase.BACKUP_SERVER_NAME, 60000);
+            CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), PrepareConstants.BACKUP_SERVER_NAME, 60000);
 
             Assert.assertTrue(producer.isAlive());
             Assert.assertTrue("Receiver crashed so crashing the test - this happens when client detects duplicates " +

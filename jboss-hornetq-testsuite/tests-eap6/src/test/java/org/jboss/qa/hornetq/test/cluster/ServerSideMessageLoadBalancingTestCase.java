@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromTopic;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -55,7 +55,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         startServers(true);
 
-        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, numberOfMesasages);
+        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, numberOfMesasages);
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
@@ -63,13 +63,13 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
@@ -78,9 +78,9 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver1.join();
         receiver2.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
 
-        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareConstants.QUEUE_JNDI);
         receiver3.addMessageVerifier(messageVerifier);
         receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);
@@ -118,7 +118,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         startServers(true);
 
-        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, numberOfMesasages);
+        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, numberOfMesasages);
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
@@ -126,11 +126,11 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(3));
-        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareBase.QUEUE_JNDI, container(2));
-        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareBase.QUEUE_JNDI, container(1));
+        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
@@ -168,7 +168,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         startServers(false);
 
-        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, numberOfMesasages);
+        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, numberOfMesasages);
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
@@ -176,11 +176,11 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(3));
-        long numberOfMessagesOnNode2 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(2));
-        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(1));
+        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode2 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(1));
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
@@ -216,13 +216,13 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         startServers(true);
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
         receiver2.start();
 
-        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareConstants.QUEUE_JNDI);
         receiver3.addMessageVerifier(messageVerifier);
         receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);
@@ -230,7 +230,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         Thread.sleep(3000);
 
-        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, numberOfMesasages);
+        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, numberOfMesasages);
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
@@ -241,10 +241,10 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver2.join();
         receiver3.join();
 
-        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareBase.QUEUE_JNDI, container(1));
-        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareBase.QUEUE_JNDI, container(1));
-        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareBase.QUEUE_JNDI, container(2));
-        long numberOfAddedMessagesOnNode3 = new JMSTools().getAddedMessagesCount(PrepareBase.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfAddedMessagesOnNode3 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(3));
 
 
         Assert.assertTrue("No messages should be on node 1. Number of messages on node 1 is: " + numberOfMessagesOnNode1
@@ -291,7 +291,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         Thread.sleep(3000);
 
-        PublisherTransAck publisher2 = new PublisherTransAck(container(2), PrepareBase.IN_TOPIC_JNDI, numberOfMesasages, "publisher-id");
+        PublisherTransAck publisher2 = new PublisherTransAck(container(2), PrepareConstants.IN_TOPIC_JNDI, numberOfMesasages, "publisher-id");
         publisher2.setCommitAfter(3);
         publisher2.setTimeout(0);
         publisher2.setMessageBuilder(messageBuilder);
@@ -300,13 +300,13 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         container(1).deploy(MDB_ON_TOPIC);
 
-        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, 1, 10000, container(1));
+        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
 
         container(2).deploy(MDB_ON_TOPIC);
 
-        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMesasages, 120000, container(2));
+        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 120000, container(2));
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareBase.OUT_QUEUE_JNDI);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.OUT_QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
@@ -347,7 +347,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         Thread.sleep(3000);
 
-        PublisherTransAck publisher2 = new PublisherTransAck(container(2), PrepareBase.IN_TOPIC_JNDI, numberOfMesasages, "publisher-id");
+        PublisherTransAck publisher2 = new PublisherTransAck(container(2), PrepareConstants.IN_TOPIC_JNDI, numberOfMesasages, "publisher-id");
         publisher2.setCommitAfter(3);
         publisher2.setTimeout(0);
         publisher2.setMessageBuilder(messageBuilder);
@@ -356,13 +356,13 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         container(1).deploy(MDB_ON_TOPIC);
 
-        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, 1, 10000, container(1));
+        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
 
         container(2).deploy(MDB_ON_TOPIC);
 
-        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMesasages, 60000, container(2));
+        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 60000, container(2));
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareBase.OUT_QUEUE_JNDI);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.OUT_QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
@@ -408,7 +408,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         startServers(correctSemantics);
 
-        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, numberOfMesasages);
+        ProducerTransAck producer3 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, numberOfMesasages);
         producer3.setCommitAfter(3);
         producer3.setTimeout(0);
         producer3.setMessageBuilder(messageBuilder);
@@ -416,13 +416,13 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setReceiveTimeout(10000);
         receiver1.setTimeout(0);
         receiver1.start();
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.setReceiveTimeout(10000);
         receiver2.setTimeout(0);
@@ -431,7 +431,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver1.join();
         receiver2.join();
 
-        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareConstants.QUEUE_JNDI);
         receiver3.addMessageVerifier(messageVerifier);
         receiver3.setReceiveTimeout(10000);
         receiver3.setTimeout(0);

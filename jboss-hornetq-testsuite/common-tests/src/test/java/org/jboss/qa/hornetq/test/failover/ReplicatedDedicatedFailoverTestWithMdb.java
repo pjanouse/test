@@ -7,7 +7,7 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -55,7 +55,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         container(2).start();
         container(4).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -71,7 +71,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         container(3).deploy(mdb);
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(4)));
+                new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(4)));
         logger.info("#######################################");
         logger.info("Stopping backup");
         logger.info("#######################################");
@@ -104,13 +104,13 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         logger.info("Backup started");
         logger.info("#######################################");
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 600000, container(1), container(4));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 600000, container(1), container(4));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(4));
 
         printThreadDumpsOfAllServers();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();

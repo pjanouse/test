@@ -27,7 +27,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTopicAnnotated;
 import org.jboss.qa.hornetq.apps.servlets.ServletProducerInjectedJMSContext;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -207,7 +207,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         Context ctx = null;
         try {
             ctx = container(1).getContext();
-            Queue myQueue = (Queue) ctx.lookup(PrepareBase.OUT_QUEUE_JNDI);
+            Queue myQueue = (Queue) ctx.lookup(PrepareConstants.OUT_QUEUE_JNDI);
             logger.info("queue exists, should have been created on undeployment of mdb defining it - ok");
         } catch (NamingException e) {
             Assert.fail("naming exception catch, queue doesnt exist when mdb defining it is deployed - thats not ok");
@@ -218,7 +218,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
         try {
             ctx = container(1).getContext();
-            Topic myTopic = (Topic) ctx.lookup(PrepareBase.OUT_TOPIC_JNDI);
+            Topic myTopic = (Topic) ctx.lookup(PrepareConstants.OUT_TOPIC_JNDI);
             logger.info("topic exists, should have been created on undeployment of mdb defining it - ok");
         } catch (NamingException e) {
             Assert.fail("naming exception catch, topic doesnt exist when mdb defining it is deployed - thats not ok");
@@ -236,7 +236,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         ctx = null;
         try {
             ctx = container(1).getContext();
-            Queue myQueue = (Queue) ctx.lookup(PrepareBase.OUT_QUEUE_JNDI);
+            Queue myQueue = (Queue) ctx.lookup(PrepareConstants.OUT_QUEUE_JNDI);
             Assert.fail("queue should not exist, should have been deleted on undeployment of mdb defining it - thats not ok");
         } catch (NamingException e) {
             logger.info("naming exception catch, queue doesnt exist anymore - ok");
@@ -247,7 +247,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
         try {
             ctx = container(1).getContext();
-            Topic myTopic = (Topic) ctx.lookup(PrepareBase.OUT_TOPIC_JNDI);
+            Topic myTopic = (Topic) ctx.lookup(PrepareConstants.OUT_TOPIC_JNDI);
             Assert.fail("Topic should not exist, should have been deleted on undeployment of mdb defining it - thats not ok");
         } catch (NamingException e) {
             logger.info("naming exception catch, topic doesnt exist anymore - ok");
@@ -364,7 +364,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, 200);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI, 200);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -376,7 +376,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
+        SoakReceiverClientAck receiver = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver.start();
 
         receiver.join();
@@ -433,7 +433,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
             }
         }
 
-        Receiver receiver = new ReceiverAutoAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 2000, 1);
+        Receiver receiver = new ReceiverAutoAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 2000, 1);
         receiver.start();
         receiver.join();
 
@@ -448,7 +448,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -463,7 +463,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
         }
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
 
         receiver1.join();
@@ -491,7 +491,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -505,7 +505,7 @@ public class AnnotationsTestCase extends HornetQTestCase {
             container(1).deploy(archive);
         }
 
-        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareBase.OUT_TOPIC_JNDI, "subscriber1",
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareConstants.OUT_TOPIC_JNDI, "subscriber1",
                 "subscription1");
 
         logger.info("Start receiver.");

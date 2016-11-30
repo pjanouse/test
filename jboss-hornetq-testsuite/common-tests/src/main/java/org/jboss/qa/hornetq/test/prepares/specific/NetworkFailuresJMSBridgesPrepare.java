@@ -1,52 +1,48 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.JMSBridge;
+import org.jboss.qa.hornetq.test.prepares.generic.TwoNodes;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class NetworkFailuresJMSBridgesPrepare extends JMSBridge {
+public class NetworkFailuresJMSBridgesPrepare extends TwoNodes {
 
     protected final static String PROTOCOL = "PROTOCOL";
 
     @Override
-    @PrepareMethod(value = "NetworkFailuresJMSBridges", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "NetworkFailuresJMSBridges", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "NetworkFailuresJMSBridges", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    @Override
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
-        super.beforePrepare(params);
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
         PrepareUtils.requireParam(params, PrepareParams.RECONNECT_ATTEMPTS);
+        ctx.invokeMethod("NetworkFailuresJMSBridges-beforePrepare", params);
     }
 
-    @Override
-    protected void beforePrepareEAP6(Map<String, Object> params) throws Exception {
-        super.beforePrepareEAP6(params);
+    @PrepareMethod(value = "NetworkFailuresJMSBridges-beforePrepare", labels = {"EAP6"})
+    public void beforePrepareEAP6(Map<String, Object> params) throws Exception {
         params.put(PROTOCOL, "remote://");
     }
 
-    @Override
-    protected void beforePrepareEAP7(Map<String, Object> params) throws Exception {
-        super.beforePrepareEAP7(params);
+    @PrepareMethod(value = "NetworkFailuresJMSBridges-beforePrepare", labels = {"EAP7"})
+    public void beforePrepareEAP7(Map<String, Object> params) throws Exception {
         params.put(PROTOCOL, "http-remoting://");
     }
 
     @Override
-    protected void afterPrepare(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
         String qos = PrepareUtils.getString(params, PrepareParams.QOS, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE.name());
         long failureRetryInterval = PrepareUtils.getLong(params, PrepareParams.JMS_BRIDGE_FAILURE_RETRY_INTERVAL, 1000l);
@@ -86,8 +82,8 @@ public class NetworkFailuresJMSBridgesPrepare extends JMSBridge {
         targetContext.put("java.naming.factory.initial", "org.jboss.naming.remote.client.InitialContextFactory");
         targetContext.put("java.naming.provider.url", protocol + targetContaienr.getHostname() + ":" + targetContaienr.getJNDIPort());
 
-        sourceOps.createJMSBridge(JMS_BRIDGE_NAME, sourceConnectionFactory, IN_QUEUE_JNDI, null,
-                bridgeConnectionFactoryJndiName, OUT_QUEUE_JNDI, targetContext, qos, failureRetryInterval, reconnectAttempts,
+        sourceOps.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, sourceConnectionFactory, PrepareConstants.IN_QUEUE_JNDI, null,
+                bridgeConnectionFactoryJndiName, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos, failureRetryInterval, reconnectAttempts,
                 maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
         sourceOps.close();

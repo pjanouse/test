@@ -21,7 +21,7 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFact
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueNoCommit;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueWithSecurity;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -81,7 +81,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
+        ejbXml.append("<activation-config-property-value>").append(PrepareConstants.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
@@ -90,7 +90,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareConstants.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -209,7 +209,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         logger.info("Start producer.");
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         TextMessageBuilder builder = new TextMessageBuilder(1);
         builder.setAddDuplicatedHeader(false);
         producer1.setMessageBuilder(builder);
@@ -218,7 +218,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         producer1.start();
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 20000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 20000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
@@ -293,7 +293,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         // we use only the first server
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -308,18 +308,18 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(container(1));
         }
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         // wait for 80% of messages
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 5000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -363,7 +363,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         // cluster A
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 110);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -374,7 +374,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         container(1).deploy(mdb1Archive);
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 10, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 120000, container(1));
         container(1).stop();
 
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
@@ -415,7 +415,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 checkUnfinishedArjunaTransactions(container(2)));
         Assert.assertTrue(
                 "There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
-                new JMSTools().waitForMessages(PrepareBase.IN_QUEUE_NAME, 1, 5000, container(2)));
+                new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 1, 5000, container(2)));
         container(2).stop();
     }
 
@@ -444,7 +444,7 @@ public class Lodh1TestCase extends HornetQTestCase {
         // we use only the first server
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setTimeout(0);
@@ -456,11 +456,11 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
 
         logger.info("Start receiver.");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 10000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 10000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -519,8 +519,8 @@ public class Lodh1TestCase extends HornetQTestCase {
     private void printQueuesCount() {
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         logger.info("=============Queues status====================");
-        logger.info("Messages on [" + PrepareBase.IN_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.IN_QUEUE_NAME));
-        logger.info("Messages on [" + PrepareBase.OUT_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME));
+        logger.info("Messages on [" + PrepareConstants.IN_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareConstants.IN_QUEUE_NAME));
+        logger.info("Messages on [" + PrepareConstants.OUT_QUEUE_NAME + "]=" + jmsAdminOperations.getCountOfMessagesOnQueue(PrepareConstants.OUT_QUEUE_NAME));
         logger.info("==============================================");
         jmsAdminOperations.close();
     }

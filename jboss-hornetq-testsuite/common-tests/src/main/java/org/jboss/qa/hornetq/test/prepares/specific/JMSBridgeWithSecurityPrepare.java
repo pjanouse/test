@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.JMSBridge;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
@@ -19,29 +21,19 @@ public class JMSBridgeWithSecurityPrepare extends JMSBridge {
     public static final String TEST_TYPE = "TEST_TYPE";
 
     @Override
-    @PrepareMethod(value = "JMSBridgeWithSecurity", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "JMSBridgeWithSecurity", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "JMSBridgeWithSecurity", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
+    protected void afterPrepareContainer(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepareContainer(params, ctx);
 
-    @Override
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
-        super.beforePrepare(params);
+        Container container = getContainer(params);
+        JMSOperations jmsOperations = getJMSOperations(params);
 
-        PrepareUtils.setIfNotSpecified(params, PrepareParams.ENABLE_SECURITY, true);
-    }
-
-    @Override
-    protected void afterPrepareContainer(Map<String, Object> params, Container container) throws Exception {
-        super.afterPrepareContainer(params, container);
-
-        JMSOperations jmsOperations = container.getJmsOperations();
+        jmsOperations.setSecurityEnabled(true);
 
         // set security persmissions for roles admin,users - user is already there
         jmsOperations.setPermissionToRoleToSecuritySettings("#", "guest", "consume", true);
@@ -96,7 +88,7 @@ public class JMSBridgeWithSecurityPrepare extends JMSBridge {
     }
 
     @Override
-    protected void afterPrepare(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
         Constants.QUALITY_OF_SERVICE qos = Constants.QUALITY_OF_SERVICE.valueOf(PrepareUtils.getString(params, PrepareParams.QOS, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE.name()));
         long failureRetryInterval = PrepareUtils.getLong(params, PrepareParams.JMS_BRIDGE_FAILURE_RETRY_INTERVAL, 1000l);
         long maxBatchSize = PrepareUtils.getLong(params, PrepareParams.JMS_BRIDGE_MAX_BATCH_SIZE, 10l);
@@ -112,23 +104,23 @@ public class JMSBridgeWithSecurityPrepare extends JMSBridge {
 
         switch (testType) {
             case TARGET_SECURITY:
-                jmsOperations.createJMSBridge(JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, IN_QUEUE_JNDI, null,
-                        TARGET_CONNECTION_FACTORY, OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
+                jmsOperations.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, PrepareConstants.IN_QUEUE_JNDI, null,
+                        TARGET_CONNECTION_FACTORY, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
                         maxBatchSize, maxBatchTime, addMessageIDInHeader, null, null, "bridge", "bridge");
                 break;
             case SOURCE_SECURITY:
-                jmsOperations.createJMSBridge(JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, IN_QUEUE_JNDI, null,
-                        TARGET_CONNECTION_FACTORY, OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
+                jmsOperations.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, PrepareConstants.IN_QUEUE_JNDI, null,
+                        TARGET_CONNECTION_FACTORY, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
                         maxBatchSize, maxBatchTime, addMessageIDInHeader, "bridge", "bridge", null, null);
                 break;
             case SOURCE_TARGET_SECURITY:
-                jmsOperations.createJMSBridge(JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, IN_QUEUE_JNDI, null,
-                        TARGET_CONNECTION_FACTORY, OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
+                jmsOperations.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, PrepareConstants.IN_QUEUE_JNDI, null,
+                        TARGET_CONNECTION_FACTORY, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
                         maxBatchSize, maxBatchTime, addMessageIDInHeader, "bridge", "bridge", "bridge", "bridge");
                 break;
             case CORRECT_SECURITY:
-                jmsOperations.createJMSBridge(JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, IN_QUEUE_JNDI, null,
-                        TARGET_CONNECTION_FACTORY, OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
+                jmsOperations.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, PrepareConstants.IN_QUEUE_JNDI, null,
+                        TARGET_CONNECTION_FACTORY, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos.toString(), failureRetryInterval, maxRetries,
                         maxBatchSize, maxBatchTime, addMessageIDInHeader, "admin", "adminadmin", "admin", "adminadmin");
         }
 

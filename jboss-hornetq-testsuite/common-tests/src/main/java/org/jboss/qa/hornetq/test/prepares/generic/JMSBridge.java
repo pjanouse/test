@@ -1,10 +1,12 @@
 package org.jboss.qa.hornetq.test.prepares.generic;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -20,20 +22,24 @@ public class JMSBridge extends TwoNodes {
     protected static final String TARGET_CONTEXT = "TARGET_CONTEXT";
 
     @Override
-    @PrepareMethod(value = "JMSBridge", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "JMSBridge", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "JMSBridge", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
+
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.INVM_CONNECTION_FACTORY_TYPE, "XA_GENERIC");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.REMOTE_CONNECTION_FACTORY_TYPE, "XA_GENERIC");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.CLUSTER_TYPE, Constants.CLUSTER_TYPE.NONE);
+
+        ctx.invokeMethod("JMSBridge-targetContext", params);
     }
 
-    @Override
-    protected void beforePrepareEAP6(Map<String, Object> params) throws Exception {
-        super.beforePrepareEAP6(params);
+    @PrepareMethod(value = "JMSBridge-targetContext", labels = {"EAP6"})
+    public void beforePrepareEAP6(Map<String, Object> params) throws Exception {
 
         Container targetContainer = getContainer(params, 2);
 
@@ -48,9 +54,8 @@ public class JMSBridge extends TwoNodes {
         params.put(TARGET_CONTEXT, targetContext);
     }
 
-    @Override
-    protected void beforePrepareEAP7(Map<String, Object> params) throws Exception {
-        super.beforePrepareEAP7(params);
+    @PrepareMethod(value = "JMSBridge-targetContext", labels = {"EAP7"})
+    public void beforePrepareEAP7(Map<String, Object> params) throws Exception {
 
         Container targetContainer = getContainer(params, 2);
 
@@ -66,25 +71,8 @@ public class JMSBridge extends TwoNodes {
     }
 
     @Override
-    protected void afterPrepareContainer(Map<String, Object> params, Container container) throws Exception {
-        super.afterPrepareContainer(params, container);
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setClustered(false);
-        jmsOperations.removeClusteringGroup(CLUSTER_NAME);
-        jmsOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-
-        jmsOperations.setFactoryType(INVM_CONNECTION_FACTORY_NAME, "XA_GENERIC");
-        jmsOperations.setFactoryType(REMOTE_CONNECTION_FACTORY_NAME, "XA_GENERIC");
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepare(Map<String, Object> params) throws Exception {
-        super.afterPrepare(params);
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepare(params, ctx);
 
         String qos = PrepareUtils.getString(params, PrepareParams.QOS, Constants.QUALITY_OF_SERVICE.ONCE_AND_ONLY_ONCE.name());
         long failureRetryInterval = PrepareUtils.getLong(params, PrepareParams.JMS_BRIDGE_FAILURE_RETRY_INTERVAL, 1000l);
@@ -98,7 +86,7 @@ public class JMSBridge extends TwoNodes {
 
         JMSOperations jmsOperations = sourceContainer.getJmsOperations();
 
-        jmsOperations.createJMSBridge(JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, IN_QUEUE_JNDI, null, TARGET_CONNECTION_FACTORY, OUT_QUEUE_JNDI, targetContext, qos, failureRetryInterval, maxRetries, maxBatchSize, maxBatchTime, addMessageIDInHeader);
+        jmsOperations.createJMSBridge(PrepareConstants.JMS_BRIDGE_NAME, SOURCE_CONNECTION_FACTORY, PrepareConstants.IN_QUEUE_JNDI, null, TARGET_CONNECTION_FACTORY, PrepareConstants.OUT_QUEUE_JNDI, targetContext, qos, failureRetryInterval, maxRetries, maxBatchSize, maxBatchTime, addMessageIDInHeader);
 
         jmsOperations.close();
 

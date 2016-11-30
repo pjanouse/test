@@ -7,8 +7,8 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.Client;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -68,7 +68,7 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
     @Prepare(value = "OneNode")
     public void closeConsumerConnectionsForAddress() throws Exception{
         container(1).start();
-        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver.start();
         RuleInstaller.installRule(this.getClass(), container(1));
         JMSOperations operations = container(1).getJmsOperations();
@@ -77,7 +77,7 @@ public class CloseConsumerConnectionsTestCase extends HornetQTestCase {
             public void run() {
                 List<Client> clientList= new ArrayList<Client>();
                 for(int i =0; i <20; i++){
-                    ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareBase.QUEUE_JNDI);
+                    ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), PrepareConstants.QUEUE_JNDI);
                     receiver.start();
                     clientList.add(receiver);
                     try {

@@ -32,6 +32,8 @@ public class PrepareParams {
 
     public static final String RECONNECT_ATTEMPTS =  "RECONNECT_ATTEMPTS";
 
+    public static final String INVM_CONNECTION_FACTORY_TYPE =  "INVM_CONNECTION_FACTORY_TYPE";
+
     public static final String REMOTE_CONNECTION_FACTORY_HA =  "REMOTE_CONNECTION_FACTORY_HA";
 
     public static final String REMOTE_CONNECTION_FACTORY_BLOCK_ON_ACK =  "REMOTE_CONNECTION_FACTORY_BLOCK_ON_ACK";
@@ -45,6 +47,8 @@ public class PrepareParams {
     public static final String REMOTE_CONNECTION_FACTORY_COMPRESSION =  "REMOTE_CONNECTION_FACTORY_COMPRESSION";
 
     public static final String REMOTE_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE =  "REMOTE_CONNECTION_FACTORY_MIN_LARGE_MESSAGE_SIZE";
+
+    public static final String REMOTE_CONNECTION_FACTORY_TYPE =  "REMOTE_CONNECTION_FACTORY_TYPE";
 
     public static final String POOLED_CONNECTION_FACTORY_HA =  "POOLED_CONNECTION_FACTORY_HA";
 
@@ -167,4 +171,12 @@ public class PrepareParams {
     public static final String JOURNAL_MESSAGES_TABLE = "JOURNAL_MESSAGES_TABLE";
 
     public static final String JOURNAL_LARGE_MESSAGES_TABLE = "JOURNAL_LARGE_MESSAGES_TABLE";
+
+    public static final String JOURNALS_DIRECTORY = "JOURNALS_DIRECTORY";
+
+    public static final String REPLICATION_GROUP_NAME = "REPLICATION_GROUP_NAME";
+
+    public static final String PREPARE_COLOCATED_BACKUP = "PREPARE_COLOCATED_BACKUP";
+
+    public static final String HA_TYPE = "HA_TYPE";
 }

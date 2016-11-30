@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -709,7 +709,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         long producerStartTime = System.currentTimeMillis();
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         addClient(prod1);
 
         prod1.setMessageBuilder(new TextMessageBuilder(1024 * 1024)); // 1MB
@@ -730,7 +730,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         logger.info("Start producer and consumer.");
         // start one producer and consumer - client ack - those get blocked for 2 min. later when backup is stopped
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareBase.QUEUE_JNDI, 3000);
+        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareConstants.QUEUE_JNDI, 3000);
         addClient(producer);
 
         MessageBuilder builder = new TextMessageBuilder(1024 * 1024);
@@ -743,7 +743,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         producer.start();
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 1, 100);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 1, 100);
         addClient(receiver);
 
         receiver.setTimeout(100);
@@ -863,7 +863,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
@@ -871,7 +871,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, 300, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1));
 
         logger.info("Crash backup server - " + failureType);
         container(2).fail(failureType);
@@ -879,9 +879,9 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ClientUtils.waitForClientToFailover(prod1, 120000);
 
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, 600, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 600, 120000, container(1));
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 20000, 1, 100);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 20000, 1, 100);
         receiver.setTimeout(0);
         receiver.addMessageVerifier(messageVerifier);
         receiver.start();
@@ -925,7 +925,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
@@ -933,7 +933,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, 300, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1));
 
         logger.info("Crash backup server - KILL");
         container(2).fail(Constants.FAILURE_TYPE.KILL);
@@ -949,7 +949,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         JMSImplementation jmsImplementation = ContainerUtils.getJMSImplementation(container(1));
 
         JMSOperations jmsOperations = container(1).getJmsOperations();
-        for (Map<String, String> message: jmsOperations.listMessages(PrepareBase.QUEUE_NAME)) {
+        for (Map<String, String> message: jmsOperations.listMessages(PrepareConstants.QUEUE_NAME)) {
             if (!duplicates.add(message.get(jmsImplementation.getDuplicatedHeader()))) {
                 logger.error("Duplication detected: " + message);
                 duplicationsDetected = true;
@@ -1014,7 +1014,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         container(2).start();
         Thread.sleep(5000);
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
@@ -1022,7 +1022,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 60000, 10, 100);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 60000, 10, 100);
         receiver.setTimeout(0);
         receiver.addMessageVerifier(messageVerifier);
         receiver.start();
@@ -1092,7 +1092,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         Thread.sleep(10000);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
@@ -1101,7 +1101,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 5, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 5, 10);
         receiver1.setTimeout(5);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
@@ -1313,7 +1313,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         logger.info("Start producer to send: " + numberOfMessages + " messages.");
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
@@ -1321,7 +1321,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 120000, 10, 100);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 120000, 10, 100);
         receiver.setTimeout(0);
         receiver.addMessageVerifier(messageVerifier);
         receiver.start();

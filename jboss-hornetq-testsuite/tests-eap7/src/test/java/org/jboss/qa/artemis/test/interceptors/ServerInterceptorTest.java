@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients20.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.ReceiverAutoAck;
@@ -13,16 +12,16 @@ import org.jboss.qa.hornetq.apps.interceptors.IncomingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.IncomingOutgoingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.OutgoingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ModuleUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,14 +96,14 @@ public class ServerInterceptorTest extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareBase.QUEUE_JNDI, 100);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareConstants.QUEUE_JNDI, 100);
         producer.start();
         producer.join();
 
         List<String> msgProperties = new ArrayList<String>();
         msgProperties.add(prop);
 
-        ReceiverAutoAck receiver = new ReceiverAutoAckMsgProps(container(1), PrepareBase.QUEUE_JNDI, msgProperties);
+        ReceiverAutoAck receiver = new ReceiverAutoAckMsgProps(container(1), PrepareConstants.QUEUE_JNDI, msgProperties);
         receiver.start();
         receiver.join();
 

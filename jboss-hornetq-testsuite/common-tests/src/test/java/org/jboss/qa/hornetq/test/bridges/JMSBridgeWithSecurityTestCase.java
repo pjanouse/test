@@ -13,8 +13,8 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.JMSBridgeWithSecurityPrepare;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -161,14 +161,14 @@ public class JMSBridgeWithSecurityTestCase extends HornetQTestCase {
 
     private void sendReceiveSubTest(Container inServer, Container outServer, JMSBridgeWithSecurityPrepare.TestType testType) throws Exception {
         ProducerClientAck producer = new ProducerClientAck(inServer,
-                PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer.setMessageBuilder(messageBuilder);
         producer.setTimeout(0);
         producer.addMessageVerifier(messageVerifier);
         producer.start();
 
         ReceiverClientAck receiver = new ReceiverClientAck(outServer,
-                PrepareBase.OUT_QUEUE_JNDI, 10000, 100, 10);
+                PrepareConstants.OUT_QUEUE_JNDI, 10000, 100, 10);
         receiver.addMessageVerifier(messageVerifier);
         receiver.start();
         receiver.join();

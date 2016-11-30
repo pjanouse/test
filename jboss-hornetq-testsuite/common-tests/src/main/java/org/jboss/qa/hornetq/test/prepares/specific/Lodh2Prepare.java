@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.FourNodes;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -19,26 +21,27 @@ public class Lodh2Prepare extends FourNodes {
     public static final String OUT_SERVER = "OUT_SERVER";
 
     @Override
-    @PrepareMethod(value = "Lodh2Prepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "Lodh2Prepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "Lodh2Prepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    @Override
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
-        super.beforePrepare(params);
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
 
         PrepareUtils.setIfNotSpecified(params, PrepareParams.CLUSTER_TYPE, Constants.CLUSTER_TYPE.MULTICAST.name());
     }
 
     @Override
-    protected void afterPrepareEAP6(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepare(params, ctx);
+
+        ctx.invokeMethod("Lodh2Prepare-afterPrepare", params);
+    }
+
+    @PrepareMethod(value = "Lodh2Prepare-afterPrepare", labels = {"EAP6"})
+    public void afterPrepareEAP6(Map<String, Object> params) throws Exception {
         int inServer = PrepareUtils.getInteger(params, IN_SERVER);
         int outServer = PrepareUtils.getInteger(params, OUT_SERVER);
 
@@ -54,8 +57,8 @@ public class Lodh2Prepare extends FourNodes {
         prepareMdbServerEAP6(container4, container3, inServer, outServer);
     }
 
-    @Override
-    protected void afterPrepareEAP7(Map<String, Object> params) throws Exception {
+    @PrepareMethod(value = "Lodh2Prepare-afterPrepare", labels = {"EAP7"})
+    public void afterPrepareEAP7(Map<String, Object> params) throws Exception {
         int inServer = PrepareUtils.getInteger(params, IN_SERVER);
         int outServer = PrepareUtils.getInteger(params, OUT_SERVER);
 
@@ -80,7 +83,7 @@ public class Lodh2Prepare extends FourNodes {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(MULTICAST_SOCKET_BINDING_NAME, "233.6.88.3");
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(PrepareConstants.MULTICAST_SOCKET_BINDING_NAME, "233.6.88.3");
 
         jmsAdminOperations.close();
     }
@@ -99,25 +102,25 @@ public class Lodh2Prepare extends FourNodes {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(MULTICAST_SOCKET_BINDING_NAME, "233.6.88.5");
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(PrepareConstants.MULTICAST_SOCKET_BINDING_NAME, "233.6.88.5");
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
         // both are remote
         if (isServerRemote(inServer) && isServerRemote(outServer)) {
             jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingName, jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, remoteSocketBindingName, null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
         }
         // local InServer and remote OutServer
         if (!isServerRemote(inServer) && isServerRemote(outServer)) {
             jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingName, jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, remoteSocketBindingName, null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
 
             // create new in-vm pooled connection factory and configure it as default for inbound communication
-            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/LocalJmsXA", INVM_CONNECTOR_NAME);
+            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/LocalJmsXA", PrepareConstants.INVM_CONNECTOR_NAME);
             jmsAdminOperations.setDefaultResourceAdapter(inVmRaName);
         }
 
@@ -127,16 +130,16 @@ public class Lodh2Prepare extends FourNodes {
             // now reconfigure hornetq-ra which is used for inbound to connect to remote server
             jmsAdminOperations.addRemoteSocketBinding(remoteSocketBindingName, jmsServer.getHostname(), jmsServer.getHornetqPort());
             jmsAdminOperations.createRemoteConnector(remoteConnectorName, remoteSocketBindingName, null);
-            jmsAdminOperations.setConnectorOnPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
-            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
-            jmsAdminOperations.setJndiNameForPooledConnectionFactory(POOLED_CONNECTION_FACTORY_NAME_EAP6, "java:/remoteJmsXA");
+            jmsAdminOperations.setConnectorOnPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, remoteConnectorName);
+            jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, -1);
+            jmsAdminOperations.setJndiNameForPooledConnectionFactory(PrepareConstants.POOLED_CONNECTION_FACTORY_NAME_EAP6, "java:/remoteJmsXA");
 
             jmsAdminOperations.close();
             container.restart();
             jmsAdminOperations = container.getJmsOperations();
 
             // create new in-vm pooled connection factory and configure it as default for inbound communication
-            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/JmsXA", INVM_CONNECTOR_NAME);
+            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/JmsXA", PrepareConstants.INVM_CONNECTOR_NAME);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(inVmRaName, -1);
         }
 
@@ -158,7 +161,7 @@ public class Lodh2Prepare extends FourNodes {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
 
-        jmsAdminOperations.setMulticastAddressOnSocketBinding(MULTICAST_SOCKET_BINDING_NAME, "233.6.88.5");
+        jmsAdminOperations.setMulticastAddressOnSocketBinding(PrepareConstants.MULTICAST_SOCKET_BINDING_NAME, "233.6.88.5");
         jmsAdminOperations.setPropertyReplacement("annotation-property-replacement", true);
 
         // both are remote
@@ -176,7 +179,7 @@ public class Lodh2Prepare extends FourNodes {
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(RESOURCE_ADAPTER_NAME_EAP7, -1);
 
             // create new in-vm pooled connection factory and configure it as default for inbound communication
-            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/LocalJmsXA", INVM_CONNECTOR_NAME);
+            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/LocalJmsXA", PrepareConstants.INVM_CONNECTOR_NAME);
             jmsAdminOperations.setDefaultResourceAdapter(inVmRaName);
         }
 
@@ -195,7 +198,7 @@ public class Lodh2Prepare extends FourNodes {
             jmsAdminOperations = container.getJmsOperations();
 
             // create new in-vm pooled connection factory and configure it as default for inbound communication
-            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/JmsXA", INVM_CONNECTOR_NAME);
+            jmsAdminOperations.createPooledConnectionFactory(inVmRaName, "java:/JmsXA", PrepareConstants.INVM_CONNECTOR_NAME);
             jmsAdminOperations.setReconnectAttemptsForPooledConnectionFactory(inVmRaName, -1);
         }
 

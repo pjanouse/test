@@ -1,10 +1,14 @@
 package org.jboss.qa.hornetq.test.prepares.generic;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
+import org.jboss.qa.hornetq.test.prepares.PrepareMethods;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -25,239 +29,94 @@ public class ColocatedSharedStoreHA extends TwoNodes {
     public static final String STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP = "static-cluster-connector-remote-backup";
 
     @Override
-    @PrepareMethod(value = "ColocatedSharedStoreHA", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "ColocatedSharedStoreHA", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "ColocatedSharedStoreHA", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
 
-    @Override
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
         PrepareUtils.setIfNotSpecified(params, PrepareParams.CLUSTER_TYPE, "DEFAULT");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNALS_DIRECTORY, HornetQTestCase.JOURNAL_DIRECTORY_A);
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNALS_DIRECTORY, HornetQTestCase.JOURNAL_DIRECTORY_B);
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_COLOCATED_BACKUP, true);
     }
 
     @Override
-    protected void afterPrepareContainer1EAP6(Map<String, Object> params, Container container) throws Exception {
-        Constants.CLUSTER_TYPE clusterType = Constants.CLUSTER_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CLUSTER_TYPE));
-
-        super.afterPrepareContainer1EAP6(params, container);
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setFailoverOnShutdown(true);
-        jmsOperations.setSharedStore(true);
-        jmsOperations.setFailoverOnShutdown(true);
-
-        setJournalDirectories(jmsOperations, HornetQTestCase.JOURNAL_DIRECTORY_A);
-
-        jmsOperations.close();
-        container.restart();
-        Thread.sleep(2000);
-        jmsOperations = container.getJmsOperations();
-
-        prepareBackupEAP6(params, container);
-
-        setJournalDirectories(jmsOperations, BACKUP_SERVER_NAME, HornetQTestCase.JOURNAL_DIRECTORY_B);
-
-        if (clusterType != Constants.CLUSTER_TYPE.STATIC_CONNECTORS) {
-            prepareCluster(params, jmsOperations, BACKUP_SERVER_NAME);
-        }
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepareContainer2EAP6(Map<String, Object> params, Container container) throws Exception {
-        Constants.CLUSTER_TYPE clusterType = Constants.CLUSTER_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CLUSTER_TYPE));
-
-        super.afterPrepareContainer2EAP6(params, container);
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setFailoverOnShutdown(true);
-        jmsOperations.setSharedStore(true);
-        jmsOperations.setFailoverOnShutdown(true);
-
-        setJournalDirectories(jmsOperations, HornetQTestCase.JOURNAL_DIRECTORY_B);
-
-        jmsOperations.close();
-        container.restart();
-        Thread.sleep(2000);
-        jmsOperations = container.getJmsOperations();
-
-        prepareBackupEAP6(params, container);
-
-        setJournalDirectories(jmsOperations, BACKUP_SERVER_NAME, HornetQTestCase.JOURNAL_DIRECTORY_A);
-
-        if (clusterType != Constants.CLUSTER_TYPE.STATIC_CONNECTORS) {
-            prepareCluster(params, jmsOperations, BACKUP_SERVER_NAME);
-        }
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepareContainerEAP7(Map<String, Object> params, Container container) throws Exception {
-        Constants.CLUSTER_TYPE clusterType = Constants.CLUSTER_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CLUSTER_TYPE));
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.addHAPolicySharedStoreMaster(5000, true);
-        prepareBackupEAP7(params, container);
-
-        if (clusterType != Constants.CLUSTER_TYPE.STATIC_CONNECTORS) {
-            prepareCluster(params, jmsOperations);
-        }
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepareContainer1EAP7(Map<String, Object> params, Container container) throws Exception {
-        super.afterPrepareContainer1EAP7(params, container);
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        setJournalDirectories(jmsOperations, HornetQTestCase.JOURNAL_DIRECTORY_A);
-        setJournalDirectories(jmsOperations, BACKUP_SERVER_NAME, HornetQTestCase.JOURNAL_DIRECTORY_B);
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepareContainer2EAP7(Map<String, Object> params, Container container) throws Exception {
-        super.afterPrepareContainer2EAP7(params, container);
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        setJournalDirectories(jmsOperations, HornetQTestCase.JOURNAL_DIRECTORY_B);
-        setJournalDirectories(jmsOperations, BACKUP_SERVER_NAME, HornetQTestCase.JOURNAL_DIRECTORY_A);
-
-        jmsOperations.close();
-    }
-
-    @Override
-    protected void afterPrepare(Map<String, Object> params) throws Exception {
-        Constants.CLUSTER_TYPE clusterType = Constants.CLUSTER_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CLUSTER_TYPE));
-
-        if (clusterType != Constants.CLUSTER_TYPE.STATIC_CONNECTORS) {
-            return;
-        }
-
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
         Container container1 = getContainer(params, 1);
         Container container2 = getContainer(params, 2);
+        JMSOperations jmsOperations1 = container1.getJmsOperations();
+        JMSOperations jmsOperations2 = container2.getJmsOperations();
 
-        prepareStaticConnectors(params, container1, container2);
-        prepareStaticConnectors(params, container2, container1);
-    }
+        Constants.CLUSTER_TYPE clusterType = Constants.CLUSTER_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CLUSTER_TYPE));
 
-    private void setJournalDirectories(JMSOperations jmsOperations, String journalDirectory) {
-        setJournalDirectories(jmsOperations, "default", journalDirectory);
-    }
+        if (clusterType == Constants.CLUSTER_TYPE.STATIC_CONNECTORS) {
+            prepareStaticConnectors(params, container1, container2);
+            prepareStaticConnectors(params, container2, container1);
+        }
 
-    private void setJournalDirectories(JMSOperations jmsOperations, String serverName, String journalDirectory) {
-        jmsOperations.setBindingsDirectory(serverName, journalDirectory);
-        jmsOperations.setPagingDirectory(serverName, journalDirectory);
-        jmsOperations.setLargeMessagesDirectory(serverName, journalDirectory);
-        jmsOperations.setJournalDirectory(serverName, journalDirectory);
-    }
+        Map<String, Object> paramsNode1 = getParamsForContainer(params, container1, jmsOperations1, 1);
+        Map<String, Object> paramsNode2 = getParamsForContainer(params, container2, jmsOperations2, 2);
+        Map<String, Object> paramsNode1Backup = getParamsForServer(paramsNode1, PrepareConstants.BACKUP_SERVER_NAME);
+        Map<String, Object> paramsNode2Backup = getParamsForServer(paramsNode2, PrepareConstants.BACKUP_SERVER_NAME);
 
-    protected void prepareBackupEAP7(Map<String, Object> params, Container container) throws Exception {
-        int socketBindingPort = Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7;
+        // LIVE on Node 1
+        paramsNode1.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.SHARED_STORE_MASTER);
 
-        JMSOperations jmsOperations = container.getJmsOperations();
+        ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode1);
 
-        jmsOperations.addMessagingSubsystem(BACKUP_SERVER_NAME);
+        // LIVE on Node 2
+        paramsNode2.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.SHARED_STORE_MASTER);
 
-        jmsOperations.createSocketBinding(MESSAGING_SOCKET_BINDING_NAME_BACKUP, socketBindingPort);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, CONNECTOR_NAME, MESSAGING_SOCKET_BINDING_NAME_BACKUP, null);
-        jmsOperations.createInVmConnector(BACKUP_SERVER_NAME, INVM_CONNECTOR_NAME, 0, null);
-        jmsOperations.createRemoteAcceptor(BACKUP_SERVER_NAME, ACCEPTOR_NAME, MESSAGING_SOCKET_BINDING_NAME_BACKUP, null);
+        ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode2);
 
-        jmsOperations.setBroadCastGroup(BACKUP_SERVER_NAME, BROADCAST_GROUP_NAME, null, JGROUPS_CHANNEL, 1000, CONNECTOR_NAME);
-        jmsOperations.setDiscoveryGroup(BACKUP_SERVER_NAME, DISCOVERY_GROUP_NAME, 1000, null, JGROUPS_CHANNEL);
-        jmsOperations.setClusterConnections(BACKUP_SERVER_NAME, CLUSTER_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true, CONNECTOR_NAME);
-        jmsOperations.disableSecurity(BACKUP_SERVER_NAME);
+        // BACKUP on Node 1
+        paramsNode1Backup.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.SHARED_STORE_SLAVE);
+        paramsNode1Backup.put(PrepareParams.JOURNALS_DIRECTORY, HornetQTestCase.JOURNAL_DIRECTORY_B);
 
-        jmsOperations.setPersistenceEnabled(BACKUP_SERVER_NAME, true);
+        ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode1Backup);
+        ctx.invokeMethod(PrepareMethods.PREPARE_JOURNALS_DIRECTORY, paramsNode1Backup);
 
-        prepareMisc(params, jmsOperations, BACKUP_SERVER_NAME);
+        // BACKUP on Node 2
+        paramsNode2Backup.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.SHARED_STORE_SLAVE);
+        paramsNode2Backup.put(PrepareParams.JOURNALS_DIRECTORY, HornetQTestCase.JOURNAL_DIRECTORY_A);
 
-        prepareAddressSettings(params, jmsOperations, BACKUP_SERVER_NAME);
+        ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode2Backup);
+        ctx.invokeMethod(PrepareMethods.PREPARE_JOURNALS_DIRECTORY, paramsNode2Backup);
 
-        prepareSecurity(params, container, BACKUP_SERVER_NAME);
-
-        jmsOperations.addHAPolicySharedStoreSlave(BACKUP_SERVER_NAME, true, 5000, true, true, false, null, null, null, null);
-
-        // set ha also for hornetq-ra
-        jmsOperations.setNodeIdentifier(String.valueOf(System.currentTimeMillis()).hashCode());
-
-        jmsOperations.close();
-    }
-
-    protected void prepareBackupEAP6(Map<String, Object> params, Container container) throws Exception {
-        String socketBindingName = "messaging-backup";
-        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
-        String messagingGroupSocketBindingName = "messaging-group";
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.addMessagingSubsystem(BACKUP_SERVER_NAME);
-
-        jmsOperations.setClustered(BACKUP_SERVER_NAME, true);
-        jmsOperations.setPersistenceEnabled(BACKUP_SERVER_NAME, true);
-        jmsOperations.setBackup(BACKUP_SERVER_NAME, true);
-
-        prepareSecurity(params, container, BACKUP_SERVER_NAME);
-
-        prepareMisc(params, jmsOperations, BACKUP_SERVER_NAME);
-
-        prepareAddressSettings(params, jmsOperations, BACKUP_SERVER_NAME);
-
-        jmsOperations.setSharedStore(BACKUP_SERVER_NAME, true);
-        jmsOperations.setFailoverOnShutdown(true, BACKUP_SERVER_NAME);
-        jmsOperations.setAllowFailback(BACKUP_SERVER_NAME, true);
-
-        jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, CONNECTOR_NAME, socketBindingName, null);
-        jmsOperations.createInVmConnector(BACKUP_SERVER_NAME, INVM_CONNECTOR_NAME, 0, null);
-        jmsOperations.createRemoteAcceptor(BACKUP_SERVER_NAME, ACCEPTOR_NAME, socketBindingName, null);
-
-        jmsOperations.setBroadCastGroup(BACKUP_SERVER_NAME, BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME, "");
-        jmsOperations.setDiscoveryGroup(BACKUP_SERVER_NAME, DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsOperations.setClusterConnections(BACKUP_SERVER_NAME, CLUSTER_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true, CONNECTOR_NAME);
-
-        jmsOperations.close();
+        jmsOperations1.close();
+        jmsOperations2.close();
     }
 
     private void prepareStaticConnectors(Map<String, Object> params, Container container, Container to) {
         JMSOperations jmsOperations = container.getJmsOperations();
 
-        jmsOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsOperations.removeBroadcastGroup(BACKUP_SERVER_NAME, BROADCAST_GROUP_NAME);
+        jmsOperations.removeBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME);
+        jmsOperations.removeBroadcastGroup(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.BROADCAST_GROUP_NAME);
 
-        jmsOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsOperations.removeDiscoveryGroup(BACKUP_SERVER_NAME, DISCOVERY_GROUP_NAME);
+        jmsOperations.removeDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME);
+        jmsOperations.removeDiscoveryGroup(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.DISCOVERY_GROUP_NAME);
 
         jmsOperations.addRemoteSocketBinding(STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_LIVE, to.getHostname(), Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7 + to.getPortOffset());
         jmsOperations.addRemoteSocketBinding(STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_BACKUP, to.getHostname(), Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 + to.getPortOffset());
 
-        jmsOperations.createRemoteConnector(STATIC_CLUSTER_CONNECTOR_NAME_BACKUP, MESSAGING_SOCKET_BINDING_NAME_BACKUP, null);
+        jmsOperations.createRemoteConnector(STATIC_CLUSTER_CONNECTOR_NAME_BACKUP, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME_BACKUP, null);
         jmsOperations.createRemoteConnector(STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_LIVE, null);
         jmsOperations.createRemoteConnector(STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_BACKUP, null);
 
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_LIVE, MESSAGING_SOCKET_BINDING_NAME, null);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_LIVE, null);
-        jmsOperations.createRemoteConnector(BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_BACKUP, null);
+        jmsOperations.createRemoteConnector(PrepareConstants.BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_LIVE, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, null);
+        jmsOperations.createRemoteConnector(PrepareConstants.BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_LIVE, null);
+        jmsOperations.createRemoteConnector(PrepareConstants.BACKUP_SERVER_NAME, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP, STATIC_CLUSTER_SOCKET_BINDING_NAME_REMOTE_BACKUP, null);
 
 
-        jmsOperations.removeClusteringGroup(CLUSTER_NAME);
-        jmsOperations.setStaticClusterConnections(SERVER_NAME, CLUSTER_NAME, "jms", false, 1, 1000, true, CONNECTOR_NAME, STATIC_CLUSTER_CONNECTOR_NAME_BACKUP, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP);
+        jmsOperations.removeClusteringGroup(PrepareConstants.CLUSTER_NAME);
+        jmsOperations.setStaticClusterConnections(PrepareConstants.SERVER_NAME, PrepareConstants.CLUSTER_NAME, "jms", false, 1, 1000, true, PrepareConstants.CONNECTOR_NAME, STATIC_CLUSTER_CONNECTOR_NAME_BACKUP, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP);
 
-        jmsOperations.removeClusteringGroup(BACKUP_SERVER_NAME, CLUSTER_NAME);
-        jmsOperations.setStaticClusterConnections(BACKUP_SERVER_NAME, CLUSTER_NAME, "jms", false, 1, 1000, true, CONNECTOR_NAME, STATIC_CLUSTER_CONNECTOR_NAME_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP);
+        jmsOperations.removeClusteringGroup(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.CLUSTER_NAME);
+        jmsOperations.setStaticClusterConnections(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.CLUSTER_NAME, "jms", false, 1, 1000, true, PrepareConstants.CONNECTOR_NAME, STATIC_CLUSTER_CONNECTOR_NAME_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_LIVE, STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP);
 
         jmsOperations.close();
     }

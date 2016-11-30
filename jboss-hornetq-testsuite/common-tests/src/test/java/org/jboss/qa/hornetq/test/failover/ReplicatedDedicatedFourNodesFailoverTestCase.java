@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -72,7 +72,7 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
         container(4).start();
         Thread.sleep(5000);
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
@@ -80,19 +80,19 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
         prod1.setCommitAfter(10);
         prod1.start();
 
-        ProducerTransAck prod2 = new ProducerTransAck(container(3), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck prod2 = new ProducerTransAck(container(3), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         prod2.addMessageVerifier(messageVerifier);
         prod2.setMessageBuilder(messageBuilder);
         prod2.setTimeout(0);
         prod2.setCommitAfter(5);
         prod2.start();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 120000, 10, 100);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 120000, 10, 100);
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
 
-        ReceiverTransAck receiver2 = new ReceiverTransAck(container(3), PrepareBase.QUEUE_JNDI, 120000, 10, 100);
+        ReceiverTransAck receiver2 = new ReceiverTransAck(container(3), PrepareConstants.QUEUE_JNDI, 120000, 10, 100);
         receiver2.setTimeout(0);
         receiver2.addMessageVerifier(messageVerifier);
         receiver2.start();
@@ -195,7 +195,7 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
 
         Thread.sleep(5000);
 
-        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck prod1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         prod1.addMessageVerifier(messageVerifier);
         prod1.setMessageBuilder(messageBuilder);
@@ -207,7 +207,7 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
         Thread.sleep(180000);
 
         // start receiver
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 120000, 10, 100);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 120000, 10, 100);
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
@@ -292,9 +292,9 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
         TextMessageVerifier messageVerifier1 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
         TextMessageVerifier messageVerifier2 = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        SubscriberTransAck subscriber1 = new SubscriberTransAck(container(1), PrepareBase.TOPIC_JNDI, 60000, 10, 10, "client-1", "subscriber-1");
-        SubscriberTransAck subscriber2 = new SubscriberTransAck(container(3), PrepareBase.TOPIC_JNDI, 60000, 10, 10, "client-2", "subscriber-2");
-        PublisherTransAck publisher = new PublisherTransAck(container(1), PrepareBase.TOPIC_JNDI, 1000, "publisher-1");
+        SubscriberTransAck subscriber1 = new SubscriberTransAck(container(1), PrepareConstants.TOPIC_JNDI, 60000, 10, 10, "client-1", "subscriber-1");
+        SubscriberTransAck subscriber2 = new SubscriberTransAck(container(3), PrepareConstants.TOPIC_JNDI, 60000, 10, 10, "client-2", "subscriber-2");
+        PublisherTransAck publisher = new PublisherTransAck(container(1), PrepareConstants.TOPIC_JNDI, 1000, "publisher-1");
 
         subscriber1.addMessageVerifier(messageVerifier1);
         subscriber2.addMessageVerifier(messageVerifier2);

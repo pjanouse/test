@@ -8,8 +8,7 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients20.PublisherAutoAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
@@ -45,7 +44,7 @@ public class JmxTopicOperationsTestCase extends HornetQTestCase {
     @Prepare("OneNode")
     public void listDurableSubscriptionsAsJsonWithSubscriber() throws Exception{
         container(1).start();
-        PublisherAutoAck publisherAutoAck = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI, 1, "pub");
+        PublisherAutoAck publisherAutoAck = new PublisherAutoAck(container(1), PrepareConstants.TOPIC_JNDI, 1, "pub");
         publisherAutoAck.start();
         publisherAutoAck.join();
 
@@ -58,7 +57,7 @@ public class JmxTopicOperationsTestCase extends HornetQTestCase {
                     env.put(Context.PROVIDER_URL, String.format("%s%s:%s", "http-remoting://", "127.0.0.1", 8080));
                     Context context = new InitialContext(env);
                     ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-                    Topic topic = (Topic) context.lookup(PrepareBase.TOPIC_JNDI);
+                    Topic topic = (Topic) context.lookup(PrepareConstants.TOPIC_JNDI);
                     JMSContext ctx = cf.createContext();
                     JMSConsumer subscriber = ctx.createSharedDurableConsumer(topic,"ASIDE-FullStatus@RCD_NMS");
                     subscriber.receive(30000);
@@ -74,7 +73,7 @@ public class JmxTopicOperationsTestCase extends HornetQTestCase {
         logger.info("Getting queue controller from JMX");
         MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
         ObjectName topicControler = ObjectName.getInstance(
-                "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + PrepareBase.TOPIC_NAME);
+                "jboss.as:subsystem=messaging-activemq,server=default,jms-topic=" + PrepareConstants.TOPIC_NAME);
 
         logger.info("Invoking queue listDurableSubscriptionsAsJson via JMX");
 

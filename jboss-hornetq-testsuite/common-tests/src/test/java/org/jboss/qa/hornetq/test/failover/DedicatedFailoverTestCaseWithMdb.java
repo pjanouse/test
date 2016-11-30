@@ -18,7 +18,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueNoRebalancing;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -343,7 +343,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
 //        producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -359,7 +359,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(3).deploy(mdb);
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(container(1), PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(container(1), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             logger.info("Stopping container 1.");
@@ -373,12 +373,12 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(container(2), PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(container(2), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(2));
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), PrepareBase.OUT_QUEUE_JNDI, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -443,7 +443,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(new ClientMixMessageBuilder(1, 200));
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -457,7 +457,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).deploy(mdb);
 
         Assert.assertTrue("MDB on container 1 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(container(1), PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(container(1), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             logger.info("Stopping container 1.");
@@ -477,10 +477,10 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000); // wait for live to activate
         CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 30000); // wait for backup to deactivate
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -509,7 +509,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         container(1).start();
         container(2).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.setCommitAfter(500);
@@ -525,7 +525,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         logger.info("MDB was deployed to mdb server - container 3");
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                waitForMessagesOnOneNode(container(1), PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
+                waitForMessagesOnOneNode(container(1), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 300000));
 
         if (shutdown) {
             container(1).stop();
@@ -537,7 +537,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 600000);
         Assert.assertTrue("MDB can't resend messages after kill of live server. Time outed for waiting to get messages in outQueue",
-                waitForMessagesOnOneNode(container(2), PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
+                waitForMessagesOnOneNode(container(2), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
         Thread.sleep(10000);
         logger.info("Container 1 starting...");
         container(1).start();
@@ -549,9 +549,9 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         logger.info("Container 2 stopped");
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 3000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
@@ -605,7 +605,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         // start live-backup servers
         container(1).start();
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(new TextMessageBuilder(1024 * 200));
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         producerToInQueue1.addMessageVerifier(messageVerifier);
@@ -616,7 +616,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
         container(2).start();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, 30000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI, 30000, 100, 10);
         receiver1.setTimeout(100);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();

@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -82,7 +82,7 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .build();
         resourceMonitor.startMeasuring();
 
-        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES);
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES);
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
         producer.start();
         producer.join();
@@ -134,13 +134,13 @@ public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
                 .build();
         resourceMonitor.startMeasuring();
 
-        PublisherAutoAck producer = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI, NUMBER_OF_MESSAGES, "client1");
+        PublisherAutoAck producer = new PublisherAutoAck(container(1), PrepareConstants.TOPIC_JNDI, NUMBER_OF_MESSAGES, "client1");
         producer.setMessageBuilder(new ClientMixMessageBuilder(150, 150));
 
         SubscriberAutoAck fastConsumer = new SubscriberAutoAck(container(1),
-                PrepareBase.TOPIC_JNDI, "subscriber-1", "test-fast-subscriber");
+                PrepareConstants.TOPIC_JNDI, "subscriber-1", "test-fast-subscriber");
         SubscriberAutoAck slowConsumer = new SubscriberAutoAck(container(1),
-                PrepareBase.TOPIC_JNDI, "subscriber-2", "test-slow-subscriber");
+                PrepareConstants.TOPIC_JNDI, "subscriber-2", "test-slow-subscriber");
         slowConsumer.setTimeout(500); // slow consumer reads only 2 messages per second
         slowConsumer.setMaxRetries(1);
 

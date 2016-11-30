@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -72,7 +72,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             mbeanServer.addNotificationListener(ObjectNameBuilder.DEFAULT.getJMSServerObjectName(), jmsListener, null, null);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
             clients.setMessages(1);
             clients.startClients();
             while (!clients.isFinished()) {
@@ -126,7 +126,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             // send and receive single message
-            Clients clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
+            Clients clients = new QueueClientsAutoAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
             clients.setMessages(100000);
             clients.startClients();
 
@@ -135,7 +135,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             boolean result = false;
 
             try {
-                result = jmsServerControl.destroyQueue(PrepareBase.QUEUE_NAME_PREFIX + "0");
+                result = jmsServerControl.destroyQueue(PrepareConstants.QUEUE_NAME_PREFIX + "0");
                 Assert.fail("Calling destroyQueue must throw exception when jms org.jboss.qa.hornetq.apps.clients are connected.");
             } catch (Exception ex) {
                 // this is expected
@@ -150,7 +150,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
+            Clients clients2 = new QueueClientsAutoAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, 1, 1, 1, 1);
             clients2.setMessages(100000);
             clients2.startClients();
 
@@ -193,7 +193,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
-            boolean result = jmsServerControl.destroyQueue(PrepareBase.QUEUE_NAME);
+            boolean result = jmsServerControl.destroyQueue(PrepareConstants.QUEUE_NAME);
             Assert.assertTrue("Calling destroy queue with connected org.jboss.qa.hornetq.apps.clients must pass.", result);
         } finally {
             if (connector != null) {
@@ -201,7 +201,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 30);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 30);
         producerToInQueue1.setCommitAfter(10);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -212,7 +212,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
         // check that queue was destroyed
         JMSOperations jmsOperations = container(1).getJmsOperations();
         try {
-            jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME);
+            jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME);
             Assert.fail("Operation count messages must fail because queue was destroyed.");
         } catch (Exception ex) {
             // this is expected
@@ -242,7 +242,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
             // send and receive single message
-            Clients clients = new TopicClientsAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, 1, 1, 1, 1);
+            Clients clients = new TopicClientsAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, 1, 1, 1, 1);
             clients.setMessages(100000);
             clients.startClients();
 
@@ -250,7 +250,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             boolean result = false;
             try {
-                result = jmsServerControl.destroyTopic(PrepareBase.TOPIC_NAME_PREFIX + "0");
+                result = jmsServerControl.destroyTopic(PrepareConstants.TOPIC_NAME_PREFIX + "0");
                 Assert.fail("Calling destroyTopic must throw exception when jms org.jboss.qa.hornetq.apps.clients are connected.");
             } catch (Exception ex) {
                 // this is expected
@@ -265,7 +265,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
 
             // check that new org.jboss.qa.hornetq.apps.clients can be connected
             // send and receive single message
-            Clients clients2 = new TopicClientsAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, 1, 1, 1, 1);
+            Clients clients2 = new TopicClientsAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, 1, 1, 1, 1);
             clients2.setMessages(100000);
             clients2.startClients();
 
@@ -306,7 +306,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
             JMSServerControl jmsServerControl = container(1).getJmxUtils().getJmsServerMBean(mbeanServer, JMSServerControl.class);
 
-            boolean result = jmsServerControl.destroyTopic(PrepareBase.TOPIC_NAME);
+            boolean result = jmsServerControl.destroyTopic(PrepareConstants.TOPIC_NAME);
             Assert.assertTrue("Calling destroy topic with connected org.jboss.qa.hornetq.apps.clients must pass.", result);
         } finally {
             if (connector != null) {
@@ -314,7 +314,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             }
         }
 
-        PublisherTransAck publisher = new PublisherTransAck(container(1), PrepareBase.TOPIC_JNDI, 30, "publisher");
+        PublisherTransAck publisher = new PublisherTransAck(container(1), PrepareConstants.TOPIC_JNDI, 30, "publisher");
         publisher.setCommitAfter(10);
         publisher.setTimeout(0);
         publisher.start();
@@ -341,7 +341,7 @@ public class JmxClientNotificationTestCase extends HornetQTestCase {
             MBeanServerConnection mbeanServer = connector.getMBeanServerConnection();
 
             JMSQueueControl jmsQueueControl = (JMSQueueControl) container(1).getJmxUtils().getHornetQMBean(mbeanServer,
-                    ObjectNameBuilder.DEFAULT.getJMSQueueObjectName(PrepareBase.QUEUE_NAME), JMSQueueControl.class);
+                    ObjectNameBuilder.DEFAULT.getJMSQueueObjectName(PrepareConstants.QUEUE_NAME), JMSQueueControl.class);
             try {
                 jmsQueueControl.addJNDI("newName");
                 jmsQueueControl.addJNDI("newName");

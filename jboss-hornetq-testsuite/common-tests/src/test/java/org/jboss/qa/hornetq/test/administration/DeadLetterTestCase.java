@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.specific.DeadLetterPrepare;
@@ -178,7 +178,7 @@ public class DeadLetterTestCase extends HornetQTestCase {
             connection.start();
 
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
-            Queue queue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
+            Queue queue = (Queue) ctx.lookup(PrepareConstants.QUEUE_JNDI);
 
             Message msg;
 

@@ -1,7 +1,6 @@
 package org.jboss.qa.hornetq.test.smoke;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
@@ -12,8 +11,7 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.DuplicatesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.LostMessagesVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.SendReceiveCountVerifier;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
-import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -36,12 +34,12 @@ public class SmokeTestCase extends HornetQTestCase {
         ConfigurableMessageVerifier verifier = new ConfigurableMessageVerifier(
                 ContainerUtils.getJMSImplementation(container(1)), LostMessagesVerifier.class, DuplicatesVerifier.class, SendReceiveCountVerifier.class);
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 1);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 1);
         producer.setMessageBuilder(new TextMessageBuilder(200 * 1024));
         producer.addMessageVerifier(verifier);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver.addMessageVerifier(verifier);
         addClient(receiver);
 
@@ -70,13 +68,13 @@ public class SmokeTestCase extends HornetQTestCase {
         ConfigurableMessageVerifier verifier = new ConfigurableMessageVerifier(
                 ContainerUtils.getJMSImplementation(container(1)), LostMessagesVerifier.class, DuplicatesVerifier.class, SendReceiveCountVerifier.class);
 
-        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 10000);
+        ProducerTransAck producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 10000);
         producer.setCommitAfter(1000);
         producer.setMessageBuilder(new TextMessageBuilder(10));
         producer.addMessageVerifier(verifier);
         addClient(producer);
 
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 1000, 1);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 1000, 1);
         receiver.addMessageVerifier(verifier);
         addClient(receiver);
 

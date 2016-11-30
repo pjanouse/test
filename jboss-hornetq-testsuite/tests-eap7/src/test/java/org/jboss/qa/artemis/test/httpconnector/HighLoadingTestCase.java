@@ -7,8 +7,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
-import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -52,12 +51,12 @@ public class HighLoadingTestCase extends HornetQTestCase {
 
         try {
             // Publisher
-            PublisherAutoAck publisher = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI, numberOfMessages, "publisher");
+            PublisherAutoAck publisher = new PublisherAutoAck(container(1), PrepareConstants.TOPIC_JNDI, numberOfMessages, "publisher");
 
             // Consumers
             SubscriberAutoAck[] subscribers = new SubscriberAutoAck[subscribersCount];
             for (int i = 0; i < subscribersCount; i++) {
-                subscribers[i] = new SubscriberAutoAck(container(1), PrepareBase.TOPIC_JNDI, "client" + i, "subscriber" + i);
+                subscribers[i] = new SubscriberAutoAck(container(1), PrepareConstants.TOPIC_JNDI, "client" + i, "subscriber" + i);
                 subscribers[i].subscribe();
             }
 

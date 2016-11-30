@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -108,7 +108,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         final int MESSAGES = 10;
 
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
-        jmsAdminOperations.addQueueJNDIName(PrepareBase.QUEUE_NAME, TEST_QUEUE_JNDI_NEW);
+        jmsAdminOperations.addQueueJNDIName(PrepareConstants.QUEUE_NAME, TEST_QUEUE_JNDI_NEW);
         jmsAdminOperations.reload();
 
         SimpleJMSClient client = new SimpleJMSClient(
@@ -121,15 +121,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
         assertNull(client.getExceptionDuringSend());
         assertEquals(MESSAGES, client.getSentMessages());
 
-        assertEquals(MESSAGES, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME));
+        assertEquals(MESSAGES, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME));
 
         client.receiveMessages(TEST_QUEUE_JNDI_CLIENT);
         assertNull(client.getExceptionDuringReceive());
         assertEquals(MESSAGES, client.getReceivedMessages());
 
-        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME));
+        assertEquals(0, jmsAdminOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME));
 
-        jmsAdminOperations.removeQueue(PrepareBase.QUEUE_NAME);
+        jmsAdminOperations.removeQueue(PrepareConstants.QUEUE_NAME);
         jmsAdminOperations.close();
     }
 
@@ -1205,7 +1205,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
         //long numMessagesOnQueue = new JMSTools().countMessages(TEST_QUEUE, container(1));
         // receive message after test
-        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 2000, 1, 5);
+        ReceiverTransAck receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 2000, 1, 5);
         receiver.setTimeout(0);
         receiver.start();
         try {
@@ -1301,7 +1301,7 @@ public class FaultInjectionTestCase extends HornetQTestCase {
 
             log.info("Installing Byteman rule before sending message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
-            client.sendMessages(PrepareBase.QUEUE_JNDI);
+            client.sendMessages(PrepareConstants.QUEUE_JNDI);
 
             Assert.assertFalse("Byteman rule did not kill server. Check byteman rule if it's still correct.",
                     CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1)));
@@ -1319,15 +1319,15 @@ public class FaultInjectionTestCase extends HornetQTestCase {
             } catch (Exception e) {
             }
 
-            client.receiveMessages(PrepareBase.QUEUE_JNDI);
+            client.receiveMessages(PrepareConstants.QUEUE_JNDI);
         } else {
             log.info("Execution of the client ...");
-            client.sendMessages(PrepareBase.QUEUE_JNDI);
+            client.sendMessages(PrepareConstants.QUEUE_JNDI);
             client.setRollbackOnly(rollbackOnly);
             log.info("Installing Byteman rule before receiving message ...");
             RuleInstaller.installRule(this.getClass(), container(1).getHostname(), container(1).getBytemanPort());
 
-            client.receiveMessages(PrepareBase.QUEUE_JNDI);
+            client.receiveMessages(PrepareConstants.QUEUE_JNDI);
 
             Assert.assertFalse("Byteman rule did not kill server. Check byteman rule if it's still correct.",
                     CheckServerAvailableUtils.checkThatServerIsReallyUp(container(1)));

@@ -1,7 +1,9 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.generic.ReplicatedHA;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -15,20 +17,20 @@ public class JournalReplicationPrepare extends ReplicatedHA {
     public static final int MESSAGING_TO_BACKUP_PROXY_PORT = 51112;
 
     @Override
-    @PrepareMethod(value = "JournalReplicationPrepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "JournalReplicationPrepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "JournalReplicationPrepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepare(params, ctx);
+
+        ctx.invokeMethod("JournalReplicationPrepare-afterPrepare", params);
     }
 
-    @Override
-    protected void afterPrepareEAP6(Map<String, Object> params) throws Exception {
-        super.afterPrepareEAP6(params);
+    @PrepareMethod(value = "JournalReplicationPrepare-afterPrepare", labels = {"EAP6"})
+    public void afterPrepareEAP6(Map<String, Object> params) throws Exception {
 
         Container live = getContainer(params, 1);
         Container backup = getContainer(params, 2);
@@ -38,9 +40,8 @@ public class JournalReplicationPrepare extends ReplicatedHA {
 
     }
 
-    @Override
-    protected void afterPrepareEAP7(Map<String, Object> params) throws Exception {
-        super.afterPrepareEAP7(params);
+    @PrepareMethod(value = "JournalReplicationPrepare-afterPrepare", labels = {"EAP7"})
+    public void afterPrepareEAP7(Map<String, Object> params) throws Exception {
 
         Container live = getContainer(params, 1);
         Container backup = getContainer(params, 2);
@@ -57,7 +58,7 @@ public class JournalReplicationPrepare extends ReplicatedHA {
 
         jmsOperations.addRemoteSocketBinding(proxyBinding, container.getHostname(), proxyPort);
         jmsOperations.createRemoteConnector(proxyConnector, proxyBinding, null);
-        jmsOperations.setConnectorOnBroadcastGroup(BROADCAST_GROUP_NAME, Arrays.asList(proxyConnector));
+        jmsOperations.setConnectorOnBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(proxyConnector));
 
         jmsOperations.close();
     }
@@ -69,8 +70,8 @@ public class JournalReplicationPrepare extends ReplicatedHA {
         JMSOperations jmsOperations = container.getJmsOperations();
 
         jmsOperations.addRemoteSocketBinding(proxyBinding, container.getHostname(), proxyPort);
-        jmsOperations.createHttpConnector(proxyConnector, proxyBinding, null, ACCEPTOR_NAME);
-        jmsOperations.setConnectorOnBroadcastGroup(BROADCAST_GROUP_NAME, Arrays.asList(proxyConnector));
+        jmsOperations.createHttpConnector(proxyConnector, proxyBinding, null, PrepareConstants.ACCEPTOR_NAME);
+        jmsOperations.setConnectorOnBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(proxyConnector));
 
         jmsOperations.close();
     }

@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.perf.CounterMdb;
 import org.jboss.qa.hornetq.apps.perf.PerformanceConstants;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -283,8 +283,8 @@ public class SimpleContainerPerformanceTest extends HornetQTestCase {
             connection = cf.createConnection();
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue inQueue = (Queue) context.lookup(PrepareBase.IN_QUEUE_JNDI);
-            Queue outQueue = (Queue) context.lookup(PrepareBase.OUT_QUEUE_JNDI);
+            Queue inQueue = (Queue) context.lookup(PrepareConstants.IN_QUEUE_JNDI);
+            Queue outQueue = (Queue) context.lookup(PrepareConstants.OUT_QUEUE_JNDI);
 
             // cleaning
             MessageConsumer consumer = session.createConsumer(outQueue);

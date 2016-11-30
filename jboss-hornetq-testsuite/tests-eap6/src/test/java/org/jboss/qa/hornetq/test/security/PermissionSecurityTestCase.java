@@ -9,7 +9,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -77,7 +77,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient guest = null;
         try {
 
-            guest = new SecurityClient(container(1), PrepareBase.QUEUE_JNDI, 10, null, null);
+            guest = new SecurityClient(container(1), PrepareConstants.QUEUE_JNDI, 10, null, null);
             guest.initializeClient();
 
             try {
@@ -87,21 +87,21 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
 
             try {
-                guest.createDurableQueue(PrepareBase.QUEUE_NAME);
+                guest.createDurableQueue(PrepareConstants.QUEUE_NAME);
                 Assert.fail("This should fail. User guest should not have permission to create queue.");
             } catch (Exception ex) {
                 // ignore
             }
 
             try {
-                guest.deleteDurableQueue(PrepareBase.QUEUE_NAME);
+                guest.deleteDurableQueue(PrepareConstants.QUEUE_NAME);
                 Assert.fail("This should fail. User guest should not have permission to delete queue.");
             } catch (Exception ex) {
                 // ignore
             }
 
             try {
-                guest.createNonDurableQueue("jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                guest.createNonDurableQueue("jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
 
                 Assert.fail("This should fail. User guest should not have permission to create non-durable queue.");
 
@@ -110,7 +110,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
 
             try {
-                guest.deleteNonDurableQueue(PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                guest.deleteNonDurableQueue(PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
                 Assert.fail("This should fail. User guest should not have permission to delete non-durable queue.");
             } catch (Exception ex) {
                 // ignore
@@ -149,7 +149,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         SecurityClient user = null;
 
         try {
-            user = new SecurityClient(container(1), PrepareBase.QUEUE_JNDI, 10, PrepareBase.USER_NAME, PrepareBase.USER_PASS);
+            user = new SecurityClient(container(1), PrepareConstants.QUEUE_JNDI, 10, PrepareConstants.USER_NAME, PrepareConstants.USER_PASS);
             user.initializeClient();
 
             try {
@@ -159,27 +159,27 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
             }
 
             try {
-                user.createDurableQueue(PrepareBase.QUEUE_NAME);
+                user.createDurableQueue(PrepareConstants.QUEUE_NAME);
                 Assert.fail("This should fail. User 'user' should not have permission to create queue.");
             } catch (Exception ex) {
                 // ignore
             }
 
             try {
-                user.deleteDurableQueue(PrepareBase.QUEUE_NAME);
+                user.deleteDurableQueue(PrepareConstants.QUEUE_NAME);
                 Assert.fail("This should fail. User 'user' should not have permission to delete queue.");
             } catch (Exception ex) {
                 // ignore
             }
 
             try {
-                user.createNonDurableQueue("jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                user.createNonDurableQueue("jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
             } catch (Exception ex) {
                 Assert.fail("This should pass. User guest should have permission to create non-durable queue.");
             }
 
             try {
-                user.deleteNonDurableQueue(PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                user.deleteNonDurableQueue(PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
 
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -221,7 +221,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
 
         try {
             // try user admin
-            admin = new SecurityClient(container(1), PrepareBase.QUEUE_JNDI, 10, PrepareBase.ADMIN_NAME, PrepareBase.ADMIN_PASS);
+            admin = new SecurityClient(container(1), PrepareConstants.QUEUE_JNDI, 10, PrepareConstants.ADMIN_NAME, PrepareConstants.ADMIN_PASS);
             admin.initializeClient();
 
             try {
@@ -230,27 +230,27 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
                 Assert.fail("This should not fail:" + ex.getMessage());
             }
             try {
-                admin.createDurableQueue(PrepareBase.QUEUE_NAME);
+                admin.createDurableQueue(PrepareConstants.QUEUE_NAME);
 
             } catch (Exception ex) {
                 Assert.fail("This should not fail:" + ex.getMessage());
             }
 
             try {
-                admin.deleteDurableQueue(PrepareBase.QUEUE_NAME);
+                admin.deleteDurableQueue(PrepareConstants.QUEUE_NAME);
             } catch (Exception ex) {
                 Assert.fail("This should not fail:" + ex.getMessage());
                 ex.printStackTrace();
             }
 
             try {
-                admin.createNonDurableQueue("jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                admin.createNonDurableQueue("jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
             } catch (Exception ex) {
                 Assert.fail("This should not fail:" + ex.getMessage());
             }
 
             try {
-                admin.deleteNonDurableQueue(PrepareBase.QUEUE_NAME_PREFIX + "nondurable");
+                admin.deleteNonDurableQueue(PrepareConstants.QUEUE_NAME_PREFIX + "nondurable");
             } catch (Exception ex) {
                 Assert.fail("This should not fail.");
             }
@@ -292,7 +292,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         jmsAdminOperations.overrideInVMSecurity(false);
 
         container(1).restart();
-        SecurityClient producer = new SecurityClient(container(1), PrepareBase.IN_QUEUE_JNDI, 10, PrepareBase.USER_NAME, PrepareBase.USER_PASS);
+        SecurityClient producer = new SecurityClient(container(1), PrepareConstants.IN_QUEUE_JNDI, 10, PrepareConstants.USER_NAME, PrepareConstants.USER_PASS);
         producer.initializeClient();
         producer.send();
         producer.join();
@@ -300,7 +300,7 @@ public class PermissionSecurityTestCase extends HornetQTestCase {
         Thread.sleep(2000);
 
         jmsAdminOperations = container(1).getJmsOperations();
-        long count = jmsAdminOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME);
+        long count = jmsAdminOperations.getCountOfMessagesOnQueue(PrepareConstants.OUT_QUEUE_NAME);
         Assert.assertEquals("Mdb shouldn't be able to send any message to outQueue", 0, count);
         container(1).stop();
     }

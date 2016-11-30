@@ -10,7 +10,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -77,7 +77,7 @@ public class JMSSessionTestCase extends HornetQTestCase {
         ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
 
         for (int i = 0; i < QUEUE_NUMBER; i++) {
-            queues.add((Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + i));
+            queues.add((Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + i));
         }
 
         Connection connection = cf.createConnection();
@@ -135,8 +135,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
 
         Context context = getContext(container(1));
         ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        Queue testQueue0 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 0);
-        Queue testQueue1 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 1);
+        Queue testQueue0 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 0);
+        Queue testQueue1 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 1);
 
         Connection connection = cf.createConnection();
         connection.start();
@@ -171,8 +171,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
         context.close();
 
         JMSOperations jmsOperations = container(2).getJmsOperations();
-        Assert.assertEquals(2 * MESSAGES_NUMBER, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 0));
-        Assert.assertEquals(MESSAGES_NUMBER, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 1));
+        Assert.assertEquals(2 * MESSAGES_NUMBER, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 0));
+        Assert.assertEquals(MESSAGES_NUMBER, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 1));
         jmsOperations.close();
 
         container(2).stop();
@@ -210,8 +210,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
 
         Context context = getContext(container(1));
         ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        Queue testQueue0 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 0);
-        Queue testQueue1 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 1);
+        Queue testQueue0 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 0);
+        Queue testQueue1 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 1);
 
         // Full testQueue0
         Connection connection = cf.createConnection();
@@ -259,8 +259,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
         context.close();
 
         JMSOperations jmsOperations = container(1).getJmsOperations();
-        Assert.assertEquals(5, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 0));
-        Assert.assertEquals(5, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 1));
+        Assert.assertEquals(5, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 0));
+        Assert.assertEquals(5, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 1));
         jmsOperations.close();
 
         container(1).stop();
@@ -297,10 +297,10 @@ public class JMSSessionTestCase extends HornetQTestCase {
         container(1).start();
 
         JMSOperations jmsOperations = container(1).getJmsOperations();
-        jmsOperations.addSecuritySetting("default", "jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + 1);
-        jmsOperations.addRoleToSecuritySettings("jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + 1, "guest");
+        jmsOperations.addSecuritySetting("default", "jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + 1);
+        jmsOperations.addRoleToSecuritySettings("jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + 1, "guest");
         jmsOperations.setPermissionToRoleToSecuritySettings("#", "guest", "send", false);
-        jmsOperations.setPermissionToRoleToSecuritySettings("jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + 1, "guest", "send", true);
+        jmsOperations.setPermissionToRoleToSecuritySettings("jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + 1, "guest", "send", true);
         jmsOperations.setSecurityEnabled(true);
 
         HashMap<String, String> opts = new HashMap<String, String>();
@@ -314,8 +314,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
 
         Context context = getContext(container(1));
         ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        Queue testQueue0 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 0);
-        Queue testQueue1 = (Queue) context.lookup(PrepareBase.QUEUE_JNDI_PREFIX + 1);
+        Queue testQueue0 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 0);
+        Queue testQueue1 = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI_PREFIX + 1);
 
         Connection connection = cf.createConnection();
         connection.start();
@@ -340,8 +340,8 @@ public class JMSSessionTestCase extends HornetQTestCase {
         context.close();
 
         jmsOperations = container(1).getJmsOperations();
-        Assert.assertEquals(0, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 0));
-        Assert.assertEquals(2, jmsOperations.getCountOfMessagesOnQueue(PrepareBase.QUEUE_NAME_PREFIX + 1));
+        Assert.assertEquals(0, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 0));
+        Assert.assertEquals(2, jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.QUEUE_NAME_PREFIX + 1));
         jmsOperations.close();
 
         container(1).stop();

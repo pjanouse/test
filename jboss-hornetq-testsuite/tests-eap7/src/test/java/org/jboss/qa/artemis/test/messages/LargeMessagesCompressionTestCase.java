@@ -18,7 +18,7 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -195,10 +195,10 @@ public class LargeMessagesCompressionTestCase extends HornetQTestCase {
             ClientMessage msg = session.createMessage(Message.TEXT_TYPE, true);
             msg.getBodyBuffer().writeString(messageContents);
 
-            ClientProducer producer = session.createProducer("jms.queue." + PrepareBase.QUEUE_NAME);
+            ClientProducer producer = session.createProducer("jms.queue." + PrepareConstants.QUEUE_NAME);
             producer.send(msg);
 
-            ClientConsumer consumer = session.createConsumer("jms.queue." + PrepareBase.QUEUE_NAME);
+            ClientConsumer consumer = session.createConsumer("jms.queue." + PrepareConstants.QUEUE_NAME);
             session.start();
             ClientMessage received = consumer.receive(RECEIVE_TIMEOUT);
 

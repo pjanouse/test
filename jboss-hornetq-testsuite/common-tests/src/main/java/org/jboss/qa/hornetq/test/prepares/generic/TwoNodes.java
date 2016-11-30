@@ -1,9 +1,13 @@
 package org.jboss.qa.hornetq.test.prepares.generic;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareMethods;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -12,26 +16,29 @@ import java.util.Random;
 
 public class TwoNodes extends PrepareBase {
 
-    @PrepareMethod(value = "TwoNodes", labels = {"EAP6"})
-    public void prepareMethodEAP6(final Map<String, Object> params) throws Exception {
+    @PrepareMethod(value = "TwoNodes", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(final Map<String, Object> params, final PrepareContext ctx) throws Exception {
         final Container container1 = getContainer(params, 1);
         final Container container2 = getContainer(params, 2);
 
         container1.start();
         container2.start();
 
-        beforePrepareEAP6(params);
+        JMSOperations jmsOperations1 = container1.getJmsOperations();
+        JMSOperations jmsOperations2 = container2.getJmsOperations();
 
-        final Map<String, Object> params1 = getParamsForContainer(params, 1);
-        final Map<String, Object> params2 = getParamsForContainer(params, 2);
+        beforePrepare(params, ctx);
+
+        final Map<String, Object> params1 = getParamsForContainer(params, container1, jmsOperations1, 1);
+        final Map<String, Object> params2 = getParamsForContainer(params, container2, jmsOperations2, 2);
 
         Runnable r1 = new Runnable() {
             @Override
             public void run() {
                 try {
-                    beforePrepareContainer1EAP6(params1, container1);
-                    prepareContainer1EAP6(params1, container1);
-                    afterPrepareContainer1EAP6(params1, container1);
+                    beforePrepareContainer1(params1, ctx);
+                    prepareContainer1(params1, ctx);
+                    afterPrepareContainer1(params1, ctx);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -41,9 +48,9 @@ public class TwoNodes extends PrepareBase {
             @Override
             public void run() {
                 try {
-                    beforePrepareContainer2EAP6(params2, container2);
-                    prepareContainer2EAP6(params2, container2);
-                    afterPrepareContainer2EAP6(params2, container2);
+                    beforePrepareContainer2(params2, ctx);
+                    prepareContainer2(params2, ctx);
+                    afterPrepareContainer2(params2, ctx);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -52,61 +59,23 @@ public class TwoNodes extends PrepareBase {
 
         PrepareUtils.runInParallel(r1, r2);
 
-        afterPrepareEAP6(params);
+        afterPrepare(params, ctx);
+
+        getJMSOperations(params1).close();
+        getJMSOperations(params2).close();
 
         container1.stop();
         container2.stop();
-    }
 
-    @PrepareMethod(value = "TwoNodes", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        final Container container1 = getContainer(params, 1);
-        final Container container2 = getContainer(params, 2);
-
-        container1.start();
-        container2.start();
-
-        beforePrepareEAP7(params);
-
-        final Map<String, Object> params1 = getParamsForContainer(params, 1);
-        final Map<String, Object> params2 = getParamsForContainer(params, 2);
-
-        Runnable r1 = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    beforePrepareContainer1EAP7(params1, container1);
-                    prepareContainer1EAP7(params1, container1);
-                    afterPrepareContainer1EAP7(params1, container1);
-                } catch (Exception e) {
-                    throw  new RuntimeException(e);
-                }
-            }
-        };
-        Runnable r2 = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    beforePrepareContainer2EAP7(params2, container2);
-                    prepareContainer2EAP7(params2, container2);
-                    afterPrepareContainer2EAP7(params2, container2);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
-        PrepareUtils.runInParallel(r1, r2);
-
-        afterPrepareEAP7(params);
-
-        container1.stop();
-        container2.stop();
+        JournalDirectory.deleteJournalDirectory(null, HornetQTestCase.JOURNAL_DIRECTORY_A);
+        JournalDirectory.deleteJournalDirectory(null, HornetQTestCase.JOURNAL_DIRECTORY_B);
+        JournalDirectory.deleteJournalDirectory(null, HornetQTestCase.JOURNAL_DIRECTORY_C);
+        JournalDirectory.deleteJournalDirectory(null, HornetQTestCase.JOURNAL_DIRECTORY_D);
     }
 
     // Before
 
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
         PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node1-bindings-table");
         PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node1-messages-table");
         PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node1-large-messages-table");
@@ -115,163 +84,57 @@ public class TwoNodes extends PrepareBase {
         PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node2-large-messages-table");
     }
 
-    protected void beforePrepareEAP6(Map<String, Object> params) throws Exception {
-        beforePrepare(params);
-    }
+    protected void beforePrepareContainer(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
-    protected void beforePrepareEAP7(Map<String, Object> params) throws Exception {
-        beforePrepare(params);
-    }
-
-    protected void beforePrepareContainer(Map<String, Object> params, Container container) throws Exception {
-
-    }
-
-    protected void beforePrepareContainerEAP6(Map<String, Object> params, Container container) throws Exception {
-        beforePrepareContainer(params, container);
-    }
-
-    protected void beforePrepareContainerEAP7(Map<String, Object> params, Container container) throws Exception {
-        beforePrepareContainer(params, container);
     }
 
     // Before container 1
 
-    protected void beforePrepareContainer1EAP6(Map<String, Object> params, Container container) throws Exception {
-        beforePrepareContainerEAP6(params, container);
-    }
-
-    protected void beforePrepareContainer1EAP7(Map<String, Object> params, Container container) throws Exception {
-        beforePrepareContainerEAP7(params, container);
+    protected void beforePrepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        beforePrepareContainer(params, ctx);
     }
 
     // Before container 2
 
-    protected void beforePrepareContainer2EAP6(Map<String, Object> params, Container container) throws Exception {
-        beforePrepareContainerEAP6(params, container);
+    protected void beforePrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        beforePrepareContainer(params, ctx);
     }
 
-    protected void beforePrepareContainer2EAP7(Map<String, Object> params, Container container) throws Exception {
-        try {
-            beforePrepareContainerEAP7(params, container);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected void prepareContainer(Map<String, Object> params, PrepareContext ctx) throws Exception {
+
+        invokeAllPrepareMethods(params, ctx);
     }
 
-    protected void prepareContainerEAP6(Map<String, Object> params, Container container) throws Exception {
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setClustered(true);
-
-        jmsOperations.setNodeIdentifier(new Random().nextInt());
-
-        prepareSecurity(params, container);
-
-        prepareAddressSettings(params, jmsOperations);
-
-        prepareDestinations(params, jmsOperations);
-
-        prepareDiverts(params, jmsOperations);
-
-        prepareConnectionFactory(params, jmsOperations);
-
-        prepareConnectorEAP6(params, jmsOperations);
-
-        prepareCluster(params, jmsOperations);
-
-        prepareMisc(params, jmsOperations);
-
-        jmsOperations.close();
-    }
-
-    protected void prepareContainerEAP7(Map<String, Object> params, Container container) throws Exception {
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        jmsOperations.setNodeIdentifier(new Random().nextInt());
-
-        prepareSecurity(params, container);
-
-        prepareAddressSettings(params, jmsOperations);
-
-        prepareDestinations(params, jmsOperations);
-
-        prepareDiverts(params, jmsOperations);
-
-        prepareConnectionFactory(params, jmsOperations);
-
-        prepareConnectorEAP7(params, jmsOperations);
-
-        prepareCluster(params, jmsOperations);
-
-        prepareMisc(params, jmsOperations);
-
-        prepareDatabase(params, container);
-
-        jmsOperations.close();
-    }
-
-    protected void prepareContainer1EAP6(Map<String, Object> params, Container container) throws Exception {
-        prepareContainerEAP6(params, container);
-    }
-
-    protected void prepareContainer1EAP7(Map<String, Object> params, Container container) throws Exception {
-        prepareContainerEAP7(params, container);
+    protected void prepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        prepareContainer(params, ctx);
     }
 
     // Prepare container 2
 
-    protected void prepareContainer2EAP6(Map<String, Object> params, Container container) throws Exception {
-        prepareContainerEAP6(params, container);
+    protected void prepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        prepareContainer(params, ctx);
     }
 
-    protected void prepareContainer2EAP7(Map<String, Object> params, Container container) throws Exception {
-        prepareContainerEAP7(params, container);
-    }
+    protected void afterPrepareContainer(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
-    protected void afterPrepareContainer(Map<String, Object> params, Container container) throws Exception {
-
-    }
-
-    protected void afterPrepareContainerEAP6(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainer(params, container);
-    }
-    protected void afterPrepareContainerEAP7(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainer(params, container);
     }
 
     // After container 1
 
-    protected void afterPrepareContainer1EAP6(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainerEAP6(params, container);
-    }
-
-    protected void afterPrepareContainer1EAP7(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainerEAP7(params, container);
+    protected void afterPrepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        afterPrepareContainer(params, ctx);
     }
 
     // After container 2
 
-    protected void afterPrepareContainer2EAP6(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainerEAP6(params, container);
-    }
-
-    protected void afterPrepareContainer2EAP7(Map<String, Object> params, Container container) throws Exception {
-        afterPrepareContainerEAP7(params, container);
+    protected void afterPrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        afterPrepareContainer(params, ctx);
     }
 
     // After prepare
 
-    protected void afterPrepare(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
-    }
-
-    protected void afterPrepareEAP6(Map<String, Object> params) throws Exception {
-        afterPrepare(params);
-    }
-
-    protected void afterPrepareEAP7(Map<String, Object> params) throws Exception {
-        afterPrepare(params);
     }
 
 }

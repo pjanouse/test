@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -107,7 +107,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
+            Queue testQueue = (Queue) ctx.lookup(PrepareConstants.QUEUE_JNDI);
             MessageProducer producer = session.createProducer(testQueue);
 
             Message msg = session.createTextMessage("Test text");
@@ -138,7 +138,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
             session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            Queue testQueue = (Queue) ctx.lookup(PrepareBase.QUEUE_JNDI);
+            Queue testQueue = (Queue) ctx.lookup(PrepareConstants.QUEUE_JNDI);
             MessageConsumer consumer = session.createConsumer(testQueue);
 
             received = consumer.receive(RECEIVE_TIMEOUT);
@@ -305,7 +305,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
         journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 50);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 50);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.start();
@@ -325,7 +325,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         boolean imported = journalExportImportUtils.importJournal(EXPORTED_JOURNAL_FILE_NAME);
         assertTrue("Journal should be imported successfully", imported);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 5000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 5000, 10, 10);
         receiver1.start();
         receiver1.join();
 

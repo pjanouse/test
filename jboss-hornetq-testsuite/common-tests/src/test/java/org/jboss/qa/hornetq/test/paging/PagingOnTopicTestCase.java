@@ -8,7 +8,7 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -69,12 +69,12 @@ public class PagingOnTopicTestCase extends HornetQTestCase {
         ArrayList<SubscriberAutoAck> subscribers = new ArrayList<SubscriberAutoAck>();
 
         for(int i=0; i<10; i++){
-            PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareBase.TOPIC_JNDI, 50,"publisher"+i);
+            PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareConstants.TOPIC_JNDI, 50,"publisher"+i);
             publisher.start();
             publishers.add(publisher);
         }
         for(int i=0; i<3; i++){
-            SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1),PrepareBase.TOPIC_JNDI,"1","subscriber"+i);
+            SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareConstants.TOPIC_JNDI,"1","subscriber"+i);
             subscriber.start();
             subscribers.add(subscriber);
         }

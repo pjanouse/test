@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
@@ -20,19 +21,13 @@ public class DeadLetterPrepare extends OneNode {
     public static final String DLQ_JNDI = "jms/queue" + DLQ_NAME;
 
     @Override
-    @PrepareMethod(value = "DeadLetterPrepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "DeadLetterPrepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "DeadLetterPrepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    @Override
-    protected void beforePrepare(Map<String, Object> params, Container container) {
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) {
         PrepareUtils.requireParam(params, PrepareParams.ADDRESS);
         PrepareUtils.requireParam(params, DEPLOY_DLQ);
         PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_DELIVERY_ATTEMPTS, 2);
@@ -41,12 +36,10 @@ public class DeadLetterPrepare extends OneNode {
 
         boolean deployDLQ = PrepareUtils.getBoolean(params, DEPLOY_DLQ);
 
-        JMSOperations jmsOperations = container.getJmsOperations();
+        JMSOperations jmsOperations = getJMSOperations(params);
 
         if (deployDLQ) {
             jmsOperations.createQueue(DLQ_NAME, DLQ_JNDI, true);
         }
-
-        jmsOperations.close();
     }
 }

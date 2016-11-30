@@ -4,7 +4,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -55,9 +55,9 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
         try {
             context = container(1).getContext();
 
-            Queue queue = (Queue) context.lookup(PrepareBase.IN_QUEUE_JNDI);
+            Queue queue = (Queue) context.lookup(PrepareConstants.IN_QUEUE_JNDI);
 
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("jms/" + PrepareBase.REMOTE_CONNECTION_FACTORY_NAME);
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("jms/" + PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME);
 
             connection = connectionFactory.createConnection();
 

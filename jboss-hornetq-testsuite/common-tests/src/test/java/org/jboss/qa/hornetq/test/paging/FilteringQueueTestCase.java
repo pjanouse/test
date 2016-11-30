@@ -7,7 +7,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.impl.ColoredMessagesBuilder;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -75,7 +75,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -93,7 +93,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
-            Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
+            Queue queue = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI);
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
             MessageConsumer consumer = session.createConsumer(queue, "color = 'RED'");
 
@@ -165,7 +165,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, 100);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 100);
         MessageBuilder builder = new ColoredMessagesBuilder(30);
         builder.setAddDuplicatedHeader(true);
         producer1.setMessageBuilder(builder);
@@ -183,7 +183,7 @@ public class FilteringQueueTestCase extends HornetQTestCase {
             ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
             connection = connectionFactory.createConnection();
             connection.start();
-            Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
+            Queue queue = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI);
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
             MessageConsumer consumer = session.createConsumer(queue, "color = 'RED'");
             MessageConsumer consumer2 = session.createConsumer(queue, "color = 'GREEN'");

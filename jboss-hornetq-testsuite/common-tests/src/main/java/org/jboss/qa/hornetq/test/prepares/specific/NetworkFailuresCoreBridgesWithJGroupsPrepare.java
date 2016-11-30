@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.Map;
@@ -13,29 +15,26 @@ public class NetworkFailuresCoreBridgesWithJGroupsPrepare extends NetworkFailure
     public static final int GOSSHIP_ROUTER_PORT = 12001;
 
     @Override
-    @PrepareMethod(value = "NetworkFailuresCoreBridgesWithJGroupsPrepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "NetworkFailuresCoreBridgesWithJGroupsPrepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "NetworkFailuresCoreBridgesWithJGroupsPrepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    protected void afterPrepareContainer1(Map<String, Object> params, Container container) throws Exception {
+    protected void afterPrepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
         boolean messageGrouping = PrepareUtils.getBoolean(params, MESSAGE_GROUPING, false);
+
+        Container container = getContainer(params);
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
         prepareProxyConnector(params, jmsOperations, PROXY_21_PORT);
 
-        jmsOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, "udp", "udp", 2000, PROXY_CONNECTOR_NAME);
+        jmsOperations.removeBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME);
+        jmsOperations.setBroadCastGroup(PrepareConstants.BROADCAST_GROUP_NAME, "udp", "udp", 2000, PROXY_CONNECTOR_NAME);
 
-        jmsOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, 10000, "udp", "udp");
+        jmsOperations.removeDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME);
+        jmsOperations.setDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME, 10000, "udp", "udp");
 
         // update UDP stack to use
 //        <transport type="TUNNEL" shared="false">
@@ -51,18 +50,21 @@ public class NetworkFailuresCoreBridgesWithJGroupsPrepare extends NetworkFailure
         }
     }
 
-    protected void afterPrepareContainer2(Map<String, Object> params, Container container) throws Exception {
+    @Override
+    protected void afterPrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
         boolean messageGrouping = PrepareUtils.getBoolean(params, MESSAGE_GROUPING, false);
+
+        Container container = getContainer(params);
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
         prepareProxyConnector(params, jmsOperations, PROXY_12_PORT);
 
-        jmsOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, "udp", "udp", 2000, PROXY_CONNECTOR_NAME);
+        jmsOperations.removeBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME);
+        jmsOperations.setBroadCastGroup(PrepareConstants.BROADCAST_GROUP_NAME, "udp", "udp", 2000, PROXY_CONNECTOR_NAME);
 
-        jmsOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, 10000, "udp", "udp");
+        jmsOperations.removeDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME);
+        jmsOperations.setDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME, 10000, "udp", "udp");
 
         // update UDP stack to use
 //        <transport type="TUNNEL" shared="false">

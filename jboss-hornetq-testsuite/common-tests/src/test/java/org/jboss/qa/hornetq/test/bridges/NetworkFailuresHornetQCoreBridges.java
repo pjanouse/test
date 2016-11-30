@@ -12,7 +12,7 @@ import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.MixMessageGroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesPrepare;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -410,14 +410,14 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.addMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), PrepareBase.QUEUE_JNDI, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(messageVerifier);
 
@@ -448,7 +448,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             Assert.assertTrue("There must be more sent messages then received.",
                     producer1.getListOfSentMessages().size() > receiver1.getCount());
             container(1).restart();
-            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 10000, 10, 10);
             receiver2.start();
             receiver2.join();
             container(1).stop();
@@ -486,7 +486,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         GroupMessageVerifier groupMessageVerifier = new GroupMessageVerifier(ArtemisJMSImplementation.getInstance());
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
@@ -494,7 +494,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
         producer1.addMessageVerifier(groupMessageVerifier);
 
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),  PrepareBase.QUEUE_JNDI, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2),  PrepareConstants.QUEUE_JNDI, (4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(groupMessageVerifier);
 
@@ -548,7 +548,7 @@ public class NetworkFailuresHornetQCoreBridges extends NetworkFailuresBridgesAbs
             Assert.assertEquals("There shoulld be 2 nodes in cluster for container 2.",
                     1, getNumberOfNodesInCluster(container(2)));
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 10000, 10, 10);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 10000, 10, 10);
             receiver2.addMessageVerifier(groupMessageVerifier);
             receiver2.start();
             receiver2.join();

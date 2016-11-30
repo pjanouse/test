@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.test.journalreplication.utils.JMSUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.NetworkProblemController;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ServerUtil;
 import org.jboss.qa.hornetq.test.journalreplication.utils.ThreadUtil;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.JournalReplicationPrepare;
 import org.jboss.qa.hornetq.tools.ControllableProxy;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
@@ -186,10 +186,10 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
             sleepSeconds(60);
 
             Context context = container(1).getContext();
-            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("jms/" + PrepareBase.REMOTE_CONNECTION_FACTORY_NAME);
+            ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("jms/" + PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME);
             connection = connectionFactory.createConnection();
             connection.start();
-            Queue queue = (Queue) context.lookup(PrepareBase.QUEUE_JNDI);
+            Queue queue = (Queue) context.lookup(PrepareConstants.QUEUE_JNDI);
             Session session = connection.createSession(NON_TRANSACTED, Session.CLIENT_ACKNOWLEDGE);
 
             MessageConsumer receiver = session.createConsumer(queue);
@@ -296,7 +296,7 @@ public abstract class JournalReplicationAbstract extends HornetQTestCase {
 //				MESSAGES_NUM);
         return new ProducerTransAck(
                 container(1),
-                PrepareBase.QUEUE_JNDI,
+                PrepareConstants.QUEUE_JNDI,
                 MESSAGES_NUM);
     }
 

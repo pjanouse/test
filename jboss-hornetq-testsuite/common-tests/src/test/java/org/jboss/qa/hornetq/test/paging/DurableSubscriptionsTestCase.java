@@ -12,7 +12,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -84,7 +84,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(value = "OneNode", params = {
-            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareConstants.TOPIC_NAME),
             @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
             @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
             @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
@@ -115,7 +115,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(value = "OneNode", params = {
-            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareConstants.TOPIC_NAME),
             @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
             @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
             @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
@@ -146,7 +146,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(value = "OneNode", params = {
-            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareConstants.TOPIC_NAME),
             @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
             @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
             @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
@@ -177,7 +177,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(value = "OneNode", params = {
-            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareBase.TOPIC_NAME),
+            @Param(name = PrepareParams.ADDRESS, value = "jms.topic." + PrepareConstants.TOPIC_NAME),
             @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 1024 * 50),
             @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 1024 * 10),
             @Param(name = PrepareParams.DISABLE_TRACE_LOGGING, value = "true")
@@ -217,7 +217,7 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
         try {
             context = container(1).getContext();
             ConnectionFactory cf = (ConnectionFactory) context.lookup(container(1).getConnectionFactoryName());
-            Topic topic = (Topic) context.lookup(PrepareBase.TOPIC_JNDI);
+            Topic topic = (Topic) context.lookup(PrepareConstants.TOPIC_JNDI);
 
             producer = new HighLoadProducerWithSemaphores("producer", topic, cf, semaphores[0], gapBetweenConsumers,
                     messagesCount, messageBuilder, ContainerUtils.getJMSImplementation(container(1)));

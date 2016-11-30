@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -152,13 +152,13 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         producer.setMessageBuilder(messageBuilder);
 
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), PrepareBase.TOPIC_JNDI, 30000, 10, 30, "myClientId", "subscriber1");
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), PrepareConstants.TOPIC_JNDI, 30000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
 
-        PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareBase.TOPIC_JNDI, numberOfMessages, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareConstants.TOPIC_JNDI, numberOfMessages, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
 
         publisher.start();
@@ -166,9 +166,9 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         producer.join();
         publisher.join();
 
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, numberOfMessages, 18000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, numberOfMessages, 18000, container(1));
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 10, 30);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 10, 30);
         receiver.setTimeout(1000);
         subscriber.setTimeout(1000);
         receiver.start();
@@ -230,10 +230,10 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         container(1).start();
 
-        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES);
-        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), PrepareBase.TOPIC_JNDI, 30000, 10, 30, "myClientId", "subscriber1");
+        ProducerClientAck producer = new ProducerClientAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES);
+        SubscriberClientAck subscriber = new SubscriberClientAck(container(1), PrepareConstants.TOPIC_JNDI, 30000, 10, 30, "myClientId", "subscriber1");
         subscriber.subscribe();
-        PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareBase.TOPIC_JNDI, NUMBER_OF_MESSAGES, "myClientIdPublisher");
+        PublisherClientAck publisher = new PublisherClientAck(container(1), PrepareConstants.TOPIC_JNDI, NUMBER_OF_MESSAGES, "myClientIdPublisher");
         publisher.setMessageBuilder(messageBuilder);
         publisher.start();
 
@@ -241,7 +241,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         producer.start();
 
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, 20, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 20, 120000, container(1));
 
         if (testKill) {
             log.info("############# Kill server 1.");
@@ -272,10 +272,10 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         publisher.join();
 
         log.info("Waiting for all messages in queue0");
-        new JMSTools().waitForMessages(PrepareBase.QUEUE_NAME, producer.getCount(), 180000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, producer.getCount(), 180000, container(1));
         log.info("Finished waiting for all messages in queue0");
 
-        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 10, 30);
+        ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 10, 30);
         receiver.start();
         receiver.setTimeout(0);
         receiver.join();

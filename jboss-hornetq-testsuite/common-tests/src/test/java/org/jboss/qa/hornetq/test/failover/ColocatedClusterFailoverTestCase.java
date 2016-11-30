@@ -21,7 +21,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -218,13 +218,13 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         TextMessageVerifier textMessageVerifier = new TextMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX + "0", "id", "name");
+        SubscriberAutoAck subscriber = new SubscriberAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX + "0", "id", "name");
         subscriber.addMessageVerifier(textMessageVerifier);
 
         subscriber.start();
         Assert.assertTrue(subscriber.waitOnSubscribe(3, TimeUnit.SECONDS));
 
-        PublisherAutoAck producerAutoAck = new PublisherAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX + "0", 20, "naem");
+        PublisherAutoAck producerAutoAck = new PublisherAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX + "0", 20, "naem");
         producerAutoAck.addMessageVerifier(textMessageVerifier);
         producerAutoAck.start();
         producerAutoAck.join();
@@ -302,7 +302,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 2000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
@@ -316,7 +316,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).deploy(mdb1);
 
         // when 1/3 is processed then kill/shut down 2nd server
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 10, 300000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 300000, container(1), container(2));
 
         logger.info("########################################");
         logger.info("kill - second server");
@@ -329,7 +329,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         // when 1/2 is processed then start 2nd server
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 2, 120000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 120000, container(1));
 
         Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(),
                 Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 + container(1).getPortOffset(), 300000));
@@ -346,7 +346,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.warn("Wait some time (5 min) to give chance live in container 2 to come alive after failback.");
         CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
         logger.warn("Live in container is alive.");
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 120000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 120000, container(1), container(2));
 
         logger.info("Get information about transactions from HQ:");
         long timeout = 300000;
@@ -368,7 +368,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
         jmsOperations.close();
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 5000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 5000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
@@ -488,7 +488,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
 
         int numberOfMessages = 6000;
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         producerToInQueue1.setTimeout(0);
         producerToInQueue1.setCommitAfter(100);
@@ -516,11 +516,11 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("Second server started");
         logger.info("########################################");
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 1000, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 1000, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.setAckAfter(100);
-        printQueueStatus(container(1), PrepareBase.IN_QUEUE_NAME);
-        printQueueStatus(container(2), PrepareBase.IN_QUEUE_NAME);
+        printQueueStatus(container(1), PrepareConstants.IN_QUEUE_NAME);
+        printQueueStatus(container(2), PrepareConstants.IN_QUEUE_NAME);
 
         receiver1.start();
         receiver1.join();
@@ -758,7 +758,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         GroupMessageVerifier messageVerifier = new GroupMessageVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), PrepareBase.QUEUE_JNDI, number_of_messages);
+        ProducerClientAck producerRedG1 = new ProducerClientAck(container(1), PrepareConstants.QUEUE_JNDI, number_of_messages);
 
         if (largeMessages) {
 
@@ -772,7 +772,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         producerRedG1.addMessageVerifier(messageVerifier);
 
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), PrepareBase.QUEUE_JNDI, 60000, 10, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), PrepareConstants.QUEUE_JNDI, 60000, 10, 10);
 
         receiver1.addMessageVerifier(messageVerifier);
         Thread.sleep(15000);
@@ -952,21 +952,21 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }

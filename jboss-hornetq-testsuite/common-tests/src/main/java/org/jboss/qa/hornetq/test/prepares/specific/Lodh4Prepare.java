@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.FourNodes;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -27,27 +29,28 @@ public class Lodh4Prepare extends FourNodes {
     }
 
     @Override
-    @PrepareMethod(value = "Lodh4Prepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "Lodh4Prepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "Lodh4Prepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    @Override
-    protected void beforePrepare(Map<String, Object> params) throws Exception {
-        super.beforePrepare(params);
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
 
         PrepareUtils.setIfNotSpecified(params, PrepareParams.CLUSTER_TYPE, Constants.CLUSTER_TYPE.MULTICAST.name());
         PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_DESTINATIONS, false);
     }
 
     @Override
-    protected void afterPrepareEAP6(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepare(params, ctx);
+
+        ctx.invokeMethod("Lodh4Prepare-afterPrepare", params);
+    }
+
+    @PrepareMethod(value = "Lodh4Prepare-afterPrepare", labels = {"EAP6"})
+    public void afterPrepareEAP6(Map<String, Object> params) throws Exception {
         Variant variant = PrepareUtils.getEnum(params, VARIANT, Variant.class, Variant.DEFAULT);
 
         Container container1 = getContainer(params, 1);
@@ -71,8 +74,8 @@ public class Lodh4Prepare extends FourNodes {
         }
     }
 
-    @Override
-    protected void afterPrepareEAP7(Map<String, Object> params) throws Exception {
+    @PrepareMethod(value = "Lodh4Prepare-afterPrepare", labels = {"EAP7"})
+    public void afterPrepareEAP7(Map<String, Object> params) throws Exception {
         Variant variant = PrepareUtils.getEnum(params, VARIANT, Variant.class, Variant.DEFAULT);
 
         Container container1 = getContainer(params, 1);
@@ -107,7 +110,7 @@ public class Lodh4Prepare extends FourNodes {
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
-        jmsOperations.setMulticastAddressOnSocketBinding(MULTICAST_SOCKET_BINDING_NAME, "231.43.21.36");
+        jmsOperations.setMulticastAddressOnSocketBinding(PrepareConstants.MULTICAST_SOCKET_BINDING_NAME, "231.43.21.36");
         jmsOperations.setIdCacheSize(500000);
 
         jmsOperations.addRemoteSocketBinding(remoteSocketBinding, target.getHostname(), target.getHornetqPort());
@@ -139,7 +142,7 @@ public class Lodh4Prepare extends FourNodes {
 
         JMSOperations jmsOperations = container.getJmsOperations();
 
-        jmsOperations.setMulticastAddressOnSocketBinding(MULTICAST_SOCKET_BINDING_NAME, "231.43.21.36");
+        jmsOperations.setMulticastAddressOnSocketBinding(PrepareConstants.MULTICAST_SOCKET_BINDING_NAME, "231.43.21.36");
         jmsOperations.setIdCacheSize(500000);
 
         jmsOperations.addRemoteSocketBinding(remoteSocketBinding, target.getHostname(), target.getHornetqPort());

@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.test.prepares.specific;
 
 import org.apache.commons.io.FileUtils;
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.generic.FourNodes;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -16,31 +18,25 @@ public class BytemanLodh2Prepare extends FourNodes {
     public static final String GROUP_ADDRESS = "233.6.88.5";
 
     @Override
-    @PrepareMethod(value = "BytemanLodh2Prepare", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP6(params);
+    @PrepareMethod(value = "BytemanLodh2Prepare", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.prepareMethod(params, ctx);
     }
 
     @Override
-    @PrepareMethod(value = "BytemanLodh2Prepare", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        super.prepareMethodEAP7(params);
-    }
-
-    @Override
-    protected void afterPrepareContainer(Map<String, Object> params, Container container) {
+    protected void afterPrepareContainer(Map<String, Object> params, PrepareContext ctx) {
         String messagingGroupSocketBindingName = "messaging-group";
 
-        JMSOperations jmsOperations = container.getJmsOperations();
+        JMSOperations jmsOperations = getJMSOperations(params);
 
         jmsOperations.setClustered(true);
-        jmsOperations.removeBroadcastGroup(BROADCAST_GROUP_NAME);
-        jmsOperations.setBroadCastGroup(BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, CONNECTOR_NAME_EAP6, "");
-        jmsOperations.removeDiscoveryGroup(DISCOVERY_GROUP_NAME);
-        jmsOperations.setDiscoveryGroup(DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
-        jmsOperations.removeClusteringGroup(CLUSTER_NAME);
-        jmsOperations.setClusterConnections(CLUSTER_NAME, "jms", DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                CONNECTOR_NAME_EAP6);
+        jmsOperations.removeBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME);
+        jmsOperations.setBroadCastGroup(PrepareConstants.BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, PrepareConstants.CONNECTOR_NAME_EAP6, "");
+        jmsOperations.removeDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME);
+        jmsOperations.setDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
+        jmsOperations.removeClusteringGroup(PrepareConstants.CLUSTER_NAME);
+        jmsOperations.setClusterConnections(PrepareConstants.CLUSTER_NAME, "jms", PrepareConstants.DISCOVERY_GROUP_NAME, false, 1, 1000, true,
+                PrepareConstants.CONNECTOR_NAME_EAP6);
 
         jmsOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
         jmsOperations.removeSocketBinding(messagingGroupSocketBindingName);
@@ -48,7 +44,14 @@ public class BytemanLodh2Prepare extends FourNodes {
     }
 
     @Override
-    protected void afterPrepareEAP6(Map<String, Object> params) throws Exception {
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.afterPrepare(params, ctx);
+
+        ctx.invokeMethod("BytemanLodh2Prepare-afterPrepare", params);
+    }
+
+    @PrepareMethod(value = "BytemanLodh2Prepare-afterPrepare", labels = {"EAP6"})
+    public void afterPrepareEAP6(Map<String, Object> params) throws Exception {
         Container container1 = getContainer(params, 1);
         Container container2 = getContainer(params, 2);
         Container container3 = getContainer(params, 3);
@@ -60,8 +63,8 @@ public class BytemanLodh2Prepare extends FourNodes {
         copyApplicationPropertiesFiles();
     }
 
-    @Override
-    protected void afterPrepareEAP7(Map<String, Object> params) throws Exception {
+    @PrepareMethod(value = "BytemanLodh2Prepare-afterPrepare", labels = {"EAP7"})
+    public void afterPrepareEAP7(Map<String, Object> params) throws Exception {
         Container container1 = getContainer(params, 1);
         Container container2 = getContainer(params, 2);
         Container container3 = getContainer(params, 3);

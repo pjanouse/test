@@ -1,92 +1,44 @@
 package org.jboss.qa.hornetq.test.prepares.generic;
 
+import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareMethods;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
 import java.util.Map;
 
 public class OneNode extends PrepareBase {
 
-    @PrepareMethod(value = "OneNode", labels = {"EAP6"})
-    public void prepareMethodEAP6(Map<String, Object> params) throws Exception {
+    @PrepareMethod(value = "OneNode", labels = {"EAP6", "EAP7"})
+    public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
         Container container = getContainer(params, 1);
 
         container.start();
 
-        beforePrepareEAP6(params, container);
-        prepareEAP6(params, container);
-        afterPrepareEAP6(params, container);
+        JMSOperations jmsOperations = container.getJmsOperations();
+        Map<String, Object> params1 = getParamsForContainer(params, container, jmsOperations, 1);
 
+        beforePrepare(params1, ctx);
+        prepare(params1, ctx);
+        afterPrepare(params1, ctx);
+
+        getJMSOperations(params1).close();
         container.stop();
     }
-
-    @PrepareMethod(value = "OneNode", labels = {"EAP7"})
-    public void prepareMethodEAP7(Map<String, Object> params) throws Exception {
-        Container container = getContainer(params, 1);
-
-        container.start();
-
-        beforePrepareEAP7(params, container);
-        prepareEAP7(params, container);
-        afterPrepareEAP7(params, container);
-
-        container.stop();
-    }
-
-    protected void beforePrepare(Map<String, Object> params, Container container) throws Exception {
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
     }
 
-    protected void beforePrepareEAP6(Map<String, Object> params, Container container) throws Exception {
-        beforePrepare(params, container);
-    }
+    protected void prepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
-    protected void beforePrepareEAP7(Map<String, Object> params, Container container) throws Exception {
-        beforePrepare(params, container);
-    }
-
-    protected void prepare(Map<String, Object> params, Container container) throws Exception {
-        JMSOperations jmsOperations = container.getJmsOperations();
-
-        prepareDestinations(params, jmsOperations);
-        prepareDiverts(params, jmsOperations);
-        prepareAddressSettings(params, jmsOperations);
-        prepareSecurity(params, container);
-        prepareConnectionFactory(params, jmsOperations);
-        prepareMisc(params, jmsOperations);
-        prepareDatabase(params, container);
-
-        jmsOperations.close();
-    }
-
-    protected void prepareEAP6(Map<String, Object> params, Container container) throws Exception {
-        prepare(params, container);
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-        prepareConnectorEAP6(params, jmsOperations);
-        jmsOperations.close();
-    }
-
-    protected void prepareEAP7(Map<String, Object> params, Container container) throws Exception {
-        prepare(params, container);
-
-        JMSOperations jmsOperations = container.getJmsOperations();
-        prepareConnectorEAP7(params, jmsOperations);
-        jmsOperations.close();
-    }
-
-    protected void afterPrepare(Map<String, Object> params, Container container) throws Exception {
+        invokeAllPrepareMethods(params, ctx);
 
     }
 
-    protected void afterPrepareEAP6(Map<String, Object> params, Container container) throws Exception {
-        afterPrepare(params, container);
-    }
+    protected void afterPrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
 
-    protected void afterPrepareEAP7(Map<String, Object> params, Container container) throws Exception {
-        afterPrepare(params, container);
     }
 
 }

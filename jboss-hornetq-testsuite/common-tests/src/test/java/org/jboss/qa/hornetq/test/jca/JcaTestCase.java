@@ -19,7 +19,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.*;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -83,7 +83,7 @@ public class JcaTestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
+        ejbXml.append("<activation-config-property-value>").append(PrepareConstants.IN_QUEUE_JNDI).append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destinationType</activation-config-property-name>\n");
@@ -92,7 +92,7 @@ public class JcaTestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareConstants.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");
@@ -166,7 +166,7 @@ public class JcaTestCase extends HornetQTestCase {
         // we use only the first server
         container(1).start();
 
-        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        SoakProducerClientAck producer1 = new SoakProducerClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.setMessageBuilder(messageBuilder);
         producer1.setTimeout(0);
 
@@ -177,7 +177,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(1).deploy(mdbDeployment);
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 
@@ -217,7 +217,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         // send messages to queue
         int numberOfMessages = 10000;
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         producer1.setMessageBuilder(new TextMessageBuilder(1));
         producer1.setCommitAfter(100);
         producer1.setTimeout(0);
@@ -231,7 +231,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         long timeout = System.currentTimeMillis() + (60 * 60 * 1000); //max one hour wait
 
-        while (jmsOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME) < numberOfMessages) {
+        while (jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.OUT_QUEUE_NAME) < numberOfMessages) {
             JMXConnector connector = null;
             try {
                 connector = container(1).getJmxUtils().getJmxConnectorForEap(container(1));
@@ -245,14 +245,14 @@ public class JcaTestCase extends HornetQTestCase {
                     connector.close();
                 }
                 if (System.currentTimeMillis() > timeout){
-                    Assert.fail("Queue contains only " + jmsOperations.getCountOfMessagesOnQueue(PrepareBase.OUT_QUEUE_NAME) + " messages. Expected number is " + numberOfMessages );
+                    Assert.fail("Queue contains only " + jmsOperations.getCountOfMessagesOnQueue(PrepareConstants.OUT_QUEUE_NAME) + " messages. Expected number is " + numberOfMessages );
                 }
             }
             Thread.sleep(500);
         }
 
         logger.info("Start receiver.");
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 10000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 10000, 10, 10);
         receiver1.setTimeout(0);
         receiver1.start();
         addClient(receiver1);
@@ -317,7 +317,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         // send messages to InQueue
         FinalTestMessageVerifier mdbMessageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMesasges);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMesasges);
         TextMessageBuilder messageBuilder = new TextMessageBuilder();
         messageBuilder.setAddDuplicatedHeader(false);
         Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(2));
@@ -338,7 +338,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).deploy(lodhLikemdb);
 
         // wait to have some messages in OutQueue
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMesasges / 10, 600000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasges / 10, 600000, container(1), container(2));
 
         // start load on 1st node
         Container containerUnderLoad = container(1);
@@ -363,12 +363,12 @@ public class JcaTestCase extends HornetQTestCase {
                 }
             }
         }
-        new JMSTools().waitUntilMessagesAreStillConsumed(PrepareBase.IN_QUEUE_NAME, 300000, container(1), container(2));
+        new JMSTools().waitUntilMessagesAreStillConsumed(PrepareConstants.IN_QUEUE_NAME, 300000, container(1), container(2));
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), 0, false);
 
         logger.info("Start receiver.");
-        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 20000, 100, 10);
+        ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 20000, 100, 10);
         receiver1.addMessageVerifier(mdbMessageVerifier);
         receiver1.setTimeout(0);
         receiver1.setAckAfter(100);
@@ -427,7 +427,7 @@ public class JcaTestCase extends HornetQTestCase {
         // we use only the first server
         container(1).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
         producer1.setCommitAfter(100);
         producer1.setMessageBuilder(new TextMessageBuilder(10));
         producer1.setTimeout(0);
@@ -437,7 +437,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages / 2, 60000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 60000, container(1));
 
         // call stop delivery
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -447,10 +447,10 @@ public class JcaTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
 
         logger.info("Start receiver.");
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 6000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 6000, 10, 10);
         receiver1.start();
         receiver1.join();
 

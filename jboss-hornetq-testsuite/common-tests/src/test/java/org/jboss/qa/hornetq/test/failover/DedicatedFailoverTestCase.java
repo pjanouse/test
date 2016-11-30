@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -30,9 +30,6 @@ import org.junit.runner.RunWith;
 
 import javax.jms.Session;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -419,7 +416,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, numberOfMessages);
+        ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, numberOfMessages);
         addClient(producerToInQueue1);
         producerToInQueue1.setMessageBuilder(messageBuilder);
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
@@ -429,7 +426,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.start();
         producerToInQueue1.join();
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI, 30000, 5, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 5, 10);
         addClient(receiver1);
         receiver1.setTimeout(5);
         receiver1.addMessageVerifier(messageVerifier);
@@ -766,7 +763,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         try {
             jmsOperations.addDivert("myDivert",
-                    topic ? "jms.topic." + PrepareBase.TOPIC_NAME_PREFIX + "0" : "jms.queue." + PrepareBase.QUEUE_NAME_PREFIX + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
+                    topic ? "jms.topic." + PrepareConstants.TOPIC_NAME_PREFIX + "0" : "jms.queue." + PrepareConstants.QUEUE_NAME_PREFIX + "0", "jms.queue." + divertedQueue, isExclusive, null, null, null);
         } finally {
             jmsOperations.close();
         }
@@ -927,7 +924,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         Thread.sleep(10000);
 
-        ProducerTransAck p = new ProducerTransAck(container(1), PrepareBase.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck p = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, NUMBER_OF_MESSAGES_PER_PRODUCER);
         FinalTestMessageVerifier queueTextMessageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
         p.addMessageVerifier(queueTextMessageVerifier);
 //        MessageBuilder messageBuilder = new TextMessageBuilder(20);
@@ -996,9 +993,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
         p.join(600000);
         ReceiverTransAck r;
         if (failback) {
-            r = new ReceiverTransAck(container(1), PrepareBase.QUEUE_JNDI);
+            r = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         } else {
-            r = new ReceiverTransAck(container(2), PrepareBase.QUEUE_JNDI);
+            r = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI);
         }
         r.addMessageVerifier(queueTextMessageVerifier);
         r.setCommitAfter(100);
@@ -1087,21 +1084,21 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
         if (topic) {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsAutoAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsAutoAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new TopicClientsClientAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsClientAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new TopicClientsTransAck(container(1), PrepareBase.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new TopicClientsTransAck(container(1), PrepareConstants.TOPIC_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for topic not known");
             }
         } else {
             if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsAutoAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsAutoAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.CLIENT_ACKNOWLEDGE == acknowledgeMode) {
-                clients = new QueueClientsClientAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsClientAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else if (Session.SESSION_TRANSACTED == acknowledgeMode) {
-                clients = new QueueClientsTransAck(container(1), PrepareBase.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
+                clients = new QueueClientsTransAck(container(1), PrepareConstants.QUEUE_JNDI_PREFIX, NUMBER_OF_DESTINATIONS, NUMBER_OF_PRODUCERS_PER_DESTINATION, NUMBER_OF_RECEIVERS_PER_DESTINATION, NUMBER_OF_MESSAGES_PER_PRODUCER);
             } else {
                 throw new Exception("Acknowledge type: " + acknowledgeMode + " for queue not known");
             }

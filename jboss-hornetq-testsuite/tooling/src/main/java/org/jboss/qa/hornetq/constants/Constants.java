@@ -105,4 +105,8 @@ public class Constants {
         STRICT, ON_DEMAND, OFF
     }
 
+    public enum HA_TYPE {
+        SHARED_STORE_MASTER, SHARED_STORE_SLAVE, REPLICATION_MASTER, REPLICATION_SLAVE, NONE
+    }
+
 }

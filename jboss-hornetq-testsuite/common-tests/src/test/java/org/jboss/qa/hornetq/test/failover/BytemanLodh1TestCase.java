@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.apps.impl.ByteMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.mdb.LocalCopyMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -622,9 +622,9 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         jmsOperations.close();
 
         // wait for InQueue to be empty
-        new JMSTools().waitForMessages(PrepareBase.IN_QUEUE_NAME, 0, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 0, 300000, container(1));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        new JMSTools().waitForMessages(PrepareBase.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
 
         getLargeMessageDirFilesNumber(true); //prints content of large message directory
 
@@ -641,7 +641,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
 
 
     private List<Map<String, String>> sendMessages(final MessageBuilder builder) throws Exception {
-        SoakProducerClientAck producer = new SoakProducerClientAck(container(1), PrepareBase.IN_QUEUE_JNDI,
+        SoakProducerClientAck producer = new SoakProducerClientAck(container(1), PrepareConstants.IN_QUEUE_JNDI,
                 NUMBER_OF_MESSAGES_PER_PRODUCER);
         builder.setAddDuplicatedHeader(false);
         producer.setMessageBuilder(builder);
@@ -659,7 +659,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         logger.info("Start receiver.");
 
         try {
-            receiver = new ReceiverTransAck(container(1), PrepareBase.OUT_QUEUE_JNDI, 5000, 10, 10);
+            receiver = new ReceiverTransAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 5000, 10, 10);
             receiver.start();
             receiver.join();
             return receiver.getListOfReceivedMessages();
@@ -694,7 +694,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         ejbXml.append("<activation-config>\n");
         ejbXml.append("<activation-config-property>\n");
         ejbXml.append("<activation-config-property-name>destination</activation-config-property-name>\n");
-        ejbXml.append("<activation-config-property-value>").append(PrepareBase.IN_QUEUE_JNDI)
+        ejbXml.append("<activation-config-property-value>").append(PrepareConstants.IN_QUEUE_JNDI)
                 .append("</activation-config-property-value>\n");
         ejbXml.append("</activation-config-property>\n");
         ejbXml.append("<activation-config-property>\n");
@@ -704,7 +704,7 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         ejbXml.append("</activation-config>\n");
         ejbXml.append("<resource-ref>\n");
         ejbXml.append("<res-ref-name>queue/OutQueue</res-ref-name>\n");
-        ejbXml.append("<jndi-name>").append(PrepareBase.OUT_QUEUE_JNDI).append("</jndi-name>\n");
+        ejbXml.append("<jndi-name>").append(PrepareConstants.OUT_QUEUE_JNDI).append("</jndi-name>\n");
         ejbXml.append("<res-type>javax.jms.Queue</res-type>\n");
         ejbXml.append("<res-auth>Container</res-auth>\n");
         ejbXml.append("</resource-ref>\n");

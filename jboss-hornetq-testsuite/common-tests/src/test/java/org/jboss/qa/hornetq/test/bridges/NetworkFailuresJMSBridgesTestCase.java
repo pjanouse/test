@@ -7,7 +7,7 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.prepares.PrepareBase;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresConstants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -36,14 +36,14 @@ public class NetworkFailuresJMSBridgesTestCase extends NetworkFailuresBridgesAbs
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
         // A1 producer
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, NetworkFailuresBridgesAbstract.NUMBER_OF_MESSAGES_PER_PRODUCER);
         producer1.addMessageVerifier(messageVerifier);
         if (messageBuilder != null) {
             messageBuilder.setAddDuplicatedHeader(true);
             producer1.setMessageBuilder(messageBuilder);
         }
         // B1 consumer
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), PrepareBase.OUT_QUEUE_JNDI,(4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(2), PrepareConstants.OUT_QUEUE_JNDI,(4 * timeBetweenFails) > 120000 ? (4 * timeBetweenFails) : 120000, 10, 10);
 
         receiver1.setTimeout(0);
         receiver1.addMessageVerifier(messageVerifier);
@@ -81,7 +81,7 @@ public class NetworkFailuresJMSBridgesTestCase extends NetworkFailuresBridgesAbs
 
 
 
-            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareBase.IN_QUEUE_JNDI, 120000, 100, 5);
+            ReceiverTransAck receiver2 = new ReceiverTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, 120000, 100, 5);
             receiver2.start();
             receiver2.join();
             Assert.assertEquals("There is different number of sent and received messages.",
