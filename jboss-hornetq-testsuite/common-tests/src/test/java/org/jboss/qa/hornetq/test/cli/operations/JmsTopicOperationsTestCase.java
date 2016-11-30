@@ -114,10 +114,12 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         String subscriberName = "testSubscriber";
         logger.info("Starting subscriber");
         SubscriberClientAck subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, clientId, subscriberName);
+        addClient(subscriberClientAck);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
         logger.info("Starting publisher");
         PublisherClientAck publisher = new PublisherClientAck(container(1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "testPublisherClientId");
+        addClient(publisher);
         publisher.setMessageBuilder(new ClientMixMessageBuilder(10, 200));
         publisher.start();
 
@@ -148,6 +150,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         CliTestUtils.assertSuccess(r22);
 
         subscriberClientAck = new SubscriberClientAck(container(1), topicJndiName, clientId, subscriberName);
+        addClient(subscriberClientAck);
         subscriberClientAck.setTimeout(1000);
         subscriberClientAck.subscribe();
 
@@ -220,6 +223,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         List<SubscriberTransAck> subscribers = new ArrayList<SubscriberTransAck>();
         for (int i = 0; i < numberOfSubscribers; i++) {
             SubscriberTransAck topicSubscriber = new SubscriberTransAck(container(1), topicJndiName, 120000, 5, 10, "subs" + i, "name" + i);
+            addClient(topicSubscriber);
             topicSubscriber.setTimeout(1000); // make subscriber really slow 1msb/sec
             topicSubscriber.subscribe();
             subscribers.add(topicSubscriber);
@@ -232,6 +236,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
         logger.info("Starting publisher");
         // send some messages to it
         PublisherTransAck publisherTransAck = new PublisherTransAck(container(1), topicJndiName, NUMBER_OF_MESSAGES_PER_PRODUCER, "publisher");
+        addClient(publisherTransAck);
         publisherTransAck.setMessageBuilder(new TextMessageBuilder(1));
         publisherTransAck.setCommitAfter(7);
         publisherTransAck.setTimeout(0);
