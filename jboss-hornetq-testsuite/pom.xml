@@ -29,7 +29,7 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR7</eap7.org.jboss.qa.hornetq.apps.clients.version>
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR9</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
@@ -647,6 +647,14 @@
 
             <dependencies>
                 <dependency>
+                    <groupId>org.wildfly.security</groupId>
+                    <artifactId>wildfly-elytron</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                </dependency>
+                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <type>jar</type>
@@ -659,15 +667,6 @@
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-cli-client</artifactId>
                 </dependency>
-                <dependency>
-                    <groupId>org.wildfly.security</groupId>
-                    <artifactId>wildfly-elytron</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                </dependency>
-
                 <dependency>
                     <groupId>org.jboss.spec</groupId>
                     <artifactId>jboss-javaee-7.0</artifactId>
