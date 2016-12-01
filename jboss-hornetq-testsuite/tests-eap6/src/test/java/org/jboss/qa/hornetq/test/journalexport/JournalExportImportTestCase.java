@@ -7,6 +7,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -65,11 +66,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final long RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
-    private static final String DIRECTORY_WITH_JOURNAL = new File("target/journal-directory-for-import-export-testcase").getAbsolutePath();
     private static final String EXPORTED_JOURNAL_FILE_NAME = "target/journal_export.xml";
-    private static final String BINDINGS_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messagingbindings").getAbsolutePath();
-    private static final String MESSAGES_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messagingjournal").getAbsolutePath();
-    private static final String LARGE_MESSAGES_JOURNAL_DIRECTORY = new File(DIRECTORY_WITH_JOURNAL, "messaginglargemessages").getAbsolutePath();
 
     private static final String LONG_TEST_QUEUE = "TestQueueLong";
     private static final String LONG_TEST_QUEUE_NAME = "jms/queue/" + LONG_TEST_QUEUE;
@@ -186,7 +183,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         RuleInstaller.uninstallAllRules(container(1).getHostname(), container(1).getBytemanPort());
 
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
-        journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
 
         Context ctx = null;
         Connection conn = null;
@@ -215,7 +211,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
         // delete the journal file before we import it again
         // a new queue with a new id would be created without the bindings journal so we can't delete the whole directory
-        FileUtils.deleteDirectory(new File(MESSAGES_JOURNAL_DIRECTORY));
+        FileUtils.deleteDirectory(new File(getJournalDirectory(container(1)), "messagingjournal"));
 
 
         container(1).start();
@@ -292,7 +288,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @After
     public void deleteJournalFiles() {
         try {
-            FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+            FileUtils.deleteDirectory(getJournalDirectory(container(1)));
         } catch (Exception e) {
             logger.error("Cannot delete journals directory. Hope it is ok and continue test, in case of failure this can be cause.", e);
         }
@@ -303,7 +299,6 @@ public class JournalExportImportTestCase extends HornetQTestCase {
         container(1).start();
 
         JournalExportImportUtils journalExportImportUtils = container(1).getExportImportUtil();
-        journalExportImportUtils.setPathToJournalDirectory(DIRECTORY_WITH_JOURNAL);
 
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 50);
         producerToInQueue1.setMessageBuilder(messageBuilder);
@@ -318,7 +313,7 @@ public class JournalExportImportTestCase extends HornetQTestCase {
 
 
         // delete the journal file before we import it again
-        FileUtils.deleteDirectory(new File(DIRECTORY_WITH_JOURNAL));
+        FileUtils.deleteDirectory(getJournalDirectory(container(1)));
 
         container(1).start();
 
@@ -337,5 +332,11 @@ public class JournalExportImportTestCase extends HornetQTestCase {
             + receiver1.getListOfReceivedMessages().size() + ", Sent: " + producerToInQueue1.getListOfSentMessages().size()
             + ".", producerToInQueue1.getListOfSentMessages().size(), receiver1.getListOfReceivedMessages().size());
 
+    }
+
+    private File getJournalDirectory(Container container) {
+
+        String path = container.getServerHome() + File.separator + "standalone" + File.separator + "data" + File.separator + "messagingjournal";
+        return new File(path);
     }
 }
