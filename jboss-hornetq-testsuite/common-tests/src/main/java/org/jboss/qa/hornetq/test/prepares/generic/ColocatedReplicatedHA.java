@@ -27,6 +27,10 @@ public class ColocatedReplicatedHA extends TwoNodes {
 
     public static final String STATIC_CLUSTER_CONNECTOR_NAME_REMOTE_BACKUP = "static-cluster-connector-remote-backup";
 
+    public static final String JOURNALS_DIRECTORY_LIVE = "live";
+
+    public static final String JOURNALS_DIRECTORY_BACKUP = "backup";
+
     @Override
     @PrepareMethod(value = "ColocatedReplicatedHA", labels = {"EAP6", "EAP7"})
     public void prepareMethod(Map<String, Object> params, PrepareContext ctx) throws Exception {
@@ -38,7 +42,7 @@ public class ColocatedReplicatedHA extends TwoNodes {
         super.beforePrepare(params, ctx);
 
         PrepareUtils.setIfNotSpecified(params, PrepareParams.CLUSTER_TYPE, "DEFAULT");
-        PrepareUtils.setIfNotSpecified(params, PrepareParams.JOURNALS_DIRECTORY, "live");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.JOURNALS_DIRECTORY, JOURNALS_DIRECTORY_LIVE);
         PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_COLOCATED_BACKUP, true);
     }
 
@@ -75,7 +79,7 @@ public class ColocatedReplicatedHA extends TwoNodes {
 
         // BACKUP on Node 1
         paramsNode1Backup.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.REPLICATION_SLAVE);
-        paramsNode1Backup.put(PrepareParams.JOURNALS_DIRECTORY, "backup");
+        paramsNode1Backup.put(PrepareParams.JOURNALS_DIRECTORY, JOURNALS_DIRECTORY_BACKUP);
         paramsNode1Backup.put(PrepareParams.REPLICATION_GROUP_NAME, "group1");
 
         ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode1Backup);
@@ -83,7 +87,7 @@ public class ColocatedReplicatedHA extends TwoNodes {
 
         // BACKUP on Node 2
         paramsNode2Backup.put(PrepareParams.HA_TYPE, Constants.HA_TYPE.REPLICATION_SLAVE);
-        paramsNode2Backup.put(PrepareParams.JOURNALS_DIRECTORY, "backup");
+        paramsNode2Backup.put(PrepareParams.JOURNALS_DIRECTORY, JOURNALS_DIRECTORY_BACKUP);
         paramsNode2Backup.put(PrepareParams.REPLICATION_GROUP_NAME, "group0");
 
         ctx.invokeMethod(PrepareMethods.PREPARE_HA, paramsNode2Backup);

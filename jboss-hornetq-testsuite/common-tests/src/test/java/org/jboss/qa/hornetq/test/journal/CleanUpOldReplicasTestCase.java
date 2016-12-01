@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.jboss.qa.hornetq.test.prepares.generic.ColocatedReplicatedHA;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.FileTools;
@@ -59,16 +60,12 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
     private static Set<String> journalInterestDirs;
 
-    private static Set<String> journalInterestDirsBackup;
-
     @Before
     public void setup() {
         if (ContainerUtils.isEAP7(container(1))) {
             journalInterestDirs = new HashSet<String>(Arrays.asList("journal", "paging", "largemessages", "bindings"));
-            journalInterestDirsBackup = new HashSet<String>(Arrays.asList("journal-backup", "paging-backup", "largemessages-backup", "bindings-backup"));
         } else {
             journalInterestDirs = new HashSet<String>(Arrays.asList("messagingjournal", "messagingpaging", "messaginglargemessages", "messagingbindings"));
-            journalInterestDirsBackup = new HashSet<String>(Arrays.asList("messagingjournal-backup", "messagingpaging-backup", "messaginglargemessages-backup", "messagingbindings-backup"));
         }
     }
 
@@ -274,11 +271,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            JournalPrint journalPrintBeforeStartNode1 = JournalPrint.getJournalPrint(getDataDirectory(container(1)), false, true);
-            JournalPrint journalPrintBeforeStartNode2 = JournalPrint.getJournalPrint(getDataDirectory(container(2)), false, false);
+            JournalPrint journalPrintBeforeStartNode1 = JournalPrint.getJournalPrint(getMessagingDataDirectory(container(1)), true);
+            JournalPrint journalPrintBeforeStartNode2 = JournalPrint.getJournalPrint(getMessagingDataDirectory(container(2)), false);
 
             if (randomDeletion && numberOfFailovers == 5) {
-                deleteOldJournal(container(2), journalToDelete);
+                deleteOldJournal(getMessagingDataDirectory(container(2)), journalToDelete);
             }
 
             container(1).start();
@@ -286,7 +283,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
             Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
 
-            JournalPrint journalPrintAfterStartNode1 = JournalPrint.getJournalPrint(getDataDirectory(container(1)), false, false);
+            JournalPrint journalPrintAfterStartNode1 = JournalPrint.getJournalPrint(getMessagingDataDirectory(container(1)), false);
 
             logger.warn("########################################");
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
@@ -306,7 +303,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
             Thread.sleep(5000); // give it some time
 
-            JournalPrint journalPrintAfterStartNode2 = JournalPrint.getJournalPrint(getDataDirectory(container(2)), false, false);
+            JournalPrint journalPrintAfterStartNode2 = JournalPrint.getJournalPrint(getMessagingDataDirectory(container(2)), false);
 
             journalPrintBeforeStartNode1.moveFirstToLast();
             journalPrintBeforeStartNode1.removeFirstIfExceedMax(2);
@@ -386,6 +383,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
         int maxReplicatedJournalSize = 2;
         MessageBuilder messageBuilder = new TextMessageBuilder(20 * 1024);
 
+        File container1DataDirLive = new File(getDataDirectory(container(1)), ColocatedReplicatedHA.JOURNALS_DIRECTORY_LIVE);
+        File container1DataDirBackup = new File(getDataDirectory(container(1)), ColocatedReplicatedHA.JOURNALS_DIRECTORY_BACKUP);
+        File container2DataDirLive = new File(getDataDirectory(container(2)), ColocatedReplicatedHA.JOURNALS_DIRECTORY_LIVE);
+        File container2DataDirBackup = new File(getDataDirectory(container(2)), ColocatedReplicatedHA.JOURNALS_DIRECTORY_BACKUP);
+
         container(1).start();
         container(2).start();
 
@@ -451,15 +453,15 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             logger.warn("failback - Start live server again - number of failovers: " + numberOfFailovers);
             logger.warn("########################################");
 
-            JournalPrint journalPrintBeforeStartNode1 = JournalPrint.getJournalPrint(getDataDirectory(container(1)), false, true);
-            JournalPrint journalPrintBeforeStartNode2 = JournalPrint.getJournalPrint(getDataDirectory(container(2)), true, false);
+            JournalPrint journalPrintBeforeStartNode1 = JournalPrint.getJournalPrint(container1DataDirLive, true);
+            JournalPrint journalPrintBeforeStartNode2 = JournalPrint.getJournalPrint(container2DataDirBackup, false);
 
             container(1).start();
 
 
             Assert.assertTrue("Live did not start again - failback failed - number of failovers: " + numberOfFailovers, CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 300000));
 
-            JournalPrint journalPrintAfterStartNode1 = JournalPrint.getJournalPrint(getDataDirectory(container(1)), false, false);
+            JournalPrint journalPrintAfterStartNode1 = JournalPrint.getJournalPrint(container1DataDirLive, false);
 
             logger.warn("########################################");
             logger.warn("failback - Live started again - number of failovers: " + numberOfFailovers);
@@ -479,7 +481,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
             Thread.sleep(5000); // give it some time
 
-            JournalPrint journalPrintAfterStartNode2 = JournalPrint.getJournalPrint(getDataDirectory(container(2)), true, false);
+            JournalPrint journalPrintAfterStartNode2 = JournalPrint.getJournalPrint(container2DataDirBackup, false);
 
             journalPrintBeforeStartNode1.moveFirstToLast();
             journalPrintBeforeStartNode1.removeFirstIfExceedMax(2);
@@ -577,14 +579,22 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
         path.append(File.separator); path.append("standalone");
         path.append(File.separator); path.append("data");
 
-        if (ContainerUtils.isEAP7(container)) {
-            path.append(File.separator); path.append("activemq");
-        }
         return new File(path.toString());
     }
 
+    private File getMessagingDataDirectory(Container container) {
+        File dataDirectory = getDataDirectory(container);
+
+        if (ContainerUtils.isEAP7(container)) {
+            File messagingDataDirectory = new File(dataDirectory, "activemq");
+            return messagingDataDirectory;
+        }
+
+        return dataDirectory;
+    }
+
     private File getPagingDir(Container container) {
-        StringBuilder path = new StringBuilder(getDataDirectory(container).getPath());
+        StringBuilder path = new StringBuilder(getMessagingDataDirectory(container).getPath());
 
         if (ContainerUtils.isEAP7(container)) {
             path.append(File.separator); path.append("paging");
@@ -595,12 +605,11 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
         return new File(path.toString());
     }
 
-    private void deleteOldJournal(Container container, int journalToDelete) throws Exception {
-        File dataDir = getDataDirectory(container);
+    private void deleteOldJournal(File messagingDataDir, int journalToDelete) throws Exception {
 
-        for (String fileName : dataDir.list()) {
+        for (String fileName : messagingDataDir.list()) {
             if (journalInterestDirs.contains(fileName)) {
-                File journalDir = new File(dataDir, fileName);
+                File journalDir = new File(messagingDataDir, fileName);
                 List<String> files = Arrays.asList(journalDir.list());
                 List<String> oldReplicas = new ArrayList<String>();
 
@@ -651,23 +660,16 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
         private Map<String, List<String>> data = new HashMap<String, List<String>>();
 
-        public static JournalPrint getJournalPrint(File journalDirectory, boolean backup, boolean captureActiveJournal) throws Exception {
+        public static JournalPrint getJournalPrint(File journalDirectory, boolean captureActiveJournal) throws Exception {
             logger.info("Getting fingerprint of directory: " + journalDirectory.getPath());
 
-            Set<String> interestDirs;
-            if (backup) {
-                interestDirs = journalInterestDirsBackup;
-            } else {
-                interestDirs = journalInterestDirs;
-            }
-
-            JournalPrint result = new JournalPrint(interestDirs);
+            JournalPrint result = new JournalPrint(journalInterestDirs);
 
             List<String> journalDirs = Arrays.asList(journalDirectory.list());
             Collections.sort(journalDirs);
 
             for (String journalDir : journalDirs) {
-                if (interestDirs.contains(journalDir)) {
+                if (journalInterestDirs.contains(journalDir)) {
                     File journalDirFile = new File(journalDirectory, journalDir);
                     if (captureActiveJournal) {
                         String fingerPrint = FileTools.getFingerPrint(journalDirFile, "oldreplica\\..+");
