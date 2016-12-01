@@ -7515,6 +7515,37 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
+    public void setGlobalClientThreadPoolMaxSize(int poolMaxSize){
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get("name").set("global-client-thread-pool-max-size");
+        model.get("value").set(poolMaxSize);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize){
+        final ModelNode model = new ModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get("name").set("global-client-scheduled-thread-pool-max-size");
+        model.get("value").set(poolMaxSize);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
     public void setUndertowInstanceId(String id) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("write-attribute");

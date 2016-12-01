@@ -2160,6 +2160,10 @@ public interface JMSOperations {
 
     void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools);
 
+    void setGlobalClientThreadPoolMaxSize(int poolMaxSize);
+
+    void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize);
+
     void setForwardWhenNoConsumers(String serverName, String clusterGroup, boolean value);
 
     void setForwardWhenNoConsumers(String clusterGroup, boolean value);

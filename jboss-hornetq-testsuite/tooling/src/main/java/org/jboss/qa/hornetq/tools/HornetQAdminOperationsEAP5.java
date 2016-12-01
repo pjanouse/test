@@ -3103,6 +3103,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setGlobalClientThreadPoolMaxSize(int poolMaxSize){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     public static void main(String[] args) {
 
         HornetQAdminOperationsEAP5 eap5AdmOps = new HornetQAdminOperationsEAP5();

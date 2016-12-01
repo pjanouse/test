@@ -6,12 +6,12 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.clients.Client;
-import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueue0;
@@ -114,8 +114,49 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     @Test
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testGlobalPools() throws Exception {
-        testInternal(true);
+    public void testGlobalPoolsConfiguredBySystemProperty() throws Exception {
+        testInternal(TestType.GLOBAL_SYSTEM_PROP);
+    }
+
+
+    /**
+     * @tpTestDetails Start two servers. Deploy InQueue and OutQueue to first.
+     * Configure properties activemq.artemis.client.global.thread.pool.max.size
+     * and activemq.artemis.client.global.scheduled.thread.pool.core.size for
+     * both client. Configure global thread pools size in artemis subsystem.
+     * Configure HornetQ RA on second sever to connect to first server. Send
+     * messages to InQueue. Deploy MDB to second server which reads messages
+     * from InQueue and sends them to OutQueue. Read messages from OutQueue.
+     * Client and server will use artemis global thread pools (use-global-thread
+     * -pools = true). Check that client pool size is respected, and threads
+     * time out after 60seconds.
+     * @tpProcedure <ul>
+     * <li>start first server with deployed InQueue and OutQueue</li>
+     * <li>configure properties activemq.artemis.client.global.thread.pool.max.size
+     * and activemq.artemis.client.global.scheduled.thread.pool.core.size for both client</li>
+     * <li>Configure global thread pools size in artemis subsystem</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>start second server which has configured HornetQ RA to connect to first server</li>
+     * <li>start producer which sends messages to InQueue</li>
+     * <li>deploy MDB do 2nd server which reads messages from InQueue and sends to OutQueue</li>
+     * <li>receive messages from OutQueue</li>
+     * <li>check that client pool size is respected, and threads time out after 60seconds.</li>
+     * </ul>
+     * @tpPassCrit <ul>
+     * <li>receiver consumes all messages</li>
+     * <li>thread pools have correct maximum size</li>
+     * <li>threads timeout after 60seconds</li>
+     * @tpInfo For more information see related test case described in the
+     * beginning of this section.
+     */
+    @RunAsClient
+    @Test
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testGlobalPoolsConfiguredByAttributeInMessagingSubsystem() throws Exception {
+        testInternal(TestType.GLOBAL_EAP_ATTRIBUTE);
     }
 
 
@@ -152,24 +193,32 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testConnectionFactoryPools() throws Exception {
-        testInternal(false);
+        testInternal(TestType.CONNECTION_FACTORY_ATTRIBUTE);
     }
 
-    private void testInternal(boolean testGlobalThreadPool) throws Exception {
-        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO, testGlobalThreadPool);
+    private void testInternal(TestType testType) throws Exception {
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO, testType);
 
         container(1).start();
 
-        if (testGlobalThreadPool) {
-            //set artemis client global thread pool max size on client and server. We need to set it using system properties
-            container(2).start(getContainer2Properties(containerMaxClientPoolSize, containerMaxScheduledClientPoolSize), 180000);
+        switch (testType) {
+            case GLOBAL_SYSTEM_PROP:
+                //set artemis client global thread pool max size on client and server. We need to set it using system properties
+                container(2).start(getContainer2Properties(containerMaxClientPoolSize, containerMaxScheduledClientPoolSize), 180000);
 
-            System.setProperty(THREAD_POOL_MAX_SIZE_PROPERTY_KEY, "" + clientMaxClientPoolSize);
-            System.setProperty(SCHEDULED_THREAD_POOL_SIZE_PROPERTY_KEY, "" + clientMaxScheduledClientPoolSize);
-        } else {
-            container(2).start();
+                System.setProperty(THREAD_POOL_MAX_SIZE_PROPERTY_KEY, "" + clientMaxClientPoolSize);
+                System.setProperty(SCHEDULED_THREAD_POOL_SIZE_PROPERTY_KEY, "" + clientMaxScheduledClientPoolSize);
+                break;
+            case GLOBAL_EAP_ATTRIBUTE:
+                // this setting affects only server which is already configured. just configure clients using properties
+                System.setProperty(THREAD_POOL_MAX_SIZE_PROPERTY_KEY, "" + clientMaxClientPoolSize);
+                System.setProperty(SCHEDULED_THREAD_POOL_SIZE_PROPERTY_KEY, "" + clientMaxScheduledClientPoolSize);
+                container(2).start();
+                break;
+            default:
+                container(2).start();
+
         }
-
 
         ResourceMonitor serverMeasurement = new ResourceMonitor.Builder()
                 .setMeasurable(ArtemisClientThreadPoolMeasurement.class, TimeUnit.SECONDS.toMillis(15))
@@ -222,20 +271,29 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
         Assert.assertEquals("There is different number of sent and received messages.",
                 numberOfProducers * numberOfMessagesPerProducer, getConsumedMessages(consumers));
 
+        switch (testType){
+            case GLOBAL_SYSTEM_PROP:
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, containerMaxClientPoolSize, false);
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, containerMaxScheduledClientPoolSize, true);
 
-        if (testGlobalThreadPool) {
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, containerMaxClientPoolSize, false);
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, containerMaxScheduledClientPoolSize, true);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, clientMaxClientPoolSize, false);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, clientMaxScheduledClientPoolSize, true);
+                break;
+            case GLOBAL_EAP_ATTRIBUTE:
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, containerMaxClientPoolSize, false);
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, containerMaxScheduledClientPoolSize, true);
 
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, clientMaxClientPoolSize, false);
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, clientMaxScheduledClientPoolSize, true);
-        } else {
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, mdbMaxSession * containerMaxClientPoolSize, false);
-            checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, mdbMaxSession * containerMaxScheduledClientPoolSize, true);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_THREAD_POOL_COUNT, clientMaxClientPoolSize, false);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_GLOBAL_SCHEDULED_THREAD_POOL_COUNT, clientMaxScheduledClientPoolSize, true);
+                break;
+            case CONNECTION_FACTORY_ATTRIBUTE: // this depends on how many connection factory object is created, checking maximum possible value, just "smoke"
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, mdbMaxSession * containerMaxClientPoolSize, false);
+                checkThreadPools(resultsServer, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, mdbMaxSession * containerMaxScheduledClientPoolSize, true);
 
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxClientPoolSize, false);
-            checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxScheduledClientPoolSize, true);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxClientPoolSize, false);
+                checkThreadPools(resultsClient, ArtemisClientThreadPoolMeasurement.CLIENT_FACTORY_PINGER_THREAD_POOL_COUNT, (numberOfProducers + numberOfConsumers) * clientMaxScheduledClientPoolSize, true);
         }
+
     }
 
     private void checkThreadPools(Map<String, List<String>> results, String resourceMonitorParameter, int maxSize, boolean isScheduledPool) {
@@ -263,16 +321,16 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     }
 
 
-    public void prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE connectorType, boolean useGlobalThreadPools) throws Exception {
+    public void prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE connectorType, TestType testType) throws Exception {
 
-        prepareJmsServerEAP7(container(1), connectorType, useGlobalThreadPools, container(1));
-        prepareMdbServerEAP7(container(2), connectorType, useGlobalThreadPools, container(1));
+        prepareJmsServerEAP7(container(1), connectorType, testType, container(1));
+        prepareMdbServerEAP7(container(2), connectorType, testType, container(1));
 
         copyApplicationPropertiesFiles();
 
     }
 
-    private void prepareJmsServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, boolean useGlobalThreadPools, Container... remoteContainers) {
+    private void prepareJmsServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, TestType testType, Container... remoteContainers) {
 
         String clusterGroupName = "my-cluster";
         String defaultNettySocketBindingName = "messaging";
@@ -321,12 +379,20 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
         jmsAdminOperations.createQueue(inQueueName, inQueueJndiName, true);
         jmsAdminOperations.createQueue(outQueueName, outQueueJndiName, true);
 
-        if (!useGlobalThreadPools) {
-            //set values on connection factory used by clients - we will check this value against size of client thread pool on client.
-            jmsAdminOperations.setThreadPoolMaxSizeOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, clientMaxClientPoolSize);
-            jmsAdminOperations.setScheduledThreadPoolMaxSizeOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, clientMaxScheduledClientPoolSize);
-            jmsAdminOperations.setUseGlobalPoolsOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, false);
+        switch (testType) {
+            case CONNECTION_FACTORY_ATTRIBUTE:
+                //set values on connection factory used by clients - we will check this value against size of client thread pool on client.
+                jmsAdminOperations.setThreadPoolMaxSizeOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, clientMaxClientPoolSize);
+                jmsAdminOperations.setScheduledThreadPoolMaxSizeOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, clientMaxScheduledClientPoolSize);
+                jmsAdminOperations.setUseGlobalPoolsOnConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, false);
+                break;
+            case GLOBAL_EAP_ATTRIBUTE:
+                //do nothing
+            case GLOBAL_SYSTEM_PROP:
+                //do nothing
+
         }
+
 
         jmsAdminOperations.close();
         container.stop();
@@ -337,7 +403,7 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
      *
      * @param container Test container - defined in arquillian.xml
      */
-    private void prepareMdbServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, boolean useGlobalThreadPools, Container... remoteContainers) {
+    private void prepareMdbServerEAP7(Container container, Constants.CONNECTOR_TYPE connectorType, TestType testType, Container... remoteContainers) {
 
         String discoveryGroupName = "dg-group1";
         String broadCastGroupName = "bg-group1";
@@ -409,11 +475,20 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
         }
         jmsAdminOperations.setHaForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, true);
 
-        if (!useGlobalThreadPools) {
-            //set values on pooled connection factory used by MDB - we will check this value against size of client thread pool on server.
-            jmsAdminOperations.setThreadPoolMaxSizeOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, containerMaxClientPoolSize);
-            jmsAdminOperations.setScheduledThreadPoolMaxSizeOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, containerMaxScheduledClientPoolSize);
-            jmsAdminOperations.setUseGlobalPoolsOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, false);
+        switch (testType) {
+            case CONNECTION_FACTORY_ATTRIBUTE:
+                //set values on pooled connection factory used by MDB - we will check this value against size of client thread pool on server.
+                jmsAdminOperations.setThreadPoolMaxSizeOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, containerMaxClientPoolSize);
+                jmsAdminOperations.setScheduledThreadPoolMaxSizeOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, containerMaxScheduledClientPoolSize);
+                jmsAdminOperations.setUseGlobalPoolsOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, false);
+                break;
+            case GLOBAL_EAP_ATTRIBUTE:
+                jmsAdminOperations.setGlobalClientThreadPoolMaxSize(containerMaxClientPoolSize);
+                jmsAdminOperations.setGlobalClientScheduledThreadPoolMaxSize(containerMaxScheduledClientPoolSize);
+                break;
+            case GLOBAL_SYSTEM_PROP:
+                //do nothing, we will handle this on server startup
+                break;
         }
 
         jmsAdminOperations.close();
@@ -515,6 +590,13 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
             result += ((ReceiverAutoAck) c).getListOfReceivedMessages().size();
         }
         return result;
+    }
+
+    private enum TestType {
+        GLOBAL_SYSTEM_PROP,
+        GLOBAL_EAP_ATTRIBUTE,
+        CONNECTION_FACTORY_ATTRIBUTE,
+
     }
 
 }

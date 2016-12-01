@@ -6257,6 +6257,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setGlobalClientThreadPoolMaxSize(int poolMaxSize){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
     public static void main(String[] args) throws NamingException, InterruptedException {
         HornetQAdminOperationsEAP6 jmsAdminOperations = new HornetQAdminOperationsEAP6();
         try {
