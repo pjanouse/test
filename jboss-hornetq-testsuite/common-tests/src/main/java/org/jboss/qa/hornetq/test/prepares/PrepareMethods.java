@@ -63,6 +63,12 @@ public class PrepareMethods extends PrepareBase {
         }
     }
 
+    /**
+     * Accept additional queues and topics params in the form:
+     * PREPARE_ADDITIONAL_TOPICS=myTopic1;myTopic2
+     * PREPARE_ADDITIONAL_QUEUES=myQueue1;myQueue2
+     *
+     */
     @PrepareMethod(value = PREPARE_DESTINATIONS, labels = {"EAP6", "EAP7"})
     public void prepareDestinations(Map<String, Object> params) {
         JMSOperations jmsOperations = getJMSOperations(params);
@@ -75,6 +81,9 @@ public class PrepareMethods extends PrepareBase {
         boolean prepareOutQueue = PrepareUtils.getBoolean(params, PrepareParams.PREPARE_OUT_QUEUE, true);
         boolean prepareOutTopic = PrepareUtils.getBoolean(params, PrepareParams.PREPARE_OUT_TOPIC, true);
         int destinationCount = PrepareUtils.getInteger(params, PrepareParams.DESTINATION_COUNT, 10);
+
+        String[] additionalQueues = PrepareUtils.getString(params, PrepareParams.PREPARE_ADDITIONAL_QUEUES, "").split(";");
+        String[] additionalTopics = PrepareUtils.getString(params, PrepareParams.PREPARE_ADDITIONAL_TOPICS, "").split(";");
 
         if (!prepareDestinations) {
             return;
@@ -102,6 +111,16 @@ public class PrepareMethods extends PrepareBase {
         for (int i = 0; i < destinationCount; i++) {
             jmsOperations.createTopic(PrepareConstants.TOPIC_NAME_PREFIX + i, PrepareConstants.TOPIC_JNDI_PREFIX + i);
             jmsOperations.createQueue(PrepareConstants.QUEUE_NAME_PREFIX + i, PrepareConstants.QUEUE_JNDI_PREFIX + i);
+        }
+
+        for(int i = 0; i < additionalQueues.length; i++) {
+            if (!additionalQueues[i].isEmpty())
+                jmsOperations.createQueue(additionalQueues[i] , "jms/queue/" + additionalQueues[i]);
+        }
+
+        for(int i=0; i< additionalTopics.length; i++) {
+            if (!additionalTopics[i].isEmpty())
+                jmsOperations.createTopic(additionalTopics[i], "jms/topic/" + additionalTopics[i]);
         }
     }
 

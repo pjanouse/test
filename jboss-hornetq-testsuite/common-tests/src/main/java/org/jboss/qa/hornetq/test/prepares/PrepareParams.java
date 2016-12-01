@@ -80,6 +80,10 @@ public class PrepareParams {
 
     public static final String PREPARE_OUT_TOPIC =  "PREPARE_OUT_TOPIC";
 
+    public static final String PREPARE_ADDITIONAL_QUEUES =  "PREPARE_ADDITIONAL_QUEUES";
+
+    public static final String PREPARE_ADDITIONAL_TOPICS =  "PREPARE_ADDITIONAL_TOPICS";
+
     public static final String JMS_BRIDGE_FAILURE_RETRY_INTERVAL =  "JMS_BRIDGE_FAILURE_RETRY_INTERVAL";
 
     public static final String JMS_BRIDGE_MAX_BATCH_SIZE =  "JMS_BRIDGE_MAX_BATCH_SIZE";
