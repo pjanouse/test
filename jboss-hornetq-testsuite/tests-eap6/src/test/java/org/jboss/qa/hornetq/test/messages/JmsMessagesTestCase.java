@@ -410,7 +410,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @Prepare(value = "OneNode", params = {
             @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareConstants.IN_QUEUE_NAME),
             @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareConstants.OUT_QUEUE_NAME),
-            @Param(name = "DIVERT-A-EXCLUSIVE-QUEUE", value = "true")
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "true")
     })
     public void testThatDivertedMessagesIsAlsoExpiredExclusive() throws Exception {
         testThatDivertedMessagesIsAlsoExpired(true, false);
@@ -647,7 +647,7 @@ public class JmsMessagesTestCase extends HornetQTestCase {
     @Prepare(value = "OneNode", params = {
             @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareConstants.IN_QUEUE_NAME),
             @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareConstants.OUT_QUEUE_NAME),
-            @Param(name = "DIVERT-A-EXCLUSIVE-QUEUE", value = "false")
+            @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
     })
     public void testThatDivertedMessagesContainsAllHeadersNonExclusive() throws Exception {
         testThatDivertedMessagesContainsAllHeaders(false, false);
