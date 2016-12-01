@@ -251,11 +251,6 @@ public class PrepareMethods extends PrepareBase {
             default:
                 throw new IllegalArgumentException("Unsupported connector type: " + connectorType.name());
         }
-        jmsOperations.setHaForConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, true);
-        jmsOperations.setBlockOnAckForConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, true);
-        jmsOperations.setRetryIntervalForConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, 1000L);
-        jmsOperations.setRetryIntervalMultiplierForConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, 1.0);
-        jmsOperations.setReconnectAttemptsForConnectionFactory(PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, -1);
     }
 
     @PrepareMethod(value = PREPARE_CONNECTOR, labels = {"EAP7"})
