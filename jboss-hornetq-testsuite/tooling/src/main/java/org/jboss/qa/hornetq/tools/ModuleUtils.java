@@ -47,17 +47,17 @@ public class ModuleUtils {
         DocumentBuilder builder = dbf.newDocumentBuilder();
         Document doc = builder.newDocument();
         Element moduleEl = doc.createElementNS(namespace, "module");
-        moduleEl.setAttributeNS(namespace, "name", moduleName);
-        Element resourcesEl = doc.createElementNS(namespace, "resources");
+        moduleEl.setAttribute("name", moduleName);
+        Element resourcesEl = doc.createElement("resources");
 
-        Element resourceEl = doc.createElementNS(namespace, "resource-root");
-        resourceEl.setAttributeNS(namespace, "path", "module.jar");
+        Element resourceEl = doc.createElement("resource-root");
+        resourceEl.setAttribute("path", "module.jar");
         resourcesEl.appendChild(resourceEl);
 
-        Element dependenciesEl = doc.createElementNS(namespace, "dependencies");
+        Element dependenciesEl = doc.createElement("dependencies");
         for (String dependency : dependencies) {
-            Element dependencyEl = doc.createElementNS(namespace, "module");
-            dependencyEl.setAttributeNS(namespace, "name", dependency);
+            Element dependencyEl = doc.createElement("module");
+            dependencyEl.setAttribute("name", dependency);
             dependenciesEl.appendChild(dependencyEl);
         }
 
