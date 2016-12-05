@@ -244,34 +244,55 @@ public class ContainerEAP6 implements Container {
     @Override
     public void stop(boolean failTestIfServerCannotBeStopped) {
 
+        log.info("Server " + getName() + "  is going to stop.");
         // there is problem with calling stop on already stopped server
         // it throws exception when server is already stopped
         // so check whether server is still running and return if not
         try {
             if (!(CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getHttpPort())
                     || CheckServerAvailableUtils.checkThatServerIsReallyUp(getHostname(), getBytemanPort()))) {
+                log.info("Server " + getName() + " is already really dead.");
                 containerController.kill(getName()); // call controller.kill to arquillian that server is really dead
+                log.info("Ending stopping procedure.");
                 return;
             }
         } catch (Exception ex) {
             log.warn("Error during stop() of container. It was not possible to check whether server is running.", ex);
         }
 
-        // because of stupid hanging during shutdown in various tests - mdb failover + hq core bridge failover
-        // we kill server when it takes too long
-        final long pid = ProcessIdUtils.getProcessId(this);
         // timeout to wait for shutdown of server, after timeout expires the server will be killed
         final long timeout = 120000;
-
         final Container con = this;
 
+        // if pid is set to value < 0 and server is running then try to get new pid
+        if (pid < 0) {
+            log.info("Server " + this.getName() + " is running but pid is less than 0. PID: " + pid + " -- try to get pid of running server.");
+            try {
+                pid = ProcessIdUtils.getProcessId(this);
+            } catch (Exception ex) {
+                log.warn("Server " + this.getName() + " is running but it's not possible get its PID as PID of running container", ex);
+            }
+            if (pid < 0) {
+                try {
+                    pid = ProcessIdUtils.getProcessIdOfNotFullyStartedContainer(this);
+                } catch (Exception ex) {
+                    log.warn("Server " + this.getName() + " is running but it's not possible get its PID of not fully started container", ex);
+                }
+            }
+
+            if (pid < 0)
+                Assert.fail("Server - " + this.getName() + " - is running but it's not possible get its PID. Failing the test. " +
+                        "Check logs for stacktrace why the pid could not be obtained.");
+
+        }
         ShutdownHook shutdownHook = new ShutdownHook(timeout, con, pid);
         shutdownHook.start();
+        log.info("Stopping the server - " + getName());
         containerController.stop(getName());
         try {
             containerController.kill(getName());
         } catch (Exception ex) {
-            log.error("Container was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
+            log.error("Container - " + getName() + " was not cleanly stopped. This exception is thrown from controller.kill() call after controller.stop() was called. " +
                     "Reason for this is that controller.stop() does not have to tell arquillian that server is stopped - " +
                     "controller.kill() will do that.", ex);
         }
