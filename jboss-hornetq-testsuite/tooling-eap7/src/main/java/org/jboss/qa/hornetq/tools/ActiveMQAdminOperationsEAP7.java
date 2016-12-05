@@ -1720,8 +1720,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     @Override
     public void setClustered(boolean clustered) {
-
-        throw new UnsupportedOperationException("This operation is not supported for EAP7 container");
+        logger.warn("This operation is not supported for EAP7 container");
     }
 
     /**

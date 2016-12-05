@@ -3,9 +3,11 @@ package org.jboss.qa.hornetq.test.prepares.specific;
 import org.apache.commons.io.FileUtils;
 import org.jboss.qa.PrepareContext;
 import org.jboss.qa.PrepareMethod;
+import org.jboss.qa.PrepareUtils;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.FourNodes;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 
@@ -24,6 +26,26 @@ public class BytemanLodh2Prepare extends FourNodes {
     }
 
     @Override
+    protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        super.beforePrepare(params, ctx);
+
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_DELIVERY_ATTEMPTS, 200);
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.REDISTRIBUTION_DELAY, 0);
+    }
+
+    @Override
+    protected void beforePrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_DESTINATIONS, false);
+        beforePrepareContainer(params, ctx);
+    }
+
+    @Override
+    protected void beforePrepareContainer4(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_DESTINATIONS, false);
+        beforePrepareContainer(params, ctx);
+    }
+
+    @Override
     protected void afterPrepareContainer(Map<String, Object> params, PrepareContext ctx) {
         String messagingGroupSocketBindingName = "messaging-group";
 
@@ -31,16 +53,54 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         jmsOperations.setClustered(true);
         jmsOperations.removeBroadcastGroup(PrepareConstants.BROADCAST_GROUP_NAME);
-        jmsOperations.setBroadCastGroup(PrepareConstants.BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, PrepareConstants.CONNECTOR_NAME_EAP6, "");
+        jmsOperations.setBroadCastGroup(PrepareConstants.BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, PrepareConstants.CONNECTOR_NAME, "");
         jmsOperations.removeDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME);
         jmsOperations.setDiscoveryGroup(PrepareConstants.DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 10000);
         jmsOperations.removeClusteringGroup(PrepareConstants.CLUSTER_NAME);
         jmsOperations.setClusterConnections(PrepareConstants.CLUSTER_NAME, "jms", PrepareConstants.DISCOVERY_GROUP_NAME, false, 1, 1000, true,
-                PrepareConstants.CONNECTOR_NAME_EAP6);
+                PrepareConstants.CONNECTOR_NAME);
 
         jmsOperations.setMulticastAddressOnSocketBinding(messagingGroupSocketBindingName, GROUP_ADDRESS);
         jmsOperations.removeSocketBinding(messagingGroupSocketBindingName);
+        jmsOperations.reload();
+
+        jmsOperations.setNodeIdentifier(getContainer(params).getProcessId());
+    }
+
+    @Override
+    protected void afterPrepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        super.afterPrepareContainer1(params, ctx);
+        JMSOperations jmsOperations = getJMSOperations(params);
         jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
+    }
+
+    @Override
+    protected void afterPrepareContainer3(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        super.afterPrepareContainer3(params, ctx);
+        JMSOperations jmsOperations = getJMSOperations(params);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
+    }
+
+    @Override
+    protected void afterPrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        super.afterPrepareContainer2(params, ctx);
+        JMSOperations jmsOperations = getJMSOperations(params);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55875);
+    }
+
+    @Override
+    protected void afterPrepareContainer4(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        String messagingGroupSocketBindingName = "messaging-group";
+
+        super.afterPrepareContainer4(params, ctx);
+        JMSOperations jmsOperations = getJMSOperations(params);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55875);
     }
 
     @Override
@@ -96,7 +156,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         jmsOperations.addRemoteSocketBinding("messaging-remote", to.getHostname(),
                 to.getHornetqPort());
-        jmsOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null);
+        jmsOperations.createHttpConnector(remoteConnectorName, "messaging-remote", null, PrepareConstants.ACCEPTOR_NAME);
         jmsOperations.setConnectorOnPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, remoteConnectorName);
         jmsOperations.setReconnectAttemptsForPooledConnectionFactory(Constants.RESOURCE_ADAPTER_NAME_EAP7, -1);
 
@@ -105,7 +165,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
     /**
      * Copy application-users/roles.properties to all standalone/configurations
-     * <p/>
+     * <p>
      * TODO - change config by cli console
      */
     private void copyApplicationPropertiesFiles() throws IOException {
