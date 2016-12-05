@@ -254,9 +254,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackWithMdbsKill() throws Exception {
 
         testFailWithMdbs(false);
@@ -283,10 +280,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
-    public void testFailbackWithMdbsShutdown() throws Exception {
+        public void testFailbackWithMdbsShutdown() throws Exception {
 
         testFailWithMdbs(true);
     }
@@ -402,9 +396,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testKillInClusterSmallMessages() throws Exception {
         testFailInCluster(false, new TextMessageBuilder(10));
     }
@@ -425,9 +416,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testShutdownInClusterSmallMessages() throws Exception {
         testFailInCluster(true, new TextMessageBuilder(10));
     }
@@ -448,9 +436,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testKillInClusterLargeMessages() throws Exception {
         testFailInCluster(false, new ClientMixMessageBuilder(120, 200));
     }
@@ -471,10 +456,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
-    public void testShutdownInClusterLargeMessages() throws Exception {
+        public void testShutdownInClusterLargeMessages() throws Exception {
         testFailInCluster(true, new ClientMixMessageBuilder(120, 200));
     }
 
@@ -554,9 +536,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeOneDown() throws Exception {
         testGroupingFailover(container(1), false, true);
     }
@@ -579,9 +558,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeOneDownLM() throws Exception {
         testGroupingFailover(container(1), true, true);
     }
@@ -604,9 +580,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeOneDownSd() throws Exception {
         testGroupingFailover(container(1), false, false);
     }
@@ -629,9 +602,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeOneDownSdLM() throws Exception {
         testGroupingFailover(container(1), true, false);
     }
@@ -655,9 +625,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeTwoDown() throws Exception {
         testGroupingFailover(container(2), false, true);
     }
@@ -682,9 +649,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeTwoDownLM() throws Exception {
         testGroupingFailover(container(2), true, true);
     }
@@ -708,9 +672,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeTwoDownSd() throws Exception {
         testGroupingFailover(container(2), false, false);
     }
@@ -736,9 +697,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Ignore
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testGroupingFailoverNodeTwoDownSdLM() throws Exception {
         testGroupingFailover(container(2), true, false);
     }
@@ -1005,9 +963,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailoverClientAckQueue() throws Exception {
 
         testFailover(Session.CLIENT_ACKNOWLEDGE, false);
@@ -1029,9 +984,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailoverClientAckQueueShutDown() throws Exception {
 
         testFailoverWithShutDown(Session.CLIENT_ACKNOWLEDGE, false, false);
@@ -1053,9 +1005,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailoverTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false);
     }
@@ -1077,9 +1026,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackClientAckQueue() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true);
     }
@@ -1126,9 +1072,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackTransAckQueue() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true);
     }
@@ -1210,9 +1153,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailoverClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, false, true);
     }
@@ -1233,9 +1173,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailoverTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, false, true);
     }
@@ -1268,9 +1205,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackClientAckTopic() throws Exception {
         testFailover(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -1292,9 +1226,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackClientAckTopicShutdown() throws Exception {
         testFailoverWithShutDown(Session.CLIENT_ACKNOWLEDGE, true, true);
     }
@@ -1316,9 +1247,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailbackTransAckTopic() throws Exception {
         testFailover(Session.SESSION_TRANSACTED, true, true);
     }
@@ -1344,7 +1272,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "STATIC_CONNECTORS")
     })
     public void testFailoverClientAckQueueShutDownStaticConnectors() throws Exception {
@@ -1369,7 +1296,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "STATIC_CONNECTORS")
     })
     public void testFailoverTransAckQueueStaticConnectors() throws Exception {
@@ -1394,7 +1320,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "STATIC_CONNECTORS")
     })
     public void testFailbackTransAckQueueStaticConnectors() throws Exception {
@@ -1419,7 +1344,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "STATIC_CONNECTORS")
     })
     public void testFailbackTransAckQueueStaticConnectorsShutDown() throws Exception {
@@ -1447,7 +1371,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "JGROUPS_DISCOVERY_TCP")
     })
     public void testFailoverClientAckQueueShutDownTcpStack() throws Exception {
@@ -1472,7 +1395,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "JGROUPS_DISCOVERY_TCP")
     })
     public void testFailoverTransAckQueueTcpStack() throws Exception {
@@ -1497,7 +1419,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "JGROUPS_DISCOVERY_TCP")
     })
     public void testFailbackTransAckQueueTcpStack() throws Exception {
@@ -1522,7 +1443,6 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.CLUSTER_TYPE, value = "JGROUPS_DISCOVERY_TCP")
     })
     public void testFailbackTransAckQueueTcpStackShutDown() throws Exception {

@@ -235,6 +235,13 @@ public class PrepareMethods extends PrepareBase {
         String serverName = getServerName(params);
 
         Constants.CONNECTOR_TYPE connectorType = Constants.CONNECTOR_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CONNECTOR_TYPE, "NETTY_BIO"));
+        String acceptorName = PrepareUtils.getString(params, PrepareParams.ACCEPTOR_NAME, PrepareConstants.ACCEPTOR_NAME);
+        String socketBindingName = PrepareUtils.getString(params, PrepareParams.SOCKET_BINDING_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME);
+        int socketBindingPort = PrepareUtils.getInteger(params, PrepareParams.SOCKET_BINDING_PORT, PrepareConstants.MESSAGING_PORT);
+
+        if (!PrepareConstants.MESSAGING_SOCKET_BINDING_NAME.equals(socketBindingName)) {
+            jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
+        }
 
         switch (connectorType) {
             case HTTP_CONNECTOR:
@@ -242,13 +249,10 @@ public class PrepareMethods extends PrepareBase {
             case NETTY_BIO:
                 // add connector with BIO
                 jmsOperations.removeRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME_EAP6);
-                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, null);
+                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, socketBindingName, null);
                 // add acceptor wtih BIO
                 jmsOperations.removeRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME_EAP6);
-                jmsOperations.createRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, null);
-                jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+                jmsOperations.createRemoteAcceptor(serverName, acceptorName, socketBindingName, null);
                 break;
             case NETTY_NIO:
                 // add connector with NIO
@@ -256,19 +260,27 @@ public class PrepareMethods extends PrepareBase {
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, connectorParamsNIO);
+                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, socketBindingName, connectorParamsNIO);
 
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
                 jmsOperations.removeRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME_EAP6);
-                jmsOperations.createRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, acceptorParamsNIO);
-                jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+                jmsOperations.createRemoteAcceptor(serverName, acceptorName, socketBindingName, acceptorParamsNIO);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported connector type: " + connectorType.name());
+        }
+
+        if (PrepareConstants.SERVER_NAME.equals(serverName)) {
+            jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+        } else {
+            // If the serverName is not a default, these elements likely won't exist
+            jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "udp", PrepareConstants.JGROUPS_CHANNEL, 2000, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME, 1000, "udp", PrepareConstants.JGROUPS_CHANNEL);
+            jmsOperations.setClusterConnections(serverName, PrepareConstants.CLUSTER_NAME, "jms", PrepareConstants.DISCOVERY_GROUP_NAME, false, 1, 1000, true, PrepareConstants.CONNECTOR_NAME);
         }
     }
 
@@ -277,7 +289,10 @@ public class PrepareMethods extends PrepareBase {
         JMSOperations jmsOperations = getJMSOperations(params);
         String serverName = getServerName(params);
 
-        Constants.CONNECTOR_TYPE connectorType = Constants.CONNECTOR_TYPE.valueOf(PrepareUtils.getString(params, PrepareParams.CONNECTOR_TYPE, "HTTP_CONNECTOR"));
+        Constants.CONNECTOR_TYPE connectorType = PrepareUtils.getEnum(params, PrepareParams.CONNECTOR_TYPE, Constants.CONNECTOR_TYPE.class, Constants.CONNECTOR_TYPE.HTTP_CONNECTOR);
+        String acceptorName = PrepareUtils.getString(params, PrepareParams.ACCEPTOR_NAME, PrepareConstants.ACCEPTOR_NAME);
+        String socketBindingName = PrepareUtils.getString(params, PrepareParams.SOCKET_BINDING_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME);
+        int socketBindingPort = PrepareUtils.getInteger(params, PrepareParams.SOCKET_BINDING_PORT, PrepareConstants.MESSAGING_PORT);
 
         jmsOperations.removeHttpAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME_EAP7);
         jmsOperations.removeHttpConnector(serverName, PrepareConstants.CONNECTOR_NAME_EAP7);
@@ -288,42 +303,44 @@ public class PrepareMethods extends PrepareBase {
                 acceptorParams.put("batch-delay", "50");
                 acceptorParams.put("direct-deliver", "false");
 
-                jmsOperations.createHttpAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME, "default", acceptorParams);
-                jmsOperations.createHttpConnector(serverName, PrepareConstants.CONNECTOR_NAME, "http", acceptorParams, PrepareConstants.ACCEPTOR_NAME);
-
-                jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+                jmsOperations.createHttpAcceptor(serverName, acceptorName, PrepareConstants.HTTP_LISTENER, acceptorParams);
+                jmsOperations.createHttpConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.HTTP_SOCKET_BINDING, acceptorParams, acceptorName);
                 break;
             case NETTY_BIO:
-                jmsOperations.createSocketBinding(PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7);
+                jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
 
                 // add connector with BIO
-                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, null);
+                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, socketBindingName, null);
                 // add acceptor wtih BIO
-                jmsOperations.createRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, null);
-                jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+                jmsOperations.createRemoteAcceptor(serverName, acceptorName, socketBindingName, null);
                 break;
             case NETTY_NIO:
-                jmsOperations.createSocketBinding(PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, Constants.PORT_ARTEMIS_NETTY_DEFAULT_EAP7);
+                jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
                 // add connector with NIO
                 Map<String, String> connectorParamsNIO = new HashMap<String, String>();
                 connectorParamsNIO.put("use-nio", "true");
                 connectorParamsNIO.put("use-nio-global-worker-pool", "true");
-                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, connectorParamsNIO);
+                jmsOperations.createRemoteConnector(serverName, PrepareConstants.CONNECTOR_NAME, socketBindingName, connectorParamsNIO);
 
                 // add acceptor with NIO
                 Map<String, String> acceptorParamsNIO = new HashMap<String, String>();
                 acceptorParamsNIO.put("use-nio", "true");
-                jmsOperations.createRemoteAcceptor(serverName, PrepareConstants.ACCEPTOR_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME, acceptorParamsNIO);
-                jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
-                jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+                jmsOperations.createRemoteAcceptor(serverName, acceptorName, socketBindingName, acceptorParamsNIO);
+
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported connector type: " + connectorType.name());
+        }
+
+        if (PrepareConstants.SERVER_NAME.equals(serverName)) {
+            jmsOperations.setConnectorOnConnectionFactory(serverName, PrepareConstants.REMOTE_CONNECTION_FACTORY_NAME, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setConnectorOnClusterGroup(serverName, PrepareConstants.CLUSTER_NAME, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setConnectorOnBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, Arrays.asList(PrepareConstants.CONNECTOR_NAME));
+        } else {
+            // If the serverName is not a default, these elements likely won't exist
+            jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "udp", PrepareConstants.JGROUPS_CHANNEL, 2000, PrepareConstants.CONNECTOR_NAME);
+            jmsOperations.setDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME, 1000, "udp", PrepareConstants.JGROUPS_CHANNEL);
+            jmsOperations.setClusterConnections(serverName, PrepareConstants.CLUSTER_NAME, "jms", PrepareConstants.DISCOVERY_GROUP_NAME, false, 1, 1000, true, PrepareConstants.CONNECTOR_NAME);
         }
     }
 
@@ -590,11 +607,9 @@ public class PrepareMethods extends PrepareBase {
         int maxSavedReplicatedJournalSize = PrepareUtils.getInteger(params, PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, 2);
         String replicationGroupName = PrepareUtils.getString(params, PrepareParams.REPLICATION_GROUP_NAME);
 
-        if (haType == Constants.HA_TYPE.NONE) {
-            return;
-        }
-
         switch (haType) {
+            case NONE:
+                break;
             case SHARED_STORE_MASTER:
                 jmsOperations.setSharedStore(serverName, true);
                 jmsOperations.setFailoverOnShutdown(true, serverName);
@@ -637,11 +652,9 @@ public class PrepareMethods extends PrepareBase {
         int maxSavedReplicatedJournalSize = PrepareUtils.getInteger(params, PrepareParams.MAX_SAVED_REPLICATED_JOURNAL_SIZE, 2);
         String replicationGroupName = PrepareUtils.getString(params, PrepareParams.REPLICATION_GROUP_NAME);
 
-        if (haType == Constants.HA_TYPE.NONE) {
-            return;
-        }
-
         switch (haType) {
+            case NONE:
+                break;
             case SHARED_STORE_MASTER:
                 jmsOperations.addHAPolicySharedStoreMaster(serverName, 0, true);
                 break;
@@ -664,27 +677,19 @@ public class PrepareMethods extends PrepareBase {
         JMSOperations jmsOperations = getJMSOperations(params);
 
         boolean prepareColocatedBackup = PrepareUtils.getBoolean(params, PrepareParams.PREPARE_COLOCATED_BACKUP, false);
-        // TODO: do it configurable
-        String socketBindingName = "messaging-backup";
-        int socketBindingPort = Constants.PORT_HORNETQ_BACKUP_DEFAULT_EAP6;
-        String messagingGroupSocketBindingName = "messaging-group";
 
         if (!prepareColocatedBackup) {
             return;
         }
 
+        Map<String, Object> paramsForBackup = getParamsForServer(params, PrepareConstants.BACKUP_SERVER_NAME);
+        paramsForBackup.put(PrepareParams.ACCEPTOR_NAME, PrepareConstants.ACCEPTOR_NAME_BACKUP);
+        paramsForBackup.put(PrepareParams.SOCKET_BINDING_NAME, PrepareConstants.MESSAGING_SOCKET_BINDING_NAME_BACKUP);
+        paramsForBackup.put(PrepareParams.SOCKET_BINDING_PORT, PrepareConstants.MESSAGING_PORT_BACKUP);
+
         jmsOperations.addMessagingSubsystem(PrepareConstants.BACKUP_SERVER_NAME);
 
-        jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
-        jmsOperations.createRemoteConnector(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.CONNECTOR_NAME, socketBindingName, null);
-        jmsOperations.createInVmConnector(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.INVM_CONNECTOR_NAME, 0, null);
-        jmsOperations.createRemoteAcceptor(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.ACCEPTOR_NAME, socketBindingName, null);
-
-        jmsOperations.setBroadCastGroup(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.BROADCAST_GROUP_NAME, messagingGroupSocketBindingName, 2000, PrepareConstants.CONNECTOR_NAME, "");
-        jmsOperations.setDiscoveryGroup(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.DISCOVERY_GROUP_NAME, messagingGroupSocketBindingName, 1000);
-        jmsOperations.setClusterConnections(PrepareConstants.BACKUP_SERVER_NAME, PrepareConstants.CLUSTER_NAME, "jms", PrepareConstants.DISCOVERY_GROUP_NAME, false, 1, 1000, true, PrepareConstants.CONNECTOR_NAME);
-
-        Map<String, Object> paramsForBackup = getParamsForServer(params, PrepareConstants.BACKUP_SERVER_NAME);
+        ctx.invokeMethod(PrepareMethods.PREPARE_CONNECTOR, paramsForBackup);
         ctx.invokeMethod(PrepareMethods.PREPARE_SECURITY, paramsForBackup);
         ctx.invokeMethod(PrepareMethods.PREPARE_MISC, paramsForBackup);
         ctx.invokeMethod(PrepareMethods.PREPARE_ADDRESS_SETTINGS, paramsForBackup);

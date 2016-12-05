@@ -35,6 +35,7 @@ public class PrepareConstants {
     public static final String ACCEPTOR_NAME_EAP6 = "netty";
     public static final String ACCEPTOR_NAME_EAP7 = "http-acceptor";
     public static final String ACCEPTOR_NAME = "acceptor";
+    public static final String ACCEPTOR_NAME_BACKUP = "acceptor-backup";
     public static final String JGROUPS_CHANNEL = "activemq-cluster";
     public static final String SERVER_NAME = "default";
     public static final String BACKUP_SERVER_NAME = "backup";
@@ -45,4 +46,8 @@ public class PrepareConstants {
     public static final String USER_PASS = "useruser";
     public static final String ADMIN_NAME = "admin";
     public static final String ADMIN_PASS = "adminadmin";
+    public static final String HTTP_SOCKET_BINDING = "http";
+    public static final String HTTP_LISTENER = "default";
+    public static final int MESSAGING_PORT = 5445;
+    public static final int MESSAGING_PORT_BACKUP = 5446;
 }

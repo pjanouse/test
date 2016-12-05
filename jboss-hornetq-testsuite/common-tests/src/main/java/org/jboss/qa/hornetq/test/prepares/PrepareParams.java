@@ -96,6 +96,8 @@ public class PrepareParams {
 
     public static final String CONNECTOR_TYPE = "CONNECTOR_TYPE";
 
+    public static final String ACCEPTOR_NAME = "ACCEPTOR_NAME";
+
     public static final String CLUSTER_TYPE = "CLUSTER_TYPE";
 
     public static final String JOURNAL_TYPE = "JOURNAL_TYPE";
@@ -183,4 +185,8 @@ public class PrepareParams {
     public static final String PREPARE_COLOCATED_BACKUP = "PREPARE_COLOCATED_BACKUP";
 
     public static final String HA_TYPE = "HA_TYPE";
+
+    public static final String SOCKET_BINDING_NAME = "SOCKET_BINDING_NAME";
+
+    public static final String SOCKET_BINDING_PORT = "SOCKET_BINDING_PORT";
 }

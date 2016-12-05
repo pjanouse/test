@@ -62,9 +62,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testSynchronizationWithBigJournalMinFiles() throws Exception {
 
         JMSOperations jmsOperations;
@@ -165,9 +162,6 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
      * @param messageBuilder
      * @throws Exception
      */
-    @Prepare(params = {
-            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
-    })
     public void testFailInCluster(boolean shutdown, MessageBuilder messageBuilder) throws Exception {
 
         container(1).start();
