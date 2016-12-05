@@ -12,6 +12,7 @@ import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
+import org.jboss.qa.hornetq.apps.MessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.*;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupColoredMessageBuilder;
@@ -1447,6 +1448,48 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     })
     public void testFailbackTransAckQueueTcpStackShutDown() throws Exception {
         testFail(Session.SESSION_TRANSACTED, true, false, true);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testRestartNode2() throws Exception {
+        container(1).start();
+        container(2).start();
+
+        Thread.sleep(30000);
+
+        container(2).stop();
+
+        Thread.sleep(15000);
+
+        container(2).start();
+
+        Thread.sleep(15000);
+
+        FinalTestMessageVerifier verifier = MessageVerifierFactory.getBasicVerifier(ContainerUtils.getJMSImplementation(container(1)));
+
+        Producer producer = new ProducerTransAck(container(1), PrepareConstants.QUEUE_JNDI, 200);
+        addClient(producer);
+        producer.addMessageVerifier(verifier);
+        producer.start();
+
+        Receiver receiver = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
+        addClient(receiver);
+        receiver.addMessageVerifier(verifier);
+
+        receiver.start();
+
+        producer.join();
+        receiver.join();
+
+        container(1).stop();
+        container(2).stop();
+
+        Assert.assertTrue(verifier.verifyMessages());
+        Assert.assertNull(producer.getException());
+        Assert.assertNull(receiver.getException());
     }
 
 
