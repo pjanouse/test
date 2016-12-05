@@ -223,9 +223,35 @@ public class ContainerEAP6 implements Container {
     }
 
     @Override
-    public void start(Map<String, String> containerProperties, int timeout) {
-        containerController.start(getName(), containerProperties);
-        pid = ProcessIdUtils.getProcessId(this);
+    public void start(final Map<String, String> containerProperties, int timeout) {
+        final Container container = this;
+
+        Thread startServerThread = new Thread() {
+            public void run() {
+                containerController.start(container.getName(), containerProperties);
+            }
+        };
+
+        startServerThread.start();
+
+        try {
+            startServerThread.join(timeout);
+            if (startServerThread.isAlive()) {
+                // here print thread dump
+                pid = ProcessIdUtils.getProcessIdOfNotFullyStartedContainer(container);
+                ContainerUtils.printThreadDump(pid,
+                        new File(container.getServerHome(), "startup-thread-dump.txt"));
+
+                throw new RuntimeException("Start of the server " + container.getName() + " was not successful. Check thread dump in server home directory.");
+            }
+            startServerThread.join();
+            pid = ProcessIdUtils.getProcessId(container);
+        } catch (InterruptedException e) {
+            // ignore
+        } catch (Exception ex) {
+            log.error("Error during start.", ex);
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
