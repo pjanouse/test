@@ -5,7 +5,9 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.*;
+import org.jboss.qa.hornetq.Container;
+import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.Clients;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
@@ -53,8 +55,8 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     protected static String ASYNCIO_JOURNAL_TYPE = "ASYNCIO";
 
-    String divertedQueue = "divertedQueue";
-    String divertedQueueJndiName = "jms/queue/divertedQueue";
+    final static String divertedQueue = "divertedQueue";
+    final static String divertedQueueJndiName = "jms/queue/divertedQueue";
 
     String clusterConnectionName = "my-cluster";
 
@@ -534,6 +536,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "SharedStoreHA", params = {
+            @Param(name = PrepareParams.PREPARE_ADDITIONAL_QUEUES, value = "divertedQueue")
+    })
     public void testFailoverWithDivertsTransAckQueueKill() throws Exception {
         testFailoverWithDiverts(false, false, false);
     }
@@ -559,6 +564,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "SharedStoreHA", params = {
+            @Param(name = PrepareParams.PREPARE_ADDITIONAL_QUEUES, value = "divertedQueue")
+    })
     public void testFailoverWithDivertsTransAckQueueShutdown() throws Exception {
         testFailoverWithDiverts(false, false, true);
     }
@@ -583,6 +591,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "SharedStoreHA", params = {
+            @Param(name = PrepareParams.PREPARE_ADDITIONAL_QUEUES, value = "divertedQueue")
+    })
     public void testFailbackWithDivertsTransAckQueueKill() throws Exception {
         testFailoverWithDiverts(true, false, false);
     }
@@ -607,6 +618,9 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(value = "SharedStoreHA", params = {
+            @Param(name = PrepareParams.PREPARE_ADDITIONAL_TOPICS, value = "divertedQueue")
+    })
     public void testFailoverWithDivertsTransAckTopicKill() throws Exception {
         testFailoverWithDiverts(false, true, false);
     }
