@@ -386,13 +386,13 @@ public class PrepareMethods extends PrepareBase {
                 break;
             case JGROUPS_DISCOVERY:
                 jmsOperations.removeBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME);
-                jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "udp", PrepareConstants.JGROUPS_CHANNEL, 5000, PrepareConstants.CONNECTOR_NAME);
+                jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "udp", PrepareConstants.JGROUPS_CHANNEL, 2000, PrepareConstants.CONNECTOR_NAME);
                 jmsOperations.removeDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME);
                 jmsOperations.setDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME, 10000, "udp", PrepareConstants.JGROUPS_CHANNEL);
                 break;
             case JGROUPS_DISCOVERY_TCP:
                 jmsOperations.removeBroadcastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME);
-                jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "tcp", PrepareConstants.JGROUPS_CHANNEL, 5000, PrepareConstants.CONNECTOR_NAME);
+                jmsOperations.setBroadCastGroup(serverName, PrepareConstants.BROADCAST_GROUP_NAME, "tcp", PrepareConstants.JGROUPS_CHANNEL, 2000, PrepareConstants.CONNECTOR_NAME);
                 jmsOperations.removeDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME);
                 jmsOperations.setDiscoveryGroup(serverName, PrepareConstants.DISCOVERY_GROUP_NAME, 10000, "tcp", PrepareConstants.JGROUPS_CHANNEL);
                 break;
