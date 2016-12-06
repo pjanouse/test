@@ -676,11 +676,13 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         producer1.join();
         new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 10000, 100, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 30000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
 
         receiver1.start();
         receiver1.join();
+
+        logger.info("Number of messages in OutQueue on nodes:" + new JMSTools().countMessages(OUT_QUEUE_NAME, container(1),container(3)));
 
         logger.info("Number of sent messages: "
                 + (producer1.getListOfSentMessages().size() + ", Producer to jms1 server sent: "

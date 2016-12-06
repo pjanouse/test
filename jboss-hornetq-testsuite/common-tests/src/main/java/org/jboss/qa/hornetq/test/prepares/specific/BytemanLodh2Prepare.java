@@ -30,17 +30,39 @@ public class BytemanLodh2Prepare extends FourNodes {
         super.beforePrepare(params, ctx);
 
         PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_DELIVERY_ATTEMPTS, 200);
+    }
+
+    @Override
+    protected void beforePrepareContainer1(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_SIZE_BYTES, "1048576");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PAGE_SIZE_BYTES, "10240");
         PrepareUtils.setIfNotSpecified(params, PrepareParams.REDISTRIBUTION_DELAY, 0);
+        beforePrepareContainer(params, ctx);
+    }
+
+
+    @Override
+    protected void beforePrepareContainer3(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_SIZE_BYTES, "1048576");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PAGE_SIZE_BYTES, "10240");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.REDISTRIBUTION_DELAY, 0);
+        beforePrepareContainer(params, ctx);
     }
 
     @Override
     protected void beforePrepareContainer2(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_SIZE_BYTES, "52428800");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PAGE_SIZE_BYTES, "2097152");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.REDISTRIBUTION_DELAY, 5000);
         PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_DESTINATIONS, false);
         beforePrepareContainer(params, ctx);
     }
 
     @Override
     protected void beforePrepareContainer4(Map<String, Object> params, PrepareContext ctx) throws Exception {
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.MAX_SIZE_BYTES, "52428800");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.PAGE_SIZE_BYTES, "2097152");
+        PrepareUtils.setIfNotSpecified(params, PrepareParams.REDISTRIBUTION_DELAY, 5000);
         PrepareUtils.setIfNotSpecified(params, PrepareParams.PREPARE_DESTINATIONS, false);
         beforePrepareContainer(params, ctx);
     }
@@ -73,7 +95,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         super.afterPrepareContainer1(params, ctx);
         JMSOperations jmsOperations = getJMSOperations(params);
-        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, 0, "public", GROUP_ADDRESS, 55874);
     }
 
     @Override
@@ -82,7 +104,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         super.afterPrepareContainer3(params, ctx);
         JMSOperations jmsOperations = getJMSOperations(params);
-        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55874);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, 0, "public", GROUP_ADDRESS, 55874);
     }
 
     @Override
@@ -91,7 +113,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         super.afterPrepareContainer2(params, ctx);
         JMSOperations jmsOperations = getJMSOperations(params);
-        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55875);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, 0, "public", GROUP_ADDRESS, 55875);
     }
 
     @Override
@@ -100,7 +122,7 @@ public class BytemanLodh2Prepare extends FourNodes {
 
         super.afterPrepareContainer4(params, ctx);
         JMSOperations jmsOperations = getJMSOperations(params);
-        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, "public", GROUP_ADDRESS, 55875);
+        jmsOperations.createSocketBinding(messagingGroupSocketBindingName, 0, "public", GROUP_ADDRESS, 55875);
     }
 
     @Override
