@@ -518,24 +518,6 @@ public class Lodh5TestCase extends HornetQTestCase {
     }
 
     /**
-     * Deallocate db from db allocator if there is anything to deallocate
-     *
-     * @throws Exception
-     */
-    @After
-    public void deallocateDatabase() throws Exception {
-        String response = "";
-        try {
-            response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
-                    20, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            logger.error("Database could not be deallocated. Response: " + response, e);
-
-        }
-        logger.trace("Response from deallocating database is: " + response);
-    }
-
-    /**
      * @tpTestDetails Start server with MDB which read messages from queue and
      * insert them to Enterprise DB Postgres Plus Advanced Server 9.2 database.
      * Kill the server at the beginning of the transaction start phase to see if

@@ -79,25 +79,6 @@ public class Lodh5TestBase extends HornetQTestCase {
         container(1).stop();
     }
 
-    /**
-     * Deallocate db from db allocator if there is anything to deallocate
-     *
-     * @throws Exception
-     */
-    @After
-    public void deallocateDatabase() throws Exception {
-        String response = "";
-        try {
-            response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
-                    20, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            logger.error("Database could not be deallocated. Response: " + response, e);
-
-        }
-        logger.trace("Response from deallocating database is: " + response);
-    }
-
-
     protected void prepareServer(Container container, String database) throws Exception {
         prepareServerEAP6(container, database);
     }

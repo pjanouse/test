@@ -543,19 +543,6 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         databaseProperties = DBAllocatorUtils.allocateDatabase(database);
     }
 
-    @After
-    public void deallocateDatabase() throws Exception {
-        String response = "";
-        try {
-            response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid="
-                    + databaseProperties.get("uuid"), 20, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            logger.error("Database could not be deallocated. Response: " + response, e);
-
-        }
-        logger.trace("Response from deallocating database is: " + response);
-    }
-
     private boolean startAllProxies(){
         try {
             logger.info("Starting all proxies");

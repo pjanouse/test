@@ -52,26 +52,6 @@ public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase
     private Map<String, String> properties = null;
 
 
-    /**
-     * Deallocate db from db allocator if there is anything to deallocate
-     *
-     * @throws Exception
-     */
-    @After
-    public void deallocateDatabase() throws Exception {
-        String response = "";
-        try {
-            if (properties != null) {
-                response = HttpRequest.get("http://dballocator.mw.lab.eng.bos.redhat.com:8080/Allocator/AllocatorServlet?operation=dealloc&uuid=" + properties.get("uuid"),
-                        20, TimeUnit.SECONDS);
-            }
-        } catch (TimeoutException e) {
-            logger.error("Database could not be deallocated. Response: " + response, e);
-
-        }
-        logger.trace("Response from deallocating database is: " + response);
-    }
-
     @Before
     @After
     public void removeInstalledModules() {
