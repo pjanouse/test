@@ -495,11 +495,16 @@ public class PrepareMethods extends PrepareBase {
         boolean jmxManagementEnabled = PrepareUtils.getBoolean(params, PrepareParams.JMX_MANAGEMENT_ENABLED, false);
         Boolean autoCreateJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_CREATE_JMS_QUEUES);
         Boolean autoDeleteJMSQueues = PrepareUtils.getBoolean(params, PrepareParams.AUTO_DELETE_JMS_QUEUES);
+        boolean disableTraceLogging = PrepareUtils.getBoolean(params, PrepareParams.DISABLE_TRACE_LOGGING, false);
 
         jmsOperations.setJournalType(serverName, journalType);
         jmsOperations.setJournalFileSize(serverName, journalFileSize);
         jmsOperations.setTransactionTimeout(serverName, transactionTimeout);
         jmsOperations.setJmxManagementEnabled(jmxManagementEnabled);
+
+        if (disableTraceLogging) {
+            jmsOperations.disableTraceLoggingToFile();
+        }
 
         if (autoCreateJMSQueues != null) {
             jmsOperations.setAutoCreateJMSQueue(autoCreateJMSQueues);
