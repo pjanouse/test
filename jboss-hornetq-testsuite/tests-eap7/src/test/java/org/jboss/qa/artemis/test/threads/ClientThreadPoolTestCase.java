@@ -6,7 +6,6 @@ import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.Clients;
@@ -29,6 +28,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -197,6 +197,11 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
     }
 
     private void testInternal(TestType testType) throws Exception {
+
+        Assume.assumeFalse(System.getProperty("os.name").contains("indows"));
+        Assume.assumeTrue((System.getProperty("java.vm.name").contains("Java HotSpot")
+                || System.getProperty("java.vm.name").contains("OpenJDK")));
+
         prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.NETTY_NIO, testType);
 
         container(1).start();
@@ -307,6 +312,9 @@ public class ClientThreadPoolTestCase extends HornetQTestCase {
             counts.add(last);
         }
         logger.info(String.format("Last number of threads [%d], maximal number of threads [%d], is pool scheduled: {%b}", last, max, isScheduledPool));
+
+        //there is a possibility that slightly more threads will be created. This is by design and is considered OK.
+        maxSize = maxSize + 1;
 
         if (!isScheduledPool) {
             Assert.assertTrue("Maximal number of threads should be higher then last measured value", max > last);
