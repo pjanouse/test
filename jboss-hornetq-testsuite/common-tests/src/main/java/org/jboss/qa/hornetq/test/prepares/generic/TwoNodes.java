@@ -76,12 +76,12 @@ public class TwoNodes extends PrepareBase {
     // Before
 
     protected void beforePrepare(Map<String, Object> params, PrepareContext ctx) throws Exception {
-        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node1-bindings-table");
-        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node1-messages-table");
-        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node1-large-messages-table");
-        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node2-bindings-table");
-        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node2-messages-table");
-        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node2-large-messages-table");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node1_bindings_table");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node1_messages_table");
+        PrepareUtils.setIfNotSpecified(params, "1." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node1_large_messages_table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_BINDINGS_TABLE, "node2_bindings_table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_MESSAGES_TABLE, "node2_messages_table");
+        PrepareUtils.setIfNotSpecified(params, "2." + PrepareParams.JOURNAL_LARGE_MESSAGES_TABLE, "node2_large_messages_table");
     }
 
     protected void beforePrepareContainer(Map<String, Object> params, PrepareContext ctx) throws Exception {
