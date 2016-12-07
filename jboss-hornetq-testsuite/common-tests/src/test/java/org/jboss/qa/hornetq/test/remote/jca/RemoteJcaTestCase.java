@@ -2054,6 +2054,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 transportProperties.put("socket-binding", "jgroups-tcp");
                 transportProperties.put("type", "TCP");
                 jmsAdminOperations.removeJGroupsStack(tcpJgroupsStackName);
+
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+
                 jmsAdminOperations.addJGroupsStack(tcpJgroupsStackName, protocols, transportProperties);
                 jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
                 jmsAdminOperations.setBroadCastGroup(broadCastGroupName, tcpJgroupsStackName, tcpJgroupsChannelName, 2000, connectorName);
@@ -2450,6 +2455,11 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 transportProperties.put("socket-binding", "jgroups-tcp");
                 transportProperties.put("type", "TCP");
                 jmsAdminOperations.removeJGroupsStack(jgroupsStackName);
+
+                jmsAdminOperations.close();
+                container.restart();
+                jmsAdminOperations = container.getJmsOperations();
+
                 jmsAdminOperations.addJGroupsStack(jgroupsStackName, protocols, transportProperties);
                 jmsAdminOperations.removeBroadcastGroup(broadCastGroupName);
                 jmsAdminOperations.removeDiscoveryGroup(discoveryGroupName);
