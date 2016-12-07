@@ -17,6 +17,7 @@ import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -28,6 +29,7 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -1081,6 +1083,8 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testMultipleFailoverReceiver() throws Exception {
+
+        Assume.assumeFalse("BLOCK".equals(prepareCoordinator.getParams().get(PrepareParams.ADDRESS_FULL_POLICY)));
 
         int numberOfMessages = 50000;
         MessageBuilder messageBuilder = new TextMessageBuilder(10);
