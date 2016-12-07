@@ -299,12 +299,8 @@ public class PrepareMethods extends PrepareBase {
 
         switch (connectorType) {
             case HTTP_CONNECTOR:
-                Map<String, String> acceptorParams = new HashMap<String, String>();
-                acceptorParams.put("batch-delay", "50");
-                acceptorParams.put("direct-deliver", "false");
-
-                jmsOperations.createHttpAcceptor(serverName, acceptorName, PrepareConstants.HTTP_LISTENER, acceptorParams);
-                jmsOperations.createHttpConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.HTTP_SOCKET_BINDING, acceptorParams, acceptorName);
+                jmsOperations.createHttpAcceptor(serverName, acceptorName, PrepareConstants.HTTP_LISTENER, null);
+                jmsOperations.createHttpConnector(serverName, PrepareConstants.CONNECTOR_NAME, PrepareConstants.HTTP_SOCKET_BINDING, null, acceptorName);
                 break;
             case NETTY_BIO:
                 jmsOperations.createSocketBinding(socketBindingName, socketBindingPort);
