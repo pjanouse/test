@@ -20,6 +20,7 @@ import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaniner2;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter1;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueToContaninerWithFilter2;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -82,36 +83,6 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
     // LODH3 waits for all messages to get generated before the failover test starts, so it requires more messages
     // to last through all 5 server kills in long test scenario
     private static final int LODH3_NUMBER_OF_MESSAGES = 20000;
-
-    // queue to send messages in
-    private static final String IN_QUEUE_NAME = "InQueue";
-
-    private static final String IN_QUEUE = "jms/queue/" + IN_QUEUE_NAME;
-
-    // inTopic
-    private static final String IN_TOPIC_NAME = "InTopic";
-
-    private static final String IN_TOPIC = "jms/topic/" + IN_TOPIC_NAME;
-
-    // queue for receive messages out
-    private static final String OUT_QUEUE_NAME = "OutQueue";
-
-    private static final String OUT_QUEUE = "jms/queue/" + OUT_QUEUE_NAME;
-
-    private static final String QUEUE_NAME_PREFIX = "testQueue";
-
-    private static final String QUEUE_JNDI_PREFIX = "jms/queue/testQueue";
-
-    private static final String DISCOVERY_GROUP_NAME = "dg-group1";
-
-    private static final String BROADCAST_GROUP_NAME = "bg-group1";
-
-    private static final String CLUSTER_GROUP_NAME = "my-cluster";
-
-    private static final String CONNECTOR_NAME_EAP6 = "netty";
-    private static final String CONNECTOR_NAME_EAP7 = "http-connector";
-
-    private static final String GROUP_ADDRESS = "233.6.88.5";
 
     public final Archive mdb1WithFilter = getDeploymentWithFilter1();
     public final Archive mdb2WithFilter = getDeploymentWithFilter2();
@@ -570,7 +541,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             Thread.sleep(5000);
         }
 
-        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(container(1), IN_TOPIC, numberOfMessages,
+        SoakPublisherClientAck producer1 = new SoakPublisherClientAck(container(1), PrepareConstants.IN_TOPIC_JNDI, numberOfMessages,
                 "clientId-myPublisher");
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(false);
@@ -589,7 +560,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         Thread.sleep(60 * 1000);
 
         // set longer timeouts so xarecovery is done at least once
-        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), OUT_QUEUE, 300000, 10, 10);
+        SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 300000, 10, 10);
 
         receiver1.start();
 
@@ -641,7 +612,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         container(2).start();
         container(4).start();
 
-        ProducerTransAck producer1 = new ProducerTransAck(container(1), IN_QUEUE, numberOfMessages);
+        ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
 
         ClientMixMessageBuilder builder = new ClientMixMessageBuilder(10, 100);
         builder.setAddDuplicatedHeader(true);
@@ -665,7 +636,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             container(4).deploy(mdbOnQueue2);
         }
 
-        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
 
         if (waitForProducer) {
             executeFailureSequence(failureSequence, 15000);
@@ -674,15 +645,15 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
 
         producer1.join();
-        new JMSTools().waitForMessages(OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
+        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
 
-        ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), OUT_QUEUE, 30000, 100, 10);
+        ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), PrepareConstants.OUT_QUEUE_JNDI, 30000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
 
         receiver1.start();
         receiver1.join();
 
-        logger.info("Number of messages in OutQueue on nodes:" + new JMSTools().countMessages(OUT_QUEUE_NAME, container(1),container(3)));
+        logger.info("Number of messages in OutQueue on nodes:" + new JMSTools().countMessages(PrepareConstants.OUT_QUEUE_NAME, container(1),container(3)));
 
         logger.info("Number of sent messages: "
                 + (producer1.getListOfSentMessages().size() + ", Producer to jms1 server sent: "
