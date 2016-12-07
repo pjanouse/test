@@ -1,20 +1,25 @@
 package org.jboss.qa.artemis.test.security;
 
-import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
+import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.jboss.qa.hornetq.test.security.UsersSettings;
+import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 /**
- * Test security permissions to queues and topic
+ * Test Elytron security permissions to queues and topic
  * <p/>
  * Uses its own application-roles.properties, application-roles.properties
  * <p/>
@@ -31,7 +36,7 @@ import org.junit.runner.RunWith;
  *
  * @author mnovak@rehat.com
  * @tpChapter Security testing
- * @tpSubChapter HORNETQ ADDRESS SETTINGS AUTHENTICATION
+ * @tpSubChapter HORNETQ ADDRESS SETTINGS AUTHENTICATION WITH ELYTRON
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Test security permissions to queues and topic. Create 3
@@ -43,9 +48,8 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 @Category(FunctionalTests.class)
-public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
+public class ElytronPermissionSecurityTestCase extends PermissionSecurityTestBase {
 
-    private static final Logger logger = Logger.getLogger(PermissionSecurityTestCase.class);
 
     /**
      * This test will start one server. And try to send/receive messages or
@@ -73,7 +77,8 @@ public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Prepare(value = "OneNode", params = {
+    @Prepare(value = "ElytronSubsystemPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
             @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
             @Param(name = PrepareParams.SECURITY_GUEST_CONSUME, value = "true"),
             @Param(name = PrepareParams.SECURITY_GUEST_CREATE_DURABLE_QUEUE, value = "false"),
@@ -115,7 +120,8 @@ public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Prepare(value = "OneNode", params = {
+    @Prepare(value = "ElytronSubsystemPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
             @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
             @Param(name = PrepareParams.SECURITY_USERS_CONSUME, value = "true"),
             @Param(name = PrepareParams.SECURITY_USERS_CREATE_DURABLE_QUEUE, value = "false"),
@@ -155,7 +161,8 @@ public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Prepare(value = "OneNode", params = {
+    @Prepare(value = "ElytronSubsystemPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
             @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
             @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
             @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "true"),
@@ -187,7 +194,8 @@ public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     //TODO This test will fail on EAP 6.4.0.DR13 and older
-    @Prepare(value = "OneNode", params = {
+    @Prepare(value = "ElytronSubsystemPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
             @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
             @Param(name = PrepareParams.SECURITY_USERS_CONSUME, value = "true"),
             @Param(name = PrepareParams.SECURITY_USERS_CREATE_DURABLE_QUEUE, value = "false"),
@@ -200,4 +208,41 @@ public class PermissionSecurityTestCase extends PermissionSecurityTestBase {
     public void testInVmSecurityTestCase() throws Exception {
         inVmSecurityTestCase();
     }
+
+    // todo make this prepare method after permission security
+    // todo amek abstrac permission security and let default from picketbox
+    // then apply this with setting of elytron security domain
+//    public void prepareServer(Container container) throws Exception {
+//
+//        String elytronSecurityDomain = "ApplicationRealm";
+//        String constantLoginPermissionMapper = "login-permission-mapper";
+//        String loginPermissionMapperClass = "org.wildfly.security.auth.permission.LoginPermission";
+//        String constantRealmMapper = "local";
+//        String constantRealmMapperReamName = "local";
+//        String simpleRoleDecoderMapper = "groups-to-roles";
+//        String simpleRoleDecoderMapperAttributes = "groups";
+//
+//        String propertiesRealmName = "ApplicationRealm";
+//        String userFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.USERS_FILE;
+//        String rolesFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.ROLES_FILE;
+//        String simplePermissionMapper = "login-permission-mapper";
+//        String roleDecoder = "groups-to-roles";
+//
+//        container.start();
+//        JMSOperations jmsOperations = container.getJmsOperations();
+//        jmsOperations.addExtension("org.wildfly.extension.elytron");
+//        jmsOperations.addSubsystem("elytron");
+//        jmsOperations.reload();
+//
+//        jmsOperations.addElytronConstantPermissionMapper(constantLoginPermissionMapper, loginPermissionMapperClass);
+//        jmsOperations.addElytronConstantRealmMapper(constantRealmMapper, constantRealmMapperReamName);
+//        jmsOperations.addSimpleRoleDecoderMapper(simpleRoleDecoderMapper, simpleRoleDecoderMapperAttributes);
+//        jmsOperations.addElytronPropertiesRealm(propertiesRealmName, userFilePath, rolesFilePath);
+//        jmsOperations.addElytronSecurityDomain(elytronSecurityDomain, propertiesRealmName, simplePermissionMapper, roleDecoder);
+//
+//        jmsOperations.setElytronSecurityDomain(elytronSecurityDomain);
+//        jmsOperations.close();
+//
+//        container.stop();
+//    }
 }

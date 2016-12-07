@@ -5622,6 +5622,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
     }
 
     @Override
+    public void setElytronSecurityDomain(String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setElytronSecurityDomain(String serverName, String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void setJournalMinCompactFiles(int i) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
@@ -5654,6 +5664,34 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void addElytronConstantPermissionMapper(String constantLoginPermissionMapperName, String loginPermissionMapperClass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronConstantRealmMapper(String constantRealmMapperName, String constantRealmMapperReamName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSimpleRoleDecoderMapper(String name, String attributes) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronPropertiesRealm(String propertiesRealmName, String userFilePath, String rolesFilePath) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+
+    @Override
+    public void addElytronSecurityDomain(String securityDomainName, String propertiesRealmName,
+                                         String simplePermissionMapper, String roleDecoder) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
 
     public void undeploy(String archiveName) throws Exception {
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);

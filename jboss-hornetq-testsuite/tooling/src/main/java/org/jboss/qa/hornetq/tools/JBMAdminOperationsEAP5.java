@@ -2803,6 +2803,48 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setElytronSecurityDomain(String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setElytronSecurityDomain(String serverName, String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronConstantPermissionMapper(String constantLoginPermissionMapperName, String loginPermissionMapperClass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronConstantRealmMapper(String constantRealmMapperName, String constantRealmMapperReamName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSimpleRoleDecoderMapper(String name, String attributes) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronPropertiesRealm(String propertiesRealmName, String userFilePath, String rolesFilePath) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+
+    @Override
+    public void addElytronSecurityDomain(String securityDomainName, String propertiesRealmName,
+                                         String simplePermissionMapper, String roleDecoder) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         logger.info("This operation is not supported: " + getMethodName());
     }

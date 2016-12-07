@@ -17,6 +17,10 @@ import java.util.*;
  */
 public class UsersSettings {
 
+    public static final String ROLES_FILE = "application-roles.properties";
+
+    public static final String USERS_FILE = "application-users.properties";
+
     private UsersSettings() {
     }
 
@@ -41,10 +45,6 @@ public class UsersSettings {
     public static class Builder {
 
         private static final String CONFIG_DIRECTORY = "standalone" + File.separator + "configuration";
-
-        private static final String ROLES_FILE = "application-roles.properties";
-
-        private static final String USERS_FILE = "application-users.properties";
 
         private final String serverHome;
 
@@ -98,6 +98,11 @@ public class UsersSettings {
             FileWriter fw = null;
             try {
                 fw = new FileWriter(this.getConfigurationDirectoryPath() + USERS_FILE);
+
+                // todo remove when JBPEAP-6003 is fixed
+                fw.append("#$REALM_NAME=ApplicationRealm$");
+                fw.append("\n");
+
                 for (EapUser user : this.users.values()) {
                     if (user.getPlaintextPassword() != null && !user.getPlaintextPassword().isEmpty()) {
                         fw.append(user.getUserName()).append("=").append(user.getEncryptedPassword());
@@ -110,7 +115,6 @@ public class UsersSettings {
                 }
             }
         }
-
 
         private String getConfigurationDirectoryPath() {
             return this.serverHome + File.separator + CONFIG_DIRECTORY + File.separator;
@@ -192,5 +196,4 @@ public class UsersSettings {
         }
 
     }
-
 }

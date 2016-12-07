@@ -13,12 +13,20 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.json.JSONArray;
 import org.kohsuke.MetaInfServices;
+import org.wildfly.extras.creaper.commands.elytron.domain.AddSecurityDomain;
+import org.wildfly.extras.creaper.commands.elytron.mapper.AddConstantPermissionMapper;
+import org.wildfly.extras.creaper.commands.elytron.mapper.AddConstantRealmMapper;
+import org.wildfly.extras.creaper.commands.elytron.realm.AddPropertiesRealm;
+import org.wildfly.extras.creaper.core.ManagementClient;
+import org.wildfly.extras.creaper.core.online.OnlineCommand;
+import org.wildfly.extras.creaper.core.online.OnlineManagementClient;
+import org.wildfly.extras.creaper.core.online.OnlineOptions;
+
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -28,7 +36,7 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.*;
 
 /**
  * Basic administration operations for JMS subsystem
- * <p>
+ * <p/>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -59,6 +67,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     // Instance of Model controller client
     private ModelControllerClient modelControllerClient;
 
+    OnlineManagementClient onlineManagementClient;
+
     private final List<PrefixEntry> prefix = new ArrayList<PrefixEntry>();
 
     private String hostname;
@@ -80,20 +90,13 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      */
     public void connect() {
         try {
-
-            // final ThreadGroup group = new ThreadGroup("management-client-thread");
-            // final ThreadFactory threadFactory = new JBossThreadFactory(group, Boolean.FALSE, null, "%G " +
-            // executorCount.incrementAndGet() + "-%t", null, null, AccessController.getContext());
-            // ExecutorService executorService = new ThreadPoolExecutor(2, 6, 60, TimeUnit.SECONDS, new
-            // LinkedBlockingQueue<Runnable>(), threadFactory);
-            //
-            // ClientConfigurationImpl clientConfiguration = new ClientConfigurationImpl();
-            // this.modelControllerClient = ModelControllerClient.Factory.create(ClientConfigurationImpl.create(hostname, port,
-            // null, null, timeout));
-
             InetAddress inetAddress = InetAddress.getByName(hostname);
             this.modelControllerClient = ModelControllerClient.Factory.create(inetAddress, port);
-        } catch (UnknownHostException e) {
+            this.onlineManagementClient = ManagementClient.online(OnlineOptions
+                    .standalone()
+                    .hostAndPort(hostname, port)
+                    .build());
+        } catch (Exception e) {
             throw new RuntimeException("Cannot create model controller client for host: " + hostname + " and port " + port, e);
         }
     }
@@ -105,6 +108,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     public void close() {
         try {
             modelControllerClient.close();
+            onlineManagementClient.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -825,7 +829,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         Pattern r = Pattern.compile("\"(sf\\.\\S*)\"");
         Matcher m = r.matcher(resource);
         Set<String> names = new HashSet<String>();
-        while(m.find()){
+        while (m.find()) {
             names.add(m.group());
             System.out.println(m.group());
         }
@@ -833,8 +837,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public long getMessagesAdded(String coreQueueName){
-        return getMessagesAdded(coreQueueName,false);
+    public long getMessagesAdded(String coreQueueName) {
+        return getMessagesAdded(coreQueueName, false);
     }
 
     @Override
@@ -845,9 +849,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         messagesAdded.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         messagesAdded.get(ClientConstants.OP_ADDR)
                 .add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, NAME_OF_MESSAGING_DEFAULT_SERVER);
-        if(isTopic){
+        if (isTopic) {
             messagesAdded.get(ClientConstants.OP_ADDR).add("jms-topic", destName);
-        }else{
+        } else {
             messagesAdded.get(ClientConstants.OP_ADDR).add("jms-queue", destName);
         }
         messagesAdded.get("name").set("messages-added");
@@ -1008,6 +1012,105 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
         model.get(ClientConstants.NAME).set("journal-large-messages-table");
         model.get(ClientConstants.VALUE).set(journalLargeMessagesTable);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setElytronSecurityDomain(String securityElytronDomain) {
+        setElytronSecurityDomain("default", securityElytronDomain);
+    }
+
+    @Override
+    public void setElytronSecurityDomain(String serverName, String securityElytronDomain) {
+        // /subsystem=ejb3/mdb-delivery-group=group2:add(active=true)
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set(ClientConstants.WRITE_ATTRIBUTE_OPERATION);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MESSAGING_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SERVER, serverName);
+        model.get("name").set("elytron-domain");
+        model.get("value").set(securityElytronDomain);
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addElytronConstantPermissionMapper(String constantLoginPermissionMapperName, String loginPermissionMapperClass) {
+        try {
+            applyUpdate(new AddConstantPermissionMapper.Builder(constantLoginPermissionMapperName).addPermissions(
+                    new AddConstantPermissionMapper.PermissionBuilder().className(loginPermissionMapperClass).build()).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addElytronConstantRealmMapper(String constantRealmMapperName, String constantRealmMapperReamName) {
+        try {
+            applyUpdate(new AddConstantRealmMapper.Builder(constantRealmMapperName).realmName(constantRealmMapperReamName).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addSimpleRoleDecoderMapper(String name, String attributes) {
+        try {
+            onlineManagementClient.executeCli("/subsystem=elytron/simple-role-decoder=" + name + ":add(attribute=\"" + attributes + "\")");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addElytronPropertiesRealm(String propertiesRealmName, String userFilePath, String rolesFilePath) {
+        try {
+            OnlineCommand command = new AddPropertiesRealm.Builder(propertiesRealmName)
+                    .userProperiesPath(userFilePath)
+                    .groupsProperiesPath(rolesFilePath)
+                    .plainText(false).build();
+            logger.info("command: " + command.toString());
+            applyUpdate(command);
+        } catch (Exception e) {
+            logger.error("Exception when updating property realm: ", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public void addElytronSecurityDomain(String securityDomainName, String propertiesRealmName,
+                                         String simplePermissionMapper, String roleDecoder) {
+        try {
+            applyUpdate(new AddSecurityDomain.Builder(securityDomainName)
+                    .defaultRealm(propertiesRealmName)
+                    .permissionMapper(simplePermissionMapper)
+                    .realms(new AddSecurityDomain.RealmBuilder(propertiesRealmName)
+                            .roleDecoder(roleDecoder)
+                            .build())
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_UNDERTOW_SERVER, NAME_OF_UNDERTOW_DEFAULT_SERVER);
+        model.get(ClientConstants.OP_ADDR).add("https-listener", listenerName);
+        model.get("socket-binding").set(socketBinding);
+        model.get("ssl-context").set(sslServerContext);
+        model.toString();
 
         try {
             this.applyUpdate(model);
@@ -1513,6 +1616,10 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         }
     }
 
+    private void applyUpdate(final OnlineCommand command) throws Exception {
+        onlineManagementClient.apply(command);
+    }
+
     /**
      * Applies update to server
      *
@@ -1523,7 +1630,8 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      * @see {@link ModelNode}
      */
     private ModelNode applyUpdate(final ModelNode update) throws IOException, JMSAdminOperationException {
-        ModelNode result = this.modelControllerClient.execute(update);
+        ModelNode result = onlineManagementClient.execute(update);
+        //this.modelControllerClient.execute(update);
         if (result.hasDefined(ClientConstants.OUTCOME)
                 && ClientConstants.SUCCESS.equals(result.get(ClientConstants.OUTCOME).asString())) {
             logger.info(String.format("Operation successful for update = '%s'", update.toString()));
@@ -1539,7 +1647,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     * <p>
+     * <p/>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
      * populated with path composed of prefix entries (in the order they were added).
      *
@@ -2021,7 +2129,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Export ActiveMQ Artemis journal.
-     * <p>
+     * <p/>
      * server needs to be in admin-only mode
      *
      * @return path to file with exported journal
@@ -3248,7 +3356,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p>
+     * <p/>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -4478,9 +4586,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -4514,9 +4622,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -4724,7 +4832,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
      *
      * @param handlerName name of handler
      *                    to disable trace logs use FILE-TRACE
-     *
      */
     @Override
     public void disableLoggingHandler(String handlerName) {
@@ -5150,7 +5257,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
         model.get(ClientConstants.OP_ADDR).add(NAME_OF_ATTRIBUTE_FOR_MESSAGING_SERVER, serverName);
-            model.get(ClientConstants.OP_ADDR).add("http-connector", name);
+        model.get(ClientConstants.OP_ADDR).add("http-connector", name);
         try {
             this.applyUpdate(model);
         } catch (Exception e) {
@@ -6262,7 +6369,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p>
+     * <p/>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server
@@ -6456,7 +6563,6 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     @Override
     public void deploy(Archive archive) throws Exception {
-
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
         final InputStream input = archive.as(ZipExporter.class).exportAsInputStream();
         server.deploy(archive.getName(), input);
@@ -6468,15 +6574,15 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
         server.undeploy(archiveName);
     }
 
-/**
- * Exception
- */
-private class JMSAdminOperationException extends Exception {
+    /**
+     * Exception
+     */
+    private class JMSAdminOperationException extends Exception {
 
-    public JMSAdminOperationException(final String msg) {
-        super(msg);
+        public JMSAdminOperationException(final String msg) {
+            super(msg);
+        }
     }
-}
 
     /**
      * Set whether environment property replacement is avaible or not.
@@ -7045,14 +7151,15 @@ private class JMSAdminOperationException extends Exception {
 
     /**
      * Configures Artemis as replication slave
-     * @param allowFailback whether failback is allowed
-     * @param clusterName name of cluster for master-slave pair
-     * @param failbackDelay time to wait before failback can occur
-     * @param groupName name of replication master-slave pair, bind slave with master
+     *
+     * @param allowFailback                 whether failback is allowed
+     * @param clusterName                   name of cluster for master-slave pair
+     * @param failbackDelay                 time to wait before failback can occur
+     * @param groupName                     name of replication master-slave pair, bind slave with master
      * @param maxSavedReplicatedJournalSize number of replicated journals=failbacks (default 2) before slave just stops
-     * @param restartBackup if backup should be restarted after failback
-     * @param scaleDown whether server should scale down for clean shutdown
-     * @param scaleDownClusterName name cluster connection to use for scaling down
+     * @param restartBackup                 if backup should be restarted after failback
+     * @param scaleDown                     whether server should scale down for clean shutdown
+     * @param scaleDownClusterName          name cluster connection to use for scaling down
      */
     @Override
     public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName,
@@ -7066,15 +7173,16 @@ private class JMSAdminOperationException extends Exception {
 
     /**
      * Configures Artemis as replication slave
-     * @param serverName name of Artemis server inside EAP 7 to configure ("default" is default)
-     * @param allowFailback whether failback is allowed
-     * @param clusterName name of cluster for master-slave pair
-     * @param failbackDelay time to wait before failback can occur
-     * @param groupName name of replication master-slave pair, bind slave with master
+     *
+     * @param serverName                    name of Artemis server inside EAP 7 to configure ("default" is default)
+     * @param allowFailback                 whether failback is allowed
+     * @param clusterName                   name of cluster for master-slave pair
+     * @param failbackDelay                 time to wait before failback can occur
+     * @param groupName                     name of replication master-slave pair, bind slave with master
      * @param maxSavedReplicatedJournalSize number of replicated journals=failbacks (default 2) before slave just stops
-     * @param restartBackup if backup should be restarted after failback
-     * @param scaleDown whether server should scale down for clean shutdown
-     * @param scaleDownClusterName name cluster connection to use for scaling down
+     * @param restartBackup                 if backup should be restarted after failback
+     * @param scaleDown                     whether server should scale down for clean shutdown
+     * @param scaleDownClusterName          name cluster connection to use for scaling down
      */
     @Override
     public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
@@ -7247,7 +7355,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void createUndertowReverseProxyHandler(String name){
+    public void createUndertowReverseProxyHandler(String name) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7262,7 +7370,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm){
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7274,7 +7382,7 @@ private class JMSAdminOperationException extends Exception {
         model.get("scheme").set(scheme);
         model.get("intance-id").set(intanceId);
         model.get("path").set(path);
-        if(securityRealm != null){
+        if (securityRealm != null) {
             model.get("security-realm").set(securityRealm);
         }
 
@@ -7286,7 +7394,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void addFilterToUndertowServerHost(String filterRef){
+    public void addFilterToUndertowServerHost(String filterRef) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7303,7 +7411,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void addLocationToUndertowServerHost(String location, String handler){
+    public void addLocationToUndertowServerHost(String location, String handler) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("add");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7321,7 +7429,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void removeLocationFromUndertowServerHost(String location){
+    public void removeLocationFromUndertowServerHost(String location) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("remove");
         model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_UNDERTOW_SUBSYSTEM);
@@ -7480,7 +7588,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools){
+    public void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -7497,7 +7605,7 @@ private class JMSAdminOperationException extends Exception {
     }
 
     @Override
-    public void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools){
+    public void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -7762,13 +7870,13 @@ private class JMSAdminOperationException extends Exception {
         }
     }
 
-private static class PrefixEntry {
-    private final String key;
-    private final String value;
+    private static class PrefixEntry {
+        private final String key;
+        private final String value;
 
-    private PrefixEntry(String key, String value) {
-        this.key = key;
-        this.value = value;
+        private PrefixEntry(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
     }
-}
 }

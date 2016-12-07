@@ -65,6 +65,21 @@ public class ServerPathUtils {
      * @return File with module directory path (e.g. ".../org/hornetq/main" directory)
      * @throws IOException
      */
+    public static File getConfigurationDirectory(final Container container) {
+
+        String dataDir = container.getServerHome() + File.separator + "standalone" + File.separator + "configuration";
+
+        return new File(dataDir);
+
+    }
+
+    /**
+     * Returns path to given data directory
+     *
+     * @param container EAP root directory
+     * @return File with module directory path (e.g. ".../org/hornetq/main" directory)
+     * @throws IOException
+     */
     public static File getStandaloneLogDirectory(final Container container) {
 
         String dataDir = container.getServerHome() + File.separator + "standalone" + File.separator + "log";

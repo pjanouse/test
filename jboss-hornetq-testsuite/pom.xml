@@ -23,7 +23,8 @@
         <eap5.client>5.2.0.GA</eap5.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 6.x RELEASE -->
-        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.11-BZ1387698-patch-2</eap6.org.jboss.qa.hornetq.apps.clients.version>
+        <eap6.org.jboss.qa.hornetq.apps.clients.version>6.4.11-BZ1387698-patch-2
+        </eap6.org.jboss.qa.hornetq.apps.clients.version>
         <eap6.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.client>
         <eap6.controller.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.controller.client>
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
@@ -34,13 +35,13 @@
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
         <arquillian.eap7x.container.version>2.0.0.Final</arquillian.eap7x.container.version>
+        <artemis.version>1.5.0</artemis.version>
 
         <arquillian.version>1.1.1.Final</arquillian.version>
-        <artemis.version>1.5.0</artemis.version>
         <artemis.wildfly.integration>1.0.2</artemis.wildfly.integration>
         <version.shrinkwrap.resolvers>2.0.0</version.shrinkwrap.resolvers>
-        <version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>
-        <!--<arquillian.eap6x.container.version>7.3.0.Final-redhat-7</arquillian.eap6x.container.version>-->
+        <!--<version.org.jboss.qa.creaper>0.8.1</version.org.jboss.qa.creaper>-->
+        <version.org.wildfly.extras.creaper>1.5.1-elytron.DR9</version.org.wildfly.extras.creaper>
         <arquillian.eap6x.container.version>7.2.0.Final</arquillian.eap6x.container.version>
         <arquillian.eap5x.container.version>1.0.0.CR3</arquillian.eap5x.container.version>
         <version.byteman>3.0.5</version.byteman>
@@ -64,9 +65,11 @@
             -Djboss.modules.system.pkgs=org.jboss.byteman
             -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
         </hornetq.surefire.jvm.options>
-        <hornetq.surefire.jvm.options.eap6>${hornetq.surefire.jvm.options} -Djboss.cli.config=${project.basedir}/../tests-eap6/src/test/resources/cli/jboss-cli.xml
+        <hornetq.surefire.jvm.options.eap6>${hornetq.surefire.jvm.options}
+            -Djboss.cli.config=${project.basedir}/../tests-eap6/src/test/resources/cli/jboss-cli.xml
         </hornetq.surefire.jvm.options.eap6>
-        <hornetq.surefire.jvm.options.eap7>${hornetq.surefire.jvm.options} -Djboss.cli.config=${project.basedir}/../tests-eap7/src/test/resources/cli/jboss-cli.xml
+        <hornetq.surefire.jvm.options.eap7>${hornetq.surefire.jvm.options}
+            -Djboss.cli.config=${project.basedir}/../tests-eap7/src/test/resources/cli/jboss-cli.xml
         </hornetq.surefire.jvm.options.eap7>
 
 
@@ -484,43 +487,56 @@
                 <artifactId>commons-codec</artifactId>
                 <version>1.10</version>
             </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.jboss.qa.creaper</groupId>-->
+                <!--<artifactId>creaper-core</artifactId>-->
+                <!--<version>${version.org.jboss.qa.creaper}</version>-->
+                <!--<exclusions>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.jboss.as</groupId>-->
+                        <!--<artifactId>jboss-as-controller-client</artifactId>-->
+                    <!--</exclusion>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.jboss.as</groupId>-->
+                        <!--<artifactId>jboss-as-cli</artifactId>-->
+                    <!--</exclusion>-->
+                <!--</exclusions>-->
+            <!--</dependency>-->
+            <!--<dependency>-->
+                <!--<groupId>org.jboss.qa.creaper</groupId>-->
+                <!--<artifactId>creaper-commands</artifactId>-->
+                <!--<version>${version.org.jboss.qa.creaper}</version>-->
+                <!--<exclusions>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.codehaus.groovy</groupId>-->
+                        <!--<artifactId>groovy</artifactId>-->
+                    <!--</exclusion>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.codehaus.groovy</groupId>-->
+                        <!--<artifactId>groovy-xml</artifactId>-->
+                    <!--</exclusion>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.jboss.sasl</groupId>-->
+                        <!--<artifactId>jboss-sasl</artifactId>-->
+                    <!--</exclusion>-->
+                    <!--<exclusion>-->
+                        <!--<groupId>org.wildfly</groupId>-->
+                        <!--<artifactId>wildfly-patching</artifactId>-->
+                    <!--</exclusion>-->
+                <!--</exclusions>-->
+            <!--</dependency>-->
+            <!-- used here because creaper commands for elytron are not released yet -->
+            <!--  todo remove it when they're available in creaper-commands -->
             <dependency>
-                <groupId>org.jboss.qa.creaper</groupId>
+                <groupId>org.wildfly.extras.creaper</groupId>
                 <artifactId>creaper-core</artifactId>
-                <version>${version.org.jboss.qa.creaper}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.jboss.as</groupId>
-                        <artifactId>jboss-as-controller-client</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.jboss.as</groupId>
-                        <artifactId>jboss-as-cli</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>${version.org.wildfly.extras.creaper}</version>
             </dependency>
+
             <dependency>
-                <groupId>org.jboss.qa.creaper</groupId>
+                <groupId>org.wildfly.extras.creaper</groupId>
                 <artifactId>creaper-commands</artifactId>
-                <version>${version.org.jboss.qa.creaper}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-xml</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.jboss.sasl</groupId>
-                        <artifactId>jboss-sasl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.wildfly</groupId>
-                        <artifactId>wildfly-patching</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>${version.org.wildfly.extras.creaper}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -701,11 +717,11 @@
                     <artifactId>httpclient</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.jboss.qa.creaper</groupId>
+                    <groupId>org.wildfly.extras.creaper</groupId>
                     <artifactId>creaper-core</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.jboss.qa.creaper</groupId>
+                    <groupId>org.wildfly.extras.creaper</groupId>
                     <artifactId>creaper-commands</artifactId>
                 </dependency>
                 <dependency>

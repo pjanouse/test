@@ -2180,4 +2180,20 @@ public interface JMSOperations {
 
     void setJournalLargeMessagesTable(String serverName, String journalLargeMessagesTable);
 
+    void setElytronSecurityDomain(String securityElytronDomain);
+
+    void setElytronSecurityDomain(String serverName, String securityElytronDomain);
+
+    void addElytronConstantPermissionMapper(String constantLoginPermissionMapperName, String loginPermissionMapperClass);
+
+    void addElytronConstantRealmMapper(String constantRealmMapperName, String constantRealmMapperReamName);
+
+    void addSimpleRoleDecoderMapper(String name, String attributes);
+
+    void addElytronPropertiesRealm(String propertiesRealmName, String userFilePath, String rolesFilePath);
+
+    void addElytronSecurityDomain(String securityDomainName, String propertiesRealmName,
+                                  String simplePermissionMapper, String roleDecoder);
+
+    void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext);
 }

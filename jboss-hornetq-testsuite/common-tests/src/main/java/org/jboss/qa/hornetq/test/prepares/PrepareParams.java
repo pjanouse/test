@@ -152,6 +152,8 @@ public class PrepareParams {
 
     public static final String SECURITY_USERS_CONSUME = "SECURITY_USERS_CONSUME";
 
+    public static final String ELYTRON_SECURITY_DOMAIN = "ApplicationRealm";
+
     public static final String TRANSACTION_TIMEOUT = "TRANSACTION_TIMEOUT";
 
     public static final String MAX_SAVED_REPLICATED_JOURNAL_SIZE = "MAX_SAVED_REPLICATED_JOURNAL_SIZE";

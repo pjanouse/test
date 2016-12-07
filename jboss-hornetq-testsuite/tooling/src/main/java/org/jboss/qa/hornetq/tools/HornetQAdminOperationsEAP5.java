@@ -36,7 +36,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Creates connection to the server
      *
      * @param hostname host name of the target server
-     * @param port port with the JNDI service
+     * @param port     port with the JNDI service
      * @throws NamingException if something goes wrong
      */
     public synchronized void connect(String hostname, int port) throws NamingException {
@@ -68,6 +68,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     // protected ObjectName getHornetQServerMBean() throws Exception {
     // return new ObjectName("org.hornetq:module=JMS,type=Server");
     // }
+
     /**
      * Returns MBean for the Queue
      *
@@ -136,10 +137,10 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Creates JMS destination on the server
      *
-     * @param isQueue is target destination queue?
+     * @param isQueue         is target destination queue?
      * @param destinationName name of the destination
-     * @param jndiName JNDI name of the destination
-     * @param durable determines if created destination is durable
+     * @param jndiName        JNDI name of the destination
+     * @param durable         determines if created destination is durable
      */
     protected void createJmsDestination(boolean isQueue, String destinationName, String jndiName, boolean durable) {
 
@@ -184,7 +185,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Removes JMS destination from the server
      *
-     * @param isQueue is target destination queue?
+     * @param isQueue         is target destination queue?
      * @param destinationName name of the destination
      */
     protected void removeJmsDestination(boolean isQueue, String destinationName) {
@@ -230,7 +231,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addAddressSettings(String address, String addressFullPolicy, long maxSizeBytes, int redeliveryDelay,
-            long redistributionDelay, long pageSizeBytes) {
+                                   long redistributionDelay, long pageSizeBytes) {
 
         removeAddressSettings(address);
 
@@ -262,7 +263,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setSlowConsumerPolicy(String serverName, String address, int threshold, SlowConsumerPolicy policy,
-            int checkPeriod) {
+                                      int checkPeriod) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -326,7 +327,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Removes protocol from JGroups stack
      *
-     * @param nameOfStack name of stack udp,tcp
+     * @param nameOfStack  name of stack udp,tcp
      * @param protocolName protocol name PING,MERGE
      */
     @Override
@@ -522,7 +523,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts,
-            String... staticConnector) {
+                                 String... staticConnector) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -582,9 +583,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param name name of the connector f.e.: "netty-remote"
+     * @param name          name of the connector f.e.: "netty-remote"
      * @param socketBinding ingnored
-     * @param params map of params
+     * @param params        map of params
      */
     @Override
     public void createRemoteConnector(String name, String socketBinding, Map<String, String> params) {
@@ -634,7 +635,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param name name of the connector f.e.: "netty-remote"
+     * @param name   name of the connector f.e.: "netty-remote"
      * @param params map of params
      */
     @Override
@@ -672,7 +673,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param name name of the connector f.e.: "netty-remote"
+     * @param name   name of the connector f.e.: "netty-remote"
      * @param params map of params
      */
     @Override
@@ -726,7 +727,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createSocketBinding(String socketBindingName, String defaultInterface, String multicastAddress,
-            int multicastPort) {
+                                    int multicastPort) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -747,15 +748,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
-            String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
-            boolean noTxSeparatePool) {
+                                   String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
+                                   boolean noTxSeparatePool) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void createXADatasource(String jndi_name, String poolName, boolean useJavaContext, boolean useCCM,
-            String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
-            boolean noTxSeparatePool, Map<String, String> xaDatasourceProperties) {
+                                   String driverName, String transactionIsolation, String xaDatasourceClass, boolean isSameRmOverride,
+                                   boolean noTxSeparatePool, Map<String, String> xaDatasourceProperties) {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
@@ -839,7 +840,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void enableServerDump(long dumpPeriod){
+    public void enableServerDump(long dumpPeriod) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1038,7 +1039,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createSocketBinding(String socketBindingName, int port, String defaultInterface, String multicastAddress,
-            int multicastPort) {
+                                    int multicastPort) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1118,7 +1119,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setBroadCastGroup(String broadcastGroupName, String localBindAddress, int localBindPort, String groupAddress,
-            int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
+                                  int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
         String configurationFile = getHornetQConfigurationFile();
         try {
             Document doc = XMLManipulation.getDOMModel(configurationFile);
@@ -1149,7 +1150,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setBroadCastGroup(String serverName, String broadcastGroupName, String localBindAddress, int localBindPort,
-            String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
+                                  String groupAddress, int groupPort, long broadCastPeriod, String connectorName, String backupConnectorName) {
         // ignore serverName for EAP 5
         setBroadCastGroup(broadcastGroupName, localBindAddress, localBindPort, groupAddress, groupPort, broadCastPeriod,
                 connectorName, backupConnectorName);
@@ -1158,19 +1159,19 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setBroadCastGroup(String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-            String connectorName, String backupConnectorName) {
+                                  String connectorName, String backupConnectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void setBroadCastGroup(String serverName, String name, String messagingGroupSocketBindingName, long broadCastPeriod,
-            String connectorName, String backupConnectorName) {
+                                  String connectorName, String backupConnectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void setBroadCastGroup(String name, String jgroupsStack, String jgroupsChannel, long broadcastPeriod,
-            String connectorName) {
+                                  String connectorName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1181,7 +1182,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setClusterConnections(String name, String address, String discoveryGroupRef, boolean forwardWhenNoConsumers,
-            int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+                                      int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
         // ignore connectorName for EAP5
         String configurationFile = getHornetQConfigurationFile();
         try {
@@ -1209,7 +1210,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setClusterConnections(String serverName, String name, String address, String discoveryGroupRef,
-            boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
+                                      boolean forwardWhenNoConsumers, int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName) {
         // ignore serverName
         setClusterConnections(name, address, discoveryGroupRef, forwardWhenNoConsumers, maxHops, retryInterval,
                 useDuplicateDetection, connectorName);
@@ -1307,7 +1308,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setDiscoveryGroup(String serverName, String name, String localBindAddress, String groupAddress, int groupPort,
-            long refreshTimeout) {
+                                  long refreshTimeout) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1583,8 +1584,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param doc document
-     * @param role role
+     * @param doc        document
+     * @param role       role
      * @param permission permission
      * @return config property
      */
@@ -1602,15 +1603,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets permission privileges to a given role.
      *
      * @param serverName server name
-     * @param address address of the queue like '#' (for all queues)
-     * @param role role of the user like 'guest'
+     * @param address    address of the queue like '#' (for all queues)
+     * @param role       role of the user like 'guest'
      * @param permission possible values
-     * {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
-     * @param value true for enable permission
+     *                   {consume,create-durable-queue,create-non-durable-queue,delete-durable-queue,,delete-non-durable-queue,manage,send}
+     * @param value      true for enable permission
      */
     @Override
     public void setPermissionToRoleToSecuritySettings(String serverName, String address, String role, String permission,
-            boolean value) {
+                                                      boolean value) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1621,13 +1622,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addDivert(String divertName, String divertAddress, String forwardingAddress, boolean isExclusive,
-            String filter, String routingName, String transformerClassName) {
+                          String filter, String routingName, String transformerClassName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addDivert(String serverName, String divertName, String divertAddress, String forwardingAddress,
-            boolean isExclusive, String filter, String routingName, String transformerClassName) {
+                          boolean isExclusive, String filter, String routingName, String transformerClassName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1749,7 +1750,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Sets security on HornetQ
      *
-     * @param value value
+     * @param value      value
      * @param serverName server name
      */
     @Override
@@ -1769,7 +1770,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setStaticClusterConnections(String serverName, String name, String address, boolean forwardWhenNoConsumers,
-            int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
+                                            int maxHops, long retryInterval, boolean useDuplicateDetection, String connectorName, String... remoteConnectors) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -1783,7 +1784,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * ejb3-interceptors-aop.xml. This is specific for EAP 5.
      *
      * @param active if true then this attribute is activated. It's defaulted to
-     * true.
+     *               true.
      */
     @Override
     public void setFactoryRef(boolean active) {
@@ -1885,10 +1886,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * <p/>
      * Sets basic attributes in ra.xml.
      *
-     * @param connectorClassName
-     * org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param connectorClassName   org.hornetq.core.remoting.impl.invm.InVMConnectorFactory,org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
      * @param connectionParameters host->port
-     * @param ha if ha
+     * @param ha                   if ha
      */
     @Override
     public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha) {
@@ -1897,7 +1897,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setRA(String connectorClassName, Map<String, String> connectionParameters, boolean ha, String username,
-            String password) {
+                      String password) {
 
         String configurationFile = getRAConfigurationFile();
 
@@ -1949,13 +1949,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets basic attributes in jms-ds.xml.
      *
      * @param discoveryMulticastAddress discovery multicast address
-     * @param discoveryMulticastPort multicast port
-     * @param ha if ha
+     * @param discoveryMulticastPort    multicast port
+     * @param ha                        if ha
      * @param reconnectAttempts
      */
     @Override
     public void setPooledConnectionFactoryToDiscovery(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha,
-            int reconnectAttempts, String connectorClassName) {
+                                                      int reconnectAttempts, String connectorClassName) {
 
         String configurationFile = getJmsDsConfigurationFile();
 
@@ -2031,15 +2031,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets basic attributes in jms-ds.xml.
      *
      * @param connectorClassName like
-     * org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
-     * @param ha if ha
-     * @param reconnectAttempts reconnect attempts in case of jms server failure
-     * @param hostname host of hq server
-     * @param port port of hq server
+     *                           org.hornetq.core.remoting.impl.netty.NettyConnectorFactory
+     * @param ha                 if ha
+     * @param reconnectAttempts  reconnect attempts in case of jms server failure
+     * @param hostname           host of hq server
+     * @param port               port of hq server
      */
     @Override
     public void setPooledConnectionFactoryWithStaticConnectors(String hostname, int port, boolean ha, int reconnectAttempts,
-            String connectorClassName) {
+                                                               String connectorClassName) {
 
         String configurationFile = getJmsDsConfigurationFile();
 
@@ -2171,8 +2171,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets basic attributes in ra.xml.
      *
      * @param discoveryMulticastAddress discovery multicast address
-     * @param discoveryMulticastPort multicast port
-     * @param ha if ha
+     * @param discoveryMulticastPort    multicast port
+     * @param ha                        if ha
      */
     @Override
     public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha) {
@@ -2185,8 +2185,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets basic attributes in ra.xml.
      *
      * @param discoveryMulticastAddress discovery multicast address
-     * @param discoveryMulticastPort multicast port
-     * @param ha if ha
+     * @param discoveryMulticastPort    multicast port
+     * @param ha                        if ha
      */
     @Override
     public void setRA(String discoveryMulticastAddress, int discoveryMulticastPort, boolean ha, String username, String password) {
@@ -2268,7 +2268,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Set multicast address for socket binding
      *
      * @param socketBindingName name of the socket binding
-     * @param port port of the socket binding
+     * @param port              port of the socket binding
      */
     @Override
     public void setMulticastPortOnSocketBinding(String socketBindingName, int port) {
@@ -2279,7 +2279,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Set compression.
      *
      * @param connectionFactoryName name of the connection factory
-     * @param value true to enable large message compression
+     * @param value                 true to enable large message compression
      */
     @Override
     public void setCompressionOnConnectionFactory(String connectionFactoryName, boolean value) {
@@ -2295,9 +2295,9 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     /**
      * Set old(true) or new failover model(false)
      *
-     * @param keepOldFailover false to activate it
+     * @param keepOldFailover          false to activate it
      * @param nodeStateRefreshInterval after which time will be node's timestamp
-     * updated in database
+     *                                 updated in database
      */
     @Override
     public void setKeepOldFailoverModel(boolean keepOldFailover, long nodeStateRefreshInterval) {
@@ -2308,8 +2308,8 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Whether to retyr connection to database
      *
      * @param retryOnConnectionFailure true for retry
-     * @param retryInterval interval in miliseconds
-     * @param maxRetry how many times to retry before giving up
+     * @param retryInterval            interval in miliseconds
+     * @param maxRetry                 how many times to retry before giving up
      */
     @Override
     public void setRetryForDb(boolean retryOnConnectionFailure, long retryInterval, int maxRetry) {
@@ -2320,7 +2320,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Sets TUNNEL protocol for jgroups
      *
      * @param gossipRouterHostname ip address of gosship router
-     * @param gossipRouterPort port of gosship router
+     * @param gossipRouterPort     port of gosship router
      */
     @Override
     public void setTunnelForJGroups(String gossipRouterHostname, int gossipRouterPort) {
@@ -2331,7 +2331,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
      * Set database.
      *
      * @param databaseHostname hostname
-     * @param databasePort port
+     * @param databasePort     port
      */
     @Override
     public void setDatabase(String databaseHostname, int databasePort) {
@@ -2345,19 +2345,19 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, long maxSizeBytes,
-            int redeliveryDelay, long redistributionDelay, long pageSizeBytes) {
+                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addMessageGrouping(String serverName, String name, String type, String address, long timeout,
-            long groupTimeout, long reaperPeriod) {
+                                   long groupTimeout, long reaperPeriod) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addExternalContext(String binding, String className, String module, String bindingType,
-            Map<String, String> environmentProperies) {
+                                   Map<String, String> environmentProperies) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2432,15 +2432,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     /**
-     * @param doc document
-     * @param description description
-     * @param configPropertyName name
-     * @param configPropertyType type
+     * @param doc                  document
+     * @param description          description
+     * @param configPropertyName   name
+     * @param configPropertyType   type
      * @param configPropertyValues value
      * @return config property
      */
     private Node createConfigProperty(Document doc, String description, String configPropertyName, String configPropertyType,
-            String configPropertyValues) {
+                                      String configPropertyValues) {
 
         Element e = doc.createElement("config-property");
 
@@ -2521,27 +2521,27 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void createCoreBridge(String name, String queueName, String forwardingAddress, int reconnectAttempts, boolean ha,
-            String discoveryGroupName) {
+                                 String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress,
-            int reconnectAttempts, boolean ha, String discoveryGroupName) {
+                                 int reconnectAttempts, boolean ha, String discoveryGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void createCoreBridge(String serverName, String name, String queueName, String forwardingAddress,
-            int reconnectAttempts, String... staticConnector) {
+                                 int reconnectAttempts, String... staticConnector) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void createJMSBridge(String bridgeName, String sourceConnectionFactory, String sourceQueue,
-            Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination,
-            Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries,
-            long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader) {
+                                Map<String, String> sourceContext, String targetConnectionFactory, String targetDestination,
+                                Map<String, String> targetContext, String qualityOfService, long failureRetryInterval, int maxRetries,
+                                long maxBatchSize, long maxBatchTime, boolean addMessageIDInHeader) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2565,7 +2565,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addTransportToJGroupsStack(String stackName, String transport, String gosshipRouterAddress,
-            int gosshipRouterPort, boolean enableBundling) {
+                                           int gosshipRouterPort, boolean enableBundling) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2587,14 +2587,14 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
-            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
+                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addAddressSettings(String containerName, String address, String addressFullPolicy, int maxSizeBytes,
-            int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue,
-            int maxDeliveryAttempts) {
+                                   int redeliveryDelay, long redistributionDelay, long pageSizeBytes, String expireQueue, String deadLetterQueue,
+                                   int maxDeliveryAttempts) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2636,13 +2636,13 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public int getNumberOfDurableSubscriptionsOnTopic(String topicName){
+    public int getNumberOfDurableSubscriptionsOnTopic(String topicName) {
         logger.info("This operation is not supported: " + getMethodName());
         return -1;
     }
 
     @Override
-    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName){
+    public int getNumberOfNonDurableSubscriptionsOnTopic(String topicName) {
         logger.info("This operation is not supported: " + getMethodName());
         return -1;
     }
@@ -2736,7 +2736,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void rewriteLoginModule(String securityDomain, String authentication, String loginModule,
-            HashMap<String, String> moduleOptions) {
+                                   HashMap<String, String> moduleOptions) {
         logger.info("This operation is not supported: " + getMethodName());
 
     }
@@ -2791,15 +2791,15 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addHAPolicySharedStoreSlave(boolean allowFailback, long failbackDelay, boolean failoverOnServerShutdown,
-            boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
-            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+                                            boolean restartBackup, boolean scaleDown, String scaleDownClusterName, List<String> scaleDownConnectors,
+                                            String scaleDownDiscoveryGroup, String scaleDownGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addHAPolicySharedStoreSlave(String serverName, boolean allowFailback, long failbackDelay,
-            boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
-            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+                                            boolean failoverOnServerShutdown, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -2815,16 +2815,16 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void addHAPolicyReplicationSlave(boolean allowFailback, String clusterName, long failbackDelay, String groupName,
-            int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
-            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
+                                            int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown, String scaleDownClusterName,
+                                            List<String> scaleDownConnectors, String scaleDownDiscoveryGroup, String scaleDownGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
     public void addHAPolicyReplicationSlave(String serverName, boolean allowFailback, String clusterName, long failbackDelay,
-            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown,
-            String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup,
-            String scaleDownGroupName) {
+                                            String groupName, int maxSavedReplicatedJournalSize, boolean restartBackup, boolean scaleDown,
+                                            String scaleDownClusterName, List<String> scaleDownConnectors, String scaleDownDiscoveryGroup,
+                                            String scaleDownGroupName) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -3019,42 +3019,84 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setElytronSecurityDomain(String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setElytronSecurityDomain(String serverName, String securityElytronDomain) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronConstantPermissionMapper(String constantLoginPermissionMapperName, String loginPermissionMapperClass) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronConstantRealmMapper(String constantRealmMapperName, String constantRealmMapperReamName) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addSimpleRoleDecoderMapper(String name, String attributes) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addElytronPropertiesRealm(String propertiesRealmName, String userFilePath, String rolesFilePath) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+
+    @Override
+    public void addElytronSecurityDomain(String securityDomainName, String propertiesRealmName,
+                                         String simplePermissionMapper, String roleDecoder) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl) {
         logger.info("This operation is not supported: " + getMethodName());
     }
-    
+
     @Override
-    public void createUndertowReverseProxyHandler(String name){
+    public void createUndertowReverseProxyHandler(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm){
+    public void addHostToUndertowReverseProxyHandler(String handlerName, String host, String outboundSocketBinding, String scheme, String intanceId, String path, String securityRealm) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void addFilterToUndertowServerHost(String filterRef){
+    public void addFilterToUndertowServerHost(String filterRef) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void addLocationToUndertowServerHost(String location, String handler){
+    public void addLocationToUndertowServerHost(String location, String handler) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void removeLocationFromUndertowServerHost(String location){
+    public void removeLocationFromUndertowServerHost(String location) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void setModClusterAdvertiseKey(String key){
+    public void setModClusterAdvertiseKey(String key) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
     @Override
-    public void setModClusterConnector(String name){
+    public void setModClusterConnector(String name) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -3084,7 +3126,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools){
+    public void setUseGlobalPoolsOnPooledConnectionFactory(String pooledConnectionFactoryName, boolean useGlobalPools) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
@@ -3099,7 +3141,7 @@ public class HornetQAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
-    public void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools){
+    public void setUseGlobalPoolsOnConnectionFactory(String connectionFactoryName, boolean useGlobalPools) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
