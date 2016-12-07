@@ -5692,6 +5692,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         logger.info("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
 
     public void undeploy(String archiveName) throws Exception {
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
