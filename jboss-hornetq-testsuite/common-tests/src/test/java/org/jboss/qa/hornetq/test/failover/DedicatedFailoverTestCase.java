@@ -619,7 +619,7 @@ public class DedicatedFailoverTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(value = "SharedStoreHA", params = {
-            @Param(name = PrepareParams.PREPARE_ADDITIONAL_TOPICS, value = "divertedQueue")
+            @Param(name = PrepareParams.PREPARE_ADDITIONAL_QUEUES, value = "divertedQueue")
     })
     public void testFailoverWithDivertsTransAckTopicKill() throws Exception {
         testFailoverWithDiverts(false, true, false);
