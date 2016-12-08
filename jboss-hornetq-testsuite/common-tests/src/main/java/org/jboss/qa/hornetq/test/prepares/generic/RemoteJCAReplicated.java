@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RemoteJCAReplicated extends ThreeNodes {
+public class RemoteJCAReplicated extends FourNodes {
 
     public static final String REMOTE_LIVE_SOCKET_BINDING = "messaging-remote-live";
 
