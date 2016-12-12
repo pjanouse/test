@@ -419,7 +419,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_JNDI, 300, 60000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 60000, container(1), container(2));
 
         int pid = ProcessIdUtils.getProcessId(container(1));
         for (int i = 0; i < 10; i++) {
