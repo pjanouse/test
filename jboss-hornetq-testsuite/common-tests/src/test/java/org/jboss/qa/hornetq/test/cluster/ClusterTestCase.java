@@ -546,7 +546,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_JNDI, 300, 10000, container(1), container(2));
+        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 10000, container(1), container(2));
 
         for (int i = 0; i < 5; i++) {
             container(2).kill();
@@ -1488,13 +1488,13 @@ public class ClusterTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false")
+            @Param(name = PrepareParams.PREPARE_DESTINATIONS, value = "false"),
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 512 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 128 * 1024)
     })
     public void clusterTestPagingAfterFailOverNonDurableQueue() throws Exception {
         container(1).start();
         String pagingPath = null;
-        int counter = 0;
-        ArrayList<File> pagingFilesPath = new ArrayList<File>();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         jmsAdminOperations.createQueue(PrepareConstants.QUEUE_NAME, PrepareConstants.QUEUE_JNDI, false);
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
