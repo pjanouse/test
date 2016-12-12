@@ -16,10 +16,10 @@ find . -name "*thread-dump*" | grep jboss-eap | cat >> $LOGS
 find . -name "*.xml" | grep "surefire-reports" | cat >> $REPORTS
 
 cat $LOGS
-cat $LOGS | xargs zip -r logs.zip
+cat $LOGS | xargs zip -q -r logs.zip
 
 cat $REPORTS
-cat $REPORTS | xargs zip -r reports.zip
+cat $REPORTS | xargs zip -q -r reports.zip
 
 rm -f $LOGS
 rm -f $REPORTS
