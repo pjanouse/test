@@ -214,7 +214,7 @@ public class ContainerEAP7 implements Container {
                 // here print thread dump
                 pid = ProcessIdUtils.getProcessIdOfNotFullyStartedContainer(container);
                 ContainerUtils.printThreadDump(pid,
-                        new File(container.getServerHome(), "startup-thread-dump.txt"));
+                        new File(ServerPathUtils.getStandaloneLogDirectory(container), "startup-thread-dump.txt"));
 
                 throw new RuntimeException("Start of the server " + container.getName() + " was not successful. Check thread dump in server home directory.");
             }
