@@ -8,12 +8,14 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.TransactionUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,6 +48,8 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testStopLivesBackupStartLivesBackup() throws Exception {
+
+        Assume.assumeFalse("BLOCK".equals(prepareCoordinator.getParams().get(PrepareParams.ADDRESS_FULL_POLICY)));
 
         int numberOfMessages = 3000;
         Archive mdb = mdbWithNORebalancing;
