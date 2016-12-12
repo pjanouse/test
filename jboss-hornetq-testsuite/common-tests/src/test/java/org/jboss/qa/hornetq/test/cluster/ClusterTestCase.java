@@ -1140,6 +1140,9 @@ public class ClusterTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void clusterTestWithMdbOnTopicDeployAleradyExistingTopic() throws Exception {
         boolean passed = false;
+
+        container(1).start();
+
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         try {
             jmsAdminOperations.deploy(MDB_ON_TEMPTOPIC1);
