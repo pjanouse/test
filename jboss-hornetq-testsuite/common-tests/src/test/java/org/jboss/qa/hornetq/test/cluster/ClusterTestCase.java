@@ -1431,11 +1431,13 @@ public class ClusterTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 512 * 1024),
+            @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 128 * 1024)
+    })
     public void clusterTestPagingAfterFailOverTempQueue() throws Exception {
         container(1).start();
         String pagingPath = null;
-        int counter = 0;
-        ArrayList<File> pagingFilesPath = new ArrayList<File>();
         JMSOperations jmsAdminOperations = container(1).getJmsOperations();
         pagingPath = jmsAdminOperations.getPagingDirectoryPath();
         Context context = container(1).getContext();
