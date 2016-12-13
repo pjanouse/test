@@ -32,6 +32,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -504,6 +505,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      * @throws Exception
      */
     public void testFailbackWithRemoteJca(boolean shutdown, Archive mdb) throws Exception {
+
+        Assume.assumeFalse("BLOCK".equals(prepareCoordinator.getParams().get(PrepareParams.ADDRESS_FULL_POLICY)));
 
         // start live-backup servers
         container(1).start();
