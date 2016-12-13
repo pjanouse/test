@@ -439,10 +439,10 @@ public class JmsMessagesTestCase extends HornetQTestCase {
             producer.close();
             log.info("Producer closed");
 
-            Queue divertedQueue = (Queue) ctx.lookup(PrepareConstants.QUEUE_JNDI);
-            log.info("Looked up queue " + PrepareConstants.QUEUE_JNDI);
+            Queue divertedQueue = (Queue) ctx.lookup(PrepareConstants.OUT_QUEUE_JNDI);
+            log.info("Looked up queue " + PrepareConstants.OUT_QUEUE_JNDI);
             final MessageConsumer consumerDiverted = session.createConsumer(divertedQueue);
-            log.info("Created consumer on queue " + PrepareConstants.QUEUE_JNDI);
+            log.info("Created consumer on queue " + PrepareConstants.OUT_QUEUE_JNDI);
             ReceiveThread receiverThread = new ReceiveThread(consumerDiverted);
             receiverThread.start();
             Thread.sleep(timeout/2);
