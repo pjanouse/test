@@ -82,6 +82,7 @@ public class ContainerUtils {
 
 
         try {
+            log.info("Check if thread dump is supported on this platform: " + System.getProperty("os.name"));
             if (System.getProperty("os.name").contains("Windows") || System.getProperty("os.name").contains("windows")) { // use taskkill
                 log.warn("We cannot print thread dump on Windows machines. Printing thread dump for process: " + pid + " is canceled.");
             } else if (System.getProperty("java.vm.name").contains("Java HotSpot") || System.getProperty("java.vm.name").contains("OpenJDK")) {
