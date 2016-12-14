@@ -172,6 +172,8 @@ public class PrintJournalImplEAP7 implements PrintJournal {
         //modules/system/layers/base/org/hornetq/main/
         strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/apache/activemq/artemis")).append(File.separator).append("*");
         strbuilder.append(File.pathSeparator);
+        strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/apache/activemq/artemis/journal")).append(File.separator).append("*");
+        strbuilder.append(File.pathSeparator);
         strbuilder.append(ServerPathUtils.getModuleDirectory(container, "io/netty")).append(File.separator).append("*");
         strbuilder.append(File.pathSeparator);
         strbuilder.append(ServerPathUtils.getModuleDirectory(container, "org/jboss/logging")).append(File.separator).append("*");
