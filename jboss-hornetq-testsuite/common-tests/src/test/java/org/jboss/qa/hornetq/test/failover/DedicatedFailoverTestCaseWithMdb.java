@@ -340,6 +340,8 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
      */
     public void testFailoverWithRemoteJca(boolean shutdown, Archive mdb) throws Exception {
 
+        Assume.assumeFalse("BLOCK".equals(prepareCoordinator.getParams().get(PrepareParams.ADDRESS_FULL_POLICY)));
+
         // start live-backup servers
         container(1).start();
         container(2).start();
