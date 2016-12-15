@@ -115,7 +115,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
 
     protected List<Client> usedClients = new ArrayList<Client>();
 
-    protected PrepareCoordinator prepareCoordinator = new PrepareCoordinator("org.jboss.qa");
+    protected final PrepareCoordinator prepareCoordinator = new PrepareCoordinator("org.jboss.qa");
 
     // this property is initialized during BeforeClass phase by ArquillianConfiguration extension
     private static ArquillianDescriptor arquillianDescriptor;
