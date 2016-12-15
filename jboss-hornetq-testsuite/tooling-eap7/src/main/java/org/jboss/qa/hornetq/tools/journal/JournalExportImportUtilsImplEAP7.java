@@ -18,9 +18,9 @@ public class JournalExportImportUtilsImplEAP7 implements JournalExportImportUtil
 
     private static final Logger LOG = Logger.getLogger(JournalExportImportUtilsImplEAP7.class);
 
-    private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq/artemis".replaceAll("/", Matcher.quoteReplacement(File.separator));
-    private static final String NETTY_MODULE_PATH = "io/netty".replaceAll("/", Matcher.quoteReplacement(File.separator));
-    private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replaceAll("/", Matcher.quoteReplacement(File.separator));
+    private static final String ACTIVEMQ_MODULE_PATH = "org/apache/activemq/artemis".replace("/", Matcher.quoteReplacement(File.separator));
+    private static final String NETTY_MODULE_PATH = "io/netty".replace("/", Matcher.quoteReplacement(File.separator));
+    private static final String LOGGING_MODULE_PATH = "org/jboss/logging".replace("/", Matcher.quoteReplacement(File.separator));
 
     private String pathToJournal = null;
     private Container container;

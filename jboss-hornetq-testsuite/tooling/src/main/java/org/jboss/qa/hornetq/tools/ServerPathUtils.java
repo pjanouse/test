@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class ServerPathUtils {
 
     private static final String EAP_60_MODULES_ROOT = "modules";
-    private static final String EAP_6x_MODULES_ROOT = "modules/system/layers/base".replaceAll("/", File.separator);
+    private static final String EAP_6x_MODULES_ROOT = "modules/system/layers/base".replace("/", File.separator);
     private static final String CP_OVERLAYS_DIR = EAP_6x_MODULES_ROOT + File.separator + ".overlays";
     private static final String CP_ACTIVE_OVERLAY_FILE = CP_OVERLAYS_DIR + File.separator + ".overlays";
 
@@ -38,7 +38,7 @@ public class ServerPathUtils {
         if (version.isCpRelease() && moduleOverlayDir.exists()) {
             return new File(moduleOverlayDir, "main");
         } else {
-            String moduleMainDir = (modulePath + "/main").replaceAll("/", File.separator);
+            String moduleMainDir = (modulePath + "/main").replace("/", File.separator);
             return new File(ServerPathUtils.modulesRootDirectory(container.getServerHome()), moduleMainDir);
         }
     }
