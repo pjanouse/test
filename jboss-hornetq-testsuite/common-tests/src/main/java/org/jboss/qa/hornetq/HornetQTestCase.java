@@ -185,7 +185,7 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
             log.info("###############################################################################################");
             log.info("################################   Ending Prepare phase     ###################################");
             log.info("###############################################################################################");
-        } catch (InvocationTargetException e) {
+        } catch (Exception e) {
             log.error("ERROR", e.getCause());
             throw new RuntimeException(e);
         }
