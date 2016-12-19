@@ -2,6 +2,7 @@ package org.jboss.qa.hornetq.test.failover;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
+import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -48,7 +49,9 @@ import java.util.Set;
  * @tpTestCaseDetails HornetQ journal is located on GFS2 on SAN where journal type ASYNCIO must be used.
  * Or on NSFv4 where journal type is ASYNCIO or NIO.
  */
-@Prepare(value = "ReplicatedHA")
+@Prepare(value = "ReplicatedHA", params = {
+        @Param(name = PrepareParams.CLUSTER_CONNECTION_CALL_TIMEOUT, value = "60000")
+})
 public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);
