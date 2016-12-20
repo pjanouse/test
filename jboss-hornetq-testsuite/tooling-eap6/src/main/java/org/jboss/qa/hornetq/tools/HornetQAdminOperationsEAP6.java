@@ -5697,6 +5697,11 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public void setEapServerName(String eapServername) {
+        throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
+    }
+
 
     public void undeploy(String archiveName) throws Exception {
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
@@ -6247,6 +6252,16 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
 
     @Override
     public void setModClusterAdvertiseKey(String key) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void setModClusterAdvertise(boolean advertise) {
+        throw new UnsupportedOperationException("This method is not supported for EAP 6.");
+    }
+
+    @Override
+    public void addModClusterProxy(String socketBinding) {
         throw new UnsupportedOperationException("This method is not supported for EAP 6.");
     }
 

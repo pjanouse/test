@@ -57,6 +57,15 @@
             <artifactId>apps-jms2</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Dependencies needed for work with apache -->
+        <dependency>
+            <groupId>noe</groupId>
+            <artifactId>noe-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

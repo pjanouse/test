@@ -1,4 +1,4 @@
-package org.jboss.qa.artemis.test.httpconnector;
+package org.jboss.qa.artemis.test.loadbalancers;
 
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;

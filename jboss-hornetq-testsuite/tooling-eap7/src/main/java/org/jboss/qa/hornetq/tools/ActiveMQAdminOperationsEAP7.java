@@ -22,7 +22,6 @@ import org.wildfly.extras.creaper.core.online.OnlineCommand;
 import org.wildfly.extras.creaper.core.online.OnlineManagementClient;
 import org.wildfly.extras.creaper.core.online.OnlineOptions;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +35,7 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.*;
 
 /**
  * Basic administration operations for JMS subsystem
- * <p/>
+ * <p>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -1136,6 +1135,19 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setEapServerName(String eapServerName) {
+        ModelNode addDeliveryGroup = createModelNode();
+        addDeliveryGroup.get(ClientConstants.OP).set("write-attribute");
+        addDeliveryGroup.get("name").set("name");
+        addDeliveryGroup.get("value").set(eapServerName);
+        try {
+            this.applyUpdate(addDeliveryGroup);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");
@@ -1647,7 +1659,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     * <p/>
+     * <p>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
      * populated with path composed of prefix entries (in the order they were added).
      *
@@ -2129,7 +2141,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Export ActiveMQ Artemis journal.
-     * <p/>
+     * <p>
      * server needs to be in admin-only mode
      *
      * @return path to file with exported journal
@@ -3356,7 +3368,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p/>
+     * <p>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -4586,9 +4598,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -4622,9 +4634,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p/>
+     * <p>
      * Removes inet-address type as a side effect.
-     * <p/>
+     * <p>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -6369,7 +6381,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p/>
+     * <p>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server
@@ -7479,6 +7491,41 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void setModClusterAdvertise(boolean advertise) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("write-attribute");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MODCLUSTER_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("mod-cluster-config", "configuration");
+
+        model.get("name").set("advertise");
+        model.get("value").set(advertise);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addModClusterProxy(String socketBinding) {
+        ModelNode model = createModelNode();
+        model.get(ClientConstants.OP).set("list-add");
+        model.get(ClientConstants.OP_ADDR).add(ClientConstants.SUBSYSTEM, NAME_OF_MODCLUSTER_SUBSYSTEM);
+        model.get(ClientConstants.OP_ADDR).add("mod-cluster-config", "configuration");
+
+        model.get("name").set("proxies");
+        model.get("value").set(socketBinding);
+
+        try {
+            this.applyUpdate(model);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
     public void addModClusterFilterToUndertow(String filterName, String managementSocketBinding, String advertiseSocketBinding
             , String advertiseKey, String securityRealm) {
         ModelNode model = createModelNode();
@@ -7622,7 +7669,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setGlobalClientThreadPoolMaxSize(int poolMaxSize){
+    public void setGlobalClientThreadPoolMaxSize(int poolMaxSize) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);
@@ -7637,7 +7684,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
-    public void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize){
+    public void setGlobalClientScheduledThreadPoolMaxSize(int poolMaxSize) {
         final ModelNode model = new ModelNode();
         model.get(ClientConstants.OP).set("write-attribute");
         model.get(ClientConstants.OP_ADDR).add("subsystem", NAME_OF_MESSAGING_SUBSYSTEM);

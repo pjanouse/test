@@ -21,7 +21,9 @@ public class ArtemisCoreJmsProducer extends Thread {
     private Connection connection = null;
     private Session session = null;
 
-    private final Container container;
+    private final String hostName;
+    private final int httpPort;
+    private final int httpsPort;
     private final String queueName;
     private final int messageCount;
 
@@ -30,13 +32,22 @@ public class ArtemisCoreJmsProducer extends Thread {
     private boolean isSslEnabled = false;
 
     public ArtemisCoreJmsProducer(Container container, String queueName, int messageCount) {
-        this.container = container;
-        this.queueName = queueName;
-        this.messageCount = messageCount;
+        this(container, queueName, messageCount, false);
     }
 
     public ArtemisCoreJmsProducer(Container container, String queueName, int messageCount, boolean ssl) {
-        this.container = container;
+        this.hostName = container.getHostname();
+        this.httpPort = container.getHttpPort();
+        this.httpsPort = container.getHttpsPort();
+        this.queueName = queueName;
+        this.messageCount = messageCount;
+        this.isSslEnabled = ssl;
+    }
+
+    public ArtemisCoreJmsProducer(String hostname, int httpPort, int httpsPort, String queueName, int messageCount, boolean ssl) {
+        this.hostName = hostname;
+        this.httpPort = httpPort;
+        this.httpsPort = httpsPort;
         this.queueName = queueName;
         this.messageCount = messageCount;
         this.isSslEnabled = ssl;
@@ -45,15 +56,16 @@ public class ArtemisCoreJmsProducer extends Thread {
     public void run() {
 
         HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("host", container.getHostname());
-        if (isSslEnabled) {
-            map.put("port", container.getHttpsPort());
-            map.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
-        } else {
-            map.put("port", container.getHornetqPort());
-        }
+        map.put("host", hostName);
         map.put(TransportConstants.HTTP_UPGRADE_ENABLED_PROP_NAME, true);
 
+        if (isSslEnabled) {
+            map.put("port", httpsPort);
+            map.put(TransportConstants.SSL_ENABLED_PROP_NAME, true);
+        } else {
+            map.put("port", httpPort);
+        }
+        
 
         TransportConfiguration transportConfiguration = new TransportConfiguration(NettyConnectorFactory.class.getName(), map);
 

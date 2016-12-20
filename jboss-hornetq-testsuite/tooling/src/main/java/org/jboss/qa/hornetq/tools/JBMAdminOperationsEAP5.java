@@ -2845,6 +2845,11 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void setEapServerName(String eapServername) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public void createNewResourceAdapter(String name, String cfName, String user, String password, List<String> destinationNames, String hostUrl){
         logger.info("This operation is not supported: " + getMethodName());
     }
@@ -2876,6 +2881,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
 
     @Override
     public void setModClusterAdvertiseKey(String key){
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void setModClusterAdvertise(boolean advertise) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void addModClusterProxy(String socketBinding) {
         logger.info("This operation is not supported: " + getMethodName());
     }
 

@@ -2130,6 +2130,9 @@ public interface JMSOperations {
      */
     void setModClusterAdvertiseKey(String key);
 
+    void setModClusterAdvertise(boolean advertise);
+
+    void addModClusterProxy(String socketBinding);
     /**
      * Creates modlcuster filter in undertow subsystem. This fileter needs to be set using addFilterToUndertowServerHost(String filterRef);
      * @param filterName
@@ -2196,4 +2199,6 @@ public interface JMSOperations {
                                   String simplePermissionMapper, String roleDecoder);
 
     void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext);
+
+    void setEapServerName(String name);
 }
