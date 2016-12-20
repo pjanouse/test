@@ -58,6 +58,9 @@
         <JBOSS_JVM_XMX>788m</JBOSS_JVM_XMX>
         <JBOSS_JVM_XMS>64m</JBOSS_JVM_XMS>
 
+        <eap.cli.config.eap6>${project.basedir}/../tests-eap6/src/test/resources/cli/jboss-cli.xml</eap.cli.config.eap6>
+        <eap.cli.config.eap7>${project.basedir}/../tests-eap7/src/test/resources/cli/jboss-cli.xml</eap.cli.config.eap7>
+
         <hornetq.surefire.jvm.xmx>2G</hornetq.surefire.jvm.xmx>
         <hornetq.surefire.jvm.xms>2G</hornetq.surefire.jvm.xms>
         <hornetq.surefire.jvm.options>-Xmx${hornetq.surefire.jvm.xmx} -Xms${hornetq.surefire.jvm.xms}
@@ -66,10 +69,10 @@
             -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
         </hornetq.surefire.jvm.options>
         <hornetq.surefire.jvm.options.eap6>${hornetq.surefire.jvm.options}
-            -Djboss.cli.config=${project.basedir}/../tests-eap6/src/test/resources/cli/jboss-cli.xml
+            -Djboss.cli.config=${eap.cli.config.eap6}
         </hornetq.surefire.jvm.options.eap6>
         <hornetq.surefire.jvm.options.eap7>${hornetq.surefire.jvm.options}
-            -Djboss.cli.config=${project.basedir}/../tests-eap7/src/test/resources/cli/jboss-cli.xml
+            -Djboss.cli.config=${eap.cli.config.eap7}
         </hornetq.surefire.jvm.options.eap7>
 
 
