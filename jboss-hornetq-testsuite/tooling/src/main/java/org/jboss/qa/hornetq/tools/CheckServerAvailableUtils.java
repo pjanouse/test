@@ -160,4 +160,36 @@ public class CheckServerAvailableUtils {
         jmsOperations.close();
         log.info("Broker in container: " + container.getName() + " - is active");
     }
+
+    public static void waitUntilEAPStarts(Container container, long timeout) throws Exception {
+        long timeToWait = System.currentTimeMillis() + timeout;
+
+        JMSOperations jmsOperations = null;
+
+        while (System.currentTimeMillis() < timeToWait) {
+            try {
+                jmsOperations = container.getJmsOperations();
+
+                while (System.currentTimeMillis() < timeToWait) {
+                    try {
+                        String result = jmsOperations.getServerState();
+
+                        if ("running".equals(result)) {
+                            return;
+                        }
+                    } catch (Exception e) {
+                        log.warn(e.getMessage(), e);
+                    }
+                    Thread.sleep(1000);
+                }
+            } catch (Exception e) {
+                log.warn(e.getMessage(), e);
+            } finally {
+                if (jmsOperations != null) {
+                    jmsOperations.close();
+                }
+            }
+        }
+        throw new Exception("EAP doesn't start in timeout " + timeout);
+    }
 }

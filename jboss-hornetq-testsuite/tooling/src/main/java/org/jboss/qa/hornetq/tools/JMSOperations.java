@@ -2201,4 +2201,6 @@ public interface JMSOperations {
     void addHttpsListenerWithElytron(String listenerName, String socketBinding, String sslServerContext);
 
     void setEapServerName(String name);
+
+    String getServerState();
 }

@@ -229,6 +229,11 @@ public class ContainerEAP6 implements Container {
         Thread startServerThread = new Thread() {
             public void run() {
                 containerController.start(container.getName(), containerProperties);
+                try {
+                    CheckServerAvailableUtils.waitUntilEAPStarts(container, 30000);
+                } catch (Exception e) {
+                    log.error("EAP doesn't start", e);
+                }
             }
         };
 

@@ -1148,6 +1148,20 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public String getServerState() {
+        ModelNode modelNode = createModelNode();
+        modelNode.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        modelNode.get(ClientConstants.NAME).set("server-state");
+
+        try {
+            ModelNode result = applyUpdate(modelNode);
+            return result.get(ClientConstants.RESULT).asString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void startJMSBridge(String jmsBridgeName) {
         ModelNode model = createModelNode();
         model.get(ClientConstants.OP).set("start");

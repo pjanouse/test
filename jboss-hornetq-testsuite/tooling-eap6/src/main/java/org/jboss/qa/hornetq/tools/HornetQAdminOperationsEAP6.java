@@ -5702,6 +5702,20 @@ public final class HornetQAdminOperationsEAP6 implements JMSOperations {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }
 
+    @Override
+    public String getServerState() {
+        ModelNode modelNode = createModelNode();
+        modelNode.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
+        modelNode.get(ClientConstants.NAME).set("server-state");
+
+        try {
+            ModelNode result = applyUpdate(modelNode);
+            return result.get(ClientConstants.RESULT).asString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public void undeploy(String archiveName) throws Exception {
         ServerDeploymentHelper server = new ServerDeploymentHelper(modelControllerClient);
