@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * @see <a href="https://issues.jboss.org/browse/EAP7-581"> Reintroduce JMS over HTTP/HTTPS_CLIENT_BALANCER capability</a>
  */
+@Ignore
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Category(FunctionalTests.class)
@@ -131,7 +132,7 @@ public class ApacheFrontEndLoadBalancingTestCase extends HornetQTestCase {
         testSendReceive(SecurityType.HTTP);
     }
 
-    @Ignore //TODO
+    @Ignore //TODO this needs to be configured - HTTPS
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -140,7 +141,7 @@ public class ApacheFrontEndLoadBalancingTestCase extends HornetQTestCase {
         testSendReceive(SecurityType.HTTPS_CLIENT_BALANCER);
     }
 
-    @Ignore //TODO
+    @Ignore //TODO this needs to be configured - HTTPS
     @Test
     @RunAsClient
     @CleanUpBeforeTest
@@ -175,7 +176,7 @@ public class ApacheFrontEndLoadBalancingTestCase extends HornetQTestCase {
         }
 
         int sumReceived = 0;
-        //todo remove this workaround when client topology updates are disabled
+        //TODO remove this loop workaround when client topology updates are disabled - https://issues.jboss.org/browse/EAP7-669
         for (int i = 0; i < 2; i++) {
             ArtemisCoreJmsReceiver receiver = new ArtemisCoreJmsReceiver(apacheServer.getHost(), 2080, 8443, NAME_QUEUE, 10000, !SecurityType.HTTP.equals(securityType));
             receiver.start();

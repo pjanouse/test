@@ -263,7 +263,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
         }
 
         int sumReceived = 0;
-        //todo remove this workaround when client topology updates are disabled
+        //TODO remove this loop workaround when client topology updates are disabled - https://issues.jboss.org/browse/EAP7-669
         for (int i = 0; i < 2; i++) {
             ArtemisCoreJmsReceiver receiver = new ArtemisCoreJmsReceiver(loadBalancer, NAME_QUEUE, 10000, !SecurityType.HTTP.equals(securityType));
             receiver.start();
