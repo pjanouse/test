@@ -2043,7 +2043,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 protocols.put("FD", null);
                 protocols.put("VERIFY_SUSPECT", null);
                 protocols.put("pbcast.NAKACK", null);
-                protocols.put("UNICAST2", null);
+                protocols.put("UNICAST3", null);
                 protocols.put("pbcast.STABLE", null);
                 protocols.put("pbcast.GMS", null);
                 protocols.put("UFC", null);
@@ -2444,7 +2444,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
                 protocols.put("FD", null);
                 protocols.put("VERIFY_SUSPECT", null);
                 protocols.put("pbcast.NAKACK", null);
-                protocols.put("UNICAST2", null);
+                protocols.put("UNICAST3", null);
                 protocols.put("pbcast.STABLE", null);
                 protocols.put("pbcast.GMS", null);
                 protocols.put("UFC", null);

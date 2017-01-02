@@ -145,11 +145,7 @@ public abstract class RemoteJcaWithOOMAbstract extends RemoteJcaLoadTestBase {
     private void oomInClusterWithRestart(Archive mdbToDeploy, Container containerForOOM, MessageBuilder messageBuilder, int numberOfMessages) throws Exception {
         FinalTestMessageVerifier messageVerifier = MessageVerifierFactory.getMdbVerifier(ContainerUtils.getJMSImplementation(container(1)));
 
-        if (container(1).getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
-            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
-        } else {
-            prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
-        }
+        prepareRemoteJcaTopology(Constants.CONNECTOR_TYPE.JGROUPS_TCP);
 
         // cluster A
         container(1).start();
