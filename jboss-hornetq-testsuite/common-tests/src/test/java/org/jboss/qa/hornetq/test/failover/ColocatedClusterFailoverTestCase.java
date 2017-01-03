@@ -537,6 +537,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeOneDown() throws Exception {
         testGroupingFailover(container(1), false, true);
     }
@@ -559,6 +560,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeOneDownLM() throws Exception {
         testGroupingFailover(container(1), true, true);
     }
@@ -581,6 +583,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeOneDownSd() throws Exception {
         testGroupingFailover(container(1), false, false);
     }
@@ -603,6 +606,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeOneDownSdLM() throws Exception {
         testGroupingFailover(container(1), true, false);
     }
@@ -625,7 +629,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeTwoDown() throws Exception {
         testGroupingFailover(container(2), false, true);
     }
@@ -649,7 +653,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeTwoDownLM() throws Exception {
         testGroupingFailover(container(2), true, true);
     }
@@ -672,7 +676,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeTwoDownSd() throws Exception {
         testGroupingFailover(container(2), false, false);
     }
@@ -697,7 +701,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    @Ignore
+    @Ignore("Message grouping in cluster is not supported")
     public void testGroupingFailoverNodeTwoDownSdLM() throws Exception {
         testGroupingFailover(container(2), true, false);
     }
