@@ -633,7 +633,6 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         container(1).stop();
         container(2).stop();
     }
-    
 
     /**
      * Implementation of the basic test scenario. Test network outage.
@@ -944,13 +943,12 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         container(2).stop();
 
         container(1).start();
+        jmsAdminContainer1 = container(1).getJmsOperations();
 
         // Send messages into input node
         SimpleJMSClient client1 = new SimpleJMSClient(container(1), messages, Session.AUTO_ACKNOWLEDGE, messageBuilder);
         client1.sendMessages(TEST_QUEUE_JNDI);
 
-        jmsAdminContainer1 = container(1).getJmsOperations();
-        jmsAdminContainer2 = container(2).getJmsOperations();
         jmsAdminContainer1.createCoreBridge("myBridge", "jms.queue." + TEST_QUEUE, null, -1, "bridge-connector");
 
         try {
@@ -960,6 +958,8 @@ public class TransferOverBridgeTestCase extends HornetQTestCase {
         }
 
         container(2).start();
+        jmsAdminContainer2 = container(2).getJmsOperations();
+
         try {
             Thread.sleep(1 * 60 * 1000);
         } catch (InterruptedException e) {
