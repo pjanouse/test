@@ -34,6 +34,9 @@ import static org.junit.Assert.assertTrue;
  * @tpSubChapter HORNETQ CLUSTER - TEST SCENARIOS
  * @tpTestCaseDetails Test case covers test developed for purpose of RFE tbd.
  * Tests are intended to verify it is possible to disable automatic client topology updates in cluster.
+ *
+ * Feature not implemented yet. This is just prepared testcase, unignore when feature is ready. See https://issues.jboss.org/browse/EAP7-669
+ *
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
@@ -66,7 +69,7 @@ public class DisableClientTopologyUpdatesTestCase extends HornetQTestCase {
      * @tpInfo For more information see related test case described in the
      * beginning of this section.
      */
-    @Ignore //TODO this feature is not implemented yet. This is just prepared testcase, unignore when feature is ready.
+    @Ignore("Feature not implemented yet. This is just prepared testcase, unignore when feature is ready. See https://issues.jboss.org/browse/EAP7-669")
     @Test
     @RunAsClient
     @CleanUpBeforeTest
