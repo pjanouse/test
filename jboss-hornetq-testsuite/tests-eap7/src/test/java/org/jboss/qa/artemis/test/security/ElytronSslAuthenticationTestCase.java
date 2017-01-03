@@ -7,11 +7,15 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.constants.Constants;
+import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
+import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
+import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,6 +69,8 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
 
     private static final String QUEUE_JNDI_ADDRESS = "jms/test/queue";
 
+    public enum SSL_TYPE {ONE_WAY, TWO_WAY}
+
     @Before
     public void cleanUpBeforeTest() {
         System.clearProperty("javax.net.ssl.keyStore");
@@ -81,42 +87,47 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
 
 // todo this is one way ssl, only server authenticates to client, needs to provide correct prepare server (just keystore) method and just client trustore on client
 
-//    @Test
-//    @RunAsClient
-//    @RestoreConfigBeforeTest
-//    @CleanUpBeforeTest
-//    public void testHttpsConnectionServerAuth() throws InterruptedException {
-//        testHttpsConnection(false, true);
-//    }
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testHttpsConnectionServerAuth() throws Exception {
+        testHttpsConnection(SSL_TYPE.ONE_WAY);
+    }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
     public void testHttpsConnectionBothAuth() throws Exception {
-        testHttpsConnection();
+        testHttpsConnection(SSL_TYPE.TWO_WAY);
     }
 
-    public void testHttpsConnection() throws Exception {
+    public void testHttpsConnection(SSL_TYPE sslType) throws Exception {
         final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.keystore").getPath();
         final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.truststore").getPath();
         final String password = "123456";
 
-        System.setProperty("javax.net.ssl.keyStore", keyStorePath);
-        System.setProperty("javax.net.ssl.keyStorePassword", password);
+        if (SSL_TYPE.TWO_WAY.equals(sslType)) {
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+            System.setProperty("javax.net.ssl.keyStorePassword", password);
+        }
 
         System.setProperty("javax.net.ssl.trustStore", trustStorePath);
         System.setProperty("javax.net.ssl.trustStorePassword", password);
 
-
-        prepareServerWithElytronHttpsConnection(container(1));
+        prepareServerWithElytronHttpsConnection(container(1), sslType);
 
         container(1).start();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_ADDRESS, 1);
+        producer.setUserName("admin");
+        producer.setPassword("adminadmin");
         producer.start();
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), QUEUE_JNDI_ADDRESS);
+        receiver.setUserName("admin");
+        receiver.setPassword("adminadmin");
         receiver.start();
 
         producer.join();
@@ -127,6 +138,113 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         Assert.assertNull("Producer got unexpected exception.", producer.getException());
         Assert.assertNull("Receiver got unexpected exception.", receiver.getException());
         Assert.assertEquals("Number of sent and received message are not equal.", producer.getCount(), receiver.getCount());
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testWrongCertHttpsConnectionServerAuth() throws Exception {
+        testWrongCertHttpsConnection(SSL_TYPE.ONE_WAY);
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    public void testWrongCertHttpsConnectionBothAuth() throws Exception {
+        testWrongCertHttpsConnection(SSL_TYPE.TWO_WAY);
+    }
+
+    public void testWrongCertHttpsConnection(SSL_TYPE sslType) throws Exception {
+        final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.keystore").getPath();
+        final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.truststore").getPath();
+        final String password = "123456";
+
+        if (SSL_TYPE.TWO_WAY.equals(sslType)) {
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+            System.setProperty("javax.net.ssl.keyStorePassword", password);
+        }
+
+        System.setProperty("javax.net.ssl.trustStore", trustStorePath);
+        System.setProperty("javax.net.ssl.trustStorePassword", password);
+
+        prepareServerWithElytronHttpsConnection(container(1), sslType);
+
+        container(1).start();
+
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_ADDRESS, 1);
+        producer.setUserName("admin");
+        producer.setPassword("adminadmin");
+        producer.start();
+
+        producer.join();
+
+        container(1).stop();
+
+        Assert.assertNotNull("Producer got unexpected exception.", producer.getException());
+    }
+
+    @Test
+    @RunAsClient
+    @RestoreConfigBeforeTest
+    @CleanUpBeforeTest
+    @BMRules({
+            @BMRule(
+                    name = "1s rule to force sslv3 - createSSLEngine()",
+                    targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
+                    targetMethod = "initChannel",
+                    isAfter = true,
+//            binding = "engine:SSLEngine = $0",
+                    targetLocation = "INVOKE createSSLEngine()",
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+
+            ),
+            @BMRule(
+                    name = "2nd rule to force sslv3  - createSSLEngine(String, int)",
+                    targetClass = "org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnector$1",
+                    targetMethod = "initChannel",
+                    isAfter = true,
+//            binding = "engine:SSLEngine = $0",
+                    targetLocation = "INVOKE createSSLEngine(String, int)",
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+
+            )
+    })
+    public void testSSLv3CertHttpsConnectionServerAuth() throws Exception {
+        tesSSLv3CertHttpsConnection(SSL_TYPE.ONE_WAY);
+    }
+
+    public void tesSSLv3CertHttpsConnection(SSL_TYPE sslType) throws Exception {
+        final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.keystore").getPath();
+        final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.truststore").getPath();
+        final String password = "123456";
+
+        if (SSL_TYPE.TWO_WAY.equals(sslType)) {
+            System.setProperty("javax.net.ssl.keyStore", keyStorePath);
+            System.setProperty("javax.net.ssl.keyStorePassword", password);
+        }
+
+        System.setProperty("javax.net.ssl.trustStore", trustStorePath);
+        System.setProperty("javax.net.ssl.trustStorePassword", password);
+
+        prepareServerWithElytronHttpsConnection(container(1), sslType);
+
+        container(1).start();
+
+        RuleInstaller.installRule(this.getClass(), container(1).getHostname(), BYTEMAN_CLIENT_PORT);
+
+        ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_ADDRESS, 1);
+        producer.setUserName("admin");
+        producer.setPassword("adminadmin");
+        producer.start();
+
+        producer.join();
+
+        container(1).stop();
+
+        Assert.assertNotNull("Producer must get exception.", producer.getException());
+
     }
 
 
@@ -149,7 +267,7 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
     private static final String PASSWORD = "123456";
 
     // todo this needs clean up -> move to ActiveMQAdminOperationsEAP7 first, then use prepare framework
-    private void prepareServerWithElytronHttpsConnection(Container container) throws Exception {
+    private void prepareServerWithElytronHttpsConnection(Container container, SSL_TYPE sslType) throws Exception {
 
         // Configure Elytron and set Elytron security domain on messaging-activemq subsystem
         String elytronSecurityDomain = "ApplicationRealm";
@@ -179,23 +297,37 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         jmsOperations.addElytronSecurityDomain(elytronSecurityDomain, propertiesRealmName, simplePermissionMapper, roleDecoder);
 
         jmsOperations.setElytronSecurityDomain(elytronSecurityDomain);
+        jmsOperations.setSecurityEnabled(true);
 
         /// Configure SSL Eltyron server context
 
         try (OnlineManagementClient client = getOnlineManagementClient(container)) {
 
             CreateServerSSLContext createServerSSLContext = null;
-            createServerSSLContext = new CreateServerSSLContext.Builder(SSL_CONTEXT_NAME)
-                    .keyStoreType("JKS")
-                    .keyStorePath(serverKeyStorePath)
-                    .keyStorePassword(PASSWORD)
-                    .keyPassword(PASSWORD)
-                    .trustStorePath(serverTrustStorePath)
-                    .trustStorePassword(PASSWORD)
-                    .algorithm("SunX509")
-                    .protocols(HTTPS_PROTOCOLS)
-                    .needClientAuth(true)
-                    .build();
+
+            if (SSL_TYPE.TWO_WAY.equals(sslType)) {
+                createServerSSLContext = new CreateServerSSLContext.Builder(SSL_CONTEXT_NAME)
+                        .keyStoreType("JKS")
+                        .keyStorePath(serverKeyStorePath)
+                        .keyStorePassword(PASSWORD)
+                        .keyPassword(PASSWORD)
+                        .trustStorePath(serverTrustStorePath)
+                        .trustStorePassword(PASSWORD)
+                        .algorithm("SunX509")
+                        .protocols(HTTPS_PROTOCOLS)
+                        .needClientAuth(true)
+                        .build();
+            } else { // else create one way ssl server context
+                createServerSSLContext = new CreateServerSSLContext.Builder(SSL_CONTEXT_NAME)
+                        .keyStoreType("JKS")
+                        .keyStorePath(serverKeyStorePath)
+                        .keyStorePassword(PASSWORD)
+                        .keyPassword(PASSWORD)
+                        .algorithm("SunX509")
+                        .protocols(HTTPS_PROTOCOLS)
+                        .needClientAuth(false)
+                        .build();
+            }
 
             client.apply(createServerSSLContext);
 
@@ -217,6 +349,11 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         jmsOperations.createConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, Constants.CONNECTION_FACTORY_JNDI_FULL_NAME_EAP7, HTTPS_CONNECTOR_NAME);
 
         jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+
+        UsersSettings.forDefaultEapServer()
+                .withUser(PrepareConstants.USER_NAME, PrepareConstants.USER_PASS, "users")
+                .withUser(PrepareConstants.ADMIN_NAME, PrepareConstants.ADMIN_PASS, "admin")
+                .create();
 
         jmsOperations.close();
         container.stop();
