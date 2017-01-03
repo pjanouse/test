@@ -600,7 +600,7 @@ public class DedicatedFailoverTestCase20 extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     @Prepare(params = {
-            @Param(name = "DIVERT-A-ORIGIN-QUEUE", value = PrepareConstants.TOPIC_NAME_PREFIX + "0"),
+            @Param(name = "DIVERT-A-ORIGIN-TOPIC", value = PrepareConstants.TOPIC_NAME_PREFIX + "0"),
             @Param(name = "DIVERT-A-DIVERTED-QUEUE", value = PrepareConstants.OUT_QUEUE_NAME),
             @Param(name = "DIVERT-A-EXCLUSIVE", value = "false")
     })
