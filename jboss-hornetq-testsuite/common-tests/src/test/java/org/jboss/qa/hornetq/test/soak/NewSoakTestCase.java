@@ -109,6 +109,9 @@ public class NewSoakTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void soakTest() throws Exception {
 
+        //make assumptions whether to run the test
+        makeAssumption();
+
         //Prepare phase
         Archive container1Deployment = createArchiveForContainer(container(1));
         Archive container2Deployment = createArchiveForContainer(container(2));
@@ -228,6 +231,14 @@ public class NewSoakTestCase extends HornetQTestCase {
 
     }
 
+    /**
+     * Decide whether test should be skipped. This is because JdbcStoreSoakTestCase which can be run only against EAP7.
+     * Tests extending NewSoakTestCase must be placed in common-tests module even when they are only for EAP7.
+     *
+     */
+    protected void makeAssumption() {
+    }
+
 
     /**
      * Collect required classes (MDBs and EJBs) to deploy in container X and create an archive with them.
@@ -292,7 +303,7 @@ public class NewSoakTestCase extends HornetQTestCase {
     }
 
 
-    private void setupJmsServer(final Container container) {
+    protected void setupJmsServer(final Container container) throws Exception {
         String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
 
         JMSOperations ops = container.getJmsOperations();
@@ -323,7 +334,7 @@ public class NewSoakTestCase extends HornetQTestCase {
     }
 
 
-    private void setupMdbServer(final Container container) {
+    protected void setupMdbServer(final Container container) throws Exception {
         String connectorName = ContainerUtils.isEAP6(container) ? "netty" : "http-connector";
 
         JMSOperations ops = container.getJmsOperations();
