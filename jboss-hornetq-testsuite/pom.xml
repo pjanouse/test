@@ -30,7 +30,7 @@
         <eap6.cli.client>${eap6.org.jboss.qa.hornetq.apps.clients.version}</eap6.cli.client>
 
         <!-- HAVE TO BE CHANGED WITH EACH EAP 7.x RELEASE   7.0.0.DR0-activemq-artemis -->
-        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR9</eap7.org.jboss.qa.hornetq.apps.clients.version>
+        <eap7.org.jboss.qa.hornetq.apps.clients.version>7.1.0.DR10</eap7.org.jboss.qa.hornetq.apps.clients.version>
         <eap7.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.client>
         <eap7.controller.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.controller.client>
         <eap7.cli.client>${eap7.org.jboss.qa.hornetq.apps.clients.version}</eap7.cli.client>
@@ -423,7 +423,7 @@
             <dependency>
                 <groupId>org.wildfly.security</groupId>
                 <artifactId>wildfly-elytron</artifactId>
-                <version>1.1.0.Beta13</version>
+                <version>1.1.0.Beta18</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -680,10 +680,6 @@
                     <artifactId>wildfly-elytron</artifactId>
                 </dependency>
                 <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                </dependency>
-                <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-client</artifactId>
                     <type>jar</type>
@@ -695,6 +691,10 @@
                 <dependency>
                     <groupId>eap</groupId>
                     <artifactId>eap-jboss-cli-client</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
                 </dependency>
                 <dependency>
                     <groupId>org.jboss.spec</groupId>
