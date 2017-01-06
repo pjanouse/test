@@ -13,10 +13,12 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.json.JSONArray;
 import org.kohsuke.MetaInfServices;
+import org.wildfly.extras.creaper.commands.elytron.CreateServerSSLContext;
 import org.wildfly.extras.creaper.commands.elytron.domain.AddSecurityDomain;
 import org.wildfly.extras.creaper.commands.elytron.mapper.AddConstantPermissionMapper;
 import org.wildfly.extras.creaper.commands.elytron.mapper.AddConstantRealmMapper;
 import org.wildfly.extras.creaper.commands.elytron.realm.AddPropertiesRealm;
+import org.wildfly.extras.creaper.core.CommandFailedException;
 import org.wildfly.extras.creaper.core.ManagementClient;
 import org.wildfly.extras.creaper.core.online.OnlineCommand;
 import org.wildfly.extras.creaper.core.online.OnlineManagementClient;
@@ -35,7 +37,7 @@ import static org.jboss.as.controller.client.helpers.ClientConstants.*;
 
 /**
  * Basic administration operations for JMS subsystem
- * <p>
+ * <p/>
  *
  * @author jpai
  * @author mnovak@redhat.com
@@ -1148,6 +1150,47 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
     }
 
     @Override
+    public void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword, String trustStorePath, String trustStorePassword, String algorithm, String protocols, boolean needClientAuth) {
+
+        CreateServerSSLContext createServerSSLContext = new CreateServerSSLContext.Builder(sslContextName)
+                .keyStoreType(keyStoreType)
+                .keyStorePath(keyStorePath)
+                .keyStorePassword(keyStorePassword)
+                .keyPassword(keyStorePassword)
+                .trustStorePath(trustStorePath)
+                .trustStorePassword(trustStorePassword)
+                .algorithm(algorithm)
+                .protocols(protocols)
+                .needClientAuth(needClientAuth)
+                .build();
+
+        try {
+            onlineManagementClient.apply(createServerSSLContext);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword, String algorithm, String protocols, boolean needClientAuth) {
+        CreateServerSSLContext createServerSSLContext = new CreateServerSSLContext.Builder(sslContextName)
+                .keyStoreType(keyStoreType)
+                .keyStorePath(keyStorePath)
+                .keyStorePassword(keyStorePassword)
+                .keyPassword(keyStorePassword)
+                .algorithm(algorithm)
+                .protocols(protocols)
+                .needClientAuth(needClientAuth)
+                .build();
+
+        try {
+            onlineManagementClient.apply(createServerSSLContext);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public String getServerState() {
         ModelNode modelNode = createModelNode();
         modelNode.get(ClientConstants.OP).set(ClientConstants.READ_ATTRIBUTE_OPERATION);
@@ -1673,7 +1716,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Creates initial model node for the operation.
-     * <p>
+     * <p/>
      * If any prefix was specified with {@link #addAddressPrefix(String, String)}, the initial operation address will be
      * populated with path composed of prefix entries (in the order they were added).
      *
@@ -2155,7 +2198,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Export ActiveMQ Artemis journal.
-     * <p>
+     * <p/>
      * server needs to be in admin-only mode
      *
      * @return path to file with exported journal
@@ -3382,7 +3425,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Related only to EAP 5.
-     * <p>
+     * <p/>
      * Sets basic attributes in ra.xml.
      *
      * @param connectorClassName
@@ -4612,9 +4655,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds loop back-address type of the given interface of the given name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <loopback-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -4648,9 +4691,9 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds inet-address type of the given interface name.
-     * <p>
+     * <p/>
      * Removes inet-address type as a side effect.
-     * <p>
+     * <p/>
      * Like: <inet-address value="127.0.0.2" \>
      *
      * @param interfaceName - name of the interface like "public" or "management"
@@ -6395,7 +6438,7 @@ public final class ActiveMQAdminOperationsEAP7 implements JMSOperations {
 
     /**
      * Adds new messaging subsystem/new hornetq server to configuration
-     * <p>
+     * <p/>
      * WORKAROUND FOR https://bugzilla.redhat.com/show_bug.cgi?id=947779 TODO remove this when ^ is fixed
      *
      * @param serverName name of the new hornetq server

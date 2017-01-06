@@ -101,7 +101,6 @@ public class QueueClientsAutoAck implements Clients {
                 }
 
                 if (isSecurityEnabled()) {
-                    p.setSecurityEnabled(true);
                     p.setUserName(getUsername());
                     p.setPassword(getPassword());
                 }
@@ -119,7 +118,6 @@ public class QueueClientsAutoAck implements Clients {
                 r.addMessageVerifier(queueTextMessageVerifier);
 
                 if (isSecurityEnabled()) {
-                    r.setSecurityEnabled(true);
                     r.setUserName(getUsername());
                     r.setPassword(getPassword());
                 }

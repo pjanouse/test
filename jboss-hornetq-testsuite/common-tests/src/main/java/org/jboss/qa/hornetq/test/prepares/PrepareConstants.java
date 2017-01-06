@@ -51,4 +51,5 @@ public class PrepareConstants {
     public static final String HTTP_LISTENER = "default";
     public static final int MESSAGING_PORT = 5445;
     public static final int MESSAGING_PORT_BACKUP = 5446;
+    public static final String SSL_TYPE = "ONE_WAY";
 }

@@ -159,7 +159,7 @@ public class Receiver11 extends Receiver {
     protected Connection getConnection(ConnectionFactory cf) throws JMSException {
 
         // if there is username and password and security enabled then use it
-        if (isSecurityEnabled() && getUserName() != null && !"".equals(getUserName()) && getPassword() != null) {
+        if (getUserName() != null && !"".equals(getUserName()) && getPassword() != null) {
             return cf.createConnection(getUserName(), getPassword());
 
         }

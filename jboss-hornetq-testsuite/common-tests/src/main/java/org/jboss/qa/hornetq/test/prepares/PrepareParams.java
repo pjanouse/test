@@ -191,4 +191,6 @@ public class PrepareParams {
     public static final String SOCKET_BINDING_NAME = "SOCKET_BINDING_NAME";
 
     public static final String SOCKET_BINDING_PORT = "SOCKET_BINDING_PORT";
+
+    public static final String SSL_TYPE = "ONE_WAY";
 }

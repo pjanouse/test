@@ -3,14 +3,13 @@ package org.jboss.qa.artemis.test.security;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.qa.Param;
+import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
-import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
-import org.jboss.qa.hornetq.test.security.UsersSettings;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ServerPathUtils;
+import org.jboss.qa.hornetq.constants.Constants.SSL_TYPE;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.byteman.annotation.BMRule;
@@ -21,14 +20,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.wildfly.extras.creaper.commands.elytron.CreateServerSSLContext;
 import org.wildfly.extras.creaper.core.ManagementClient;
 import org.wildfly.extras.creaper.core.online.OnlineManagementClient;
 import org.wildfly.extras.creaper.core.online.OnlineOptions;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import javax.net.ssl.SSLEngine;
+
+import static org.jboss.qa.hornetq.constants.Constants.SSL_TYPE.ONE_WAY;
 
 
 /**
@@ -65,11 +63,9 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
 
     private static final Logger logger = Logger.getLogger(ElytronSslAuthenticationTestCase.class);
 
-    private static final String QUEUE_NAME = "test.queue";
+    private static final String QUEUE_NAME = "InQueue";
 
-    private static final String QUEUE_JNDI_ADDRESS = "jms/test/queue";
-
-    public enum SSL_TYPE {ONE_WAY, TWO_WAY}
+    private static final String QUEUE_JNDI_ADDRESS = "jms/queue/" + QUEUE_NAME;
 
     @Before
     public void cleanUpBeforeTest() {
@@ -85,12 +81,22 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         container(1).stop();
     }
 
-// todo this is one way ssl, only server authenticates to client, needs to provide correct prepare server (just keystore) method and just client trustore on client
-
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ElytronSubsystemWithSSLContextPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
+            @Param(name = PrepareParams.SSL_TYPE, value = "ONE_WAY"),
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_MANAGE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true")
+    })
     public void testHttpsConnectionServerAuth() throws Exception {
         testHttpsConnection(SSL_TYPE.ONE_WAY);
     }
@@ -99,6 +105,18 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ElytronSubsystemWithSSLContextPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
+            @Param(name = PrepareParams.SSL_TYPE, value = "TWO_WAY"),
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_MANAGE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true")
+    })
     public void testHttpsConnectionBothAuth() throws Exception {
         testHttpsConnection(SSL_TYPE.TWO_WAY);
     }
@@ -116,7 +134,7 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         System.setProperty("javax.net.ssl.trustStore", trustStorePath);
         System.setProperty("javax.net.ssl.trustStorePassword", password);
 
-        prepareServerWithElytronHttpsConnection(container(1), sslType);
+//        prepareServerWithElytronHttpsConnection(container(1), sslType);
 
         container(1).start();
 
@@ -144,14 +162,38 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ElytronSubsystemWithSSLContextPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
+            @Param(name = PrepareParams.SSL_TYPE, value = "ONE_WAY"),
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_MANAGE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true")
+    })
     public void testWrongCertHttpsConnectionServerAuth() throws Exception {
-        testWrongCertHttpsConnection(SSL_TYPE.ONE_WAY);
+        testWrongCertHttpsConnection(ONE_WAY);
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ElytronSubsystemWithSSLContextPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
+            @Param(name = PrepareParams.SSL_TYPE, value = "TWO_WAY"),
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_MANAGE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true")
+    })
     public void testWrongCertHttpsConnectionBothAuth() throws Exception {
         testWrongCertHttpsConnection(SSL_TYPE.TWO_WAY);
     }
@@ -169,7 +211,7 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         System.setProperty("javax.net.ssl.trustStore", trustStorePath);
         System.setProperty("javax.net.ssl.trustStorePassword", password);
 
-        prepareServerWithElytronHttpsConnection(container(1), sslType);
+//        prepareServerWithElytronHttpsConnection(container(1), sslType);
 
         container(1).start();
 
@@ -182,13 +224,29 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
 
         container(1).stop();
 
-        Assert.assertNotNull("Producer got unexpected exception.", producer.getException());
+        Assert.assertNotNull("Producer did not get exception.", producer.getException());
+    }
+
+    public static void setEnabledProtocols(SSLEngine engine) {
+        engine.setEnabledProtocols(new String[]{"SSLv3"});
     }
 
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Prepare(value = "ElytronSubsystemWithSSLContextPrepare", params = {
+            @Param(name = PrepareParams.ELYTRON_SECURITY_DOMAIN, value = "ApplicationRealm"),
+            @Param(name = PrepareParams.SSL_TYPE, value = "TWO_WAY"),
+            @Param(name = PrepareParams.ENABLE_SECURITY, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CONSUME, value = "true"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_CREATE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_DELETE_NON_DURABLE_QUEUE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_MANAGE, value = "false"),
+            @Param(name = PrepareParams.SECURITY_ADMIN_SEND, value = "true")
+    })
     @BMRules({
             @BMRule(
                     name = "1s rule to force sslv3 - createSSLEngine()",
@@ -197,7 +255,7 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
                     isAfter = true,
 //            binding = "engine:SSLEngine = $0",
                     targetLocation = "INVOKE createSSLEngine()",
-                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.ElytronSslAuthenticationTestCase.setEnabledProtocols($!)"
 
             ),
             @BMRule(
@@ -207,12 +265,12 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
                     isAfter = true,
 //            binding = "engine:SSLEngine = $0",
                     targetLocation = "INVOKE createSSLEngine(String, int)",
-                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.ElytronSslAuthenticationTestCase.setEnabledProtocols($!)"
 
             )
     })
-    public void testSSLv3CertHttpsConnectionServerAuth() throws Exception {
-        tesSSLv3CertHttpsConnection(SSL_TYPE.ONE_WAY);
+    public void testOneWaySslOverSSLv3Jms() throws Exception {
+        tesSSLv3CertHttpsConnection(ONE_WAY);
     }
 
     public void tesSSLv3CertHttpsConnection(SSL_TYPE sslType) throws Exception {
@@ -228,7 +286,7 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
         System.setProperty("javax.net.ssl.trustStore", trustStorePath);
         System.setProperty("javax.net.ssl.trustStorePassword", password);
 
-        prepareServerWithElytronHttpsConnection(container(1), sslType);
+//        prepareServerWithElytronHttpsConnection(container(1), sslType);
 
         container(1).start();
 
@@ -255,108 +313,107 @@ public class ElytronSslAuthenticationTestCase extends SecurityTestBase {
                 .build());
     }
 
-    // Server constants
-    private static final String SSL_CONTEXT_NAME = "server-ssl-context";
-    private static final String HTTPS_LISTENER = "https";
-    private static final String HTTPS_SOCKET_BINDING = "https";
-    private static final String HTTPS_ACCEPTOR_NAME = "http-acceptor";
-    private static final String HTTPS_CONNECTOR_NAME = "https-connector";
-    private static final String HTTPS_PROTOCOLS = "TLSv1.1";
-    private final String serverKeyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.keystore").getPath();
-    private final String serverTrustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/server.truststore").getPath();
-    private static final String PASSWORD = "123456";
-
-    // todo this needs clean up -> move to ActiveMQAdminOperationsEAP7 first, then use prepare framework
-    private void prepareServerWithElytronHttpsConnection(Container container, SSL_TYPE sslType) throws Exception {
-
-        // Configure Elytron and set Elytron security domain on messaging-activemq subsystem
-        String elytronSecurityDomain = "ApplicationRealm";
-        String constantLoginPermissionMapper = "login-permission-mapper";
-        String loginPermissionMapperClass = "org.wildfly.security.auth.permission.LoginPermission";
-        String constantRealmMapper = "local";
-        String constantRealmMapperReamName = "local";
-        String simpleRoleDecoderMapper = "groups-to-roles";
-        String simpleRoleDecoderMapperAttributes = "groups";
-
-        String propertiesRealmName = "ApplicationRealm";
-        String userFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.USERS_FILE;
-        String rolesFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.ROLES_FILE;
-        String simplePermissionMapper = "login-permission-mapper";
-        String roleDecoder = "groups-to-roles";
-
-        container.start();
-        JMSOperations jmsOperations = container.getJmsOperations();
-        jmsOperations.addExtension("org.wildfly.extension.elytron");
-        jmsOperations.addSubsystem("elytron");
-        jmsOperations.reload();
-
-        jmsOperations.addElytronConstantPermissionMapper(constantLoginPermissionMapper, loginPermissionMapperClass);
-        jmsOperations.addElytronConstantRealmMapper(constantRealmMapper, constantRealmMapperReamName);
-        jmsOperations.addSimpleRoleDecoderMapper(simpleRoleDecoderMapper, simpleRoleDecoderMapperAttributes);
-        jmsOperations.addElytronPropertiesRealm(propertiesRealmName, userFilePath, rolesFilePath);
-        jmsOperations.addElytronSecurityDomain(elytronSecurityDomain, propertiesRealmName, simplePermissionMapper, roleDecoder);
-
-        jmsOperations.setElytronSecurityDomain(elytronSecurityDomain);
-        jmsOperations.setSecurityEnabled(true);
-
-        /// Configure SSL Eltyron server context
-
-        try (OnlineManagementClient client = getOnlineManagementClient(container)) {
-
-            CreateServerSSLContext createServerSSLContext = null;
-
-            if (SSL_TYPE.TWO_WAY.equals(sslType)) {
-                createServerSSLContext = new CreateServerSSLContext.Builder(SSL_CONTEXT_NAME)
-                        .keyStoreType("JKS")
-                        .keyStorePath(serverKeyStorePath)
-                        .keyStorePassword(PASSWORD)
-                        .keyPassword(PASSWORD)
-                        .trustStorePath(serverTrustStorePath)
-                        .trustStorePassword(PASSWORD)
-                        .algorithm("SunX509")
-                        .protocols(HTTPS_PROTOCOLS)
-                        .needClientAuth(true)
-                        .build();
-            } else { // else create one way ssl server context
-                createServerSSLContext = new CreateServerSSLContext.Builder(SSL_CONTEXT_NAME)
-                        .keyStoreType("JKS")
-                        .keyStorePath(serverKeyStorePath)
-                        .keyStorePassword(PASSWORD)
-                        .keyPassword(PASSWORD)
-                        .algorithm("SunX509")
-                        .protocols(HTTPS_PROTOCOLS)
-                        .needClientAuth(false)
-                        .build();
-            }
-
-            client.apply(createServerSSLContext);
-
-//            new Administration(client).reloadIfRequired();
-            jmsOperations.reload();
-
-            // Prepare https listener
-            jmsOperations.removeHttpsListener(HTTPS_LISTENER);
-            jmsOperations.reload();
-            jmsOperations.addHttpsListenerWithElytron(HTTPS_LISTENER, HTTPS_SOCKET_BINDING, SSL_CONTEXT_NAME);
-
-        }
-
-        jmsOperations.createHttpAcceptor(HTTPS_ACCEPTOR_NAME, HTTPS_LISTENER, null);
-        Map<String, String> httpConnectorParams = new HashMap<String, String>();
-        httpConnectorParams.put("ssl-enabled", "true");
-        jmsOperations.createHttpConnector(HTTPS_CONNECTOR_NAME, HTTPS_LISTENER, httpConnectorParams, HTTPS_ACCEPTOR_NAME);
-        jmsOperations.removeConnectionFactory(Constants.CONNECTION_FACTORY_EAP7);
-        jmsOperations.createConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, Constants.CONNECTION_FACTORY_JNDI_FULL_NAME_EAP7, HTTPS_CONNECTOR_NAME);
-
-        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
-
-        UsersSettings.forDefaultEapServer()
-                .withUser(PrepareConstants.USER_NAME, PrepareConstants.USER_PASS, "users")
-                .withUser(PrepareConstants.ADMIN_NAME, PrepareConstants.ADMIN_PASS, "admin")
-                .create();
-
-        jmsOperations.close();
-        container.stop();
-    }
+    // todo use prepare framework
+//    private void prepareServerWithElytronHttpsConnection(Container container, SSL_TYPE sslType) throws Exception {
+//
+//        // Configure Elytron and set Elytron security domain on messaging-activemq subsystem
+//        String elytronSecurityDomain = "ApplicationRealm";
+//        String constantLoginPermissionMapper = "login-permission-mapper";
+//        String loginPermissionMapperClass = "org.wildfly.security.auth.permission.LoginPermission";
+//        String constantRealmMapper = "local";
+//        String constantRealmMapperReamName = "local";
+//        String simpleRoleDecoderMapper = "groups-to-roles";
+//        String simpleRoleDecoderMapperAttributes = "groups";
+//
+//        String propertiesRealmName = "ApplicationRealm";
+//        String userFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.USERS_FILE;
+//        String rolesFilePath = ServerPathUtils.getConfigurationDirectory(container).getAbsolutePath() + File.separator + UsersSettings.ROLES_FILE;
+//        String simplePermissionMapper = "login-permission-mapper";
+//        String roleDecoder = "groups-to-roles";
+//
+//        container.start();
+//        JMSOperations jmsOperations = container.getJmsOperations();
+//        jmsOperations.addExtension("org.wildfly.extension.elytron");
+//        jmsOperations.addSubsystem("elytron");
+//        jmsOperations.reload();
+//
+//        jmsOperations.addElytronConstantPermissionMapper(constantLoginPermissionMapper, loginPermissionMapperClass);
+//        jmsOperations.addElytronConstantRealmMapper(constantRealmMapper, constantRealmMapperReamName);
+//        jmsOperations.addSimpleRoleDecoderMapper(simpleRoleDecoderMapper, simpleRoleDecoderMapperAttributes);
+//        jmsOperations.addElytronPropertiesRealm(propertiesRealmName, userFilePath, rolesFilePath);
+//        jmsOperations.addElytronSecurityDomain(elytronSecurityDomain, propertiesRealmName, simplePermissionMapper, roleDecoder);
+//
+//        jmsOperations.setElytronSecurityDomain(elytronSecurityDomain);
+//        jmsOperations.setSecurityEnabled(true);
+//
+//        /// Configure SSL Eltyron server context
+//
+//        if (SSL_TYPE.TWO_WAY.equals(sslType)) {
+//            jmsOperations.createServerSSLContext(SSL_CONTEXT_NAME, KEY_STORE_TYPE, serverKeyStorePath, PASSWORD, serverTrustStorePath, PASSWORD, ALGORITHM,
+//                    HTTPS_PROTOCOLS, true);
+//        } else { // else create one way ssl server context
+//            jmsOperations.createServerSSLContext(SSL_CONTEXT_NAME, KEY_STORE_TYPE, serverKeyStorePath, PASSWORD, ALGORITHM,
+//                    HTTPS_PROTOCOLS, true);
+//        }
+//
+//        jmsOperations.reload();
+//
+//        // Prepare https listener
+//        jmsOperations.removeHttpsListener(HTTPS_LISTENER);
+//        jmsOperations.reload();
+//        jmsOperations.addHttpsListenerWithElytron(HTTPS_LISTENER, HTTPS_SOCKET_BINDING, SSL_CONTEXT_NAME);
+//
+//
+//        jmsOperations.createHttpAcceptor(HTTPS_ACCEPTOR_NAME, HTTPS_LISTENER, null);
+//        Map<String, String> httpConnectorParams = new HashMap<String, String>();
+//        httpConnectorParams.put("ssl-enabled", "true");
+//        jmsOperations.createHttpConnector(HTTPS_CONNECTOR_NAME, HTTPS_LISTENER, httpConnectorParams, HTTPS_ACCEPTOR_NAME);
+//        jmsOperations.removeConnectionFactory(Constants.CONNECTION_FACTORY_EAP7);
+//        jmsOperations.createConnectionFactory(Constants.CONNECTION_FACTORY_EAP7, Constants.CONNECTION_FACTORY_JNDI_FULL_NAME_EAP7, HTTPS_CONNECTOR_NAME);
+//
+//        jmsOperations.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
+//
+//        UsersSettings.forDefaultEapServer().
+//                        withUser(PrepareConstants.USER_NAME, PrepareConstants.USER_PASS, "users").
+//                        withUser(PrepareConstants.ADMIN_NAME, PrepareConstants.ADMIN_PASS, "admin").
+//                        create();
+//
+//        //////////////
+//
+//        boolean adminCreateDurableQueue = true;
+//        boolean adminCreateNonDurableQueue = true;
+//        boolean adminDeleteDurableQueue = true;
+//        boolean adminDeleteNonDurableQueue = true;
+//        boolean adminManage = true;
+//        boolean adminSend = true;
+//        boolean adminConsume = true;
+//
+//        jmsOperations.setSecurityEnabled(true);
+//        jmsOperations.setAuthenticationForNullUsers(true);
+//
+//        HashMap<String, String> opts = new HashMap<String, String>();
+//        opts.put("password-stacking", "useFirstPass");
+//        opts.put("unauthenticatedIdentity", "guest");
+//        jmsOperations.rewriteLoginModule("Remoting", opts);
+//        jmsOperations.rewriteLoginModule("RealmDirect", opts);
+//
+//        // set security persmissions for roles admin,users - user is already there
+//
+//        jmsOperations.addRoleToSecuritySettings("#", "admin");
+//        jmsOperations.addRoleToSecuritySettings("#", "users");
+//
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-durable-queue", adminCreateDurableQueue);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "create-non-durable-queue", adminCreateNonDurableQueue);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-durable-queue", adminDeleteDurableQueue);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "delete-non-durable-queue", adminDeleteNonDurableQueue);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "manage", adminManage);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "send", adminSend);
+//        jmsOperations.setPermissionToRoleToSecuritySettings("#", "admin", "consume", adminConsume);
+//
+//        /////////////////
+//
+//        jmsOperations.close();
+//        container.stop();
+//    }
 
 }

@@ -109,4 +109,8 @@ public class Constants {
         SHARED_STORE_MASTER, SHARED_STORE_SLAVE, REPLICATION_MASTER, REPLICATION_SLAVE, NONE
     }
 
+    public enum SSL_TYPE {
+        ONE_WAY, TWO_WAY
+    }
+
 }

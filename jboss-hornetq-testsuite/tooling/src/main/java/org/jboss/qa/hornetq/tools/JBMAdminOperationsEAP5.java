@@ -2850,6 +2850,16 @@ public class JBMAdminOperationsEAP5 implements JMSOperations {
     }
 
     @Override
+    public void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword, String trustStorePath, String trustStorePassword, String algorithm, String protocols, boolean needClientAuth) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
+    public void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword, String algorithm, String protocols, boolean needClientAuth) {
+        logger.info("This operation is not supported: " + getMethodName());
+    }
+
+    @Override
     public String getServerState() {
         throw new UnsupportedOperationException("This operation is not supported: " + getMethodName());
     }

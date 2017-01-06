@@ -2202,5 +2202,12 @@ public interface JMSOperations {
 
     void setEapServerName(String name);
 
+    void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword,
+                                String trustStorePath, String trustStorePassword, String algorithm,
+                           String protocols, boolean needClientAuth);
+
+    void createServerSSLContext(String sslContextName, String keyStoreType, String keyStorePath, String keyStorePassword,
+                                String algorithm, String protocols, boolean needClientAuth);
+
     String getServerState();
 }

@@ -266,14 +266,6 @@ public class Client extends Thread implements HornetQTestCaseConstants {
         }
     }
 
-    public boolean isSecurityEnabled() {
-        return isSecurityEnabled;
-    }
-
-    public void setSecurityEnabled(boolean securityEnabled) {
-        isSecurityEnabled = securityEnabled;
-    }
-
     public String getUserName() {
         return userName;
     }
