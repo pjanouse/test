@@ -37,6 +37,7 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
 
     protected MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 200);
 
+
     /**
      * @throws Exception
      */
@@ -47,8 +48,36 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
     @Prepare(params = {
             @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
     })
-    public void testStopLiveAndBackupStartBackupAndLiveInCluster() throws Exception {
-        testStopLiveAndBackupStartBackupAndLiveInClusterInternal();
+    public void testStopLiveAndBackupStartBackupAndLiveInCluster30s() throws Exception {
+        stopLiveAndBackupStartBackupAndLiveInClusterInternal(30000);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
+    })
+    public void testStopLiveAndBackupStartBackupAndLiveInCluster60s() throws Exception {
+        stopLiveAndBackupStartBackupAndLiveInClusterInternal(60000);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    @Prepare(params = {
+            @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO")
+    })
+    public void testStopLiveAndBackupStartBackupAndLiveInCluster120s() throws Exception {
+        stopLiveAndBackupStartBackupAndLiveInClusterInternal(120000);
     }
 
     @Test
@@ -59,11 +88,11 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
             @Param(name = PrepareParams.CONNECTOR_TYPE, value = "NETTY_NIO"),
             @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
     })
-    public void testStopLiveAndBackupStartBackupAndLiveInClusterBlockPolicy() throws Exception {
-        testStopLiveAndBackupStartBackupAndLiveInClusterInternal();
+    public void testStopLiveAndBackupStartBackupAndLiveInClusterBlockPolicy60s() throws Exception {
+        stopLiveAndBackupStartBackupAndLiveInClusterInternal(60000);
     }
 
-    public void testStopLiveAndBackupStartBackupAndLiveInClusterInternal() throws Exception {
+    public void stopLiveAndBackupStartBackupAndLiveInClusterInternal(long timeBetweenBackupStopAndLiveStop) throws Exception {
 
 
         container(1).start();
@@ -110,7 +139,7 @@ public class ReplicatedDedicatedFourNodesFailoverTestCase extends HornetQTestCas
         logger.info("Backups stopped!!!");
         logger.info("#########################################");
         // this is IMPORTANT for lives to realize that backup are dead
-        Thread.sleep(60000);
+        Thread.sleep(timeBetweenBackupStopAndLiveStop);
         // stop lives
         logger.info("#########################################");
         logger.info("Stopping lives!!!");

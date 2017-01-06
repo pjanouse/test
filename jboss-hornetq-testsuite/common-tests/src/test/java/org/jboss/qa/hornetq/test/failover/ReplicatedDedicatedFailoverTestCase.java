@@ -1016,7 +1016,41 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
     @RunAsClient
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
-    public void testStopLiveAndBackupStartBackupAndLive() throws Exception {
+    public void testStopLiveAndBackupStartBackupAndLive10s() throws Exception {
+        stopLiveAndBackupStartBackupAndLive(10000);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopLiveAndBackupStartBackupAndLive30s() throws Exception {
+        stopLiveAndBackupStartBackupAndLive(30000);
+    }
+
+    /**
+     * @throws Exception
+     */
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopLiveAndBackupStartBackupAndLive60s() throws Exception {
+        stopLiveAndBackupStartBackupAndLive(60000);
+    }
+
+    @Test
+    @RunAsClient
+    @CleanUpBeforeTest
+    @RestoreConfigBeforeTest
+    public void testStopLiveAndBackupStartBackupAndLive120s() throws Exception {
+        stopLiveAndBackupStartBackupAndLive(120000);
+    }
+
+    public void stopLiveAndBackupStartBackupAndLive(long timeBetweenBackupAndLiveStop) throws Exception {
 
         container(1).start();
         container(2).start();
@@ -1038,6 +1072,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         ClientUtils.waitForReceiverUntil(receiver, 320, 300000);
 
         container(2).stop();
+        Thread.sleep(timeBetweenBackupAndLiveStop);
         container(1).stop();
         Thread.sleep(10000);
         container(1).start();
