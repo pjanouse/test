@@ -14,6 +14,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
+import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.Receiver;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
@@ -46,7 +47,9 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
 import javax.jms.Topic;
 import javax.naming.Context;
+import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import java.io.File;
 
@@ -295,39 +298,12 @@ public class AnnotationsTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        Context ctx = null;
-        try {
-            ctx = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup("MyConnectionFactory");
-            logger.info("cf exists, should have been created on undeployment of mdb defining it - ok");
-        } catch (org.jboss.naming.remote.protocol.NamingIOException e) {
-            logger.info(e.toString());
-            //ok not serializable
-        } catch (NameNotFoundException e) {
-            logger.info("connection factory should exist but wasnt found");
-            Assert.fail("connection factory not found");
-        } finally {
-            if (ctx != null) {
-                ctx.close();
-            }
-        }
+        Assert.assertTrue(JMSTools.isRegisteredInJNDI(container(1), "MyConnectionFactory"));
 
         logger.info("undeploy mdb");
         container(1).undeploy(mdbDeployment);
-        try {
-            ctx = container(1).getContext();
-            ConnectionFactory cf = (ConnectionFactory) ctx.lookup("MyConnectionFactory");
-        } catch (org.jboss.naming.remote.protocol.NamingIOException e) {
-            logger.info(e.toString());
-            Assert.fail("cf should not exist.");
-            //ok not serializable
-        } catch (NameNotFoundException e) {
-            logger.info("connection factory should exist but wasnt found");
-        } finally {
-            if (ctx != null) {
-                ctx.close();
-            }
-        }
+
+        Assert.assertFalse(JMSTools.isRegisteredInJNDI(container(1), "MyConnectionFactory"));
 
         container(1).stop();
     }

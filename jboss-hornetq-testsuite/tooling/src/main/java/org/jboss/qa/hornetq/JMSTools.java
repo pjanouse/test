@@ -14,6 +14,8 @@ import javax.jms.JMSException;
 import javax.jms.Session;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NameClassPair;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -526,5 +528,24 @@ public final class JMSTools {
         providerUrl.deleteCharAt(providerUrl.lastIndexOf(",")); // remove last comma
         jndiProperties.put(Context.PROVIDER_URL, providerUrl.toString());
         return jndiProperties;
+    }
+
+    public static boolean isRegisteredInJNDI(Container container, String name) throws Exception {
+        Context ctx = null;
+        try {
+            ctx = container.getContext();
+            NamingEnumeration<NameClassPair> list = ctx.list("");
+
+            while (list.hasMore()) {
+                if (name.equals(list.next().getName())) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            if (ctx != null) {
+                ctx.close();
+            }
+        }
     }
 }
