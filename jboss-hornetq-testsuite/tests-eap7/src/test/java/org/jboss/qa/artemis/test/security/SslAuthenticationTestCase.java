@@ -83,15 +83,14 @@ import static org.junit.Assert.assertNull;
  * <p/>
  * [1] http://docs.oracle.com/javase/7/docs/technotes/guides/security/p11guide.html#Requirements
  *
+ * @author Martin Svehla &lt;msvehla@redhat.com&gt;
+ * @author Miroslav Novak mnovak@redhat.com
  * @tpChapter Security testing
  * @tpSubChapter SSL AUTHENTICATION
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-functional-tests-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Goal of the test cases is testing if the standalone JMS
  * client can connect to the EAP server using a connection over SSL.
- *
- * @author Martin Svehla &lt;msvehla@redhat.com&gt;
- * @author Miroslav Novak mnovak@redhat.com
  */
 @Category(Ssl.class)
 @RunWith(Arquillian.class)
@@ -226,7 +225,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void testOneWaySslOverJms() throws Exception {
-        prepareServerWithNettySslConnection(false,false,true);
+        prepareServerWithNettySslConnection(false, false, true);
 
 
         container(1).start();
@@ -280,8 +279,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
                     targetMethod = "initChannel",
                     isAfter = true,
 //            binding = "engine:SSLEngine = $0",
-            targetLocation = "INVOKE createSSLEngine()",
-            action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
+                    targetLocation = "INVOKE createSSLEngine()",
+                    action = "System.out.println(\"mnovak - byteman rule triggered - uuuuhhaaaa\"); org.jboss.qa.artemis.test.security.SslAuthenticationTestCase.setEnabledProtocols($!)"
 
             ),
             @BMRule(
@@ -325,7 +324,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             Assert.fail("It is possible to connect with SSLv3 protocol which is deprecated since EAP 6.3.3/6.4.0. It's possible that byteman rule" +
                     " was no triggered. Check whether test suite log contains - mnovak - byteman rule triggered - uuuuhhaaaa");
 
-        } catch (JMSException ex)   {
+        } catch (JMSException ex) {
 
             logger.info(ex);
 
@@ -487,7 +486,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * <li>Client is not able to successfully send and receive the test message over the created connection. </li>
      * </ul>
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslNegativeClientAuthOverJms() throws Exception {
@@ -510,7 +509,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         MessageConsumer consumer = session.createConsumer(testQueue);
         TextMessage received = (TextMessage) consumer.receive(10000L);
         connection.stop();
-
 
 
         consumer.close();
@@ -541,7 +539,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * <li>Client is not able to successfully send and receive the test message over the created connection. </li>
      * </ul>
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     public void testTwoWaySslNegativeServerAuthOverJms() throws Exception {
@@ -604,11 +602,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs11(container(1));
         container(1).start();
-        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath()); // for server authentication
         System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
 
 
-        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
         System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
 
         Context context = container(1).getContext();
@@ -659,7 +657,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * </ul>
      * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -671,7 +669,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).start();
 
 
-        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
         System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
 
         Context context = container(1).getContext();
@@ -723,7 +721,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * </ul>
      * @tpInfo This test can run only with Oracle JDK and OpenJDK 1.6
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -733,7 +731,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs11(container(1));
         container(1).start();
-        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath()); // for server authentication
         System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
 
 
@@ -793,7 +791,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11OnNetty(container(1),true, true, true);
+        prepareSeverWithPkcs11OnNetty(container(1), true, true, true);
         container(1).start();
 
         Context context = container(1).getContext();
@@ -844,7 +842,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * </ul>
      * @tpInfo This test can run only with Oracle JDK
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -852,7 +850,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11OnNetty(container(1),true, true, false);
+        prepareSeverWithPkcs11OnNetty(container(1), true, true, false);
         container(1).start();
 
         Context context = container(1).getContext();
@@ -871,7 +869,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         connection.stop();
 
 
-
         consumer.close();
         producer.close();
         session.close();
@@ -880,6 +877,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).stop();
 
     }
+
     /**
      * @tpTestDetails Use PKCS11 (Oracle JDK only) keystores and truststores.
      * Start one server with keystore with the test SSL certificate installed.
@@ -901,7 +899,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * </ul>
      * @tpInfo This test can run only with Oracle JDK
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -909,7 +907,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs11OnNetty(container(1),true, false, true);
+        prepareSeverWithPkcs11OnNetty(container(1), true, false, true);
         container(1).start();
 
         Context context = container(1).getContext();
@@ -926,7 +924,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         MessageConsumer consumer = session.createConsumer(testQueue);
         TextMessage received = (TextMessage) consumer.receive(10000L);
         connection.stop();
-
 
 
         consumer.close();
@@ -973,11 +970,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         container(1).start();
 
-        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "cacerts").getAbsolutePath()); // for server authentication
         System.setProperty("javax.net.ssl.trustStorePassword", TEST_USER_PASSWORD);
 
 
-        System.setProperty("javax.net.ssl.keyStore",new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
+        System.setProperty("javax.net.ssl.keyStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath()); //for client authentication
         System.setProperty("javax.net.ssl.keyStorePassword", TRUST_STORE_PASSWORD);
         Map<String, Object> props = new HashMap<String, Object>();
         props.put(TransportConstants.SSL_ENABLED_PROP_NAME, "true");
@@ -1049,9 +1046,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs12(container(1));
         container(1).start();
-        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath() ); // for server authentication
+        System.setProperty("javax.net.ssl.trustStore", new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath()); // for server authentication
         System.setProperty("javax.net.ssl.trustStorePassword", "hornetqexample");
-
 
 
         Context context = container(1).getContext();
@@ -1098,7 +1094,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * <li>Client is not able to create connection to the server and verify the server certificate against its truststore.</li>
      * </ul>
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -1108,7 +1104,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         prepareSeverWithPkcs12(container(1));
         container(1).start();
-
 
 
         Context context = container(1).getContext();
@@ -1139,7 +1134,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     }
 
 
-
     /**
      * @tpTestDetails Use PKCS12 keystore and JKS truststore.
      * Start one server with keystore with the test SSL certificate installed.
@@ -1168,7 +1162,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs12OnNetty(container(1),true);
+        prepareSeverWithPkcs12OnNetty(container(1), true);
         container(1).start();
 
         Context context = container(1).getContext();
@@ -1216,7 +1210,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
      * </ul>
      * @tpInfo This test can run only with Oracle JDK and OpenJDK
      */
-    @Test(expected=javax.jms.JMSException.class)
+    @Test(expected = javax.jms.JMSException.class)
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
@@ -1224,7 +1218,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         Assume.assumeTrue("This test can run only with Oracle JDK and OpenJDK", System.getProperty("java.vm.name").contains("Java HotSpot"));
 
-        prepareSeverWithPkcs12OnNetty(container(1),false);
+        prepareSeverWithPkcs12OnNetty(container(1), false);
         container(1).start();
 
         Context context = container(1).getContext();
@@ -1254,20 +1248,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
     }
 
-    @Ignore
     @Test
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testHttpsConnectionClientAuth() throws InterruptedException {
-        testHttpsConnection(true, false);
-    }
-
-    @Test
-    @RunAsClient
-    @RestoreConfigBeforeTest
-    @CleanUpBeforeTest
-    public void testHttpsConnectionServerAuth() throws InterruptedException {
+    public void testHttpsConnectionServerAuth() throws Exception {
         testHttpsConnection(false, true);
     }
 
@@ -1275,11 +1260,11 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    public void testHttpsConnectionBothAuth() throws InterruptedException {
+    public void testHttpsConnectionBothAuth() throws Exception {
         testHttpsConnection(true, true);
     }
 
-    public void testHttpsConnection(boolean clientAuth, boolean serverAuth) throws InterruptedException {
+    public void testHttpsConnection(boolean clientAuth, boolean serverAuth) throws Exception {
         final String keyStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.keystore").getPath();
         final String trustStorePath = getClass().getResource("/org/jboss/qa/artemis/test/transportprotocols/client.truststore").getPath();
         final String password = "123456";
@@ -1298,9 +1283,13 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         container(1).start();
 
         ProducerAutoAck producer = new ProducerAutoAck(container(1), QUEUE_JNDI_ADDRESS, 1);
+        producer.setUserName(TEST_USER);
+        producer.setPassword(TEST_USER_PASSWORD);
         producer.start();
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), QUEUE_JNDI_ADDRESS);
+        receiver.setUserName(TEST_USER);
+        receiver.setPassword(TEST_USER_PASSWORD);
         receiver.start();
 
         producer.join();
@@ -1314,7 +1303,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     }
 
     private void prepareSeverWithPkcs11(Container container) throws Exception {
-
 
 
         final String securityRealmName = "https";
@@ -1364,7 +1352,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     private void prepareSeverWithPkcs12(Container container) throws Exception {
 
 
-
         final String securityRealmName = "https";
         final String listenerName = "undertow-https";
         final String sockerBinding = "https";
@@ -1412,8 +1399,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     private void prepareSeverWithPkcs11OnNetty(Container container, boolean isTwoWay, boolean provideKeystoreViaConnector, boolean provideTruststoreViaConnector) throws Exception {
 
 
-
-
         final String password = "user.456";
         final String acceptorName = "netty-ssl-acceptor";
         final String connectorName = "netty-ssl-connector";
@@ -1433,35 +1418,35 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
         propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-        if(isTwoWay){
+        if (isTwoWay) {
             propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath); //server will authenticate clients which use private key paired with this public key
             propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
-            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME,"PKCS11");
+            propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
         }
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
-        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
 
-        if(isTwoWay && provideKeystoreViaConnector){
+        if (isTwoWay && provideKeystoreViaConnector) {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath); // client will use this keystore to prove him self to the server
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
-            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS11");
+            propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME, "PKCS11");
         }
 
-        if(provideTruststoreViaConnector) {
+        if (provideTruststoreViaConnector) {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PROVIDER_PROP_NAME, "PKCS11");
         }
-        if(isTwoWay){
+        if (isTwoWay) {
             propsAcceptor.put("needs-client-auth", "true");
-        }else{
+        } else {
             propsAcceptor.put("needs-client-auth", "false");
         }
 
         ops.addSocketBinding(socketBinding, 5445);
         ops.createRemoteAcceptor(acceptorName, socketBinding, propsAcceptor);
-        ops.createRemoteConnector(connectorName, socketBinding ,propsConnector);
+        ops.createRemoteConnector(connectorName, socketBinding, propsConnector);
 
         ops.close();
         container(1).stop();
@@ -1479,8 +1464,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
     }
 
     private void prepareSeverWithPkcs12OnNetty(Container container, boolean provideTruststoreViaConnector) throws Exception {
-
-
 
 
         final String password = "hornetqexample";
@@ -1504,9 +1487,9 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
-        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME,"PKCS12");
+        propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PROVIDER_PROP_NAME, "PKCS12");
 
-        if(provideTruststoreViaConnector) {
+        if (provideTruststoreViaConnector) {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
         }
@@ -1516,7 +1499,7 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         ops.addSocketBinding(socketBinding, 5445);
         ops.createRemoteAcceptor(acceptorName, socketBinding, propsAcceptor);
-        ops.createRemoteConnector(connectorName, socketBinding ,propsConnector);
+        ops.createRemoteConnector(connectorName, socketBinding, propsConnector);
 
         ops.close();
         container(1).stop();
@@ -1532,7 +1515,6 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
 
     }
-
 
 
     private void activateLegacyJnpModule(final Container container) throws Exception {
@@ -1669,11 +1651,12 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         UsersSettings.forDefaultEapServer()
                 .withUser(TEST_USER, TEST_USER_PASSWORD, TEST_USER)
                 .create();
+        ops.setSecurityEnabled(true);
 
         return ops;
     }
 
-    private void prepareServerWithHttpsConnection(boolean setKeyStore, boolean setTrustStore) {
+    private void prepareServerWithHttpsConnection(boolean setKeyStore, boolean setTrustStore) throws Exception {
 
         final String securityRealmName = "https";
         final String listenerName = "undertow-https";
@@ -1688,8 +1671,8 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
         final String remoteConnectionFactoryJNDI = "java:jboss/exported/jms/RemoteConnectionFactory";
 
         container(1).start();
-        JMSOperations ops = container(1).getJmsOperations();
 
+        JMSOperations ops = container(1).getJmsOperations();
         ops.createSecurityRealm(securityRealmName);
         if (setKeyStore && setTrustStore) {
             ops.addServerIdentity(securityRealmName, keyStorePath, password);
@@ -1704,32 +1687,43 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
             throw new IllegalArgumentException("At least one of setKeyStore or setTrustStore must be true");
         }
         ops.removeHttpsListener("https");
+        ops.setSecurityEnabled(true);
         ops.close();
-        container(1).restart();
-        ops = container(1).getJmsOperations();
 
+        container(1).restart();
+
+        ops = container(1).getJmsOperations();
         ops.addHttpsListener(listenerName, securityRealmName, sockerBinding, verifyClientPolitic);
         ops.createHttpAcceptor(httpAcceptorName, listenerName, null);
         Map<String, String> httpConnectorParams = new HashMap<String, String>();
         httpConnectorParams.put("ssl-enabled", "true");
         ops.createHttpConnector(httpConnectorName, sockerBinding, httpConnectorParams, httpAcceptorName);
-
         ops.close();
-        container(1).restart();
-        ops = container(1).getJmsOperations();
 
+        container(1).restart();
+
+        ops = container(1).getJmsOperations();
         ops.removeConnectionFactory(remoteConnectionFactoryName);
         ops.createConnectionFactory(remoteConnectionFactoryName, remoteConnectionFactoryJNDI, httpConnectorName);
         ops.createQueue(QUEUE_NAME, QUEUE_JNDI_ADDRESS);
-
         ops.close();
+
+        UsersSettings.forDefaultEapServer()
+                .withUser(TEST_USER, TEST_USER_PASSWORD, TEST_USER)
+                .create();
+        AddressSecuritySettings.forDefaultContainer(this)
+                .forAddress("jms.queue.test.#")
+                .giveUserAllPermissions(TEST_USER)
+                .create();
+
         container(1).stop();
     }
 
-    private void prepareServerWithNettySslConnection( boolean isTwoWay) {
+    private void prepareServerWithNettySslConnection(boolean isTwoWay) {
         prepareServerWithNettySslConnection(isTwoWay, true, true);
     }
-    private void prepareServerWithNettySslConnection( boolean isTwoWay, boolean provideKeystoreViaConnector, boolean provideTrustStoreViaConnector) {
+
+    private void prepareServerWithNettySslConnection(boolean isTwoWay, boolean provideKeystoreViaConnector, boolean provideTrustStoreViaConnector) {
 
         final String keyStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.keystore").getAbsolutePath();
         final String trustStorePath = new File(TEST_KEYSTORES_DIRECTORY + File.separator + "hornetq.example.truststore").getAbsolutePath();
@@ -1748,31 +1742,31 @@ public class SslAuthenticationTestCase extends SecurityTestBase {
 
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
         propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.SSL_ENABLED_PROP_NAME, "true");
-        if(isTwoWay){
+        if (isTwoWay) {
             propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath); //server will authenticate clients which use private key paired with this public key
             propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
         }
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath);
         propsAcceptor.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
 
-        if(isTwoWay && provideKeystoreViaConnector){
+        if (isTwoWay && provideKeystoreViaConnector) {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PATH_PROP_NAME, keyStorePath); // client will use this keystore to prove him self to the server
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.KEYSTORE_PASSWORD_PROP_NAME, password);
         }
 
-        if(provideTrustStoreViaConnector) {
+        if (provideTrustStoreViaConnector) {
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PATH_PROP_NAME, trustStorePath);
             propsConnector.put(org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants.TRUSTSTORE_PASSWORD_PROP_NAME, password);
         }
-        if(isTwoWay){
+        if (isTwoWay) {
             propsAcceptor.put("needs-client-auth", "true");
-        }else{
+        } else {
             propsAcceptor.put("needs-client-auth", "false");
         }
 
         ops.addSocketBinding(socketBinding, 5445);
         ops.createRemoteAcceptor(acceptorName, socketBinding, propsAcceptor);
-        ops.createRemoteConnector(connectorName, socketBinding ,propsConnector);
+        ops.createRemoteConnector(connectorName, socketBinding, propsConnector);
 
         ops.close();
         container(1).stop();
