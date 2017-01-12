@@ -165,8 +165,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         ClientUtils.waitForReceiversUntil(clients.getConsumers(), 500, 300000);
-        Assert.assertTrue("Backup on second server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(),
-                container(2).getHornetqBackupPort(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), PrepareConstants.BACKUP_SERVER_NAME, 300000);
 
         if (failback) {
             logger.info("########################################");
@@ -293,8 +292,8 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).start();
 
         // give some time for servers to find each other
-        CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqPort(), 60000);
-        CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 60000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1),60000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2),60000);
 
         int numberOfMessages = 2000;
         ProducerTransAck producerToInQueue1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMessages);
@@ -326,8 +325,7 @@ public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
         // when 1/2 is processed then start 2nd server
         new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 120000, container(1));
 
-        Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(),
-                Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 + container(1).getPortOffset(), 300000));
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(1), PrepareConstants.BACKUP_SERVER_NAME, 300000);
         Thread.sleep(10000);
 
         logger.info("########################################");
