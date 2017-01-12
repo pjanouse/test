@@ -390,6 +390,14 @@
                         <groupId>org.jboss.sasl</groupId>
                         <artifactId>jboss-sasl</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.wildfly.core</groupId>
+                        <artifactId>wildfly-remoting</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.remoting</groupId>
+                        <artifactId>jboss-remoting</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
