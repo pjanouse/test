@@ -625,9 +625,9 @@ public class BytemanLodh1TestCase extends HornetQTestCase {
         jmsOperations.close();
 
         // wait for InQueue to be empty
-        new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 0, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.IN_QUEUE_NAME, 0, 300000, container(1)));
         // wait for OutQueue to have NUMBER_OF_MESSAGES_PER_PRODUCER
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
 
         getLargeMessageDirFilesNumber(true); //prints content of large message directory
 

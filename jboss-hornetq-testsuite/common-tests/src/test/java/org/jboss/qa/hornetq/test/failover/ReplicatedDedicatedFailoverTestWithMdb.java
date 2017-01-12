@@ -79,7 +79,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         container(3).deploy(mdb);
 
         Assert.assertTrue("MDB on container 3 is not resending messages to outQueue. Method waitForMessagesOnOneNode(...) timeouted.",
-                new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(4)));
+                JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(4)));
         logger.info("#######################################");
         logger.info("Stopping backup");
         logger.info("#######################################");
@@ -112,7 +112,7 @@ public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTes
         logger.info("Backup started");
         logger.info("#######################################");
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 600000, container(1), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 600000, container(1), container(4)));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(4));
 

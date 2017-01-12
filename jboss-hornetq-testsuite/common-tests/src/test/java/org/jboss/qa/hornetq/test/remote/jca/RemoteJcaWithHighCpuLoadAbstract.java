@@ -67,7 +67,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, 50000);
         ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
         messageBuilder.setAddDuplicatedHeader(false);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -97,18 +97,18 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         }
 
         // if messages are consumed from InQueue then we're ok, if no message received for 5 min time out then continue
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1));
         logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false);
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1)));
-        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1)));
+        logger.info("Number of messages in DLQ is: " + JMSTools.countMessages(dlqQueueName, container(1)));
+        logger.info("Number of messages in InQueue is: " + JMSTools.countMessages(inQueueName, container(1)));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
-        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1));
-        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1));
+        long numberOfMessagesInInQueue = JMSTools.countMessages(inQueueName, container(1));
+        long numberOfMessagesInOutQueue = JMSTools.countMessages(outQueueName, container(1));
 
         messageVerifier.verifyMessages();
 
@@ -144,7 +144,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     private void loadInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -171,7 +171,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     private void loadInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -186,7 +186,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     @RunAsClient
     public void loadInClusterWithLodhLikeMdbMixMessages() throws Exception {
         ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -214,7 +214,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
     private void loadOnJmsInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -252,13 +252,13 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
-        new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3)));
 
         // deploy mdb
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3)));
 
         Process highCpuLoader1 = null;
         try {
@@ -281,7 +281,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         producer1.join();
 
         // Wait until some messages are consumes from InQueue
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 400000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 400000, container(1), container(3));
         logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
 
         boolean areTherePreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false) &&
@@ -292,11 +292,11 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
-        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1), container(3));
+        long numberOfMessagesInInQueue = JMSTools.countMessages(inQueueName, container(1), container(3));
+        long numberOfMessagesInOutQueue = JMSTools.countMessages(outQueueName, container(1), container(3));
         logger.info("Number of messages in InQueue is: " + numberOfMessagesInInQueue);
         logger.info("Number of messages in OutQueue is: " + numberOfMessagesInOutQueue);
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + JMSTools.countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
         printThreadDumpsOfAllServers();
@@ -374,7 +374,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
 
         // send messages to queue
         ProducerTransAck producer1 = new ProducerTransAck(container(1), inQueueJndiName, numberOfMessages);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -412,7 +412,7 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
             }
         }
         // Wait until some messages are consumed from InQueue
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(1), 0, false);
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(400000, container(3), 0, false);
 
@@ -421,14 +421,14 @@ public abstract class RemoteJcaWithHighCpuLoadAbstract extends RemoteJcaLoadTest
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(120000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(120000, container(3), 0, false);
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
         receiver1.addMessageVerifier(messageVerifier);
         receiver1.start();
         receiver1.join();
-        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
+        logger.info("Number of messages in InQueue is: " + JMSTools.countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + JMSTools.countMessages(outQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + JMSTools.countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
         Assert.assertFalse("There are duplicated messages. Number of received messages is: " + receiver1.getListOfReceivedMessages().size(),

@@ -92,8 +92,6 @@ public class MessagePriorityTestCase extends HornetQTestCase {
     public void testPriorityOrder(boolean paging) throws Exception {
         int numberOfMessages = 10;
 
-        JMSTools jmsTools = new JMSTools();
-
         container(1).start();
 
         MessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 150);
@@ -105,7 +103,7 @@ public class MessagePriorityTestCase extends HornetQTestCase {
 
         Thread.sleep(5000);
 
-        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, jmsTools.countMessages(inQueue, container(1)));
+        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, JMSTools.countMessages(inQueue, container(1)));
 
         ReceiverTransAck receiver = new ReceiverTransAck(container(1), inQueueJndiName, 10000, 5, 5);
         receiver.setTimeout(2000);

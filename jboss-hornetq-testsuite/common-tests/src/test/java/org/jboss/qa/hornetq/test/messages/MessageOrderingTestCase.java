@@ -68,7 +68,6 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     public void checkOrdering() throws Exception {
 
         int numberOfMessages = 500;
-        JMSTools jmsTools = new JMSTools();
 
         container(1).start();
 
@@ -80,7 +79,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, jmsTools.countMessages(inQueue, container(1)));
+        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, JMSTools.countMessages(inQueue, container(1)));
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), inQueueJndiName);
         receiver.setTimeout(0);
@@ -121,7 +120,6 @@ public class MessageOrderingTestCase extends HornetQTestCase {
     public void checkOrderingLargeMessages() throws Exception {
 
         int numberOfMessages = 500;
-        JMSTools jmsTools = new JMSTools();
 
         container(1).start();
 
@@ -136,7 +134,7 @@ public class MessageOrderingTestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, jmsTools.countMessages(inQueue, container(1)));
+        Assert.assertEquals("Producer should send all messages to inQueue", numberOfMessages, JMSTools.countMessages(inQueue, container(1)));
 
         ReceiverAutoAck receiver = new ReceiverAutoAck(container(1), inQueueJndiName);
         receiver.setTimeout(0);

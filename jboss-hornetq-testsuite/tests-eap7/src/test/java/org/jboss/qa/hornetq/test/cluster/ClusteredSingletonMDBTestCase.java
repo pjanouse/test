@@ -286,7 +286,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertFalse("MDB on node 2 is delivery active but it must not be. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
-        Assert.assertTrue("Number of messages in OutQueue must be 0", new JMSTools().countMessages(outQueueNameForMdb,
+        Assert.assertTrue("Number of messages in OutQueue must be 0", JMSTools.countMessages(outQueueNameForMdb,
                 container(1), container(2)) == 0);
 
         // shutdown node 1 and check that mdb 2 is active
@@ -298,7 +298,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
-        Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
+        Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", JMSTools.countMessages(outQueueNameForMdb,
                 container(2)) > 0);
 
         // start node 1 and check that mdb on node 1 is not active
@@ -307,7 +307,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertFalse("MDB on node 1 is delivery active but it must not. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(1)));
 
-        Assert.assertTrue("Number of messages in OutQueue must higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
+        Assert.assertTrue("Number of messages in OutQueue must higher than 0", JMSTools.countMessages(outQueueNameForMdb,
                 container(1), container(2)) > 0);
 
         queueConsumer.start();
@@ -387,7 +387,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertFalse("MDB on node 2 is delivery active but it must not be. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
-        Assert.assertTrue("Number of messages in OutQueue must be 0", new JMSTools().countMessages(outQueueNameForMdb,
+        Assert.assertTrue("Number of messages in OutQueue must be 0", JMSTools.countMessages(outQueueNameForMdb,
                 container(1), container(2)) == 0);
 
         // shutdown node 1 and check that mdb 2 must not be active
@@ -408,7 +408,7 @@ public class ClusteredSingletonMDBTestCase extends HornetQTestCase {
         Assert.assertTrue("MDB on node 2 is not delivery active but it must be. This is a bug",
                 checkThatMdbIsActive(mdb, Constants.HA_SINGLETON_MDB_NAME, container(2)));
 
-        Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", new JMSTools().countMessages(outQueueNameForMdb,
+        Assert.assertTrue("Number of messages in OutQueue on node 2 must be higher than 0", JMSTools.countMessages(outQueueNameForMdb,
                 container(2)) > 0);
 
         // start node 1 and check that mdb on node 1 is not active

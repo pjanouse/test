@@ -103,7 +103,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1)));
 
         logger.warn("###################################");
         logger.warn("Server failure will be executed: " + failureType);
@@ -139,7 +139,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         producerToInQueue1.stopSending();
         producerToInQueue1.join();
 
-        new JMSTools().waitForMessages(outQueueName, producerToInQueue1.getCount(), TimeUnit.MINUTES.toMillis(4), outContainer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, producerToInQueue1.getCount(), TimeUnit.MINUTES.toMillis(4), outContainer));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(TimeUnit.MINUTES.toMillis(4), container(3), 1);
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(TimeUnit.MINUTES.toMillis(4), outContainer, 1);
@@ -150,8 +150,8 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
-        logger.info("Messages in outQueue on server from which it is read: " + new JMSTools().countMessages(outQueueName, outContainer));
-        logger.info("Messages in inQueue on bridge server : " + new JMSTools().countMessages(inQueueName, container(3)));
+        logger.info("Messages in outQueue on server from which it is read: " + JMSTools.countMessages(outQueueName, outContainer));
+        logger.info("Messages in inQueue on bridge server : " + JMSTools.countMessages(inQueueName, container(3)));
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 
@@ -223,7 +223,7 @@ public class JMSBridgeFailoverTestCase extends HornetQTestCase {
         container(3).start();
 
         // check that some messages got to OutQueue on server 3 and shutdown server1
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3)));
 
         for (int i = 0; i < 5; i++) {
 

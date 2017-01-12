@@ -109,7 +109,7 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         container(4).deploy(getMdbToDBAndQueue());
         container(2).deploy(getMdbToDBAndQueue());
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000));
 
 
         if(!stopAllProxies()){
@@ -199,7 +199,7 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         container(4).deploy(getMdbToDBAndQueue());
         container(2).deploy(getMdbToDBAndQueue());
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000));
 
 
         if(!stopClusterProxies()){
@@ -289,7 +289,7 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         container(4).deploy(getSimpleMdb());
         container(2).deploy(getSimpleMdb());
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000));
 
 
         if(!stopClusterProxies()){
@@ -366,7 +366,7 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         container(2).deploy(getSimpleMdb());
 
         logger.info("MDB deployed, wait to process some messages");
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/2, 120000));
         if(!stopAllProxies()){
             Assert.fail("Proxies failed to stop");
         }
@@ -374,8 +374,8 @@ public class RemoteJcaNetworkFailure extends HornetQTestCase {
         if(!startAllProxies()){
             Assert.fail("Proxies failed to start");
         }
-        new JMSTools().waitForMessages(inQueueName, 0 , 120000, container(1));
-        new JMSTools().waitForMessages(inQueueName, 0 , 120000, container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(inQueueName, 0 , 120000, container(1)));
+        Assert.assertTrue(JMSTools.waitForMessages(inQueueName, 0 , 120000, container(3)));
         int counter=0;
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));

@@ -143,7 +143,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         // deploy mdbs
         container(2).deploy(mdbToQueueAndDb);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 5, 120000, container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 5, 120000, container(3)));
 
         logger.info("Some messages were received. Disconnect network.");
         stopProxies();
@@ -154,7 +154,7 @@ public class LodhNetworkFailureTestCase extends HornetQTestCase {
         logger.info("Reconnect network.");
         startProxies();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(3)));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(3));

@@ -879,7 +879,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1)));
 
         logger.info("Crash backup server - " + failureType);
         container(2).fail(failureType);
@@ -887,7 +887,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
 
         ClientUtils.waitForClientToFailover(prod1, 120000);
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 600, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 600, 120000, container(1)));
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 20000, 1, 100);
         receiver.setTimeout(0);
@@ -941,7 +941,7 @@ public class ReplicatedDedicatedFailoverTestCase extends DedicatedFailoverTestCa
         prod1.setCommitAfter(10);
         prod1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 300, 120000, container(1)));
 
         logger.info("Crash backup server - KILL");
         container(2).fail(Constants.FAILURE_TYPE.KILL);

@@ -311,15 +311,15 @@ public class Lodh1TestCase extends HornetQTestCase {
             killSequence.add(container(1));
         }
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 300000, container(1)));
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
         // wait for 80% of messages
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, (NUMBER_OF_MESSAGES_PER_PRODUCER * 8) / 10, 500000, container(1)));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 5000, 100, 10);
@@ -377,7 +377,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         container(1).deploy(mdb1Archive);
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 120000, container(1)));
         container(1).stop();
 
         String journalFile1 = container(1).getName() + "-journal_content_after_shutdown.txt";
@@ -418,7 +418,7 @@ public class Lodh1TestCase extends HornetQTestCase {
                 checkUnfinishedArjunaTransactions(container(2)));
         Assert.assertTrue(
                 "There are no messages in InQueue. Send more messages so server is shutdowned when MDB is processing messages.",
-                new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 1, 5000, container(2)));
+                JMSTools.waitForMessages(PrepareConstants.IN_QUEUE_NAME, 1, 5000, container(2)));
         container(2).stop();
     }
 
@@ -459,7 +459,7 @@ public class Lodh1TestCase extends HornetQTestCase {
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1)));
 
         logger.info("Start receiver.");
 

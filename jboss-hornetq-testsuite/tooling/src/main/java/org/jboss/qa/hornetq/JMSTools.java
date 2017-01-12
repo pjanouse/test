@@ -29,6 +29,8 @@ public final class JMSTools {
 
     private static final Logger log = Logger.getLogger(JMSTools.class);
 
+    private JMSTools() {}
+
     /**
      * Cleanups resources
      *
@@ -91,7 +93,7 @@ public final class JMSTools {
      * expires it returns false
      * @throws Exception
      */
-    public boolean waitForMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
+    public static boolean waitForMessages(String queueName, long numberOfMessages, long timeout, org.jboss.qa.hornetq.Container... containers) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
@@ -153,7 +155,7 @@ public final class JMSTools {
      * @param containers container list
      * @return total number of messages in queue on given nodes
      */
-    public long countMessages(String queueName, org.jboss.qa.hornetq.Container... containers) {
+    public static long countMessages(String queueName, org.jboss.qa.hornetq.Container... containers) {
         long sum = 0;
         for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
@@ -187,7 +189,7 @@ public final class JMSTools {
      * @param containers container list
      * @return total number of messages added in queue on given nodes
      */
-    public long getAddedMessagesCount(String queueName, org.jboss.qa.hornetq.Container... containers) {
+    public static long getAddedMessagesCount(String queueName, org.jboss.qa.hornetq.Container... containers) {
         return getAddedMessagesCount(queueName, false, containers);
     }
 
@@ -199,7 +201,7 @@ public final class JMSTools {
      * @param containers container list
      * @return total number of messages added in topic on given nodes
      */
-    public long getAddedMessagesCount(String destinationName ,boolean isTopic, org.jboss.qa.hornetq.Container... containers) {
+    public static long getAddedMessagesCount(String destinationName ,boolean isTopic, org.jboss.qa.hornetq.Container... containers) {
         long sum = 0;
         for (org.jboss.qa.hornetq.Container container : containers) {
             JMSOperations jmsOperations = container.getJmsOperations();
@@ -439,7 +441,7 @@ public final class JMSTools {
      * given timeout. Otherwise it returns false.
      * @throws Exception
      */
-    public boolean waitUntilNumberOfMessagesInQueueIsBelow(org.jboss.qa.hornetq.Container container, String queueCoreName,
+    public static boolean waitUntilNumberOfMessagesInQueueIsBelow(org.jboss.qa.hornetq.Container container, String queueCoreName,
                                                            int expectedNumberOfMessages, long timeout) throws Exception {
 
         JMSOperations jmsAdminOperations = container.getJmsOperations();
@@ -467,7 +469,7 @@ public final class JMSTools {
      * @param timeout
      * @param containers
      */
-    public void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
+    public static void waitUntilMessagesAreStillConsumed(String queueName, long timeout, Container... containers) throws Exception {
         long startTime = System.currentTimeMillis();
         long lastCount = new JMSTools().countMessages(queueName, containers);
         long newCount = -1;
@@ -488,7 +490,7 @@ public final class JMSTools {
         }
     }
 
-    public Map<String, String> getJndiPropertiesToContainers(Container... containers) throws Exception {
+    public static Map<String, String> getJndiPropertiesToContainers(Container... containers) throws Exception {
         if (containers[0].getContainerType().equals(Constants.CONTAINER_TYPE.EAP6_CONTAINER)) {
             return getJndiPropertiesToContainersEAP6(containers);
         } else {
@@ -496,7 +498,7 @@ public final class JMSTools {
         }
     }
 
-    public Map<String, String> getJndiPropertiesToContainersEAP6(Container... containers) throws Exception {
+    public static Map<String, String> getJndiPropertiesToContainersEAP6(Container... containers) throws Exception {
         Map<String, String> jndiProperties = new HashMap<String, String>();
         jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP6);
         StringBuilder providerUrl = new StringBuilder();
@@ -513,7 +515,7 @@ public final class JMSTools {
         return jndiProperties;
     }
 
-    public Map<String, String> getJndiPropertiesToContainersEAP7(Container... containers) throws Exception {
+    public static Map<String, String> getJndiPropertiesToContainersEAP7(Container... containers) throws Exception {
         Map<String, String> jndiProperties = new HashMap<String, String>();
         jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, Constants.INITIAL_CONTEXT_FACTORY_EAP7);
         StringBuilder providerUrl = new StringBuilder();

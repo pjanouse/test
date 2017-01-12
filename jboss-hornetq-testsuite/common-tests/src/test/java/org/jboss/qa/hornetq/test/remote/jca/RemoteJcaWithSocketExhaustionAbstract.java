@@ -49,7 +49,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
     private void socketExhaustionOfJmsServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -77,7 +77,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
     private void socketExhaustionOfMdbServerInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -105,7 +105,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
     private void socketExhaustionOfJmsServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -133,7 +133,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
     private void socketExhaustionOfMdbServerInClusterWithNormalMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES) : new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -172,7 +172,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3)));
 
         int pid = ProcessIdUtils.getProcessId(containerForSocketExhaustion);
         logger.info("Going to cause socket exhaustion on server: " + containerForSocketExhaustion.getName());
@@ -181,7 +181,7 @@ public abstract class RemoteJcaWithSocketExhaustionAbstract extends RemoteJcaLoa
 
 
         logger.info("Wait more time for consumers on InQueue to process messages.");
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         logger.info("Waiting is over now. Check if there are prepared transactions and 500 seconds for recovery.");
 
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(1), 0, false) &&

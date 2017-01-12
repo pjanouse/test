@@ -179,7 +179,7 @@ public class DomainLodh1TestCase extends DomainHornetQTestCase {
         logger.info("Starting the kill sequence");
         executeNodeFaillSequence(killSequence, 20000, shutdown);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
 
         logger.info("Start receiver.");
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueue, 1000, 100, 10);

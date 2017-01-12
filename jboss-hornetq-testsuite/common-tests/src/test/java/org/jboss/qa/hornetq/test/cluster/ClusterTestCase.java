@@ -152,13 +152,11 @@ public class ClusterTestCase extends HornetQTestCase {
         queueConsumer.join();
         topicSubscriber.join();
 
-        JMSTools jmsTools = new JMSTools();
-
         //print number of added messages to nodes and destinations
-        jmsTools.getAddedMessagesCount(PrepareConstants.TOPIC_NAME_PREFIX + "0", true, container(2));
-        jmsTools.getAddedMessagesCount(PrepareConstants.TOPIC_NAME_PREFIX + "0", true, container(1));
-        jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME_PREFIX + "0", container(1));
-        jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME_PREFIX + "0", container(2));
+        JMSTools.getAddedMessagesCount(PrepareConstants.TOPIC_NAME_PREFIX + "0", true, container(2));
+        JMSTools.getAddedMessagesCount(PrepareConstants.TOPIC_NAME_PREFIX + "0", true, container(1));
+        JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME_PREFIX + "0", container(1));
+        JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME_PREFIX + "0", container(2));
 
         Assert.assertTrue(queueVerifier.verifyMessages());
         Assert.assertTrue(topicVerifier.verifyMessages());
@@ -200,7 +198,7 @@ public class ClusterTestCase extends HornetQTestCase {
         // deploy MDB
         container(1).deploy(MDB_ON_QUEUE1);
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 50, 60000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 50, 60000, container(1), container(2)));
 
         // shutdown node 1
         container(1).stop();
@@ -256,12 +254,12 @@ public class ClusterTestCase extends HornetQTestCase {
         // deploy MDB
         container(1).deploy(MDB_ON_QUEUE1);
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 50, 60000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 50, 60000, container(1), container(2)));
 
         // restart node 1
         container(1).restart();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 100, 60000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 100, 60000, container(1), container(2)));
 
         // stop sending messages
         producer.stopSending();
@@ -422,7 +420,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 60000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 300, 60000, container(1), container(2)));
 
         int pid = ProcessIdUtils.getProcessId(container(1));
         for (int i = 0; i < 10; i++) {
@@ -549,7 +547,7 @@ public class ClusterTestCase extends HornetQTestCase {
         producer1.setMessageBuilder(messageBuilder);
         producer1.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 300, 10000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 300, 10000, container(1), container(2)));
 
         for (int i = 0; i < 5; i++) {
             container(2).kill();
@@ -2050,10 +2048,9 @@ public class ClusterTestCase extends HornetQTestCase {
         producer.start();
         producer.join();
 
-        JMSTools jmsTools = new JMSTools();
-        Assert.assertEquals("All messages should be on node 1, but some of them are missing", numberOfMessages, jmsTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
-        Assert.assertEquals("All messages should be on node 1, but some messages are on server 2", 0, jmsTools.countMessages(PrepareConstants.QUEUE_NAME, container(2)));
-        Assert.assertEquals("All messages should be on node 1, but some messages are on server 3", 0, jmsTools.countMessages(PrepareConstants.QUEUE_NAME, container(3)));
+        Assert.assertEquals("All messages should be on node 1, but some of them are missing", numberOfMessages, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
+        Assert.assertEquals("All messages should be on node 1, but some messages are on server 2", 0, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(2)));
+        Assert.assertEquals("All messages should be on node 1, but some messages are on server 3", 0, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(3)));
 
         ReceiverTransAck redReceiver = new ReceiverTransAck(container(2), PrepareConstants.QUEUE_JNDI);
         redReceiver.setSelector("color = 'RED'");
@@ -2077,10 +2074,10 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertEquals("Green consumer should receive all green msgs", numberOfMessages / 2, greenReceiver.getListOfReceivedMessages().size());
         Assert.assertEquals("Blue consumer should not receive msgs", 0, blueReceiver.getListOfReceivedMessages().size());
 
-        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, jmsTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
-        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(2)));
-        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(3)));
-        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(4)));
+        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(2)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(3)));
+        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(4)));
 
 
         stopAllServers();
@@ -2162,11 +2159,10 @@ public class ClusterTestCase extends HornetQTestCase {
         Assert.assertEquals("Green consumer should receive all green msgs", numberOfMessages / 2, greenReceiver.getListOfReceivedMessages().size());
         Assert.assertEquals("Blue consumer should not receive msgs", 0, blueReceiver.getListOfReceivedMessages().size());
 
-        JMSTools jmsTools = new JMSTools();
-        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, jmsTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
-        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(2)));
-        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(3)));
-        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, jmsTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(4)));
+        Assert.assertEquals("All messages should be redistributed from node without consumer", 0, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(2)));
+        Assert.assertEquals("Only messages matching selector should be send to this node", numberOfMessages / 2, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(3)));
+        Assert.assertEquals("None messages should be send to node with consumers selector not matching messages", 0, JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_NAME, container(4)));
 
 
         stopAllServers();

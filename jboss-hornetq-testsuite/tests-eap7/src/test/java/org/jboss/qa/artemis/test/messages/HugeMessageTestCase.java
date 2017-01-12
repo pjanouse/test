@@ -125,7 +125,6 @@ public class HugeMessageTestCase extends HornetQTestCase {
     public void test1GbMessageCluster() throws Exception {
 
         int redistributionWaitTimeMinutes = 30;
-        JMSTools jmsTools = new JMSTools();
 
         container(1).start();
         container(2).start();
@@ -159,7 +158,7 @@ public class HugeMessageTestCase extends HornetQTestCase {
         streamingReceiver.connect();
 
         log.info("Waiting for large message to redistribute on node 2 (max " + redistributionWaitTimeMinutes + " minutes)");
-        jmsTools.waitForMessages(inQueue, 1, TimeUnit.MINUTES.toMillis(redistributionWaitTimeMinutes), container(2));
+        JMSTools.waitForMessages(inQueue, 1, TimeUnit.MINUTES.toMillis(redistributionWaitTimeMinutes), container(2));
 
         log.info("Starting receive. Max 10 minutes timeout.");
 

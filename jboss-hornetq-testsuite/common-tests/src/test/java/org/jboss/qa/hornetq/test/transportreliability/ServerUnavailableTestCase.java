@@ -166,7 +166,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         producer.join();
         publisher.join();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, numberOfMessages, 18000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, numberOfMessages, 18000, container(1)));
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 10, 30);
         receiver.setTimeout(1000);
@@ -241,7 +241,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
 
         producer.start();
 
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, 20, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, 20, 120000, container(1)));
 
         if (testKill) {
             log.info("############# Kill server 1.");
@@ -272,7 +272,7 @@ public class ServerUnavailableTestCase extends HornetQTestCase {
         publisher.join();
 
         log.info("Waiting for all messages in queue0");
-        new JMSTools().waitForMessages(PrepareConstants.QUEUE_NAME, producer.getCount(), 180000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.QUEUE_NAME, producer.getCount(), 180000, container(1)));
         log.info("Finished waiting for all messages in queue0");
 
         ReceiverClientAck receiver = new ReceiverClientAck(container(1), PrepareConstants.QUEUE_JNDI, 30000, 10, 30);

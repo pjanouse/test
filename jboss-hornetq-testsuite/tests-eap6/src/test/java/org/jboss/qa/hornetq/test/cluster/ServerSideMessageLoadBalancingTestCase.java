@@ -81,7 +81,7 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver1.join();
         receiver2.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode3 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(3));
 
         ReceiverTransAck receiver3 = new ReceiverTransAck(container(3), PrepareConstants.QUEUE_JNDI);
         receiver3.addMessageVerifier(messageVerifier);
@@ -129,9 +129,9 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
-        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
-        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfMessagesOnNode3 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfAddedMessagesOnNode2 = JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfAddedMessagesOnNode1 = JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
@@ -179,9 +179,9 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         producer3.start();
         producer3.join();
 
-        long numberOfMessagesOnNode3 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(3));
-        long numberOfMessagesOnNode2 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(2));
-        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfMessagesOnNode3 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode2 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfMessagesOnNode1 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(1));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), PrepareConstants.QUEUE_JNDI);
         receiver1.addMessageVerifier(messageVerifier);
@@ -244,10 +244,10 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
         receiver2.join();
         receiver3.join();
 
-        long numberOfMessagesOnNode1 = new JMSTools().countMessages(PrepareConstants.QUEUE_JNDI, container(1));
-        long numberOfAddedMessagesOnNode1 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
-        long numberOfAddedMessagesOnNode2 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
-        long numberOfAddedMessagesOnNode3 = new JMSTools().getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(3));
+        long numberOfMessagesOnNode1 = JMSTools.countMessages(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfAddedMessagesOnNode1 = JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(1));
+        long numberOfAddedMessagesOnNode2 = JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(2));
+        long numberOfAddedMessagesOnNode3 = JMSTools.getAddedMessagesCount(PrepareConstants.QUEUE_JNDI, container(3));
 
 
         Assert.assertTrue("No messages should be on node 1. Number of messages on node 1 is: " + numberOfMessagesOnNode1
@@ -303,11 +303,11 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         container(1).deploy(MDB_ON_TOPIC);
 
-        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
+        boolean messageLoadBalancedToNode1 = JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
 
         container(2).deploy(MDB_ON_TOPIC);
 
-        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 120000, container(2));
+        boolean allMessagesOnNode2 = JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 120000, container(2));
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.OUT_QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);
@@ -359,11 +359,11 @@ public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
         container(1).deploy(MDB_ON_TOPIC);
 
-        boolean messageLoadBalancedToNode1 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
+        boolean messageLoadBalancedToNode1 = JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, 1, 10000, container(1));
 
         container(2).deploy(MDB_ON_TOPIC);
 
-        boolean allMessagesOnNode2 = new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 60000, container(2));
+        boolean allMessagesOnNode2 = JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasages, 60000, container(2));
 
         ReceiverTransAck receiver2 = new ReceiverTransAck(container(2), PrepareConstants.OUT_QUEUE_JNDI);
         receiver2.addMessageVerifier(messageVerifier);

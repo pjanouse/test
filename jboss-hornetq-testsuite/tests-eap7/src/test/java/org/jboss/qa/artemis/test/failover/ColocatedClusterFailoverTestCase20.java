@@ -282,7 +282,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         container(1).deploy(mdb1);
 
         // when 1/3 is processed then kill/shut down 2nd server
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 300000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 10, 300000, container(1), container(2)));
 
         logger.info("########################################");
         logger.info("kill - second server");
@@ -295,7 +295,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         }
 
         // when 1/2 is processed then start 2nd server
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 120000, container(1)));
 
         Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(),
                 Constants.PORT_ARTEMIS_NETTY_DEFAULT_BACKUP_EAP7 + container(1).getPortOffset(), 300000));
@@ -312,7 +312,7 @@ public class ColocatedClusterFailoverTestCase20 extends HornetQTestCase {
         logger.warn("Wait some time (5 min) to give chance live in container 2 to come alive after failback.");
         CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 300000);
         logger.warn("Live in container is alive.");
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 120000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 120000, container(1), container(2)));
 
         logger.info("Get information about transactions from HQ:");
         long timeout = 300000;

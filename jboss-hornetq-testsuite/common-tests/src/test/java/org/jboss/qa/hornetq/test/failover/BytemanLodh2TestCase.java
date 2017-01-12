@@ -639,7 +639,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
             container(4).deploy(mdbOnQueue2);
         }
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 20, 300000, container(1), container(3)));
 
         if (waitForProducer) {
             executeFailureSequence(failureSequence, 15000);
@@ -648,7 +648,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         }
 
         producer1.join();
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 420000, container(1), container(3)));
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(3), PrepareConstants.OUT_QUEUE_JNDI, 30000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
@@ -656,7 +656,7 @@ public class BytemanLodh2TestCase extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
-        logger.info("Number of messages in OutQueue on nodes:" + new JMSTools().countMessages(PrepareConstants.OUT_QUEUE_NAME, container(1),container(3)));
+        logger.info("Number of messages in OutQueue on nodes:" + JMSTools.countMessages(PrepareConstants.OUT_QUEUE_NAME, container(1),container(3)));
 
         logger.info("Number of sent messages: "
                 + (producer1.getListOfSentMessages().size() + ", Producer to jms1 server sent: "

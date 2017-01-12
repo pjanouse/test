@@ -309,7 +309,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         container(1).deploy(mdb1);
 
         // when 1/3 is processed then kill/shut down 2nd server
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 300000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 300000, container(1), container(2)));
 
         logger.info("########################################");
         logger.info("kill - second server");
@@ -322,7 +322,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         }
 
         // when 1/2 is processed then start 2nd server
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 2, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 2, 120000, container(1)));
 
         Assert.assertTrue("Backup on first server did not start - failover failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(1).getHostname(), container(1).getHornetqBackupPort(), 300000));
         Thread.sleep(10000);
@@ -336,7 +336,7 @@ public class NewConfColocatedClusterFailoverTestCase extends HornetQTestCase {
         logger.info("########################################");
 
         Assert.assertTrue("Live server 2 is not up again - failback failed.", CheckServerAvailableUtils.waitHornetQToAlive(container(2).getHostname(), container(2).getHornetqPort(), 300000));
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 120000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages, 120000, container(1), container(2)));
 
         logger.info("Get information about transactions from HQ:");
         long timeout = 300000;

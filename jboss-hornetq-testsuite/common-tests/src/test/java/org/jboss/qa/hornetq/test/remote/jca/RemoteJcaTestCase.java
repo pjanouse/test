@@ -437,12 +437,12 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
         long startTime = System.currentTimeMillis();
         long timeout = 60000;
-        while (new JMSTools().countMessages(inQueueName, container(1), container(3)) > 0 && System.currentTimeMillis() - startTime < timeout) {
+        while (JMSTools.countMessages(inQueueName, container(1), container(3)) > 0 && System.currentTimeMillis() - startTime < timeout) {
             logger.info("Waiting for all messages to be read from " + inQueueName);
             Thread.sleep(1000);
         }
         Assert.assertEquals("There are still messages in " + inQueueName + " after timeout " + timeout + "ms.",
-                0, new JMSTools().countMessages(inQueueName, container(1), container(3)));
+                0, JMSTools.countMessages(inQueueName, container(1), container(3)));
 
 //        int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
 //        int numberOfNewConnections3 = countConnectionOnContainer(container(3)) - initialNumberOfConnections3;
@@ -582,7 +582,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(4).start();
         container(4).deploy(mdbWithOnlyInbound);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000));
         // get number of connections and consumers from server 1 and connections
         int initialNumberOfConnections1 = countConnectionOnContainer(container(1));
         int initialNumberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
@@ -593,13 +593,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(3).start();
         logger.info("Container node-3 started");
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 5, 120000));
 
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
 
         // get number of connections from server 3 and 1
         int numberOfNewConnections1 = countConnectionOnContainer(container(1)) - initialNumberOfConnections1;
@@ -671,7 +671,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(4).start();
         container(4).deploy(mdbWithOnlyInbound);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 20, 120000);
+        JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages / 20, 120000);
 
         // get number of consumer from server 3 and 1
         int numberOfConsumerBeforeScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
@@ -689,7 +689,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         logger.info("Container node-3 stopped");
 
         Thread.sleep(120000);
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 30000, container(1));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 30000, container(1));
         // get number of consumers from server 1
         int numberOfConsumerAfterScaleDown1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         logger.info(container(1).getName() + " - Number of consumers on queue " + inQueueName + " is " + numberOfConsumerAfterScaleDown1);
@@ -737,7 +737,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testLoadBalancingOfInboundConnectionsScaleUpTopicLodhMdb_JGROUPS_TCP() throws Exception {
         TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -812,7 +812,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     public void testLoadBalancingOfInboundConnectionsScaleUpTopicLodhMdb_STATIC_NETTY() throws Exception {
         TextMessageBuilder messageBuilder = new TextMessageBuilder(1);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -890,13 +890,13 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(2).start();
         container(2).deploy(lodhLikeMdbFromTopic);// change here
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 300000, container(1)));
         // start 3rd server
         logger.info("Start container node-3");
         container(3).start();
         logger.info("Container node-3 started");
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages, 300000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages, 300000, container(1), container(3)));
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnTopic(container(1), clientId, subscriptionName);
         int numberOfConsumer3 = countNumberOfConsumersOnTopic(container(3), clientId, subscriptionName);
@@ -983,7 +983,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         container(4).restart();
         container(3).restart();
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
@@ -1105,7 +1105,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
 
 
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         // get number of consumer from server 3 and 1
         int numberOfConsumer1 = countNumberOfConsumersOnQueue(container(1), inQueueName);
         int numberOfConsumer3 = countNumberOfConsumersOnQueue(container(3), inQueueName);
@@ -1226,7 +1226,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         closeConnectionsInEjb(ejbs);
 
         Assert.assertEquals("There is wrong number of messages in " + outQueueName + ". Expected number of messages is: " + numberOfEjbs,
-                numberOfEjbs, new JMSTools().countMessages(outQueueName, container(1), container(3)));
+                numberOfEjbs, JMSTools.countMessages(outQueueName, container(1), container(3)));
 
 
         container(2).undeploy(ejbSenderStatefulBean);
@@ -1294,7 +1294,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         closeConnectionsInEjb(ejbs);
 
         Assert.assertEquals("There is wrong number of messages in " + outQueueName + ". Expected number of messages is: " + 2 * numberOfEjbs,
-                2 * numberOfEjbs, new JMSTools().countMessages(outQueueName, container(1), container(3)));
+                2 * numberOfEjbs, JMSTools.countMessages(outQueueName, container(1), container(3)));
 
         container(2).undeploy(ejbSenderStatefulBean);
 
@@ -1625,7 +1625,7 @@ public class RemoteJcaTestCase extends HornetQTestCase {
         producerToInQueue1.join();
         container(2).deploy(mdb1);
 
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, numberOfMessages * 9 / 10, 120000));
 
         container(2).undeploy(mdb1);
         container(2).stop();

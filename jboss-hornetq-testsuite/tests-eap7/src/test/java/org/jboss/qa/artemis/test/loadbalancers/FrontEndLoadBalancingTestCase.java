@@ -242,7 +242,6 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
 
         int msgsInIteration = 100;
         int iterations = 10;
-        JMSTools jmsTools = new JMSTools();
 
         prepareServers(loadBalancerType, securityType);
         loadBalancer.start();
@@ -259,7 +258,7 @@ public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
             ArtemisCoreJmsProducer producer = new ArtemisCoreJmsProducer(loadBalancer, NAME_QUEUE, msgsInIteration, !SecurityType.HTTP.equals(securityType));
             producer.start();
             producer.join();
-            Assert.assertEquals("Messages not on workers in iteration number " + i, msgsInIteration * i, jmsTools.countMessages(NAME_QUEUE, workerA, workerB));
+            Assert.assertEquals("Messages not on workers in iteration number " + i, msgsInIteration * i, JMSTools.countMessages(NAME_QUEUE, workerA, workerB));
         }
 
         int sumReceived = 0;

@@ -37,7 +37,6 @@ import java.util.concurrent.TimeoutException;
 public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ReplicatedDedicatedFailoverTestWithMdbAndDb.class);
-    private JMSTools jmsTools = new JMSTools();
 
     private String inQueueName = "InQueue";
     private String inQueueJndiName = "jms/queue/" + inQueueName;
@@ -162,7 +161,7 @@ public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase
         ejbProducer.start();
 
         Thread.sleep(TimeUnit.SECONDS.toMillis(45));
-        long addedOnLiveBeforeFail = jmsTools.getAddedMessagesCount(inQueueName, container(1));
+        long addedOnLiveBeforeFail = JMSTools.getAddedMessagesCount(inQueueName, container(1));
         logger.info("Number of messages added in live`s InQueue is " + addedOnLiveBeforeFail);
         Assert.assertTrue("No messages were send to InQueue before live failure", addedOnLiveBeforeFail > 0);
 
@@ -176,7 +175,7 @@ public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase
 
         CheckServerAvailableUtils.waitForBrokerToActivate(container(2), TimeUnit.MINUTES.toMillis(1));
         Thread.sleep(TimeUnit.SECONDS.toMillis(45));
-        long addedOnBackup = jmsTools.getAddedMessagesCount(inQueueName, container(2));
+        long addedOnBackup = JMSTools.getAddedMessagesCount(inQueueName, container(2));
         logger.info("Number of messages added in backup`s InQueue is " + addedOnBackup);
         Assert.assertTrue("No messages were send to InQueue on backup", addedOnBackup > 0);
 
@@ -192,10 +191,10 @@ public class ReplicatedDedicatedFailoverTestWithMdbAndDb extends HornetQTestCase
         Thread.sleep(TimeUnit.SECONDS.toMillis(90));
         ejbProducer.stopSending();
 
-        jmsTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, 0, TimeUnit.MINUTES.toMillis(3));
+        JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, 0, TimeUnit.MINUTES.toMillis(3));
         logger.info("All messages were read by MDB @ container3");
 
-        long addedOnLiveAfterFailback = jmsTools.getAddedMessagesCount(inQueueName, container(1));
+        long addedOnLiveAfterFailback = JMSTools.getAddedMessagesCount(inQueueName, container(1));
         logger.info("Number of messages added in live`s InQueue after failback is " + addedOnLiveAfterFailback);
         Assert.assertTrue("No messages were send to InQueue after failback", addedOnLiveAfterFailback > 0);
 

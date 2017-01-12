@@ -121,7 +121,7 @@ public class LodhLocalInQueueRemoteOutQueueToDbTestCase extends HornetQTestCase 
         container(4).deploy(getMdbForOutQueueCluster());
         container(1).deploy(getMdbForInQueueCluster());
         container(3).deploy(getMdbForInQueueCluster());
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/4, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/4, 120000));
         proxyToDbForOutQueueServer2.stop();
         proxyToOutQueueServer2.stop();
         proxyToJmsServer4Cluster.stop();
@@ -184,7 +184,7 @@ public class LodhLocalInQueueRemoteOutQueueToDbTestCase extends HornetQTestCase 
         container(4).deploy(getMdbForOutQueueCluster());
         container(1).deploy(getMdbForInQueueCluster());
         container(3).deploy(getMdbForInQueueCluster());
-        new JMSTools().waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/4, 120000);
+        Assert.assertTrue(JMSTools.waitUntilNumberOfMessagesInQueueIsBelow(container(1), inQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER/4, 120000));
         Assert.assertTrue("Failed to start proxies",stopAllProxies());
         Thread.sleep(60000);
         Assert.assertTrue("Failed to start proxies",startAllProxies());

@@ -237,7 +237,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer));
 
         logger.info("#############################");
         logger.info("JMS bridge stop is called.");
@@ -252,7 +252,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         jmsOperations.startJMSBridge(JMS_BRIDGE_NAME);
         jmsOperations.close();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
@@ -298,7 +298,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer));
 
         logger.info("#############################");
         logger.info("Reload source server - " + inServer);
@@ -306,7 +306,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         JMSOperations jmsOperations = inServer.getJmsOperations();
         jmsOperations.reload();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);
@@ -352,7 +352,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, outServer));
 
         logger.info("#############################");
         logger.info("Reload source server - " + inServer);
@@ -360,7 +360,7 @@ public class JMSBridgeTestCase extends HornetQTestCase {
         inServer.kill();
         inServer.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer);
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 180000, outServer));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(outServer,
                 outQueueJndiName, 10000, 100, 10);

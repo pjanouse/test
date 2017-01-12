@@ -49,7 +49,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     private void suspendOfMdbInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -64,7 +64,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     @RunAsClient
     public void suspendOfMdbInClusterWithLodhLikeMdbMixMessages() throws Exception {
         ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(NORMAL_MESSAGE_SIZE_BYTES, LARGE_MESSAGE_SIZE_BYTES);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -92,7 +92,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     private void suspendOfJmsInClusterWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -130,13 +130,13 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
-        new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3)));
 
         // deploy mdb
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3)));
 
         int containerToSuspenId = ProcessIdUtils.getProcessId(containerToSuspend);
         logger.info("Going to suspend server: " + containerToSuspend.getName());
@@ -145,7 +145,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         logger.info("Going to resume server: " + containerToSuspend.getName());
         ProcessIdUtils.resumeProcess(containerToSuspenId);
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 60000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 60000, container(1), container(3));
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(3), 0, false);
         producer1.join();
@@ -155,11 +155,11 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
-        long numberOfMessagesInInQueue = new JMSTools().countMessages(inQueueName, container(1), container(3));
-        long numberOfMessagesInOutQueue = new JMSTools().countMessages(outQueueName, container(1), container(3));
+        long numberOfMessagesInInQueue = JMSTools.countMessages(inQueueName, container(1), container(3));
+        long numberOfMessagesInOutQueue = JMSTools.countMessages(outQueueName, container(1), container(3));
         logger.info("Number of messages in InQueue is: " + numberOfMessagesInInQueue);
         logger.info("Number of messages in OutQueue is: " + numberOfMessagesInOutQueue);
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + JMSTools.countMessages(dlqQueueName, container(1), container(3)));
 
         messageVerifier.verifyMessages();
 
@@ -202,7 +202,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     private void suspendOfMdbInClusterWithRestartWithLodhLikeMdb(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -217,7 +217,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     @RunAsClient
     public void suspendOfMdbInClusterWithRestartWithLodhLikeMdbMixMessagesWithRestart() throws Exception {
         ClientMixMessageBuilder messageBuilder = new ClientMixMessageBuilder(10, 1000);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -244,7 +244,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
     private void suspendOfJmsInClusterWithRestartWithLodhLikeMdbWithRestart(boolean isLargeMessages) throws Exception {
         ClientMixedMessageTypeBuilder messageBuilder = isLargeMessages ? new ClientMixedMessageTypeBuilder(LARGE_MESSAGE_SIZE_BYTES):new ClientMixedMessageTypeBuilder(NORMAL_MESSAGE_SIZE_BYTES);
         int numberOfMessages = isLargeMessages ? LARGE_MESSAGE_TEST_MESSAGES : NORMAL_MESSAGE_TEST_MESSAGES;
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(3));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(3));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -282,13 +282,13 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         producer1.addMessageVerifier(messageVerifier);
         producer1.start();
 
-        new JMSTools().waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(inQueueName, numberOfMessages / 2, 600000, container(1), container(3)));
 
         // deploy mdb
         container(2).deploy(mdbToDeploy);
         container(4).deploy(mdbToDeploy);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 10, 600000, container(1), container(3)));
 
         int containerToSuspenId = ProcessIdUtils.getProcessId(containerToSuspend);
         logger.info("Going to suspend server: " + containerToSuspend.getName());
@@ -297,7 +297,7 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         logger.info("Going to resume server: " + containerToSuspend.getName());
         ProcessIdUtils.resumeProcess(containerToSuspenId);
 
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 60000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 60000, container(1), container(3));
         producer1.join();
 
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 70000, 10, 10);
@@ -305,16 +305,16 @@ public abstract class RemoteJcaWithSuspendAbstract extends RemoteJcaLoadTestBase
         receiver1.setTimeout(0);
         receiver1.start();
         receiver1.join();
-        logger.info("Number of messages in InQueue is: " + new JMSTools().countMessages(inQueueName, container(1), container(3)));
-        logger.info("Number of messages in OutQueue is: " + new JMSTools().countMessages(outQueueName, container(1), container(3)));
-        logger.info("Number of messages in DLQ is: " + new JMSTools().countMessages(dlqQueueName, container(1), container(3)));
+        logger.info("Number of messages in InQueue is: " + JMSTools.countMessages(inQueueName, container(1), container(3)));
+        logger.info("Number of messages in OutQueue is: " + JMSTools.countMessages(outQueueName, container(1), container(3)));
+        logger.info("Number of messages in DLQ is: " + JMSTools.countMessages(dlqQueueName, container(1), container(3)));
 
         logger.info("Restart servers.");
         restartServers();
         logger.info("Servers restarted.");
 
         logger.info("Wait more time for consumers on InQueue to process messages.");
-        new JMSTools().waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
+        JMSTools.waitUntilMessagesAreStillConsumed(inQueueName, 300000, container(1), container(3));
         logger.info("Waiting is over now. Check if there are prepared transactions and 500 seconds for recovery.");
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(500000, container(3), 0, false);

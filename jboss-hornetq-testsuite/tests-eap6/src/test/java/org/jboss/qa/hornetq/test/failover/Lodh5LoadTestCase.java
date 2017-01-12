@@ -139,7 +139,7 @@ public class Lodh5LoadTestCase extends Lodh5TestBase {
             logger.info("High Cpu loader was bound to cpu: " + cpuToBind);
 
             // Wait until some messages are consumes from InQueue
-            new JMSTools().waitUntilMessagesAreStillConsumed(inQueueHornetQName, 300000, container(1));
+            JMSTools.waitUntilMessagesAreStillConsumed(inQueueHornetQName, 300000, container(1));
             logger.info("No messages can be consumed from InQueue. Stop Cpu loader and receive all messages.");
             new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1));
             logger.info("There are no prepared transactions on node-1 and node-3.");

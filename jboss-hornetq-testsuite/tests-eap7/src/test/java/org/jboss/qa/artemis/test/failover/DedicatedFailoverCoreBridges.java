@@ -103,13 +103,13 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         producerToInQueue1.start();
 
         // give it some time for backup to alive
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(2)));
 
         // start container 1 again
         container(1).start();
 
         CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 60000);
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 120000, container(1)));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), outQueueJndiName, 30000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
@@ -151,7 +151,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         producerToInQueue1.addMessageVerifier(messageVerifier);
         producerToInQueue1.start();
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 20, 60000, container(1)));
 
         logger.warn("###################################");
         logger.warn("Server failure will be executed: " + failureType);
@@ -192,7 +192,7 @@ public class DedicatedFailoverCoreBridges extends HornetQTestCase {
         receiver1.start();
         receiver1.join();
 
-        logger.info("Messages in outQueue on server: " + new JMSTools().countMessages(outQueueName, outContainer));
+        logger.info("Messages in outQueue on server: " + JMSTools.countMessages(outQueueName, outContainer));
         logger.info("Producer: " + producerToInQueue1.getListOfSentMessages().size());
         logger.info("Receiver: " + receiver1.getListOfReceivedMessages().size());
 

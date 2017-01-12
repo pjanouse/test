@@ -77,7 +77,7 @@ public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
         container(3).start();
 
         // check that some messages got to OutQueue on server 3 and shutdown server1
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(3)));
 
         for (int i = 0; i < 5; i++) {
 

@@ -280,13 +280,13 @@ public class AppleFailoverTestCase extends HornetQTestCase {
             container(4).deploy(mdbOnQueue2);
 
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
-                container(3), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
+                container(3), container(4)));
 
         executeFailureSequence(failureSequence, 5000, failureType);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 400000, container(1), container(2),
-                container(3), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 400000, container(1), container(2),
+                container(3), container(4)));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2));
@@ -294,8 +294,8 @@ public class AppleFailoverTestCase extends HornetQTestCase {
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(4));
 
         // wait some time so recovered rollbacked TXs have some time to be processed
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 60000, container(1), container(2),
-                container(3), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 60000, container(1), container(2),
+                container(3), container(4)));
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 30000, 10, 10);

@@ -320,7 +320,7 @@ public class JcaTestCase extends HornetQTestCase {
         ProducerTransAck producer1 = new ProducerTransAck(container(1), PrepareConstants.IN_QUEUE_JNDI, numberOfMesasges);
         TextMessageBuilder messageBuilder = new TextMessageBuilder();
         messageBuilder.setAddDuplicatedHeader(false);
-        Map<String, String> jndiProperties = new JMSTools().getJndiPropertiesToContainers(container(1), container(2));
+        Map<String, String> jndiProperties = JMSTools.getJndiPropertiesToContainers(container(1), container(2));
         for (String key : jndiProperties.keySet()) {
             logger.warn("key: " + key + " value: " + jndiProperties.get(key));
         }
@@ -338,7 +338,7 @@ public class JcaTestCase extends HornetQTestCase {
         container(2).deploy(lodhLikemdb);
 
         // wait to have some messages in OutQueue
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasges / 10, 600000, container(1), container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMesasges / 10, 600000, container(1), container(2)));
 
         // start load on 1st node
         Container containerUnderLoad = container(1);
@@ -363,7 +363,7 @@ public class JcaTestCase extends HornetQTestCase {
                 }
             }
         }
-        new JMSTools().waitUntilMessagesAreStillConsumed(PrepareConstants.IN_QUEUE_NAME, 300000, container(1), container(2));
+        JMSTools.waitUntilMessagesAreStillConsumed(PrepareConstants.IN_QUEUE_NAME, 300000, container(1), container(2));
         boolean noPreparedTransactions = new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(1), 0, false) &&
                 new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(300000, container(2), 0, false);
 
@@ -437,7 +437,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         container(1).deploy(mdbDeployment);
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 60000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages / 2, 60000, container(1)));
 
         // call stop delivery
         JMSOperations jmsOperations = container(1).getJmsOperations();
@@ -447,7 +447,7 @@ public class JcaTestCase extends HornetQTestCase {
 
         jmsOperations.close();
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, numberOfMessages, 300000, container(1)));
 
         logger.info("Start receiver.");
         SoakReceiverClientAck receiver1 = new SoakReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 6000, 10, 10);

@@ -237,7 +237,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container(1)));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queue", expectedReceiveSize, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -368,7 +368,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
 
         //message with LVQ_PROP_42 is send twice, so 300 messages should be in InQueue (301 messages were send)
         //Assert.assertEquals("Only " + numMessages + " messages should be in queue", numMessages, new JMSTools().countMessages(QUEUE_NAME, container(1)));
-        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container(1)));
+        log.info("Only " + numMessages + " messages should be in queue. Actual value + " + JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container(1)));
 
         MessageConsumer consumer = session.createConsumer(destination);
 
@@ -478,7 +478,7 @@ public class LastValueQueuesTestCase extends HornetQTestCase {
             }
         }
 
-        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, new JMSTools().countMessages(PrepareConstants.QUEUE_NAME, container1, container2));
+        Assert.assertEquals("Only " + expectedReceiveSize + " messages should be in queues in cluster", expectedReceiveSize, JMSTools.countMessages(PrepareConstants.QUEUE_NAME, container1, container2));
 
         JMSTools.cleanupResources(context, connection, session);
 

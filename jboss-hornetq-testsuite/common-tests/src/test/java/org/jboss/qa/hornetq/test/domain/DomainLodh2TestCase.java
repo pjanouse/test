@@ -498,11 +498,11 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             throw new UnsupportedOperationException("This was not yet implemented. Use Mdb on durable topic to do so.");
         }
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 10, 120000, container(1)));
 
         executeFailureSequence(failureSequence, 3000, isShutdown);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
 
         // set longer timeouts so xarecovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(container(1), outQueueJndiName, 3000, 10, 10);
@@ -595,13 +595,13 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
             deployer.deploy(MDB_ON_QUEUE_2);
         }
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
-                container(3), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER / 100, 120000, container(1), container(2),
+                container(3), container(4)));
 
         executeFailureSequence(failureSequence, 5000, isShutdown);
 
-        new JMSTools().waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
-                container(3), container(4));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1), container(2),
+                container(3), container(4)));
 
         // set longer timeouts so xa recovery is done at least once
         ReceiverTransAck receiver1 = new ReceiverTransAck(outServer, outQueueJndiName, 3000, 10, 10);
@@ -681,14 +681,14 @@ public class DomainLodh2TestCase extends DomainHornetQTestCase {
         deployer.deploy(MDB_ON_QUEUE_1);
         deployer.deploy(MDB_ON_QUEUE_2);
 
-        new JMSTools().waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3));
+        Assert.assertTrue(JMSTools.waitForMessages(outQueueName, numberOfMessages / 100, 120000, container(1), container(3)));
 
         container(2).stop();
         container(4).stop();
 
         // check there are still some messages in InQueue
         Assert.assertTrue("MDBs read all messages from InQueue before shutdown. Increase number of messages shutdown happens" +
-                        " when MDB is processing messages", new JMSTools().waitForMessages(inQueueName, 1, 10000, container(1),
+                        " when MDB is processing messages", JMSTools.waitForMessages(inQueueName, 1, 10000, container(1),
                 container(3)));
 
         String journalFile1 = CONTAINER1_NAME + "journal_content_after_shutdown.txt";

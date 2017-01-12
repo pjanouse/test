@@ -382,7 +382,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
                 waitForMessagesOnOneNode(container(2), PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER / 2, 600000));
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(2));
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(2)));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(2), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.addMessageVerifier(messageVerifier);
@@ -485,7 +485,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 600000); // wait for live to activate
         CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), 30000); // wait for backup to deactivate
 
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(360000, container(1));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
@@ -559,7 +559,7 @@ public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
         logger.info("Container 2 stopped");
 
         new TransactionUtils().waitUntilThereAreNoPreparedHornetQTransactions(600000, container(1));
-        new JMSTools().waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1));
+        Assert.assertTrue(JMSTools.waitForMessages(PrepareConstants.OUT_QUEUE_NAME, NUMBER_OF_MESSAGES_PER_PRODUCER, 300000, container(1)));
 
         ReceiverClientAck receiver1 = new ReceiverClientAck(container(1), PrepareConstants.OUT_QUEUE_JNDI, 3000, 100, 10);
         receiver1.setTimeout(0);
