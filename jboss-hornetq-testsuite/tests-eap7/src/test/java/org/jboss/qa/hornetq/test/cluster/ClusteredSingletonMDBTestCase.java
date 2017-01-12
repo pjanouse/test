@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.Cluster;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -25,6 +26,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Random;
@@ -36,6 +38,7 @@ import java.util.Random;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-cluster-tests/
  * @tpTcmsLink TBD
  */
+@Category(Cluster.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class ClusteredSingletonMDBTestCase extends HornetQTestCase {

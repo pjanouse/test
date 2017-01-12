@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.administration;
 
+import category.Functional;
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -7,7 +8,6 @@ import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
@@ -29,7 +29,7 @@ import java.io.IOException;
  * @tpTestCaseDetails See current coverage: https://mojo.redhat.com/docs/DOC-185811
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class AdministrationTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AdministrationTestCase.class);

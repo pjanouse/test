@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.messages;
 
+import category.HugeMessages;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.Prepare;
@@ -19,6 +20,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import javax.jms.*;
 import javax.naming.Context;
@@ -34,6 +36,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * Created by mstyk on 6/28/16.
  */
+@Category(HugeMessages.class)
 public class HugeMessageTestCase extends HornetQTestCase {
     private static final Logger log = Logger.getLogger(HugeMessageTestCase.class);
     private final String inQueue = "InQueue";

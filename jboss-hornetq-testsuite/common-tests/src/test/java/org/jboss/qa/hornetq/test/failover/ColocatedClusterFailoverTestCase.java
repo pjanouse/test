@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverColocatedCluster;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -38,6 +39,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
@@ -55,6 +57,7 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(Arquillian.class)
 @Prepare("ColocatedSharedStoreHA")
+@Category(FailoverColocatedCluster.class)
 public class ColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ColocatedClusterFailoverTestCase.class);

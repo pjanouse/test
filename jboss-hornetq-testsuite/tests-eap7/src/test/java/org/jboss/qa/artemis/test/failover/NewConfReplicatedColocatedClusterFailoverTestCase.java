@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.failover;
 
+import category.FailoverColocatedClusterNewConf;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
@@ -14,6 +15,7 @@ import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.Assert;
 import org.junit.Ignore;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
  */
 @Ignore
 @RunWith(Arquillian.class)
+@Category(FailoverColocatedClusterNewConf.class)
 public class NewConfReplicatedColocatedClusterFailoverTestCase extends NewConfColocatedClusterFailoverTestCase {
 
 

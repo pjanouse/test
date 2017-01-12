@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.paging;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Prepare;
@@ -18,7 +19,6 @@ import org.junit.Test;
 import javax.jms.*;
 import javax.naming.Context;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class FilteringQueueTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(FilteringQueueTestCase.class);

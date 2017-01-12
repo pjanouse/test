@@ -12,13 +12,11 @@ import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
-import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -30,7 +28,7 @@ import org.junit.runner.RunWith;
  * @author mstyk
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class AIOJournalLoadTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(AIOJournalLoadTestCase.class);

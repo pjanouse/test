@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.MessageGrouping;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -35,6 +36,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.Connection;
@@ -53,6 +55,7 @@ import java.util.UUID;
 /**
  * These tests serve topology with messaging grouping handlers.
  */
+@Category(MessageGrouping.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare(value = "FourNodes", params = {

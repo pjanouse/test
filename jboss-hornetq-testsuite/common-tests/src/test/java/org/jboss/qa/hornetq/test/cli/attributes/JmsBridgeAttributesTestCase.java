@@ -7,7 +7,7 @@ import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -43,7 +43,7 @@ import java.util.Properties;
  * @author mnovak@redhat.com
  *
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JmsBridgeAttributesTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsBridgeAttributesTestCase.class);

@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.transportreliability;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -13,7 +14,6 @@ import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -35,7 +35,7 @@ import java.util.List;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 @Prepare("TwoNodes")
 public class ServerUnavailableTestCase extends HornetQTestCase {
 

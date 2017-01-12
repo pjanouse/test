@@ -3,7 +3,7 @@ package org.jboss.qa.artemis.test.cli.attributes;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.HornetQTestCaseConstants;
 import org.jboss.qa.management.cli.CliClient;
@@ -39,7 +39,7 @@ import java.util.Properties;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class AddressSettingsAttributesTestCase extends CliTestBase {
 
     @Rule

@@ -15,7 +15,7 @@ import org.jboss.qa.hornetq.apps.clients.Receiver;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageVerifier;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.test.prepares.generic.ColocatedReplicatedHA;
@@ -53,7 +53,7 @@ import java.util.Set;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class CleanUpOldReplicasTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(CleanUpOldReplicasTestCase.class);

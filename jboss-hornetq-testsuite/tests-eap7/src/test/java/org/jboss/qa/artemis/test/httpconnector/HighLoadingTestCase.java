@@ -1,12 +1,12 @@
 package org.jboss.qa.artemis.test.httpconnector;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -28,7 +28,7 @@ import static junit.framework.Assert.fail;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class HighLoadingTestCase extends HornetQTestCase {
 
     @Before

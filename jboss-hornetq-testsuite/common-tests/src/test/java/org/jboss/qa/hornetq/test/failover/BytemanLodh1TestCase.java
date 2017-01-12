@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.XaTransactions;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -31,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -51,6 +53,7 @@ import static org.junit.Assert.assertTrue;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  * @tpSince EAP6
  */
+@Category(XaTransactions.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class BytemanLodh1TestCase extends HornetQTestCase {

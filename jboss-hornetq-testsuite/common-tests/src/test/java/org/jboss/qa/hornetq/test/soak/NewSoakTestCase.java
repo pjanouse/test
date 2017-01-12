@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.soak;
 
 
+import category.Soak;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
@@ -33,6 +34,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
@@ -50,6 +52,7 @@ import static org.junit.Assert.assertEquals;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19046/activemq-artemis-performance#testcases
  */
 @RunWith(Arquillian.class)
+@Category(Soak.class)
 public class NewSoakTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(NewSoakTestCase.class);

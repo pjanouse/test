@@ -8,7 +8,7 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients20.ArtemisCoreJmsProducer;
 import org.jboss.qa.hornetq.apps.clients20.ArtemisCoreJmsReceiver;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class FrontEndLoadBalancingTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(FrontEndLoadBalancingTestCase.class);

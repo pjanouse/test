@@ -27,7 +27,7 @@ import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueAnnotated2;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToQueue;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueueToTopicAnnotated;
 import org.jboss.qa.hornetq.apps.servlets.ServletProducerInjectedJMSContext;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -43,13 +43,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
 import javax.jms.Topic;
 import javax.naming.Context;
-import javax.naming.NameClassPair;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import java.io.File;
 
@@ -67,7 +63,7 @@ import java.io.File;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class AnnotationsTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(AnnotationsTestCase.class);

@@ -14,7 +14,7 @@ import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.junit.experimental.categories.Category;
 
 /**
@@ -22,7 +22,7 @@ import org.junit.experimental.categories.Category;
  *
  * @author mstyk
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JarContentTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JarContentTestCase.class);

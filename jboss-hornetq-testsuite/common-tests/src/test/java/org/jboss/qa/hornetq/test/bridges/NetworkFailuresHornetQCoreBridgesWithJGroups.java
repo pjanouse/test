@@ -3,11 +3,13 @@ package org.jboss.qa.hornetq.test.bridges;
 import java.io.File;
 import java.io.IOException;
 
+import category.BridgeNetworkFailure;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesPrepare;
 import org.jboss.qa.hornetq.test.prepares.specific.NetworkFailuresCoreBridgesWithJGroupsPrepare;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
+import org.junit.experimental.categories.Category;
 
 
 /**
@@ -44,6 +46,7 @@ import org.jboss.qa.hornetq.tools.SimpleProxyServer;
  * disconnected for 20 seconds
  *
  */
+@Category(BridgeNetworkFailure.class)
 @Prepare(value = "NetworkFailuresCoreBridgesWithJGroupsPrepare")
 public class NetworkFailuresHornetQCoreBridgesWithJGroups extends NetworkFailuresHornetQCoreBridges {
 

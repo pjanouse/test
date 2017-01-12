@@ -1,10 +1,10 @@
 package org.jboss.qa.hornetq.test.journalreplication;
 
+import category.ReplicatedJournalNetworkFailures;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.journalreplication.configuration.AddressFullPolicy;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.junit.experimental.categories.Category;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -25,5 +25,6 @@ import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 		@Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
 		@Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
 })
+@Category(ReplicatedJournalNetworkFailures.class)
 public class JournalReplicationNioBlockTestCase extends JournalReplicationAbstract {
 }

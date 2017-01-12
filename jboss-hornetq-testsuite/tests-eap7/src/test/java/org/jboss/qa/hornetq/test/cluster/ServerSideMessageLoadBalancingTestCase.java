@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.Cluster;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -23,12 +24,14 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.Random;
 
 /**
  * Created by mnovak on 5/3/16.
  */
+@Category(Cluster.class)
 public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ServerSideMessageLoadBalancingTestCase.class);

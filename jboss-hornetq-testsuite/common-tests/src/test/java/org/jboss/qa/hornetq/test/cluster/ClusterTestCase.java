@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.Cluster;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -34,6 +35,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.*;
@@ -62,6 +64,7 @@ import java.util.List;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-cluster-tests/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
+@Category(Cluster.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare(value = "FourNodes", params = {

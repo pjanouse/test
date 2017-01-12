@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.soak;
 
+import category.SoakJdbcStore;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.constants.Constants;
 import org.jboss.qa.hornetq.test.prepares.PrepareMethods;
@@ -7,6 +8,7 @@ import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.Assume;
+import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
  * <p>
  * Created by mstyk on 1/3/17.
  */
+@Category(SoakJdbcStore.class)
 public class JdbcStoreSoakTestCase extends NewSoakTestCase {
 
     /**

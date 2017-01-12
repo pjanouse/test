@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.journalexport;
 
 
+import category.Functional;
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -14,7 +15,6 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.MixMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -55,7 +55,7 @@ import static org.junit.Assert.assertTrue;
  * export/import worked in the first place).
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JournalExportImportTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JournalExportImportTestCase.class);

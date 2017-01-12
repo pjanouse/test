@@ -3,6 +3,7 @@ package org.jboss.qa.artemis.test.jmx;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
+import category.Functional;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 
 import org.apache.log4j.Logger;
@@ -18,7 +19,6 @@ import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.TopicClientsAutoAck;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -47,7 +47,7 @@ import static org.junit.Assert.assertEquals;
  */
 
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JmxClientNotificationTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(JmxClientNotificationTestCase.class);

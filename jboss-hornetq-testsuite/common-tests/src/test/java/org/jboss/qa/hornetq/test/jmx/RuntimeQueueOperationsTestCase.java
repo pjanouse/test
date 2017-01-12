@@ -11,9 +11,9 @@ import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import javax.naming.Context;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
@@ -41,7 +41,7 @@ import org.junit.runner.RunWith;
  *
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class RuntimeQueueOperationsTestCase extends HornetQTestCase {
 
     private static final String QUEUE_NAME = "testQueue";

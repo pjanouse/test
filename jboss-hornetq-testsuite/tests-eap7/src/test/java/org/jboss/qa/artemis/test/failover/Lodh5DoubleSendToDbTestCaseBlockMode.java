@@ -1,6 +1,8 @@
 package org.jboss.qa.artemis.test.failover;
 
+import category.Lodh5DoubleSendToDb;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.junit.experimental.categories.Category;
 
 /**
  * @tpChapter RECOVERY/FAILOVER TESTING
@@ -8,6 +10,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-qe-internal-ts-lodh5-double-send-to-db/           /
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19047/activemq-artemis-functional#testcases
  */
+@Category(Lodh5DoubleSendToDb.class)
 public class Lodh5DoubleSendToDbTestCaseBlockMode extends Lodh5DoubleSendToDbTestCase{
 
     @Override

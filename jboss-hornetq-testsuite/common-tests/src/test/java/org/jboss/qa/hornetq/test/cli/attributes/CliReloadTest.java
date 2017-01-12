@@ -1,11 +1,11 @@
 package org.jboss.qa.hornetq.test.cli.attributes;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.as.cli.scriptsupport.CLI;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.CheckFileContentUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -26,7 +26,7 @@ import java.io.File;
  * @tpTcmsLink https://polarion.engineering.redhat.com/polarion/#/project/EAP7/wiki/JMS/EAP%207_x%20ActiveMQ%20Artemis%20Test%20Plan_%20Technical%20Details
  * @tpTestCaseDetails Test case checks that reloading of EAP 7 server is ok.
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class CliReloadTest extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(CliReloadTest.class);

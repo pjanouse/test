@@ -11,7 +11,7 @@ import org.jboss.qa.hornetq.apps.clients20.ReceiverAutoAckMsgProps;
 import org.jboss.qa.hornetq.apps.interceptors.IncomingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.IncomingOutgoingMessagePacketInterceptor;
 import org.jboss.qa.hornetq.apps.interceptors.OutgoingMessagePacketInterceptor;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.ModuleUtils;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class ServerInterceptorTest extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ServerInterceptorTest.class);

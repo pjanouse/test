@@ -18,7 +18,7 @@ import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFact
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueueWithOutQueueLookups;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.*;
@@ -46,7 +46,7 @@ import java.util.Map;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JcaTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JcaTestCase.class);

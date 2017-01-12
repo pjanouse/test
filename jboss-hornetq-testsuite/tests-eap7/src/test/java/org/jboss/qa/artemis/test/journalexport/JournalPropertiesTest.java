@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.journalexport;
 
+import category.Functional;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -8,7 +9,6 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.apps.clients20.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.ReceiverAutoAck;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JournalPropertiesTest extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JournalPropertiesTest.class);

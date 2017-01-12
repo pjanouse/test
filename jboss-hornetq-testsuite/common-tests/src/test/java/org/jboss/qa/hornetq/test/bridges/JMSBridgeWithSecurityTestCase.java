@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.bridges;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -13,7 +14,6 @@ import org.jboss.qa.hornetq.apps.clients.ProducerClientAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.specific.JMSBridgeWithSecurityPrepare;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails Test jms bridge with configured security
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 @RestoreConfigBeforeTest
 @RunAsClient
 @RunWith(Arquillian.class)

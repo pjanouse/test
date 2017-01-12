@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.messages;
 
 
+import category.Functional;
 import org.hornetq.api.core.Message;
 import org.hornetq.api.core.TransportConfiguration;
 import org.hornetq.api.core.client.*;
@@ -11,7 +12,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     private static final char[] CHARS = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();

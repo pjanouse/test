@@ -5,7 +5,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -31,7 +31,7 @@ import javax.naming.Context;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class ConnectionFactoryClientTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ConnectionFactoryClientTestCase.class);

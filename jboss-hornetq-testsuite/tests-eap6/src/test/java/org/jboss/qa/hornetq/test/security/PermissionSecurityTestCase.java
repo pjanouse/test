@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.security;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -8,7 +9,6 @@ import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.JMSImplementation;
 import org.jboss.qa.hornetq.apps.mdb.LocalMdbFromQueue;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -44,7 +44,7 @@ import java.util.HashMap;
  * @author mnovak@rehat.com
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class PermissionSecurityTestCase extends HornetQTestCase {
 
     private final Archive mdbOnQueueToQueue = createDeploymentMdbOnQueue1Temp();

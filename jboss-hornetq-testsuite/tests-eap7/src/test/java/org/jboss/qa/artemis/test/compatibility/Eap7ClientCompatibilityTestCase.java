@@ -1,6 +1,8 @@
 package org.jboss.qa.artemis.test.compatibility;
 
 
+import category.ClientBackwardCompatibility;
+import category.ClientForwardCompatibility;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.qa.hornetq.Container;
@@ -13,6 +15,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import javax.jms.Session;
 
@@ -30,6 +33,7 @@ import javax.jms.Session;
  * @author ochaloup@redhat.com
  * @author msvehla@redhat.com
  */
+@Category({ClientBackwardCompatibility.class, ClientForwardCompatibility.class})
 public class Eap7ClientCompatibilityTestCase extends ClientCompatibilityTestBase {
 
     private static final Logger LOG = Logger.getLogger(Eap7ClientCompatibilityTestCase.class);

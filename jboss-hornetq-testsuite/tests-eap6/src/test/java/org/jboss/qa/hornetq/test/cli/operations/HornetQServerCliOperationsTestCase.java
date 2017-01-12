@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cli.operations;
 
+import category.Functional;
 import org.hornetq.core.transaction.impl.XidImpl;
 import org.hornetq.utils.UUIDGenerator;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -16,7 +17,6 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -127,7 +127,7 @@ import static org.junit.Assert.assertTrue;
  * @author Miroslav Novak mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class HornetQServerCliOperationsTestCase extends CliTestBase {
 
     @Rule

@@ -1,6 +1,7 @@
 package org.jboss.qa.artemis.test.protocol;
 
 
+import category.Protocols;
 import org.apache.log4j.Logger;
 import org.apache.qpid.amqp_1_0.client.ConnectionErrorException;
 import org.apache.qpid.amqp_1_0.type.Section;
@@ -19,6 +20,7 @@ import org.apache.qpid.amqp_1_0.client.Receiver;
 import org.apache.qpid.amqp_1_0.client.Sender;
 import org.apache.qpid.amqp_1_0.client.Session;
 import org.apache.qpid.amqp_1_0.type.UnsignedInteger;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.TextMessage;
@@ -31,6 +33,7 @@ import static org.junit.Assert.fail;
 /**
  * Created by okalman on 8/27/15.
  */
+@Category(Protocols.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class AmqpCompatibilityTestCase extends ProtocolCompatibilityTestCase {

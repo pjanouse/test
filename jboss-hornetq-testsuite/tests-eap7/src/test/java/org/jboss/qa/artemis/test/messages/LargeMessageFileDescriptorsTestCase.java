@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.messages;
 
+import category.Functional;
 import com.opencsv.CSVReader;
 import org.apache.activemq.artemis.utils.IPV6Util;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -12,7 +13,6 @@ import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.PublisherAutoAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -42,7 +42,7 @@ import static org.junit.Assert.fail;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class LargeMessageFileDescriptorsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(LargeMessageFileDescriptorsTestCase.class);

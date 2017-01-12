@@ -1,11 +1,11 @@
 package org.jboss.qa.hornetq.test.clients;
 
 
+import category.Functional;
 import org.hornetq.api.core.management.HornetQServerControl;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.cli.scriptsupport.CLI;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
 
 
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class CloseConnectionsForUserTestCase extends AbstractClientCloseTestCase {
 
     @After

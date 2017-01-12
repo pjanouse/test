@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverDedicated;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -28,6 +29,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
@@ -44,6 +46,7 @@ import java.io.File;
  */
 @RunWith(Arquillian.class)
 @Prepare("SharedStoreHA")
+@Category(FailoverDedicated.class)
 public class DedicatedFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCase.class);

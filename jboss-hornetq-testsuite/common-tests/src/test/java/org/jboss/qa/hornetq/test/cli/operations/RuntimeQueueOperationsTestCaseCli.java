@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.impl.DelayedTextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -51,7 +51,7 @@ import java.util.Set;
  * only 1 server with deployed queue and CLI queue operations are executed.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
 
     private static final Logger log = Logger.getLogger(RuntimeQueueOperationsTestCaseCli.class);

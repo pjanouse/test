@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.messages;
 
+import category.Functional;
 import org.apache.activemq.artemis.core.message.impl.MessageImpl;
 import org.apache.activemq.artemis.jms.client.ActiveMQBytesMessage;
 import org.apache.activemq.artemis.jms.client.ActiveMQObjectMessage;
@@ -21,7 +22,6 @@ import org.jboss.qa.hornetq.apps.impl.ArtemisJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -70,7 +70,7 @@ import static org.junit.Assert.assertTrue;
  * @tpTestCaseDetails Tests for creating and manipulating messages.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JmsMessagesTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JmsMessagesTestCase.class);

@@ -13,7 +13,7 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.cli.CliTestBase;
 import org.jboss.qa.hornetq.test.cli.CliTestUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -49,7 +49,7 @@ import java.util.List;
  * @tpInfo For more details see current coverage: https://mojo.redhat.com/docs/DOC-185811
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JmsTopicOperationsTestCase extends CliTestBase {
 
     private static final Logger logger = Logger.getLogger(JmsTopicOperationsTestCase.class);

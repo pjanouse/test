@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.faultinjection;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -10,7 +11,6 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.PrintJournal;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.clients.SimpleJMSClient;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.CheckServerAvailableUtils;
@@ -51,7 +51,7 @@ import static org.junit.Assert.assertNull;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5536/hornetq-functional#testcases
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 @Prepare(value = "OneNode", params = {
         @Param(name = PrepareParams.JOURNAL_TYPE, value = "NIO"),
         @Param(name = PrepareParams.REMOTE_CONNECTION_FACTORY_RECONNECT_ATTEMPTS, value = "0"),

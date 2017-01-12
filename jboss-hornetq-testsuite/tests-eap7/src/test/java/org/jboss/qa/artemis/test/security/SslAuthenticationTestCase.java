@@ -1,6 +1,7 @@
 package org.jboss.qa.artemis.test.security;
 
 
+import category.Ssl;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -22,13 +23,9 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.clients.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
-import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.security.AddressSecuritySettings;
-import org.jboss.qa.hornetq.test.security.PKCS11Utils;
 import org.jboss.qa.hornetq.test.security.UsersSettings;
 import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
@@ -51,18 +48,15 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.net.ssl.SSLEngine;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -99,6 +93,7 @@ import static org.junit.Assert.assertNull;
  * @author Martin Svehla &lt;msvehla@redhat.com&gt;
  * @author Miroslav Novak mnovak@redhat.com
  */
+@Category(Ssl.class)
 @RunWith(Arquillian.class)
 public class SslAuthenticationTestCase extends SecurityTestBase {
 

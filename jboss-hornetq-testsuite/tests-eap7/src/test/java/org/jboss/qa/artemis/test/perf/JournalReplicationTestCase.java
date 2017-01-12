@@ -1,7 +1,7 @@
 package org.jboss.qa.artemis.test.perf;
 
+import category.ReplicatedJournalNetworkFailures;
 import com.google.common.collect.ImmutableMap;
-import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -20,6 +20,7 @@ import org.jboss.qa.resourcemonitor.MemoryMeasurement;
 import org.jboss.qa.resourcemonitor.NetworkUsageMeasurement;
 import org.jboss.qa.resourcemonitor.ResourceMonitor;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -32,6 +33,7 @@ import java.util.Map;
  * Created by okalman on 9.6.16.
  */
 @RunWith(Arquillian.class)
+@Category(ReplicatedJournalNetworkFailures.class)
 public class JournalReplicationTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JournalReplicationTestCase.class);

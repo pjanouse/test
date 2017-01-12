@@ -1,9 +1,10 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.Cluster;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -32,6 +33,7 @@ import javax.naming.Context;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  * @tpTestCaseDetails This is the same as ClusterTestCase, JGroups is used for cluster nodes discovery.
  */
+@Category(Cluster.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare(value = "FourNodes", params = {
@@ -44,7 +46,7 @@ public class JGroupsClusterTestCase extends ClusterTestCase {
     @Test
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Category(FunctionalTests.class)
+    @Category(Functional.class)
     public void testLookupOfConnectionFactoryWithJGroupsDiscoveryGroup() throws Exception {
 
         container(1).start();

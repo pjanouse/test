@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.XaTransactions;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -36,6 +37,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -66,6 +68,7 @@ import java.util.List;
  * 2 servers is resending messaging from one destination to another. During this
  * some of the servers are killed.
  */
+@Category(XaTransactions.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare("BytemanLodh2Prepare")

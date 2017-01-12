@@ -15,7 +15,7 @@ import org.jboss.qa.hornetq.apps.clients.QueueClientsAutoAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.mdb.MdbWithRemoteOutQueue0;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.DebugTools;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  * Created by mstyk on 11/8/16.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class ClientThreadPoolTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ClientThreadPoolTestCase.class);

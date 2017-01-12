@@ -1,6 +1,7 @@
 
 package org.jboss.qa.hornetq.test.failover;
 
+import category.Lodh5;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -14,6 +15,7 @@ import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import java.util.Map;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(Lodh5.class)
 public class Lodh5TestCase extends Lodh5TestBase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);

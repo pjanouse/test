@@ -16,7 +16,7 @@ import org.jboss.qa.hornetq.apps.clients.ReceiverAutoAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.GroupMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -35,7 +35,7 @@ import java.util.Map;
  * <p>
  * Created by mstyk on 6/27/16.
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class MessageOrderingTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(MessageOrderingTestCase.class);

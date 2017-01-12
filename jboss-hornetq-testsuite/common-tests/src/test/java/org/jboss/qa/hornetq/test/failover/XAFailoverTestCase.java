@@ -3,6 +3,7 @@ package org.jboss.qa.hornetq.test.failover;
 //todo add to test plan to mojo
 
 
+import category.FailoverDedicatedXaClients;
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
@@ -25,6 +26,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.UUID;
 /**
  * @author mnovak@redhat.com
  */
+@Category(FailoverDedicatedXaClients.class)
 public class XAFailoverTestCase extends HornetQTestCase {
 
 

@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.Lodh;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.config.descriptor.api.GroupDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -41,6 +42,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -74,6 +76,7 @@ import static org.jboss.qa.hornetq.constants.Constants.FAILURE_TYPE;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare("Lodh2Prepare")
+@Category(Lodh.class)
 public class Lodh2TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh2TestCase.class);

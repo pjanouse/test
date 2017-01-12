@@ -1,8 +1,10 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverColocatedClusterReplicatedJournal;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
+import org.junit.experimental.categories.Category;
 
 /**
  *
@@ -14,6 +16,7 @@ import org.jboss.qa.hornetq.test.prepares.PrepareParams;
  * @tpTestCaseDetails This test case implements  all tests from ReplicatedColocatedClusterFailoverTestCase, only BLOCK
  * policy instead of PAGE is set in address settings.
  */
+@Category(FailoverColocatedClusterReplicatedJournal.class)
 @Prepare(params = {
         @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
 })

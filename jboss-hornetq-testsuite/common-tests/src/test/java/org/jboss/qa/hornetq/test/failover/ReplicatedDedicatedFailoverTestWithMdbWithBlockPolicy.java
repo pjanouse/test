@@ -1,9 +1,11 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverDedicatedMdbReplicatedJournal;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
+import org.junit.experimental.categories.Category;
 
 /**
  *
@@ -20,6 +22,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
  * @tpTestCaseDetails Tests failover of remote JCA and replicated journal with BLOCK policy.
  * This test case implements the same tests as ReplicatedDedicatedFailoverTestWithMdb
  */
+@Category(FailoverDedicatedMdbReplicatedJournal.class)
 @Prepare(params = {
         @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK")
 })

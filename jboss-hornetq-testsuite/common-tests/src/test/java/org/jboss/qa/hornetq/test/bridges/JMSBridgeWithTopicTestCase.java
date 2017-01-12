@@ -1,11 +1,13 @@
 package org.jboss.qa.hornetq.test.bridges;
 
+import category.JournalAndBridgeCompatibility;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
 import org.jboss.qa.hornetq.apps.clients.PublisherClientAck;
 import org.jboss.qa.hornetq.apps.clients.SubscriberClientAck;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.junit.Assert;
+import org.junit.experimental.categories.Category;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-journal-and-jms-bridge-compatibility-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
+@Category(JournalAndBridgeCompatibility.class)
 public class JMSBridgeWithTopicTestCase extends JMSBridgeTestCase {
 
     // Topic to send messages in

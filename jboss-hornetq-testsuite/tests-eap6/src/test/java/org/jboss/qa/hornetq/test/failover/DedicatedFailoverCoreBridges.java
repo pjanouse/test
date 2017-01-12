@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 // TODO test re-deploy from backup -> live (failback)
 
+import category.FailoverBridges;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -9,6 +10,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
@@ -21,6 +23,7 @@ import org.junit.runner.RunWith;
  * @author mnovak@redhat.com
  */
 @RunWith(Arquillian.class)
+@Category(FailoverBridges.class)
 public class DedicatedFailoverCoreBridges extends FailoverBridgeTestBase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);

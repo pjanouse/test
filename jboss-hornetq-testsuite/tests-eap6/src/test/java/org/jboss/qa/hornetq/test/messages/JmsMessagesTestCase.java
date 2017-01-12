@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.messages;
 
+import category.Functional;
 import org.hornetq.core.message.impl.MessageImpl;
 import org.hornetq.jms.client.HornetQBytesMessage;
 import org.hornetq.jms.client.HornetQObjectMessage;
@@ -17,7 +18,6 @@ import org.jboss.qa.hornetq.apps.impl.AllHeadersClientMixMessageBuilder;
 import org.jboss.qa.hornetq.apps.impl.HornetqJMSImplementation;
 import org.jboss.qa.hornetq.apps.impl.MessageCreator10;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -63,7 +63,7 @@ import static org.junit.Assert.assertTrue;
  * @tpTestCaseDetails Tests for creating and manipulating messages.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class JmsMessagesTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(JmsMessagesTestCase.class);

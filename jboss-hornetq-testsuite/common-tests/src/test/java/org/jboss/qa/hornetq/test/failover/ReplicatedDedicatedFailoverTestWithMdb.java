@@ -1,5 +1,7 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverDedicatedMdbReplicatedJournal;
+import category.FailoverDedicatedReplicatedJournal;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -17,6 +19,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -36,6 +39,7 @@ import java.io.IOException;
  */
 @RunWith(Arquillian.class)
 @Prepare("RemoteJCAReplicated")
+@Category(FailoverDedicatedReplicatedJournal.class)
 public class ReplicatedDedicatedFailoverTestWithMdb extends DedicatedFailoverTestCaseWithMdb {
 
     private static final Logger logger = Logger.getLogger(ReplicatedDedicatedFailoverTestWithMdb.class);

@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.protocol;
 
+import category.Protocols;
 import org.apache.log4j.Logger;
 import org.fusesource.hawtbuf.Buffer;
 import org.fusesource.stomp.client.BlockingConnection;
@@ -13,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -28,6 +30,7 @@ import static org.fusesource.stomp.client.Constants.*;
 /**
  * Created by okalman on 8/24/15.
  */
+@Category(Protocols.class)
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 public class StompCompatibilityTestCase extends ProtocolCompatibilityTestCase  {

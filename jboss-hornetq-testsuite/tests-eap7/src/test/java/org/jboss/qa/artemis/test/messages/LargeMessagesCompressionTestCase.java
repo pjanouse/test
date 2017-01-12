@@ -17,7 +17,7 @@ import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.interceptors.LargeMessagePacketInterceptor;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -56,7 +56,7 @@ import static org.junit.Assert.assertTrue;
  * @tpSince EAP 6.3
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class LargeMessagesCompressionTestCase extends HornetQTestCase {
 
     private static final char[] CHARS = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();

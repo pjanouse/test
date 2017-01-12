@@ -1,6 +1,7 @@
 package org.jboss.qa.artemis.test.failover;
 // TODO test re-deploy from backup -> live (failback)
 
+import category.FailoverBridges;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -24,6 +25,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.*;
@@ -39,6 +41,7 @@ import java.util.*;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
  */
 @RunWith(Arquillian.class)
+@Category(FailoverBridges.class)
 public class DedicatedFailoverCoreBridges extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverCoreBridges.class);

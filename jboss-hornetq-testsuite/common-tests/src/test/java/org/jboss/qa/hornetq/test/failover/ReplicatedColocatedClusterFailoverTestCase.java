@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverColocatedClusterReplicatedJournal;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -22,6 +23,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.jms.Session;
@@ -38,6 +40,7 @@ import javax.jms.Session;
  */
 @RunWith(Arquillian.class)
 @Prepare("ColocatedReplicatedHA")
+@Category(FailoverColocatedClusterReplicatedJournal.class)
 public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedClusterFailoverTestCase {
 
 

@@ -7,7 +7,7 @@ import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.Container;
 import org.jboss.qa.hornetq.HornetQTestCase;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
+import category.Functional;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -31,7 +31,7 @@ import javax.naming.Context;
  * @tpTestCaseDetails Tests for creating and manipulating Queues    .
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class AutoCreateQueueTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(AutoCreateQueueTestCase.class);

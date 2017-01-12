@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.bridges;
 
+import category.BridgeNetworkFailure;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.apps.FinalTestMessageVerifier;
@@ -13,12 +14,14 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SimpleProxyServer;
 import org.junit.Assert;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 /**
  * @author Miroslav Novak (mnovak@redhat.com)
  */
 @RunWith(Arquillian.class)
+@Category(BridgeNetworkFailure.class)
 public class NetworkFailuresJMSBridgesTestCase extends NetworkFailuresBridgesAbstract {
 
     private static final Logger log = Logger.getLogger(NetworkFailuresJMSBridgesTestCase.class);

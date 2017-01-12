@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.failover;
 
+import category.Lodh5;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -24,6 +25,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.*;
@@ -42,6 +44,7 @@ import org.apache.commons.io.FileUtils;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(Lodh5.class)
 public class Lodh5TestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5TestCase.class);

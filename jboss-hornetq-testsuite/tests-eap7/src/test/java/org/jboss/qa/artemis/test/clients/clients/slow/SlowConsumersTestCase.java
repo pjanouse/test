@@ -1,6 +1,6 @@
 package org.jboss.qa.artemis.test.clients.clients.slow;
 
-import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
+import category.Functional;
 import org.apache.log4j.Logger;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -15,7 +15,6 @@ import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
 import org.jboss.qa.hornetq.apps.mdb.LocalSlowMdbFromTopic;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SlowConsumerPolicy;
@@ -48,7 +47,7 @@ import static org.junit.Assert.*;
  * from topic. Tests are focused on proper disconnection of slow consumers.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(SlowConsumersTestCase.class);

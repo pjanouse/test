@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverBridges;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -15,6 +16,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.naming.Context;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/5535/hornetq-high-availability#testcases
  */
 @RunWith(Arquillian.class)
+@Category(FailoverBridges.class)
 public class JMSBridgeFailoverTestCase extends FailoverBridgeTestBase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);

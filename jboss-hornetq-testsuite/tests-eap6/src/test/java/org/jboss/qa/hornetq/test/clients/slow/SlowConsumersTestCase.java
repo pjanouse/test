@@ -9,6 +9,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.remote.JMXConnector;
 import javax.naming.Context;
+
+import category.Functional;
 import org.hornetq.api.core.management.ObjectNameBuilder;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -27,7 +29,6 @@ import org.jboss.qa.hornetq.apps.clients.SubscriberAutoAck;
 import org.jboss.qa.hornetq.apps.impl.TextMessageBuilder;
 import org.jboss.qa.hornetq.apps.jmx.JmxNotificationListener;
 import org.jboss.qa.hornetq.apps.jmx.JmxUtils;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
@@ -42,7 +43,7 @@ import static org.junit.Assert.*;
 
 
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class SlowConsumersTestCase extends HornetQTestCase {
 
     private static final Logger LOG = Logger.getLogger(SlowConsumersTestCase.class);

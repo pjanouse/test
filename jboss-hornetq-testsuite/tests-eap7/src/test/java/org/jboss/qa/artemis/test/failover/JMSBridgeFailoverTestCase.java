@@ -1,5 +1,6 @@
 package org.jboss.qa.artemis.test.failover;
 
+import category.FailoverBridges;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -23,6 +24,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.naming.Context;
@@ -43,6 +45,7 @@ import static org.jboss.qa.hornetq.constants.Constants.*;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
+@Category(FailoverBridges.class)
 public class JMSBridgeFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(JMSBridgeFailoverTestCase.class);

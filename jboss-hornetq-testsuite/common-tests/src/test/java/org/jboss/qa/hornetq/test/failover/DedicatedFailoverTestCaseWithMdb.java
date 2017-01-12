@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.failover;
 
+import category.FailoverDedicatedMdb;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -35,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -54,6 +56,7 @@ import java.io.File;
  */
 @RunWith(Arquillian.class)
 @Prepare("RemoteJCASharedStore")
+@Category(FailoverDedicatedMdb.class)
 public class DedicatedFailoverTestCaseWithMdb extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(DedicatedFailoverTestCaseWithMdb.class);

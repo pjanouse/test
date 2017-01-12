@@ -1,22 +1,16 @@
 package org.jboss.qa.artemis.test.security;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Param;
 import org.jboss.qa.Prepare;
-import org.jboss.qa.hornetq.Container;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
-import org.jboss.qa.hornetq.test.security.UsersSettings;
-import org.jboss.qa.hornetq.tools.JMSOperations;
-import org.jboss.qa.hornetq.tools.ServerPathUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 /**
  * Test Elytron security permissions to queues and topic
@@ -47,7 +41,7 @@ import java.io.File;
  * try to execute operations.
  */
 @RunWith(Arquillian.class)
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class ElytronPermissionSecurityTestCase extends PermissionSecurityTestBase {
 
 

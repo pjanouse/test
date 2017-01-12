@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.bridges;
 
+import category.JournalAndBridgeCompatibility;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
 import org.jboss.qa.hornetq.Container;
@@ -19,6 +20,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.*;
 
@@ -29,6 +31,7 @@ import java.util.*;
  * @tpJobLink https://jenkins.mw.lab.eng.bos.redhat.com/hudson/view/EAP7/view/EAP7-JMS/job/eap7-artemis-integration-journal-and-jms-bridge-compatibility-matrix/
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
+@Category(JournalAndBridgeCompatibility.class)
 public class JMSBridgeTestCase extends HornetQTestCase {
 
     protected static final Logger logger = Logger.getLogger(JMSBridgeTestCase.class);

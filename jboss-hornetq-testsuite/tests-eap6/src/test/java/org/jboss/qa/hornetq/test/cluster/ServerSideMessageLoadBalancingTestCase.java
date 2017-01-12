@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.cluster;
 
+import category.Cluster;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
@@ -23,6 +24,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.Map;
 /**
  * Created by mnovak on 5/3/16.
  */
+@Category(Cluster.class)
 public class ServerSideMessageLoadBalancingTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(ServerSideMessageLoadBalancingTestCase.class);

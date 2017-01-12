@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.remote.jca;
 
+import category.Lodh;
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.config.descriptor.api.ContainerDef;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -47,6 +48,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import javax.naming.Context;
@@ -71,6 +73,7 @@ import java.util.Random;
  * @tpTcmsLink https://tcms.engineering.redhat.com/plan/19042/activemq-artemis-integration#testcases
  */
 @RunWith(Arquillian.class)
+@Category(Lodh.class)
 public class RemoteJcaTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(RemoteJcaTestCase.class);

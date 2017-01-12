@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.messages;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Param;
@@ -11,7 +12,6 @@ import org.jboss.qa.hornetq.apps.MessageBuilder;
 import org.jboss.qa.hornetq.apps.clients.ProducerPriority;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixMessageBuilder;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * Created by mstyk on 6/27/16.
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class MessagePriorityTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(MessageOrderingTestCase.class);

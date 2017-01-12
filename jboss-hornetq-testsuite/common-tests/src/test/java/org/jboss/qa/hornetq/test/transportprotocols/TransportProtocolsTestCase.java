@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.transportprotocols;
 
+import category.Functional;
 import org.apache.commons.io.FileUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -9,7 +10,6 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.constants.Constants;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.SocketBinding;
 import org.jboss.qa.hornetq.tools.XMLManipulation;
@@ -53,7 +53,7 @@ import org.jboss.qa.hornetq.tools.ContainerUtils;
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class TransportProtocolsTestCase extends HornetQTestCase {
 
     private static final Logger log = Logger.getLogger(TransportProtocolsTestCase.class);

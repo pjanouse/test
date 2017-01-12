@@ -1,6 +1,7 @@
 //TODO do check of journal files
 package org.jboss.qa.hornetq.test.failover;
 
+import category.Lodh4;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.logging.Logger;
@@ -20,6 +21,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigB
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
 @Prepare("Lodh4Prepare")
+@Category(Lodh4.class)
 public class Lodh4TestCase extends HornetQTestCase {
 
     // this is just maximum limit for producer - producer is stopped once failover test scenario is complete
