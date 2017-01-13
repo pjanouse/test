@@ -520,8 +520,6 @@ public class PrepareMethods extends PrepareBase {
         boolean persistenceEnabled = PrepareUtils.getBoolean(params, PrepareParams.PERSISTENCE_ENABLED, PrepareConstants.PERSISTENCE_ENABLED);
         jmsOperations.setPersistenceEnabled(serverName, persistenceEnabled);
 
-        jmsOperations.close();
-
     }
 
     @PrepareMethod(value = PREPARE_DATABASE, labels = {"EAP6", "EAP7"})
