@@ -26,6 +26,7 @@ import org.jboss.qa.management.cli.CliUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -212,6 +213,7 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
+    @Ignore("https://issues.jboss.org/browse/JBEAP-8264")
     public void testOperationsWithConnectedClientsUnderLoad() throws Exception {
 
         // setup server
