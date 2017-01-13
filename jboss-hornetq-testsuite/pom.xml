@@ -74,6 +74,7 @@
         <hornetq.surefire.jvm.options.eap7>${hornetq.surefire.jvm.options}
             -Djboss.cli.config=${eap.cli.config.eap7}
         </hornetq.surefire.jvm.options.eap7>
+        <test>*</test>
 
 
     </properties>
@@ -197,6 +198,8 @@
                     </systemPropertyVariables>
                     <argLine>${hornetq.surefire.jvm.options}</argLine>
                     <failIfNoTests>false</failIfNoTests>
+                    <!-- workaround for issue with Junit categories and test class inheritance -->
+                    <test>${test}</test>
                     <!-- loads all arquillian.xml files -->
                     <additionalClasspathElements>
                         <additionalClasspathElement>common-tests/src/main/resources</additionalClasspathElement>

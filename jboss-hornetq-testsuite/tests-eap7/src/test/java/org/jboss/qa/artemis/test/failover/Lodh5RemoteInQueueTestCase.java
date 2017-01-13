@@ -1,6 +1,5 @@
 package org.jboss.qa.artemis.test.failover;
 
-import category.Lodh5RemoteInQueue;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -49,8 +48,7 @@ import static org.jboss.qa.hornetq.constants.Constants.RESOURCE_ADAPTER_NAME_EAP
  */
 @RunWith(Arquillian.class)
 @RestoreConfigBeforeTest
-@Category(Lodh5RemoteInQueue.class)
-public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
+public abstract class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(Lodh5RemoteInQueueTestCase.class);
 
@@ -977,8 +975,7 @@ public class Lodh5RemoteInQueueTestCase extends HornetQTestCase {
         }
     }
 
-    protected void setAddressSettings(JMSOperations jmsAdminOperations){
-    };
+    protected abstract void setAddressSettings(JMSOperations jmsAdminOperations);
 
 }
 
