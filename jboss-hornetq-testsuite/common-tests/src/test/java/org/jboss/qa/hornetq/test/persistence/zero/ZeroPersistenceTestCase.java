@@ -1,5 +1,6 @@
 package org.jboss.qa.hornetq.test.persistence.zero;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.logging.Logger;
 import org.jboss.qa.Param;
@@ -13,7 +14,6 @@ import org.jboss.qa.hornetq.apps.clients.ProducerTransAck;
 import org.jboss.qa.hornetq.apps.clients.ReceiverTransAck;
 import org.jboss.qa.hornetq.apps.impl.ClientMixedMessageTypeBuilder;
 import org.jboss.qa.hornetq.apps.impl.verifiers.configurable.MessageVerifierFactory;
-import org.jboss.qa.hornetq.test.categories.FunctionalTests;
 import org.jboss.qa.hornetq.test.prepares.PrepareConstants;
 import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.ContainerUtils;
@@ -28,7 +28,7 @@ import java.util.Arrays;
 /**
  * Created by mnovak
  */
-@Category(FunctionalTests.class)
+@Category(Functional.class)
 public class ZeroPersistenceTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ZeroPersistenceTestCase.class);
@@ -119,10 +119,10 @@ public class ZeroPersistenceTestCase extends HornetQTestCase {
         producer1.start();
 
         // as long as producer can send message then send
-        new JMSTools().waitForMessages(PrepareConstants.IN_QUEUE_NAME, 200, 60000, container(1));
+        JMSTools.waitForMessages(PrepareConstants.IN_QUEUE_NAME, 200, 60000, container(1));
         long count = 0;
         long newCount = 0;
-        while ((newCount = new JMSTools().countMessages(PrepareConstants.IN_QUEUE_NAME, container(1))) > count)  {
+        while ((newCount = JMSTools.countMessages(PrepareConstants.IN_QUEUE_NAME, container(1))) > count)  {
             count = newCount;
             Thread.sleep(10000);
         }
@@ -134,7 +134,7 @@ public class ZeroPersistenceTestCase extends HornetQTestCase {
         addClient(receiver1);
         receiver1.start();
 
-        new JMSTools().waitForAtLeastOneReceiverToConsumeNumberOfMessages(Arrays.asList(new Client[] {receiver1}), 200, 60000);
+        JMSTools.waitForAtLeastOneReceiverToConsumeNumberOfMessages(Arrays.asList(new Client[] {receiver1}), 200, 60000);
 
         producer1.stopSending();
         producer1.join();
