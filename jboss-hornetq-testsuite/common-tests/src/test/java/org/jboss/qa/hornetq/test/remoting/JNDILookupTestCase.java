@@ -1,6 +1,8 @@
 package org.jboss.qa.hornetq.test.remoting;
 
+import category.Functional;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.qa.Prepare;
 import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JMSTools;
@@ -9,6 +11,8 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -24,6 +28,9 @@ import java.util.Map;
 /**
  * Created by eduda on 13.1.2017.
  */
+@RunWith(Arquillian.class)
+@Category(Functional.class)
+@RestoreConfigBeforeTest
 public class JNDILookupTestCase extends HornetQTestCase {
 
     @Test
