@@ -1,6 +1,7 @@
 package org.jboss.qa.hornetq.tools.jms;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -272,6 +273,58 @@ public class ClientUtils {
             }
         } while (consumersCounts.size() > 0);
 
+    }
+
+    public static void waitUntilProducersAreBlocked(Clients clients, long timeout) throws Exception {
+        List<Client> produdcers = clients.getProducers();
+
+        List<Integer> numberOfMsgs = new ArrayList<Integer>();
+        long numberOfMsgsChanged = System.currentTimeMillis();
+
+        for (Client producer : produdcers) {
+            numberOfMsgs.add(producer.getCount());
+        }
+
+        long timeToWait = System.currentTimeMillis() + timeout;
+
+        while (System.currentTimeMillis() < timeToWait) {
+
+            for (int i = 0; i < produdcers.size(); i++) {
+                if (produdcers.get(i).getCount() != numberOfMsgs.get(i)) {
+                    numberOfMsgs.set(i, produdcers.get(i).getCount());
+                    numberOfMsgsChanged = System.currentTimeMillis();
+                }
+            }
+
+            if (numberOfMsgsChanged + 30000 < System.currentTimeMillis()) {
+                return;
+            }
+            Thread.sleep(500);
+        }
+        throw new RuntimeException("Producers weren't blocked in timeout " + timeout);
+    }
+
+    public static void waitForProducersToFailover(Clients clients, long timeout) {
+
+        // wait for 2 min for producers to send more messages
+        long startTime = System.currentTimeMillis();
+
+        int startValue = 0;
+        for (Client c : clients.getProducers()) {
+
+            startValue = c.getCount();
+
+            while (c.getCount() <= startValue) {
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    Assert.fail("Clients - producers - did not failover/failback in: " + timeout + " ms. Print bad producer: " + c);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
 }
