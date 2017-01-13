@@ -64,6 +64,7 @@ public class PrepareBase {
         ctx.invokeMethod(PrepareMethods.PREPARE_CONNECTOR, params);
         ctx.invokeMethod(PrepareMethods.PREPARE_CLUSTER, params);
         ctx.invokeMethod(PrepareMethods.PREPARE_MISC, params);
+        ctx.invokeMethod(PrepareMethods.PREPARE_PERSISTENCE, params);
         ctx.invokeMethod(PrepareMethods.PREPARE_DATABASE, params);
         ctx.invokeMethod(PrepareMethods.PREPARE_HA, params);
         ctx.invokeMethod(PrepareMethods.PREPARE_JOURNALS_DIRECTORY, params);

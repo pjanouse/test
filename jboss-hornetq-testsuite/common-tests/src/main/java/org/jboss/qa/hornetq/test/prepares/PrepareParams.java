@@ -50,6 +50,8 @@ public class PrepareParams {
 
     public static final String REMOTE_CONNECTION_FACTORY_TYPE =  "REMOTE_CONNECTION_FACTORY_TYPE";
 
+    public static final String PERSISTENCE_ENABLED =  "PERSISTENCE_ENABLED";
+
     public static final String POOLED_CONNECTION_FACTORY_HA =  "POOLED_CONNECTION_FACTORY_HA";
 
     public static final String POOLED_CONNECTION_FACTORY_BLOCK_ON_ACK =  "POOLED_CONNECTION_FACTORY_BLOCK_ON_ACK";

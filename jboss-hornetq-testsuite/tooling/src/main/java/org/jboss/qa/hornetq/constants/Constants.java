@@ -113,4 +113,8 @@ public class Constants {
         ONE_WAY, TWO_WAY
     }
 
+    public enum ADDRESS_SETTING_FULL_POLICY {
+        DROP, FAIL, PAGE, BLOCK
+    }
+
 }

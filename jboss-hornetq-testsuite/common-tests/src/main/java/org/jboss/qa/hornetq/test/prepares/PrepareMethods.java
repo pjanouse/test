@@ -30,6 +30,7 @@ public class PrepareMethods extends PrepareBase {
     public static final String PREPARE_CLUSTER = "prepare-cluster";
     public static final String PREPARE_SECURITY = "prepare-security";
     public static final String PREPARE_MISC = "prepare-misc";
+    public static final String PREPARE_PERSISTENCE = "prepare-persistence";
     public static final String PREPARE_DATABASE = "prepare-database";
     public static final String PREPARE_JOURNALS_DIRECTORY = "prepare-journals-directory";
     public static final String PREPARE_HA = "prepare-ha";
@@ -508,6 +509,19 @@ public class PrepareMethods extends PrepareBase {
         if (autoDeleteJMSQueues != null) {
             jmsOperations.setAutoDeleteJMSQueue(autoDeleteJMSQueues);
         }
+    }
+
+    @PrepareMethod(value = PREPARE_PERSISTENCE, labels = {"EAP6", "EAP7"})
+    public void setPreparePersistence(Map<String, Object> params) {
+
+        JMSOperations jmsOperations = getJMSOperations(params);
+        String serverName = getServerName(params);
+
+        boolean persistenceEnabled = PrepareUtils.getBoolean(params, PrepareParams.PERSISTENCE_ENABLED, PrepareConstants.PERSISTENCE_ENABLED);
+        jmsOperations.setPersistenceEnabled(serverName, persistenceEnabled);
+
+        jmsOperations.close();
+
     }
 
     @PrepareMethod(value = PREPARE_DATABASE, labels = {"EAP6", "EAP7"})
