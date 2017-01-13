@@ -117,7 +117,9 @@ public class ReplicatedColocatedClusterFailoverTestCase extends ColocatedCluster
         logger.info("########################################");
         container(1).start();
         CheckServerAvailableUtils.waitForBrokerToActivate(container(1), 300000);
-        Thread.sleep(20000); // give some time to org.jboss.qa.hornetq.apps.clients
+        CheckServerAvailableUtils.waitForBrokerToDeactivate(container(2), PrepareConstants.BACKUP_SERVER_NAME, 30000);
+        CheckServerAvailableUtils.waitForBrokerToActivate(container(2), 30000);
+        CheckServerAvailableUtils.waitForBrokerToDeactivate(container(1), PrepareConstants.BACKUP_SERVER_NAME, 30000);
 
         logger.info("########################################");
         logger.info("Stop org.jboss.qa.hornetq.apps.clients - this will stop producers");
