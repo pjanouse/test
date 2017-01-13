@@ -23,6 +23,7 @@ public class PrepareConstants {
     public static final String JMS_BRIDGE_NAME = "myBridge";
     public static final String CLUSTER_NAME = "my-cluster";
     public static final String REMOTE_CONNECTION_FACTORY_NAME = "RemoteConnectionFactory";
+    public static final String REMOTE_CONNECTION_FACTORY_JNDI = "jms/RemoteConnectionFactory";
     public static final String INVM_CONNECTION_FACTORY_NAME = "InVmConnectionFactory";
     public static final String POOLED_CONNECTION_FACTORY_NAME_EAP6 = "hornetq-ra";
     public static final String POOLED_CONNECTION_FACTORY_NAME_EAP7 = "activemq-ra";

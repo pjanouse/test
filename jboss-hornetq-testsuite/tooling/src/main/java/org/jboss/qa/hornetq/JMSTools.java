@@ -550,4 +550,24 @@ public final class JMSTools {
             }
         }
     }
+
+    public static void closeQuitely(Connection obj) {
+        if (obj != null) {
+            try {
+                obj.close();
+            } catch (JMSException e) {
+                log.warn(e.getMessage(), e);
+            }
+        }
+    }
+
+    public static void closeQuitely(Context obj) {
+        if (obj != null) {
+            try {
+                obj.close();
+            } catch (NamingException e) {
+                log.warn(e.getMessage(), e);
+            }
+        }
+    }
 }
