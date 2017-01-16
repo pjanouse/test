@@ -213,7 +213,6 @@ public class JmsTopicOperationsTestCase extends CliTestBase {
     @RunAsClient
     @RestoreConfigBeforeTest
     @CleanUpBeforeTest
-    @Ignore("https://issues.jboss.org/browse/JBEAP-8264")
     public void testOperationsWithConnectedClientsUnderLoad() throws Exception {
 
         // setup server
