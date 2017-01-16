@@ -48,7 +48,7 @@ import javax.jms.Session;
         @Param(name = PrepareParams.ADDRESS_FULL_POLICY, value = "BLOCK"),
         @Param(name = PrepareParams.MAX_SIZE_BYTES, value = "" + 10 * 1024 * 1024)
 })
-public class ReplicatedColocatedClusterFailoverTestCaseWithBlockPolicy extends HornetQTestCase {
+public class BlockPolicyReplicatedColocatedClusterFailoverTestCase extends HornetQTestCase {
 
     private static final Logger logger = Logger.getLogger(ReplicatedColocatedClusterFailoverTestCase.class);
 
