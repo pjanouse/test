@@ -63,13 +63,11 @@
 
         <hornetq.surefire.jvm.xmx>2G</hornetq.surefire.jvm.xmx>
         <hornetq.surefire.jvm.xms>2G</hornetq.surefire.jvm.xms>
-        <hornetq.surefire.jvm.max.direct.memory>0</hornetq.surefire.jvm.max.direct.memory>
         <hornetq.surefire.jvm.options>-Xmx${hornetq.surefire.jvm.xmx} -Xms${hornetq.surefire.jvm.xms}
             -javaagent:${org.jboss.byteman:byteman:jar}=prop:org.jboss.byteman.verbose=true,address:${MYTESTIP_1},port:9591
             -Djboss.modules.system.pkgs=org.jboss.byteman
             -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
             -XX:+HeapDumpOnOutOfMemoryError
-            -XX:MaxDirectMemorySize=${hornetq.surefire.jvm.max.direct.memory}
         </hornetq.surefire.jvm.options>
         <hornetq.surefire.jvm.options.eap6>${hornetq.surefire.jvm.options}
             -Djboss.cli.config=${eap.cli.config.eap6}
