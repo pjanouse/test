@@ -68,6 +68,7 @@
             -Djboss.modules.system.pkgs=org.jboss.byteman
             -Xbootclasspath/a:${org.jboss.byteman:byteman:jar}:${org.jboss.byteman:byteman-submit:jar}
             -XX:+HeapDumpOnOutOfMemoryError
+            -XX:MaxDirectMemorySize=64m
         </hornetq.surefire.jvm.options>
         <hornetq.surefire.jvm.options.eap6>${hornetq.surefire.jvm.options}
             -Djboss.cli.config=${eap.cli.config.eap6}
