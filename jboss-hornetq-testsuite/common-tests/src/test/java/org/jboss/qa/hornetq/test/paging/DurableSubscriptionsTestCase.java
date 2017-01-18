@@ -198,6 +198,10 @@ public class DurableSubscriptionsTestCase extends HornetQTestCase {
     private void testLogic(int gapBetweenConsumers, int messagesCount, int consumersCount,
                             int receiveTimeout, MessageBuilder messageBuilder) {
 
+        if (prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE)) {
+            messagesCount = 5000;
+        }
+
         container(1).start();
 
         // Clients and semaphores

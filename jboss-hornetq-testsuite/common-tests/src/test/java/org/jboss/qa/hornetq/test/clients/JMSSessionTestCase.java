@@ -18,6 +18,7 @@ import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -127,6 +128,9 @@ public class JMSSessionTestCase extends HornetQTestCase {
     @CleanUpBeforeTest
     @Prepare(value = "ReplicatedHA")
     public void testSendMessagesToMultipleQueuesAfterFailover() throws Exception {
+
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
+
         final int MESSAGES_NUMBER = 5;
 
         container(1).start();
