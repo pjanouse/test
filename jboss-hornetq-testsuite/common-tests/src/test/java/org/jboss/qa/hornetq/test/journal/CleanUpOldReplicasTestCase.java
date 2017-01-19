@@ -29,6 +29,7 @@ import org.jboss.qa.hornetq.tools.byteman.annotation.BMRules;
 import org.jboss.qa.hornetq.tools.byteman.rule.RuleInstaller;
 import org.jboss.qa.hornetq.tools.jms.ClientUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -190,6 +191,8 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
                     action = "System.out.println(\"Byteman - Synchronization with backup is done.\");(new java.io.File(\"target/synced\")).createNewFile();")
     })
     public void testMaxReplicatedJournalSize(int maxReplicatedJournalSize, MessageBuilder messageBuilder, boolean pagingEnabled, boolean randomDeletion) throws Exception {
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
+
         container(1).start();
         container(2).start();
 
@@ -379,6 +382,7 @@ public class CleanUpOldReplicasTestCase extends HornetQTestCase {
             @Param(name = PrepareParams.PAGE_SIZE_BYTES, value = "" + 512 * 1024)
     })
     public void testColocatedMaxReplicatedJournalSize() throws Exception {
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
 
         int maxReplicatedJournalSize = 2;
         MessageBuilder messageBuilder = new TextMessageBuilder(20 * 1024);
