@@ -1064,11 +1064,8 @@ public class FaultInjectionTestCase extends HornetQTestCase {
                     targetMethod = "appendRecord",
                     action = BYTEMAN_KILL_ACTION),
             @BMRule(name = "Artemis Kill before the record is written into the journal - send",
-                    targetClass = "org.apache.activemq.artemis.core.journal.impl.JournalImpl",
-                    targetMethod = "appendRecord",
-                    action = BYTEMAN_KILL_ACTION),
-            @BMRule(name = "Artemis 1.4 Kill before the record is written into the journal - send",
-                    targetClass = "org.apache.activemq.artemis.core.journal.impl.AbstractJournalStorageManager",
+                    targetClass = "org.apache.activemq.artemis.core.journal.Journal",
+                    isInterface = true,
                     targetMethod = "appendRecord",
                     action = BYTEMAN_KILL_ACTION)})
     public void clientAckAtSendingBeforeWrittenToJournalTest() {

@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
+import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
@@ -154,6 +155,9 @@ public class HornetQTestCase implements HornetQTestCaseConstants {
         JBOSS_HOME_4 = verifyJbossHome(getEnvProperty("JBOSS_HOME_4"));
 
     }
+
+    @Rule
+    public Timeout globalTimeout = new Timeout((int) TimeUnit.HOURS.toMillis(1));
 
     @Rule
     public TestRule watcher = new TestWatcher() {

@@ -21,6 +21,7 @@ import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeT
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.jboss.qa.hornetq.tools.journal.JournalExportImportUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -105,6 +106,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @Prepare("OneNode")
     public void testExportImportMessageWithNullProperty() throws Exception {
 
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
+
         container(1).start();
 
         logger.info("JOURNAL DIRECTORY: " + directoryWithJournal);
@@ -171,6 +174,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     @RestoreConfigBeforeTest
     @Prepare("OneNode")
     public void testExportImportMessageWithNullPropertyUsingAdminOperation() throws Exception {
+
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
 
         container(1).start();
 
@@ -332,6 +337,8 @@ public class JournalExportImportTestCase extends HornetQTestCase {
     }
 
     private void internalTestExportImportLargeMessagesUsingAdminOperation(MessageBuilder messageBuilder) throws Exception {
+
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
 
         container(1).start();
 

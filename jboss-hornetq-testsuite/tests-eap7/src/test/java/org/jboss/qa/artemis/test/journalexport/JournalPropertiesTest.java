@@ -9,11 +9,13 @@ import org.jboss.qa.hornetq.HornetQTestCase;
 import org.jboss.qa.hornetq.JournalDirectory;
 import org.jboss.qa.hornetq.apps.clients20.ProducerAutoAck;
 import org.jboss.qa.hornetq.apps.clients20.ReceiverAutoAck;
+import org.jboss.qa.hornetq.test.prepares.PrepareParams;
 import org.jboss.qa.hornetq.tools.JMSOperations;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.CleanUpBeforeTest;
 import org.jboss.qa.hornetq.tools.arquillina.extension.annotation.RestoreConfigBeforeTest;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -70,6 +72,8 @@ public class JournalPropertiesTest extends HornetQTestCase {
     @CleanUpBeforeTest
     @RestoreConfigBeforeTest
     public void journalPoolFilesAttributeTest() throws InterruptedException {
+        Assume.assumeFalse(prepareCoordinator.getParams().containsKey(PrepareParams.DATABASE));
+
         final int NUM_MESSAGES = 100;
 
         prepareServer(container(1));
