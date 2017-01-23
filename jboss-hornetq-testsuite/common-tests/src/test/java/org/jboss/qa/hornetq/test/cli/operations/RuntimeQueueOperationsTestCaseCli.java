@@ -192,7 +192,7 @@ public class RuntimeQueueOperationsTestCaseCli extends CliTestBase {
         long numberOfMessagesInQueue = jmsOperations.getCountOfMessagesOnQueue(queueName);
         jmsOperations.close();
 
-        Assert.assertEquals("Not all messages were removed from queue.", 0, numberOfMessages);
+        Assert.assertEquals("Not all messages were removed from queue.", 0, numberOfMessagesInQueue);
 
         container(1).stop();
 
