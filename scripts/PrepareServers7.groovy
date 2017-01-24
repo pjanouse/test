@@ -669,12 +669,12 @@ public class PrepareServers7 {
         //def eapZipUrl = 'http://download.eng.rdu2.redhat.com/devel/candidates/JBEAP/JBEAP-6.3.0.ER10/jboss-eap-6.3.0.ER10.zip'
 //        eapZipUrl = ' file:///home/mnovak/tmp/jboss-eap-6.3.0.ER10.zip'
         PrepareServers7 p = new PrepareServers7()
-        p.prepareServer(eapZipUrl, configurationDirUrl)
-        p.copyServers(4)
-        if (eapZipUrlOld != null && eapZipUrlOld != '') {
-            p.prepareServer(eapZipUrlOld, configurationDirUrlOld);
-            p.copyServers(2)
-        }
+//        p.prepareServer(eapZipUrl, configurationDirUrl)
+//        p.copyServers(4)
+//        if (eapZipUrlOld != null && eapZipUrlOld != '') {
+//            p.prepareServer(eapZipUrlOld, configurationDirUrlOld);
+//            p.copyServers(2)
+//        }
         cleanUp();
     }
 
