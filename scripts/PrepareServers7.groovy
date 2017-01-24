@@ -675,7 +675,7 @@ public class PrepareServers7 {
 //            p.prepareServer(eapZipUrlOld, configurationDirUrlOld);
 //            p.copyServers(2)
 //        }
-        cleanUp();
+//        cleanUp();
     }
 
 }
